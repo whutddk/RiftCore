@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-10 18:10:19
+* @Last Modified time: 2020-09-10 19:40:44
 */
 
 
@@ -144,80 +144,81 @@ module decoder (
 
 
 
-	wire rv32i_lui 		= op_lui;
-	wire rv32i_auipc 	= op_auipc;
-	wire rv32i_jal 		= op_jal;
-	wire rv32i_jalr 	= op_jalr & funct3_000;
+	wire rv64i_lui 		= op_lui;
+	wire rv64i_auipc 	= op_auipc;
+	wire rv64i_jal 		= op_jal;
+	wire rv64i_jalr 	= op_jalr & funct3_000;
 
-	wire rv32i_beq 		= op_branch & funct3_000;
-	wire rv32i_bne 		= op_branch & funct3_001;
-	wire rv32i_blt 		= op_branch & funct3_100;
-	wire rv32i_bge 		= op_branch & funct3_101;	
-	wire rv32i_bltu 	= op_branch & funct3_110;		
-	wire rv32i_bgeu 	= op_branch & funct3_111;
+	wire rv64i_beq 		= op_branch & funct3_000;
+	wire rv64i_bne 		= op_branch & funct3_001;
+	wire rv64i_blt 		= op_branch & funct3_100;
+	wire rv64i_bge 		= op_branch & funct3_101;	
+	wire rv64i_bltu 	= op_branch & funct3_110;		
+	wire rv64i_bgeu 	= op_branch & funct3_111;
 
-	wire rv32i_lb 		= op_load & funct3_000;
-	wire rv32i_lh 		= op_load & funct3_001;
-	wire rv32i_lw 		= op_load & funct3_010;
-	wire rv32i_lbu 		= op_load & funct3_100;
-	wire rv32i_lhu 		= op_load & funct3_101;
-
-	wire rv32i_sb 		= op_store & funct3_000;
-	wire rv32i_sh 		= op_store & funct3_001;
-	wire rv32i_sw 		= op_store & funct3_010;
-
-	wire rv32i_addi 	= op_op_imm & funct3_000;
-	wire rv32i_slti 	= op_op_imm & funct3_010;
-	wire rv32i_sltiu 	= op_op_imm & funct3_011;
-	wire rv32i_xori 	= op_op_imm & funct3_100;
-	wire rv32i_ori 		= op_op_imm & funct3_110;
-	wire rv32i_andi 	= op_op_imm & funct3_111;
-	wire rv32i_slli 	= op_op_imm & funct3_001 & funct7_0000000;
-	wire rv32i_srli 	= op_op_imm & funct3_101 & funct7_0000000;
-	wire rv32i_srai 	= op_op_imm & funct3_101 & funct7_0100000;
-
-	wire rv32i_add 		= op_op & funct3_000 & funct7_0000000;
-	wire rv32i_sub 		= op_op & funct3_000 & funct7_0100000;
-	wire rv32i_sll 		= op_op & funct3_001 & funct7_0000000;
-	wire rv32i_slt 		= op_op & funct3_010 & funct7_0000000;
-	wire rv32i_sltu 	= op_op & funct3_011 & funct7_0000000;
-	wire rv32i_xor 		= op_op & funct3_100 & funct7_0000000;
-	wire rv32i_srl 		= op_op & funct3_101 & funct7_0000000;
-	wire rv32i_sra 		= op_op & funct3_101 & funct7_0100000;
-	wire rv32i_or 		= op_op & funct3_110 & funct7_0000000;
-	wire rv32i_and 		= op_op & funct3_111 & funct7_0000000;
-
-	wire rv32i_fence 	= op_misc_mem & funct3_000;
-	wire rv32i_ecall 	= op_system & funct3_000 & funct7_0000000;
-	wire rv32i_ebreak 	= op_system & funct3_000 & funct7_0000001;
-
+	wire rv64i_lb 		= op_load & funct3_000;
+	wire rv64i_lh 		= op_load & funct3_001;
+	wire rv64i_lw 		= op_load & funct3_010;
+	wire rv64i_lbu 		= op_load & funct3_100;
+	wire rv64i_lhu 		= op_load & funct3_101;
 	wire rv64i_lwu 		= op_load & funct3_110;
 	wire rv64i_ld 		= op_load & funct3_011;
+
+	wire rv64i_sb 		= op_store & funct3_000;
+	wire rv64i_sh 		= op_store & funct3_001;
+	wire rv64i_sw 		= op_store & funct3_010;
 	wire rv64i_sd 		= op_store & funct3_011;
 
-	wire rv64i_slli 	= op_op_imm & funct3_001 & funct7_0000000;
-	wire rv64i_srli 	= op_op_imm & funct3_101 & funct7_0000000;
-	wire rv64i_srai 	= op_op_imm & funct3_101 & funct7_0100000;
+	wire rv64i_addi 	= op_op_imm 	& funct3_000;
+	wire rv64i_addiw 	= op_op_imm32 	& funct3_000;
+	wire rv64i_slti 	= op_op_imm 	& funct3_010;
+	wire rv64i_sltiu 	= op_op_imm 	& funct3_011;
+	wire rv64i_xori 	= op_op_imm 	& funct3_100;
+	wire rv64i_ori 		= op_op_imm 	& funct3_110;
+	wire rv64i_andi 	= op_op_imm 	& funct3_111;
+	wire rv64i_slli 	= op_op_imm 	& funct3_001 & ( funct7[6:1] == 6'b000000 );
+	wire rv64i_slliw 	= op_op_imm32 	& funct3_001 & funct7_0000000;
+	wire rv64i_srli 	= op_op_imm 	& funct3_101 & ( funct7[6:1] == 6'b000000 );
+	wire rv64i_srliw 	= op_op_imm32 	& funct3_101 & funct7_0000000;
+	wire rv64i_srai 	= op_op_imm 	& funct3_101 & ( funct7[6:1] == 6'b010000 );
+	wire rv64i_sraiw 	= op_op_imm32 	& funct3_101 & funct7_0100000;
 
-	wire rv64i_addiw 	= op_op_imm32 & funct3_000;
-	wire rv64i_slliw 	= op_op_imm32 & funct3_001 & funct7_0000000;
-	wire rv64i_srliw 	= op_op_imm32 & funct3_101 & funct7_0000000;
-	wire rv64i_sraiw 	= op_op_imm32 & funct3_101 & funct7_0100000;
+	wire rv64i_add 		= op_op 	& funct3_000 & funct7_0000000;
+	wire rv64i_addw 	= op_op_32 	& funct3_000 & funct7_0000000;
+	wire rv64i_sub 		= op_op 	& funct3_000 & funct7_0100000;
+	wire rv64i_subw 	= op_op_32 	& funct3_000 & funct7_0100000;
+	wire rv64i_sll 		= op_op 	& funct3_001 & funct7_0000000;
+	wire rv64i_sllw 	= op_op_32 	& funct3_001 & funct7_0000000;
+	wire rv64i_slt 		= op_op 	& funct3_010 & funct7_0000000;
+	wire rv64i_sltu 	= op_op 	& funct3_011 & funct7_0000000;
+	wire rv64i_xor 		= op_op 	& funct3_100 & funct7_0000000;
+	wire rv64i_srl 		= op_op 	& funct3_101 & funct7_0000000;
+	wire rv64i_srlw 	= op_op_32 	& funct3_101 & funct7_0000000;
+	wire rv64i_sra 		= op_op 	& funct3_101 & funct7_0100000;
+	wire rv64i_sraw 	= op_op_32 	& funct3_101 & funct7_0100000;
+	wire rv64i_or 		= op_op 	& funct3_110 & funct7_0000000;
+	wire rv64i_and 		= op_op 	& funct3_111 & funct7_0000000;
 
-	wire rv64i_addw 	= op_op_32 & funct3_000 & funct7_0000000;
-	wire rv64i_subw 	= op_op_32 & funct3_000 & funct7_0100000;
-	wire rv64i_sllw 	= op_op_32 & funct3_001 & funct7_0000000;
-	wire rv64i_srlw 	= op_op_32 & funct3_101 & funct7_0000000;
-	wire rv64i_sraw 	= op_op_32 & funct3_101 & funct7_0100000;
+	wire rv64i_fence 	= op_misc_mem & funct3_000;
+	wire rv64zi_fence_i = op_misc_mem & funct3_001;	
 
-	wire rv64zi_fence_i = op_misc_mem & funct3_001;
-
+	wire rv64i_ecall 	= op_system & funct3_000 & funct7_0000000;
+	wire rv64i_ebreak 	= op_system & funct3_000 & funct7_0000001;
 	wire rv64csr_rw 	= op_system & funct3_001;
 	wire rv64csr_rs 	= op_system & funct3_010;
 	wire rv64csr_rc 	= op_system & funct3_011;
 	wire rv64csr_rwi 	= op_system & funct3_101;
 	wire rv64csr_rsi 	= op_system & funct3_110;
 	wire rv64csr_rci 	= op_system & funct3_111;
+
+
+
+
+	wire [] alu_info;
+	wire [] bjp_info;
+	wire [] csr_info;
+
+
 
 
 
