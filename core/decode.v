@@ -1,10 +1,10 @@
 /*
-* @File name: Instructions
+* @File name: decode
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-10 19:40:44
+* @Last Modified time: 2020-09-11 19:17:19
 */
 
 
@@ -20,12 +20,10 @@
 
 
 module decoder (
-	input clk,    // Clock
-	input clk_en, // Clock Enable
-	input rst_n,  // Asynchronous reset active low
-	
 
 	input  [31:0] instr_i,
+
+
 );
 
 
@@ -37,11 +35,11 @@ module decoder (
 	wire [4:0] rs2 		= instr_i[24:20];
 	wire [6:0] funct7 	= instr_i[31:25];
 
-	wire [31:0] iType_imm = {{20{instr_i[31]}},instr_i[31:20]};
-	wire [31:0] sType_imm = {{20{instr_i[31]}},instr_i[31:25],instr_i[11:7]};
-	wire [31:0] bType_imm = {{20{instr_i[31]}},instr_i[7],instr_i[30:25],instr_i[11:8],1'b0};
-	wire [31:0] uType_imm = {instr_i[31:12],12'b0};
-	wire [31:0] jType_imm = {{12{instr_i[31]}},instr_i[19:12],,instr_i[20],instr_i[30:21],1'b0}
+	wire [63:0] iType_imm = {{52{instr_i[31]}},instr_i[31:20]};
+	wire [63:0] sType_imm = {{52{instr_i[31]}},instr_i[31:25],instr_i[11:7]};
+	wire [63:0] bType_imm = {{52{instr_i[31]}},instr_i[7],instr_i[30:25],instr_i[11:8],1'b0};
+	wire [63:0] uType_imm = {{32{instr_i[31]}},instr_i[31:12],12'b0};
+	wire [63:0] jType_imm = {{44{instr_i[31]}},instr_i[19:12],instr_i[20],instr_i[30:21],1'b0}
 
 
 
@@ -202,8 +200,8 @@ module decoder (
 	wire rv64i_fence 	= op_misc_mem & funct3_000;
 	wire rv64zi_fence_i = op_misc_mem & funct3_001;	
 
-	wire rv64i_ecall 	= op_system & funct3_000 & funct7_0000000;
-	wire rv64i_ebreak 	= op_system & funct3_000 & funct7_0000001;
+	wire rv64i_ecall 	= op_system & funct3_000 & (instr_i[31:20] == 12'b000000000000);
+	wire rv64i_ebreak 	= op_system & funct3_000 & (instr_i[31:20] == 12'b000000000001);
 	wire rv64csr_rw 	= op_system & funct3_001;
 	wire rv64csr_rs 	= op_system & funct3_010;
 	wire rv64csr_rc 	= op_system & funct3_011;
@@ -214,16 +212,34 @@ module decoder (
 
 
 
-	wire [] alu_info;
-	wire [] bjp_info;
-	wire [] csr_info;
+
+
+	wire rType = rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw | rv64i_sll | rv64i_sllw | rv64i_slt | rv64i_sltu 
+					| rv64i_xor | rv64i_srl | rv64i_srlw | rv64i_sra | rv64i_sraw | rv64i_or | rv64i_and;
+	wire iType = rv64i_jalr 
+					| rv64i_lb | rv64i_lh | rv64i_lw | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_ld
+					| rv64i_addi | rv64i_addiw | rv64i_slti | rv64i_sltiu | rv64i_xori | rv64i_ori | rv64i_andi;
+	wire sType = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+	wire bType = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
+	wire uType = rv64i_lui | op_auipc;
+	wire jType = op_jal;
+
+	wire [63:0] imm = 64'b0
+					| {64{iType}} & iType_imm
+					| {64{sType}} & sType_imm
+					| {64{bType}} & bType_imm
+					| {64{uType}} & uType_imm
+					| {64{jType}} & jType_imm;
 
 
 
+	wire [5:0] shamt = instr_i[25:20];
 
 
-
-
+	wire intcomp_fun = 
+	wire ctltran_fun = 
+	wire lodstru_fun = 
+	wire envcall_fun = 
 
 
 
