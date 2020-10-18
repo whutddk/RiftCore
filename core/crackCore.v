@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-19 14:29:34
+* @Last Modified time: 2020-10-13 18:00:10
 */
 
 
@@ -20,6 +20,7 @@ module crackCore (
 );
 
 
+pc_generate i_pcgenerate();
 
 
 

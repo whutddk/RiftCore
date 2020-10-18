@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-11 19:17:19
+* @Last Modified time: 2020-10-18 16:44:44
 */
 
 
@@ -22,6 +22,11 @@
 module decoder (
 
 	input  [31:0] instr_i,
+
+
+	output isCall,
+	output isReturn,
+
 
 
 );
