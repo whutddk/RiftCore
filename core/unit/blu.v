@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-18 18:04:10
+* @Last Modified time: 2020-10-19 11:54:40
 */
 
 /*
@@ -43,7 +43,7 @@ module blu (
 	output [63:0] blu_jalr_pc,
 
 	output blu_res_vaild,
-	output take_the_branch
+	output blu_takenBranch,
 
 
 
@@ -54,8 +54,6 @@ module blu (
 );
 
 
-wire take_jal = blu_jal;
-wire take_jalr = blu_jalr;
 wire take_eq = (blu_eq & (op1 == op2));
 wire take_ne = (blu_ne & (op1 != op2));
 wire take_lt = (blu_lt) & ($signed(op1) < $signed(op2));
@@ -64,14 +62,13 @@ wire take_ltu = (blu_ltu) & ($unsigned(op1) < $unsigned(op2));
 wire take_gtu = (blu_gtu) & ($unsigned(op1) > $unsigned(op2));
 
 
-wire take_the_branch = take_jal | take_jalr | take_eq | take_ne | take_lt | take_gt | take_ltu | take_gtu;
+wire blu_takenBranch = take_eq | take_ne | take_lt | take_gt | take_ltu | take_gtu;
 
 assign blu_jalr_pc = op1 + imm;
 assign blu_jalr_vaild = blu_jalr;
 
 
-
-assign rd = {64{(take_jal | blu_jalr)}} & ( pc + ( is_rvc_instr ? 64'd2 : 64'd4 ) );
+assign rd = {64{(blu_jal | blu_jalr)}} & ( pc + ( is_rvc_instr ? 64'd2 : 64'd4 ) );
 
 
 
