@@ -4,16 +4,20 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-21 14:34:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-21 20:27:28
+* @Last Modified time: 2020-10-22 11:21:31
 */
 
 
-module regFile (
+module regFile #(
 
 parameter RNDEPTH = 4, //重命名深度
-localparam RNREGWIDTH= 64*RNDEPTH,
+parameter RNREGWIDTH= 64*RNDEPTH,
 
-localparam RNBIT =1 // $clog2(RNDEPTH),
+parameter RNBIT =1 // $clog2(RNDEPTH),
+)
+(
+
+
 
 	input [4:0] regFileA_Index,	//第几号寄存器
 	input [1:0] regFileA_Rename, //重命名指针
@@ -40,18 +44,19 @@ localparam RNBIT =1 // $clog2(RNDEPTH),
 	output [63:0] regFileD_Read,
 
 
-	
+	input CLK,
+	input RSTn
 );
 
-	wire [31*RNDEPTH-1:0] regFile_Wen;
+	wire [32*RNDEPTH-1:0] regFile_Wen;
 	wire [(64*RNDEPTH*32)-1:0] regFileX_write;
 	wire [(64*RNDEPTH*32)-1:0] regFileX_read;
-	assign regFile_out[64*RNDEPTH-1:0] = 64'b0;
+	assign regFileX_read[64*RNDEPTH-1:0] = 'b0;
 
-	wire [5+RNBIT-1] regA_Sel = { regFileA_Index, regFileA_Rename };
-	wire [5+RNBIT-1] regB_Sel = { regFileB_Index, regFileB_Rename };
-	wire [5+RNBIT-1] regC_Sel = { regFileC_Index, regFileC_Rename };
-	wire [5+RNBIT-1] regD_Sel = { regFileD_Index, regFileD_Rename };
+	wire [5+RNBIT-1:0] regA_Sel = { regFileA_Index, regFileA_Rename };
+	wire [5+RNBIT-1:0] regB_Sel = { regFileB_Index, regFileB_Rename };
+	wire [5+RNBIT-1:0] regC_Sel = { regFileC_Index, regFileC_Rename };
+	wire [5+RNBIT-1:0] regD_Sel = { regFileD_Index, regFileD_Rename };
 
 
 
@@ -60,12 +65,16 @@ localparam RNBIT =1 // $clog2(RNDEPTH),
 	assign regFileC_Read = 	regFileX_read[regC_Sel*64 +: 64];
 	assign regFileD_Read = 	regFileX_read[regD_Sel*64 +: 64];
 
+
+
+genvar regNum;
+genvar depth;
 generate
 	
 	for ( regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
 		for ( depth = 0 ; depth < RNDEPTH; depth = depth + 1 ) begin
 
-			localparam [5+RNBIT-1] SEL = {regNum,depth};
+			localparam  SEL = regNum*4+depth;
 
 
 			assign regFileX_write[64*SEL +: 64] = ({64{regA_Sel == SEL}} & regFileA_Wen) 
@@ -80,8 +89,7 @@ generate
 									| ((regD_Sel == SEL) & regFileD_Write);
 
 
-
-			baseEle # (.WIDTH(64)) i_regFile_x( .CLK(), .RSTn(), .din(regFileX_write[64*SEL +: 64]), .qout(regFileX_read[64*SEL +: 64]) );
+			gen_dffr  #(.DW(64)) int_regX ( .dnxt(regFileX_write[64*SEL +: 64]), .qout(regFileX_read[64*SEL +: 64]), .CLK(CLK), .RSTn(RSTn) );
 
 		end
 	end
