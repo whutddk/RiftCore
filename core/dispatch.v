@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-19 15:21:29
+* @Last Modified time: 2020-10-23 17:41:28
 */
 
 
@@ -93,8 +93,12 @@ module dispatch (
 
 
 
-wire [] renaming_instr;
-wire [] dispatch_instr;
+wire [] renaming_instr_info;
+wire [] dispatch_instr_info;
+
+
+
+
 
 
 

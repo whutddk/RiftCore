@@ -1,23 +1,15 @@
 /*
-* @File name: regFile
+* @File name: regFiles
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-21 14:34:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-22 11:21:31
+* @Last Modified time: 2020-10-22 11:49:54
 */
 
 
-module regFile #(
-
-parameter RNDEPTH = 4, //重命名深度
-parameter RNREGWIDTH= 64*RNDEPTH,
-
-parameter RNBIT =1 // $clog2(RNDEPTH),
-)
+module regFiles #
 (
-
-
 
 	input [4:0] regFileA_Index,	//第几号寄存器
 	input [1:0] regFileA_Rename, //重命名指针

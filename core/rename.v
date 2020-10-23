@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-21 14:34:45
+* @Last Modified time: 2020-10-23 16:04:34
 */
 
 
@@ -35,65 +35,79 @@ module rename (
 	input [4:0] decode_rs2,
 	
 	input rd_vaild,
-	input [4:0] decode_rd
+	input [4:0] decode_rd0
+
+
+
 
 	//from dispatch
 
 	output dispatch_rs1_vaild,
-	output [63:0] dispatch_rs1,
+	output [RNBIT-1:0] dispatch_rs1_reName,
 
 	output dispatch_rs2_vaild,	
-	output [63:0] dispatch_rs2,
+	output [RNBIT-1:0] dispatch_rs2_reName,
 
 	output dispatch_rd_vaild,
-	output [127:0] dispatch_rdIndex
+	output [RNBIT-1:0] dispatch_rd0_reName
 
 
 );
 
 
 
-wire hazard_waw;
-wire hazard_war;
-
-
-//指向当前前端可以用的寄存器位置（只会读寄存器），读完不管
-//同时更新对应rd寄存器为新指针
-wire  [ 5*31 - 1 :0 ] inOrder_x_rs1read;
-wire  [ 5*31 - 1 :0 ] inOrder_x_rs2read;
-wire  [ 5*31 - 1 :0 ] inOrder_x_rdupdate;
-
-wire [4:0] inOrder_rs1read = inOrder_x_rs1read[decode_rs1]
-wire [4:0] inOrder_rs2read
-
-assign dispatch_rs1 =  ({64{decode_rs1 == 4'd0}} & 64'b0) 
-						| 
-						( {64{decode_rs1[4:2] == 3'b000}} & regFile_x00_x03_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b001}} & regFile_x04_x07_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b010}} & regFile_x08_x11_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b011}} & regFile_x12_x15_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b100}} & regFile_x16_x19_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b101}} & regFile_x20_x23_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b110}} & regFile_x24_x27_read[  ] )
-						| 
-						( {64{decode_rs1[4:2] == 3'b111}} & regFile_x28_x31_read[  ] )
-						
 
 
 
 
-assign dispatch_rs2 = 
+//读操作不会改变重命名活动指针，
+//读操作需要通过重命名活动指针寻找正确的寄存器，
+//写操作需要改变重命名活动指针到一个新位置，需要是空的，否则挂起流水线
 
+wire [ RNBIT*32 - 1 :0 ] rnActive_X_din;
+wire [ RNBIT*32 - 1 :0 ] rnActive_X_qout;
 
+wire rnActive_X_din [RNBIT - 1 :0] = 'b0;
+wire rnActive_X_qout [RNBIT - 1 :0] = 'b0;
 
+generate
+	for ( i = 1 ; i < 32; i = i + 1 ) begin
 
+		rnActive_X_din[RNBIT*i +: RNBIT] = (decode_rd0 == i) ? inOrder_rd0_reName : rnActive_X_qout[RNBIT*i +: RNBIT];
+
+		gen_dffr #(.DW(RNBIT)) rnActive_X ( .dnxt(rnActive_X_din[RNBIT*i +: RNBIT]), .qout(rnActive_X_qout[RNBIT*i +: RNBIT]), .CLK(CLK), .RSTn(RSTn) );
+	end
 endgenerate
+
+
+
+wire [RNDEPTH-1:0] regX_used = rnBuffUsed_qout[ RNDEPTH*decode_rd0 +: RNDEPTH ];
+
+
+//指示顺序执行当前应该读哪个寄存器
+wire [RNBIT-1:0] inOrder_rs1_reName = rnActive_X[decode_rs1*RNBIT +: RNBIT];
+wire [RNBIT-1:0] inOrder_rs2_reName = rnActive_X[decode_rs2*RNBIT +: RNBIT];
+wire [RNBIT-1:0] inOrder_rd0_reName;
+
+
+
+
+lzc #(
+	.WIDTH(RNDEPTH),
+	.CNT_WIDTH(RNBIT)
+) (
+	.in_i(regX_used),
+	.cnt_o(inOrder_rd0_reName),
+	.empty_o(regX_runOut)//rnmae buff is running out of reg rd
+);
+
+
+
+
+
+
+
+
 
 
 
