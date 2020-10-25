@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-18 16:44:44
+* @Last Modified time: 2020-10-25 14:19:24
 */
 
 
@@ -23,6 +23,9 @@ module decoder (
 
 	input  [31:0] instr_i,
 
+
+
+	output [:] decode_microInstr,
 
 	output isCall,
 	output isReturn,
@@ -247,6 +250,21 @@ module decoder (
 	wire envcall_fun = 
 
 
+
+
+
+
+
+
+	assign decode_microInstr = { rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,
+								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
+								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_lbu, rv64i_lhu, rv64i_lwu, rv64i_ld,
+								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
+								rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
+								rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
+								rv64i_fence, rv64zi_fence_i,
+								rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci
+								};
 
 endmodule
 
