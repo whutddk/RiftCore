@@ -4,25 +4,27 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 14:45:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-09-20 16:40:46
+* @Last Modified time: 2020-10-26 19:06:35
 */
 
 
 module alu (
 
 
-	input alu_alu_add,
-	input alu_alu_addw,
-	input alu_alu_sub,
-	input alu_alu_subw,
+	input alu_add,
 
-	input alu_alu_xor,
+
+	input alu_sub,
+
+
+	input alu_xor,
+	
 	input alu_alu_sll,
-	input alu_alu_sllw,
+
 	input alu_alu_srl,
-	input alu_alu_srlw,
+
 	input alu_alu_sra,
-	input alu_alu_sraw,
+
 	input alu_alu_or,
 	input alu_alu_and,
 	input alu_alu_slt,
