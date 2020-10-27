@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-26 16:36:28
+* @Last Modified time: 2020-10-27 17:22:44
 */
 
 
@@ -36,6 +36,10 @@ module dispatch (
 	input alu_issue_ready,
 	output [:] alu_issue_info,
 
+	output blu_issue_vaild,
+	input blu_issue_ready,
+	output [:] blu_issue_info,
+
 	output lsu_issue_vaild,
 	input lsu_issue_ready,
 	output [:] lsu_issue_info,
@@ -44,9 +48,7 @@ module dispatch (
 	input csr_issue_ready,
 	output [:] csr_issue_info,
 
-	output blu_issue_vaild,
-	input blu_issue_ready,
-	output [:] blu_issue_info,
+
 
 	output oth_issue_vaild,
 	input oth_issue_ready,
@@ -59,11 +61,6 @@ module dispatch (
 
 wire [] renaming_instr_info;
 wire [] dispatch_instr_info;
-
-
-
-
-
 
 
 
@@ -93,7 +90,7 @@ gen_fifo dispatch_fifo (
 assign {} = dispatch_instr;
 
 
-assign iOrder_info_push = {dispat_pc, rd};
+assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
@@ -218,7 +215,11 @@ assign iOrder_info_push = {dispat_pc, rd};
 								};
 
 
-
+	assign blu_issue_vaild = rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
+	assign blu_issue_info = {
+								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								dispat_pc, imm, rd0, rs1, rs2
+							};
 
 
 
@@ -242,11 +243,7 @@ assign iOrder_info_push = {dispat_pc, rd};
 							}
 
 
-	assign blu_issue_vaild = rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
-	assign blu_issue_info = {
-								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
-								dispat_pc, imm, rd0, rs1, rs2
-							}
+
 
 
 

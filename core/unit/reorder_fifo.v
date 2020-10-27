@@ -1,14 +1,14 @@
 /*
-* @File name: inOrder_fifo
+* @File name: reorder_buffer
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 17:41:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-25 14:26:01
+* @Last Modified time: 2020-10-27 17:16:46
 */
 
 
-module inOrder_fifo (
+module reOrder_fifo (
 
 	input  dispat_vaild,
 	output iOrder_ready,
@@ -35,7 +35,7 @@ module inOrder_fifo (
 
 
 
-gen_fifo inOrder_fifo (
+gen_fifo reOrder_fifo (
 	.DP(MAXINDIS)
 	.DW()
 ) #

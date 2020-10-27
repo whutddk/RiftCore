@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-22 11:47:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-26 16:47:14
+* @Last Modified time: 2020-10-27 17:29:06
 */
 
 
@@ -17,7 +17,7 @@
 
 
 `define ALU_ISSUE_DEPTH 8 //alu 的发射buffer的深度
-
+`define BLU_ISSUE_DEPTH 4 
 
 
 

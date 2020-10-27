@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-23 16:04:34
+* @Last Modified time: 2020-10-27 15:04:31
 */
 
 
@@ -60,24 +60,7 @@ module rename (
 
 
 
-//读操作不会改变重命名活动指针，
-//读操作需要通过重命名活动指针寻找正确的寄存器，
-//写操作需要改变重命名活动指针到一个新位置，需要是空的，否则挂起流水线
 
-wire [ RNBIT*32 - 1 :0 ] rnActive_X_din;
-wire [ RNBIT*32 - 1 :0 ] rnActive_X_qout;
-
-wire rnActive_X_din [RNBIT - 1 :0] = 'b0;
-wire rnActive_X_qout [RNBIT - 1 :0] = 'b0;
-
-generate
-	for ( i = 1 ; i < 32; i = i + 1 ) begin
-
-		rnActive_X_din[RNBIT*i +: RNBIT] = (decode_rd0 == i) ? inOrder_rd0_reName : rnActive_X_qout[RNBIT*i +: RNBIT];
-
-		gen_dffr #(.DW(RNBIT)) rnActive_X ( .dnxt(rnActive_X_din[RNBIT*i +: RNBIT]), .qout(rnActive_X_qout[RNBIT*i +: RNBIT]), .CLK(CLK), .RSTn(RSTn) );
-	end
-endgenerate
 
 
 
