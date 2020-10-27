@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 19:08:03
+* @Last Modified time: 2020-10-27 19:42:27
 */
 
 
@@ -57,45 +57,36 @@ module alu_issue (
 );
 
 
+issue_buffer 
+(
+	.DW(),
+	.DP(ALU_ISSUE_DEPTH),
+)
+# alu_issue_buffer
+(
+
+	input [ DW - 1 : 0] issue_info_push,
+	input issue_push,
+	output buffer_full,
+
+	input issue_pop,
+	input issue_pop_index,
+	output [ DW*DP - 1 : 0] issue_info_qout
+
+	input CLK,
+	input RSTn
+	
+);
+
+
+
+
+
+
+
 
 	//check RAW here
-
-
-	//这里不用fifo，用并行buff以保证可以乱序发射
-	wire [ * ALU_ISSUE_DEPTH - 1 : 0] alu_issue_info;
-	wire [ ALU_ISSUE_DEPTH - 1 : 0 ] alu_isRAW;
-
-	gen_buffer alu_issue_buffer (
-		.DP(ALU_ISSUE_DEPTH)
-		.DW()
-	) #
-	(
-
-		.vaild_a(alu_issue_vaild), 
-		.ready_a(alu_issue_ready), 
-		.data_a(alu_issue_push),
-
-		.vaild_b(), 
-		.ready_b(), 
-		.data_b(alu_issue_pop),
-
-		.CLK,
-		.RSTn
-	);
-
-gen_buffer alu_issueBuffer_vaild (
-		.DP(ALU_ISSUE_DEPTH)
-		.DW()
-	) #
-	(
-
-		.data_a(alu_issueBuffer_vaild_dnxt)
-
-		.data_b(alu_issueBuffer_vaild_qout),
-
-		.CLK,
-		.RSTn
-	);
+	wire [ DP - 1 : 0 ] alu_isRAW;
 
 
 
@@ -338,83 +329,44 @@ endgenerate
 
 
 
-wire [$clog2(ALU_ISSUE_DEPTH)-1:0] alu_issue_pop_index;
-wire alu_all_RAW;
+	wire [$clog2(ALU_ISSUE_DEPTH)-1:0] alu_issue_pop_index;
+	wire alu_all_RAW;
 
-//应该为组合逻辑实现
-lzc #(
-	.WIDTH(ALU_ISSUE_DEPTH),
-	.CNT_WIDTH($clog2(ALU_ISSUE_DEPTH))
-) alu_RAWClear(
-	.in_i(alu_isClearRAW),
-	.cnt_o(alu_issue_pop_index),
-	.empty_o(alu_all_RAW)
-);
-
-
-assign alu_execute_info = { 
-							alu_fun_add[ alu_issue_pop_index ],
-							alu_fun_sub[ alu_issue_pop_index ],
-							alu_fun_slt[ alu_issue_pop_index ],
-							alu_fun_sll[ alu_issue_pop_index ],
-							alu_fun_srl[ alu_issue_pop_index ],
-							alu_fun_sra[ alu_issue_pop_index ],
-							alu_fun_xor[ alu_issue_pop_index ],
-							alu_fun_or[ alu_issue_index ],
-							alu_fun_and[ alu_issue_index ],
-							alu_rd0_index[(5+RNBIT)*alu_issue_index +: (5+RNBIT)],
-							op1[ 64*alu_issue_pop_index +:64 ],
-							op2[ 64*alu_issue_pop_index +:64 ],
-							alu_64n_32[ alu_issue_pop_index ],
-							alu_fun_isUsi[ alu_issue_pop_index ],
-							};
+	//应该为组合逻辑实现
+	lzc #(
+		.WIDTH(ALU_ISSUE_DEPTH),
+		.CNT_WIDTH($clog2(ALU_ISSUE_DEPTH))
+	) alu_RAWClear(
+		.in_i(alu_isClearRAW),
+		.cnt_o(alu_issue_pop_index),
+		.empty_o(alu_all_RAW)
+	);
 
 
-assign alu_execute_vaild =  ~alu_all_RAW;
+	assign alu_execute_info = { 
+								alu_fun_add[ alu_issue_pop_index ],
+								alu_fun_sub[ alu_issue_pop_index ],
+								alu_fun_slt[ alu_issue_pop_index ],
+								alu_fun_sll[ alu_issue_pop_index ],
+								alu_fun_srl[ alu_issue_pop_index ],
+								alu_fun_sra[ alu_issue_pop_index ],
+								alu_fun_xor[ alu_issue_pop_index ],
+								alu_fun_or[ alu_issue_index ],
+								alu_fun_and[ alu_issue_index ],
+								alu_rd0_index[(5+RNBIT)*alu_issue_index +: (5+RNBIT)],
+								op1[ 64*alu_issue_pop_index +:64 ],
+								op2[ 64*alu_issue_pop_index +:64 ],
+								alu_64n_32[ alu_issue_pop_index ],
+								alu_fun_isUsi[ alu_issue_pop_index ],
+								};
 
 
-
-wire alu_issue_in = (alu_issue_vaild & alu_issue_ready);
-wire alu_issue_out = ( alu_execute_ready & alu_execute_vaild );
+	assign alu_execute_vaild =  ~alu_all_RAW;
 
 
 
-assign alu_issueBuffer_vaild_dnxt = ( 
-										{ALU_ISSUE_DEPTH{(alu_issue_in & alu_issue_out) | (~alu_issue_in & ~alu_issue_out)}}
-										& alu_issueBuffer_vaild_qout
-									)
-									| 
-									( 
-										{ALU_ISSUE_DEPTH{(alu_issue_in & ~alu_issue_out) }}
-										& (alu_issueBuffer_vaild_qout | (1'b1 << alu_issue_push_index_pre))
-									) 
-									| 
-									( 
-										{ALU_ISSUE_DEPTH{(~alu_issue_in & alu_issue_out)}}
-										& (alu_issueBuffer_vaild_qout & ~(1'b1 << alu_issue_pop_index))
-									)
-
-
-& ( alu_execute_ready & alu_execute_vaild ) 
-									? alu_issueBuffer_vaild_qout : alu_issueBuffer_vaild_pop;
-
-
-wire [$clog2(ALU_ISSUE_DEPTH)-1:0] alu_issue_push_index_pre;
-wire [$clog2(ALU_ISSUE_DEPTH)-1:0] alu_issue_push_index;
-
-lzc #(
-	.WIDTH(ALU_ISSUE_DEPTH),
-	.CNT_WIDTH($clog2(ALU_ISSUE_DEPTH))
-) alu_empty_buffer(
-	.in_i(alu_issueBuffer_vaild_qout),
-	.cnt_o(alu_issue_push_index_pre),
-	.empty_o()
-);
-
-
-assign alu_issue_push_index = (alu_execute_ready & alu_execute_vaild) ? alu_issue_pop_index : alu_issue_push_index_pre;
-
-
+	wire issue_push = ( issue_vaild & issue_ready);
+	wire issue_pop = ( execute_ready & execute_vaild );
 
 
 
