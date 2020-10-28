@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 17:22:44
+* @Last Modified time: 2020-10-28 17:38:41
 */
 
 
@@ -32,13 +32,29 @@ module dispatch (
 
 
 
-	output alu_issue_vaild,
-	input alu_issue_ready,
-	output [:] alu_issue_info,
+	output adder_issue_vaild,
+	input adder_issue_ready,
+	output [:] adder_issue_info,
 
-	output blu_issue_vaild,
-	input blu_issue_ready,
-	output [:] blu_issue_info,
+	output logCmp_issue_vaild,
+	input logCmp_issue_ready,
+	output [:] logCmp_issue_info,
+
+	output shift_issue_vaild,
+	input shift_issue_ready,
+	output [:] shift_issue_info,
+
+
+
+
+	output jal_issue_vaild,
+	input jal_issue_ready,
+	output [:] jal_issue_info,
+
+
+	output bru_issue_vaild,
+	input bru_issue_ready,
+	output [:] bru_issue_info,
 
 	output lsu_issue_vaild,
 	input lsu_issue_ready,
@@ -168,7 +184,7 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	wire rv64csr_rsi;
 	wire rv64csr_rci;
 
-
+	wire is_rvc;
 
 
 
@@ -189,7 +205,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 				rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 				rv64i_fence, rv64zi_fence_i,
-				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci
+				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+				is_rvc
 			} = decode_microInstr;
 
 
@@ -198,28 +215,70 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
-	assign alu_issue_vaild = rv64i_lui | rv64i_auipc 
-							| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw 
-							| rv64i_slti | rv64i_sltiu | rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw | rv64i_slt | rv64i_sltu
-							| rv64i_srli | rv64i_srliw | rv64i_srai | rv64i_sraiw | rv64i_srl | rv64i_srlw | rv64i_sra | rv64i_sraw 
-							| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and;
 
+	assign adder_issue_vaild = rv64i_lui | rv64i_auipc 
+							| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw ;
+							
 
-
-	assign alu_issue_info = { 	rv64i_lui, rv64i_auipc, 
+	assign adder_issue_info = { rv64i_lui, rv64i_auipc, 
 								rv64i_addi, rv64i_addiw, rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw,
-								rv64i_slti, rv64i_sltiu, rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu,
-								rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, 
+								dispat_pc, imm, rd0, rs1, rs2
+								};
+
+
+
+
+
+
+
+
+
+	assign logCmp_issue_vaild = rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu
+								| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and;
+
+	assign logCmp_issue_info = { 
+								rv64i_slti, rv64i_sltiu, rv64i_slt, rv64i_sltu,
 								rv64i_xori, rv64i_ori, rv64i_andi, rv64i_xor, rv64i_or, rv64i_and,
+								dispat_pc, imm, rd0, rs1, rs2
+								};
+
+
+
+	assign shift_issue_vaild =  rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw
+								| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw
+								| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw;
+							
+
+	assign shift_issue_info = { 
+								rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
+								rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
+								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw, 
+								
 								dispat_pc, imm, shamt, rd0, rs1, rs2
 								};
 
 
-	assign blu_issue_vaild = rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
-	assign blu_issue_info = {
-								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
-								dispat_pc, imm, rd0, rs1, rs2
+
+
+
+	assign jal_issue_vaild = rv64i_jal | rv64i_jalr;
+	assign jal_issue_info = {
+								rv64i_jal, rv64i_jalr,
+								dispat_pc, imm, rd0, rs1, 
+
+								is_rvc
 							};
+
+
+	assign blu_issue_vaild = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
+	assign blu_issue_info = {
+								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								rs1, rs2
+							};
+
+
+
+
 
 
 

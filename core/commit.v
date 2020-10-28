@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 17:15:16
+* @Last Modified time: 2020-10-28 16:07:59
 */
 
 module commit (
@@ -20,12 +20,16 @@ module commit (
 
 	output [32*RNDEPTH-1 : 0] rnBufU_commit_rst,
 
-	//from inOrder FIFO
+
+
+
+
+	//from reOrder FIFO
 	input [:] iOrder_info_pop,
 
-	//from branch predit 
+	//from pc generate 
 	//此处只需要向前握手进行pop，因为一定有数据
-	input 
+	input isMisPredict,
 
 
 	//from Outsize
@@ -39,8 +43,7 @@ module commit (
 
 	assign iOrder_info_pop = {commit_pc, commit_rd0, isBranch, isSynExcept};
 
-	wire isMisPredict = 
-	wire commit_abort = isBranch & (isMisPredict) 
+	wire commit_abort = (isBranch & isMisPredict) 
 						| (isSynExcept)
 						| (isAsynExcept);
 

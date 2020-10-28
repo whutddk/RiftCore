@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 19:41:08
+* @Last Modified time: 2020-10-28 14:55:32
 */
 
 module issue_buffer #
@@ -20,10 +20,12 @@ module issue_buffer #
 	input issue_push,
 	output buffer_full,
 
-	input issue_pop,
-	input issue_pop_index,
-	output [ DW*DP - 1 : 0] issue_info_qout
 
+	input issue_pop,
+	input [RNBIT-1:0] issue_pop_index,
+	output [ DW*DP - 1 : 0] issue_info_qout,
+	output [DP - 1 : 0] buffer_vaild_qout,
+	
 	input CLK,
 	input RSTn
 	
@@ -88,7 +90,7 @@ module issue_buffer #
 	);
 
 
-
+	assign buffer_empty = | buffer_vaild_qout;
 
 
 
