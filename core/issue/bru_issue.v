@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:32:39
+* @Last Modified time: 2020-10-29 15:54:16
 */
 
 
@@ -49,8 +49,7 @@ issue_fifo (
 	.DW(),
 	.DP(BRU_ISSUE_DEPTH),
 )
-
-
+bru_issue_fifo
 (
 	.issue_info_push(bru_issue_info_push),
 	.issue_info_pop(bru_issue_info_pop),
@@ -81,8 +80,8 @@ issue_fifo (
 	wire [63 : 0] src1;
 	wire [63 : 0] src2;
 
-	wire  [63-1:0] op1;
-	wire  [63-1:0] op2;
+	wire  [63:0] op1;
+	wire  [63:0] op2;
 
 
 	assign {

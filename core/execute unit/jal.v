@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:28:25
+* @Last Modified time: 2020-10-29 20:01:29
 */
 
 module jal (
@@ -19,12 +19,11 @@ module jal (
 	output [63:0] jump_pc,
 
 	// to writeback
+	output jal_writeback_vaild,
 	output [(5+RNBIT-1):0] rd0,
 	output [63:0] jal_result
 
 
-
-	
 );
 
 	wire bru_jal;

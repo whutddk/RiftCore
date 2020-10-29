@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:38:41
+* @Last Modified time: 2020-10-29 20:20:16
 */
 
 
@@ -44,9 +44,6 @@ module dispatch (
 	input shift_issue_ready,
 	output [:] shift_issue_info,
 
-
-
-
 	output jal_issue_vaild,
 	input jal_issue_ready,
 	output [:] jal_issue_info,
@@ -56,9 +53,18 @@ module dispatch (
 	input bru_issue_ready,
 	output [:] bru_issue_info,
 
-	output lsu_issue_vaild,
-	input lsu_issue_ready,
-	output [:] lsu_issue_info,
+	output su_issue_vaild,
+	input su_issue_ready,
+	output [:] su_issue_info,
+
+	output lu_issue_vaild,
+	input lu_issue_ready,
+	output [:] lu_issue_info,
+
+	output fence_execute_ready,
+	input fence_execute_vaild,
+	input [ :0] fence_execute_info,
+
 
 	output csr_issue_vaild,
 	input csr_issue_ready,
@@ -200,7 +206,7 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 	assign { 	rv64i_lui, rv64i_auipc, 
 				rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
-				rv64i_lb, rv64i_lh, rv64i_lw, rv64i_lbu, rv64i_lhu, rv64i_lwu, rv64i_ld,
+				rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
 				rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 				rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
@@ -278,20 +284,29 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
+	assign lu_issue_vaild = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	assign lu_issue_info = { 
+							rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
+							imm,
+							rd0,
+							rs1
+							};
 
 
 
+	assign su_issue_vaild = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+	assign su_issue_info = {
+								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
+								imm,
+								rs1,
+								rs2
+								};
 
-
-
-	assign lsu_issue_vaild = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_ld | rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
-	
-	assign lsu_issue_info = {
-							rv64i_lb, rv64i_lh, rv64i_lw, rv64i_lbu, rv64i_lhu, rv64i_lwu, rv64i_ld, rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
-							dispat_pc, imm, rd0, rs1, rs2
-							}
-
-
+	assign fence_execute_vaild = rv64zi_fence_i | rv64i_fence;
+	assign fence_execute_info = {
+								rv64zi_fence_i, rv64i_fence,
+								fence_imm
+								};
 
 
 	assign csr_issue_vaild = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;

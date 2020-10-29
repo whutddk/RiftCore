@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-19 17:15:52
+* @Last Modified time: 2020-10-29 09:28:39
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -21,11 +21,11 @@ module pc_generate (
 	input isPredit,
 	input predit_vaild,
 	
-//from blu
+//from bru
 
 
-	input blu_res_vaild,
-	input blu_takenBranch,
+	input bru_res_vaild,
+	input bru_takenBranch,
 
 
 // from expection 	
@@ -35,7 +35,7 @@ module pc_generate (
 	input [63:0] blu_res,
 
 
-
+	//to instr_fetch
 	output [63:0] fetch_pc,
 	output fetch_vaild,
 );

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:07:14
+* @Last Modified time: 2020-10-29 16:00:32
 */
 
 
@@ -100,15 +100,15 @@ issue_buffer
 	wire [64*ADDER_ISSUE_DEPTH - 1:0] adder_pc;
 	wire [64*ADDER_ISSUE_DEPTH - 1:0] adder_imm;
 
-	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1] adder_rd0_index;
-	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1] adder_rs1_index;
-	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1] adder_rs2_index;
+	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1:0] adder_rd0_index;
+	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1:0] adder_rs1_index;
+	wire [(5+RNBIT)*ADDER_ISSUE_DEPTH - 1:0] adder_rs2_index;
 
-	wire [ADDER_ISSUE_DEPTH - 1] rs1_ready;
-	wire [ADDER_ISSUE_DEPTH - 1] rs2_ready;
+	wire [ADDER_ISSUE_DEPTH - 1:0] rs1_ready;
+	wire [ADDER_ISSUE_DEPTH - 1:0] rs2_ready;
 
-	wire [ADDER_ISSUE_DEPTH - 1] adder_fun_add;
-	wire [ADDER_ISSUE_DEPTH - 1] adder_fun_sub;
+	wire [ADDER_ISSUE_DEPTH - 1:0] adder_fun_add;
+	wire [ADDER_ISSUE_DEPTH - 1:0] adder_fun_sub;
 
 	wire [64*ADDER_ISSUE_DEPTH-1 : 0] src1;
 	wire [64*ADDER_ISSUE_DEPTH-1 : 0] src2;
@@ -131,8 +131,8 @@ generate
 				adder_rs2_index[(5+RNBIT)*i +: (5+RNBIT)]
 				} = adder_issue_info_qout;
 
-		assign rs1_ready[i] = writeBackBuffer_qout[adder_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
-		assign rs2_ready[i] = writeBackBuffer_qout[adder_rs2[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs1_ready[i] = wbBuf_qout[adder_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs2_ready[i] = wbBuf_qout[adder_rs2[(5+RNBIT)*i +: (5+RNBIT)]];
 		
 
 		assign adder_isClearRAW[i] = 	( adder_buffer_vaild_qout[i] ) & 

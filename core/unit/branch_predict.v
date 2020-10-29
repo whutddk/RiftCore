@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-18 15:56:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-19 11:51:13
+* @Last Modified time: 2020-10-29 11:31:10
 */
 
 
@@ -12,30 +12,16 @@
 //如果是JARL必需要跳，但是寄存器需要到发射之后才可以确定，因此需要在BLU中计算，预测没有意义，直接挂起取指即可
 
 
-    assign rvi_return_o = rvi_jalr_o & ((instr_i[19:15] == 5'd1) | instr_i[19:15] == 5'd5)
-                                     & (instr_i[19:15] != instr_i[11:7]);
-    // Opocde is JAL[R] and destination register is either x1 or x5
-    assign rvi_call_o   = (rvi_jalr_o | rvi_jump_o) & ((instr_i[11:7] == 5'd1) | instr_i[11:7] == 5'd5);
-    // differentiates between JAL and BRANCH opcode, JALR comes from BHT
-    assign rvi_imm_o    = (instr_i[3]) ? ariane_pkg::uj_imm(instr_i) : ariane_pkg::sb_imm(instr_i);
-    assign rvi_branch_o = (instr_i[6:0] == riscv::OpcodeBranch);
-    assign rvi_jalr_o   = (instr_i[6:0] == riscv::OpcodeJalr);
-    assign rvi_jump_o   = (instr_i[6:0] == riscv::OpcodeJal);
+module branch_predict (
 
+	//to decode
+	input fetch_decode_ready,
+	input [31:0] instr,
+	input fetch_decode_vaild
 
-module branch_pre (
-
-	input isJal,
-	input isJalr,
-	input isBranch,
-
-
-	input isCall,
-	input isReturn,
 
 	input [63:0] pc,
-	input is_rvc_instr,
-	input [63:0] imm
+
 
 
 	input blu_jalr_vaild,
@@ -43,7 +29,7 @@ module branch_pre (
 
 
 	output [63:0] taken_pc,
-	output [63:0] next__pc,
+	output [63:0] next_pc,
 	output isPreditTakenBranch,
 	output isPredit,
 	output predit_vaild,
@@ -51,6 +37,31 @@ module branch_pre (
 
 
 );
+
+	wire isJal = (instr[6:0] == 7'b1101111);
+	wire isJalr = (instr[6:0] == 7'b1100111);
+	wire isBranch = (instr[6:0] == 7'b1100011);
+
+	wire isCall = (isJalr | isJal) & ((instr[11:7] == 5'd1) | instr[11:7] == 5'd5);;
+	wire isReturn = isJalr & ((instr[19:15] == 5'd1) | instr[19:15] == 5'd5)
+                                     & (instr[19:15] != instr[11:7]);;
+
+
+    $warning("在没有压缩指令的情况下");
+	wire is_rvc_instr = 1'b0;
+	wire [63:0] imm = ({64{isJal}} & {{44{instr_i[31]}},instr_i[19:12],instr_i[20],instr_i[30:21],1'b0})
+	|
+	({64{isJalr}} & {{52{instr_i[31]}},instr_i[31:20]})
+	|
+	({64{isBranch}} & {{52{instr_i[31]}},instr_i[7],instr_i[30:25],instr_i[11:8],1'b0});
+
+
+
+
+
+
+
+
 
 
 

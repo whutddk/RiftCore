@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:47:42
+* @Last Modified time: 2020-10-29 20:13:13
 */
 
 module writeBack (
@@ -41,8 +41,10 @@ module writeBack (
 	input [(5+RNBIT-1):0] bru_rd0,
 	input [63:0] bru_res,
 
-
-
+	//from lsu
+	input lsu_writeback_vaild,
+	input [(5+RNBIT-1):0] lsu_rd0,
+	input [63:0] lsu_res,
 
 
 
@@ -59,7 +61,8 @@ wire [(64*RNDEPTH*32)-1:0] shift_writeback_dnxt;
 wire [(64*RNDEPTH*32)-1:0] jal_writeback_dnxt;
 //bru wb
 wire [(64*RNDEPTH*32)-1:0] bru_writeback_dnxt;
-
+//lsu wb
+wire [(64*RNDEPTH*32)-1:0] lsu_writeback_dnxt;
 
 
 
@@ -91,6 +94,9 @@ generate
 				|
 				//bru wb
 				{64{bru_writeback_vaild & (bru_rd0 == SEL)}} & bru_res
+				|
+				//lsu wb
+				{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res
 
 
 				//nobody wb
@@ -98,7 +104,8 @@ generate
 					~{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} &
 					~{64{shift_writeback_vaild & (shift_rd0 == SEL)}} &
 					~{64{jal_writeback_vaild & (jal_rd0 == SEL)}} &
-					~{64{bru_writeback_vaild & (bru_rd0 == SEL)}}) 
+					~{64{bru_writeback_vaild & (bru_rd0 == SEL)}} &
+					~{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}}) 
 					& regFileX_qout[64*SEL +: 64];
 		
 
@@ -112,6 +119,8 @@ generate
 				(jal_writeback_vaild & (jal_rd0 == SEL))
 				| 
 				(bru_writeback_vaild & (bru_rd0 == SEL))
+				| 
+				(lsu_writeback_vaild & (lsu_rd0 == SEL))
 				;
 
 

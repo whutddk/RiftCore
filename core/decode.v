@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:37:51
+* @Last Modified time: 2020-10-29 16:32:27
 */
 
 
@@ -21,33 +21,37 @@
 
 module decoder (
 
-	input  [31:0] instr_i,
+	//from instr_fetch
+	output fetch_decode_ready,
+	input [31:0]fetch_instr,
+	input fetch_decode_vaild,
 
-
-
+	input dispat_fifo_full,
 	output [:] decode_microInstr,
+	output decode_push,
 
-	output isCall,
-	output isReturn,
+
 
 
 
 );
 	wire is_rvc = 1'b0;
 
+	wire [31:0] instr_32 = fetch_instr;
 
-	wire [6:0] opcode 	= instr_i[6:0];
-	wire [4:0] rd 		= instr_i[11:7];
-	wire [2:0] funct3 	= instr_i[14:12];
-	wire [4:0] rs1 		= instr_i[19:15];
-	wire [4:0] rs2 		= instr_i[24:20];
-	wire [6:0] funct7 	= instr_i[31:25];
 
-	wire [63:0] iType_imm = {{52{instr_i[31]}},instr_i[31:20]};
-	wire [63:0] sType_imm = {{52{instr_i[31]}},instr_i[31:25],instr_i[11:7]};
-	wire [63:0] bType_imm = {{52{instr_i[31]}},instr_i[7],instr_i[30:25],instr_i[11:8],1'b0};
-	wire [63:0] uType_imm = {{32{instr_i[31]}},instr_i[31:12],12'b0};
-	wire [63:0] jType_imm = {{44{instr_i[31]}},instr_i[19:12],instr_i[20],instr_i[30:21],1'b0}
+	wire [6:0] opcode 	= instr_32[6:0];
+	wire [4:0] rd 		= instr_32[11:7];
+	wire [2:0] funct3 	= instr_32[14:12];
+	wire [4:0] rs1 		= instr_32[19:15];
+	wire [4:0] rs2 		= instr_32[24:20];
+	wire [6:0] funct7 	= instr_32[31:25];
+
+	wire [63:0] iType_imm = {{52{instr_32[31]}},instr_32[31:20]};
+	wire [63:0] sType_imm = {{52{instr_32[31]}},instr_32[31:25],instr_32[11:7]};
+	wire [63:0] bType_imm = {{52{instr_32[31]}},instr_32[7],instr_32[30:25],instr_32[11:8],1'b0};
+	wire [63:0] uType_imm = {{32{instr_32[31]}},instr_32[31:12],12'b0};
+	wire [63:0] jType_imm = {{44{instr_32[31]}},instr_32[19:12],instr_32[20],instr_32[30:21],1'b0}
 
 
 
@@ -208,8 +212,8 @@ module decoder (
 	wire rv64i_fence 	= op_misc_mem & funct3_000;
 	wire rv64zi_fence_i = op_misc_mem & funct3_001;	
 
-	wire rv64i_ecall 	= op_system & funct3_000 & (instr_i[31:20] == 12'b000000000000);
-	wire rv64i_ebreak 	= op_system & funct3_000 & (instr_i[31:20] == 12'b000000000001);
+	wire rv64i_ecall 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000000);
+	wire rv64i_ebreak 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000001);
 	wire rv64csr_rw 	= op_system & funct3_001;
 	wire rv64csr_rs 	= op_system & funct3_010;
 	wire rv64csr_rc 	= op_system & funct3_011;
@@ -226,7 +230,8 @@ module decoder (
 					| rv64i_xor | rv64i_srl | rv64i_srlw | rv64i_sra | rv64i_sraw | rv64i_or | rv64i_and;
 	wire iType = rv64i_jalr 
 					| rv64i_lb | rv64i_lh | rv64i_lw | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_ld
-					| rv64i_addi | rv64i_addiw | rv64i_slti | rv64i_sltiu | rv64i_xori | rv64i_ori | rv64i_andi;
+					| rv64i_addi | rv64i_addiw | rv64i_slti | rv64i_sltiu | rv64i_xori | rv64i_ori | rv64i_andi
+					| rv64i_fence | rv64zi_fence_i;
 	wire sType = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
 	wire bType = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
 	wire uType = rv64i_lui | op_auipc;
@@ -241,16 +246,7 @@ module decoder (
 
 
 
-	wire [5:0] shamt = instr_i[25:20];
-
-
-	wire intcomp_fun = 
-	wire ctltran_fun = 
-	wire lodstru_fun = 
-	wire envcall_fun = 
-
-
-
+	wire [5:0] shamt = instr_32[25:20];
 
 
 
@@ -258,7 +254,7 @@ module decoder (
 
 	assign decode_microInstr = { rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,
 								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
-								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_lbu, rv64i_lhu, rv64i_lwu, rv64i_ld,
+								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 								rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
 								rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
@@ -267,6 +263,12 @@ module decoder (
 
 								is_rvc
 								};
+
+
+	assign fetch_decode_ready = ~dispat_fifo_full & fetch_decode_vaild;
+
+	assign decode_push = fetch_decode_vaild;
+
 
 endmodule
 
