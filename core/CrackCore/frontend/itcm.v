@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:46:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 09:52:39
+* @Last Modified time: 2020-10-30 17:21:56
 */
 
 
-
+$warning("在没有调试器访问写入的情况下");
 module itcm #
 	(
 		parameter DW = 32,

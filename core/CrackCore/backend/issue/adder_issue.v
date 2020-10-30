@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 16:00:32
+* @Last Modified time: 2020-10-30 18:03:00
 */
 
 
@@ -48,27 +48,7 @@ module adder_issue (
 	wire [ADDER_ISSUE_DEPTH-1:0] adder_buffer_vaild_qout;
 	wire [ : 0] adder_issue_info_qout;
 
-issue_buffer 
-(
-	.DW(),
-	.DP(ADDER_ISSUE_DEPTH),
-)
-# adder_issue_buffer
-(
 
-	.issue_info_push(adder_issue_info_push),
-	.issue_push(adder_issue_push),
-	.buffer_full(adder_buffer_full),
-
-	.issue_pop(adder_issue_pop),
-	.issue_pop_index(adder_issue_pop_index),
-	.issue_info_qout(adder_issue_info_qout),
-	.buffer_vaild_qout(adder_buffer_vaild_qout),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 16:58:22
+* @Last Modified time: 2020-10-30 18:10:02
 */
 
 
@@ -96,27 +96,7 @@ module lsu_issue (
 	wire [LU_ISSUE_DEPTH-1:0] lu_buffer_vaild_qout;
 	wire [ : 0] lu_issue_info_qout;
 
-	issue_buffer #
-	(
-		.DW(),
-		.DP(LU_ISSUE_DEPTH),
-	)
-	lu_issue_buffer
-	(
 
-		.issue_info_push(lu_issue_info_push),
-		.issue_push(lu_issue_push),
-		.buffer_full(lu_buffer_full),
-
-		.issue_pop(lu_issue_pop),
-		.issue_pop_index(lu_issue_pop_index),
-		.issue_info_qout(lu_issue_info_qout),
-		.buffer_vaild_qout(lu_buffer_vaild_qout),
-
-		.CLK(CLK),
-		.RSTn(RSTn)
-		
-	);
 
 
 	wire [LU_ISSUE_DEPTH-1:0] rv64i_lb;
@@ -277,25 +257,8 @@ $error("写存储器必须保证前序指令已经commit，本指令不会被撤
 
 
 
-$warning("写外部存储的数据冒险暂时没有解决");
-issue_fifo #(
-	.DW(),
-	.DP(SU_ISSUE_DEPTH),
-)
-su_issue_fifo
-(
-	.issue_info_push(su_issue_info_push),
-	.issue_info_pop(su_issue_info_pop),
 
-	.issue_push(su_issue_push),
-	.issue_pop(su_issue_pop),
-	.fifo_full(su_fifo_full),
-	.fifo_empty(su_fifo_empty),
 
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
 
 
 	wire rv64i_sb;
@@ -392,24 +355,7 @@ su_issue_fifo
 	wire fence_fifo_empty;
 	wire [ : 0] fence_issue_info_pop;
 
-issue_fifo #(
-	.DW(),
-	.DP(1),
-)
-fence_issue_fifo
-(
-	.issue_info_push(fence_issue_info_push),
-	.issue_info_pop(fence_issue_info_pop),
 
-	.issue_push(fence_issue_push),
-	.issue_pop(fence_issue_pop),
-	.fifo_full(fence_fifo_full),
-	.fifo_empty(fence_fifo_empty),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
 
 	wire rv64zi_fence_i;
 	wire rv64i_fence;

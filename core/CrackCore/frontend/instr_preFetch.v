@@ -1,16 +1,16 @@
 /*
-* @File name: instr_fetch
+* @File name: instr_preFetch
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:27:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 10:47:33
+* @Last Modified time: 2020-10-30 18:01:10
 */
 
 
 
 
-module instr_fetch (
+module instr_preFetch (
 
 	//from pc_generate
 	input [63:0] fetch_pc,

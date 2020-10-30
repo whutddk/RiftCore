@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 15:54:16
+* @Last Modified time: 2020-10-30 18:03:58
 */
 
 
@@ -45,24 +45,7 @@ module bru_issue (
 
 //对于有条件分支预测，先解决分支也没用，必须等先序指令commit，因此还不如顺序发射
 //对于无条件指令，建议放到加法器中合并
-issue_fifo (
-	.DW(),
-	.DP(BRU_ISSUE_DEPTH),
-)
-bru_issue_fifo
-(
-	.issue_info_push(bru_issue_info_push),
-	.issue_info_pop(bru_issue_info_pop),
 
-	.issue_push(bru_issue_push),
-	.issue_pop(bru_issue_pop),
-	.fifo_full(bru_fifo_full),
-	.fifo_empty(bru_fifo_empty),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
 
 	wire rv64i_jal;
 	wire rv64i_jalr;
