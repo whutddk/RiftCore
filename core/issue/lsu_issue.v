@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 17:31:22
+* @Last Modified time: 2020-10-30 16:58:22
 */
 
 
@@ -255,7 +255,7 @@ wire lu_all_RAW;
 
 
 
-
+$error("写存储器必须保证前序指令已经commit，本指令不会被撤销，需要从commit处顺序fifo跟踪");
 
 
 
@@ -310,10 +310,6 @@ su_issue_fifo
 
 	wire [(5+RNBIT) - 1:0] su_rd0;
 	wire [(5+RNBIT) - 1:0] su_rs1;
-
-	wire [LU_ISSUE_DEPTH - 1:0] su_rs1_ready;
-	wire [LU_ISSUE_DEPTH - 1:0] su_rs2_ready;
-
 
 	wire su_isClearRAW;
 

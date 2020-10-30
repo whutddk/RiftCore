@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 20:20:16
+* @Last Modified time: 2020-10-30 17:04:15
 */
 
 
@@ -313,24 +313,20 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	
 	assign csr_issue_info = {
 								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-								dispat_pc, imm[11:0], rd0, rs1
+								imm[11:0], rd0, rs1
 							}
 
 
 
 
+	// assign oth_issue_vaild = {
+	// 							rv64i_ecall | rv64i_ebreak
+	// 							};		
 
-
-
-	assign oth_issue_vaild = {
-								rv64i_fence | rv64zi_fence_i
-								| rv64i_ecall | rv64i_ebreak
-								};		
-
-	assign oth_issue_info = {	rv64i_fence, rv64zi_fence_i,
-								rv64i_ecall, rv64i_ebreak,
-								dispat_pc, imm, rd0, rs1, rs2
-							}
+	// assign oth_issue_info = {	
+	// 							rv64i_ecall, rv64i_ebreak,
+	// 							dispat_pc, imm, rd0, rs1, rs2
+	// 						}
 
 
 
