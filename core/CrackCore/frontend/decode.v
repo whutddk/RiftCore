@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 16:32:27
+* @Last Modified time: 2020-10-31 15:34:45
 */
 
 
@@ -19,22 +19,22 @@
 
 
 
-module decoder (
+module decoder 
+	(
 
-	//from instr_fetch
-	output fetch_decode_ready,
-	input [31:0]fetch_instr,
+	input [31:0] fetch_instr,
 	input fetch_decode_vaild,
 
-	input dispat_fifo_full,
-	output [:] decode_microInstr,
-	output decode_push,
-
-
-
-
+	input instrFifo_full,
+	output [DECODE_INFO_DW-1:0] decode_microInstr,
+	output instrFifo_push,
 
 );
+//RV65I + RV64ZIfencei +RV64ZICSR + isRVC+  pc + imm + shamt+rd0+rs1+rs2
+
+
+
+
 	wire is_rvc = 1'b0;
 
 	wire [31:0] instr_32 = fetch_instr;
@@ -252,22 +252,24 @@ module decoder (
 
 
 
-	assign decode_microInstr = { rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,
-								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
-								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
-								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
-								rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
-								rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
-								rv64i_fence, rv64zi_fence_i,
-								rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+	assign [60+64+-1:0] decode_microInstr = 
+		{ rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,
+		rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
+		rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
+		rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
+		rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
+		rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
+		rv64i_fence, rv64zi_fence_i,
+		rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 
-								is_rvc
-								};
+		is_rvc,
+		pc, imm, shamt, rd0,rs1,rs2
+		};
 
 
-	assign fetch_decode_ready = ~dispat_fifo_full & fetch_decode_vaild;
 
-	assign decode_push = fetch_decode_vaild;
+
+	assign instrFifo_push = fetch_decode_vaild & ~instrFifo_full;
 
 
 endmodule

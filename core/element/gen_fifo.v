@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 17:57:27
+* @Last Modified time: 2020-10-30 21:57:34
 */
 
 
@@ -43,7 +43,7 @@ module gen_fifo # (
 
 generate
 	for ( genvar i = 0; i < DP; i = i + 1 ) begin
-		assign fifo_data_dnxt[DW*i+:DW] = (fifo_push & ~fifo_full & (write_addr_qout[AW-1:0] == i) ) ? data_push : fifo_data_qout[DW*i+:DW]
+		assign fifo_data_dnxt[DW*i+:DW] = (fifo_push & ~fifo_full & (write_addr_qout[AW-1:0] == i) ) ? data_push : fifo_data_qout[DW*i+:DW];
 
 
 		gen_dffr # fifo_data (.DW(DW)) (.dnxt(fifo_data_dnxt[DW*i+:DW]), .qout(fifo_data_qout[DW*i+:DW]), .CLK(CLK), .RSTn(RSTn));

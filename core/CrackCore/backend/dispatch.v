@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 17:04:15
+* @Last Modified time: 2020-10-31 15:28:26
 */
 
 
@@ -212,7 +212,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 				rv64i_fence, rv64zi_fence_i,
 				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-				is_rvc
+				is_rvc,
+				pc,imm,shamt, rd0,rs1,rs2
 			} = decode_microInstr;
 
 

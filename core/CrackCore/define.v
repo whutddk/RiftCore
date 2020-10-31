@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-22 11:47:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 17:29:06
+* @Last Modified time: 2020-10-31 15:34:39
 */
 
 
@@ -20,4 +20,6 @@
 `define BLU_ISSUE_DEPTH 4 
 
 
+
+`define DECODE_INFO_DW = (52+1+6+1+64+64+6+5+5+5); 
 
