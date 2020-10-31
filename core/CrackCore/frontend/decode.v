@@ -4,14 +4,14 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 15:34:45
+* @Last Modified time: 2020-10-31 17:33:30
 */
 
 
 
 
 
-
+`include "define.v"
 
 
 
@@ -22,12 +22,13 @@
 module decoder 
 	(
 
-	input [31:0] fetch_instr,
+	input [31:0] instr,
 	input fetch_decode_vaild,
+	input [63:0] pc,
 
 	input instrFifo_full,
-	output [DECODE_INFO_DW-1:0] decode_microInstr,
-	output instrFifo_push,
+	output [`DECODE_INFO_DW-1:0] decode_microInstr,
+	output instrFifo_push
 
 );
 //RV65I + RV64ZIfencei +RV64ZICSR + isRVC+  pc + imm + shamt+rd0+rs1+rs2
@@ -37,11 +38,11 @@ module decoder
 
 	wire is_rvc = 1'b0;
 
-	wire [31:0] instr_32 = fetch_instr;
+	wire [31:0] instr_32 = instr;
 
 
 	wire [6:0] opcode 	= instr_32[6:0];
-	wire [4:0] rd 		= instr_32[11:7];
+	wire [4:0] rd0 		= instr_32[11:7];
 	wire [2:0] funct3 	= instr_32[14:12];
 	wire [4:0] rs1 		= instr_32[19:15];
 	wire [4:0] rs2 		= instr_32[24:20];
@@ -51,7 +52,7 @@ module decoder
 	wire [63:0] sType_imm = {{52{instr_32[31]}},instr_32[31:25],instr_32[11:7]};
 	wire [63:0] bType_imm = {{52{instr_32[31]}},instr_32[7],instr_32[30:25],instr_32[11:8],1'b0};
 	wire [63:0] uType_imm = {{32{instr_32[31]}},instr_32[31:12],12'b0};
-	wire [63:0] jType_imm = {{44{instr_32[31]}},instr_32[19:12],instr_32[20],instr_32[30:21],1'b0}
+	wire [63:0] jType_imm = {{44{instr_32[31]}},instr_32[19:12],instr_32[20],instr_32[30:21],1'b0};
 
 
 
@@ -252,7 +253,7 @@ module decoder
 
 
 
-	assign [60+64+-1:0] decode_microInstr = 
+	assign decode_microInstr = 
 		{ rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,
 		rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
 		rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,

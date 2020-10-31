@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 22:03:16
+* @Last Modified time: 2020-10-31 17:11:55
 */
 
 
@@ -32,7 +32,7 @@ module gen_ringStack # (
 	wire stack_full;
 	wire [AW+1-1:0] btm_addr_dnxt, btm_addr_qout;
 	wire [AW+1-1:0] top_addr_dnxt, top_addr_qout;
-	WIRE [DP*DW-1:0] stack_data_dnxt, stack_data_qout;
+	wire [DP*DW-1:0] stack_data_dnxt, stack_data_qout;
 
 	gen_dffr #(.DW(AW+1)) btm_addr   (.dnxt(btm_addr_dnxt), .qout(btm_addr_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr #(.DW(AW+1)) top_addr  (.dnxt(top_addr_dnxt), .qout(top_addr_qout), .CLK(CLK), .RSTn(RSTn));

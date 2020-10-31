@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 15:49:22
+* @Last Modified time: 2020-10-31 17:49:05
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -49,12 +49,11 @@ module pcGenerate (
 
 // from branch predict
 wire [63:0] taken_pc;
-wire [63:0] next_pc;
 wire isTakenBranch;
 wire isPredit;
 
 
-wire pcGen_fetch_vaild,
+wire pcGen_fetch_vaild;
 
 
 
@@ -63,6 +62,17 @@ wire expection_vaild = 1'b0;
 wire isExpection = 1'b0;
 wire [63:0] expection_pc = 64'h0;
 
+
+	wire isJal;
+	wire isJalr;
+	wire isBranch;
+
+	wire isCall;
+	wire isReturn;
+wire [31:0] load_instr;
+wire [63:0] next_pc;
+wire [63:0] take_pc;
+wire ras_empty;
 
 
 //分支历史表写入没有预测的分支项
@@ -76,8 +86,8 @@ wire bht_pop = bru_res_vaild;
 wire bht_push = isPredit & ~bht_full;
 
 //分支历史表必须保持最后一个结果显示
-wire isMisPredict = (bru_res_vaild & ( blu_takenBranch ^ bht_data_pop[64]);
-wire [63:0] resolve_pc = bht_data_pop[63：0];
+assign isMisPredict = bru_res_vaild & ( bru_takenBranch ^ bht_data_pop[64]);
+wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
 
@@ -125,26 +135,26 @@ assign pcGen_fetch_vaild =  ~ ( (bht_full & isPredit)
 //如果是JARL必需要跳，但是寄存器需要到发射之后才可以确定，因此需要在BLU中计算，预测没有意义，直接挂起取指即可
 
 
-	wire isJal = (instr[6:0] == 7'b1101111);
-	wire isJalr = (instr[6:0] == 7'b1100111);
-	wire isBranch = (instr[6:0] == 7'b1100011);
+	assign isJal = (load_instr[6:0] == 7'b1101111);
+	assign isJalr = (load_instr[6:0] == 7'b1100111);
+	assign isBranch = (load_instr[6:0] == 7'b1100011);
 
-	wire isCall = (isJalr | isJal) & ((instr[11:7] == 5'd1) | instr[11:7] == 5'd5);;
-	wire isReturn = isJalr & ((instr[19:15] == 5'd1) | instr[19:15] == 5'd5)
-                                     & (instr[19:15] != instr[11:7]);;
+	assign isCall = (isJalr | isJal) & ((load_instr[11:7] == 5'd1) | load_instr[11:7] == 5'd5);
+	assign isReturn = isJalr & ((load_instr[19:15] == 5'd1) | load_instr[19:15] == 5'd5)
+								& (load_instr[19:15] != load_instr[11:7]);
 
 
     $warning("在没有压缩指令的情况下");
 	wire is_rvc_instr = 1'b0;
-	wire [63:0] imm = ({64{isJal}} & {{44{instr_i[31]}},instr_i[19:12],instr_i[20],instr_i[30:21],1'b0})
+	wire [63:0] imm = ({64{isJal}} & {{44{load_instr[31]}},load_instr[19:12],load_instr[20],load_instr[30:21],1'b0})
 	|
-	({64{isJalr}} & {{52{instr_i[31]}},instr_i[31:20]})
+	({64{isJalr}} & {{52{load_instr[31]}},load_instr[31:20]})
 	|
-	({64{isBranch}} & {{52{instr_i[31]}},instr_i[7],instr_i[30:25],instr_i[11:8],1'b0});
+	({64{isBranch}} & {{52{load_instr[31]}},load_instr[7],load_instr[30:25],load_instr[11:8],1'b0});
 
 
 //分支预测算法,分支指令才预测，直接跳转指令和其他指令不预测
-assign isPredit = isBranch
+assign isPredit = isBranch;
 
 //分支指令只预测向后跳则采用taken结果，无条件跳转直接采用taken结果，分支前跳和其他指令采用pc自增组
 assign isTakenBranch = ( (isBranch) & ( (imm[63] == 1'b0) : 1'b1 : 1'b0) )
@@ -158,14 +168,14 @@ wire [63:0] ras_addr_pop;
 wire [63:0] ras_addr_push;
 
 
-wire ras_empty;
+
 
 wire ras_push = isCall & ( isJal | isJalr );
 wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty );
 
 //计算两种分支结果
-wire [63:0] next_pc = isReset ? (64'h80000000) : fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
-wire [63:0] take_pc = ( {64{isJal | isBranchu}} & (fetch_pc_reg + imm)
+assign next_pc = isReset ? (64'h80000000) : fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
+assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_reg + imm) )
 					| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
 					| ( {64{isJalr & !ras_pop & jalr_vaild}} & jalr_pc  );
 
@@ -179,7 +189,7 @@ $warning("在没有cache的情况下");
 wire isCache = 1'b0;
 
 
-wire [31:0] load_instr;
+
 
 
 
@@ -188,7 +198,7 @@ $warning("在没有调试器访问写入的情况下,在不使用奇偶存储器
 itcm #
 	(
 		.DW(32),
-		.AW(14),
+		.AW(14)
 	)i_itcm
 	(
 
@@ -208,9 +218,8 @@ itcm #
 $warning("在不考虑压缩指令并强制32bit对齐的情况下");
 assign instr_readout = load_instr;
 
-$warning("在使用ITCM强制一拍必出指令的情况下")
+$warning("在使用ITCM强制一拍必出指令的情况下");
 
-wire isInstrReadOut;
 
 gen_dffr # (.DW(1)) isReadOut ( .dnxt(pcGen_fetch_vaild), .qout(isInstrReadOut), .CLK(CLK), .RSTn(RSTn));
 
@@ -245,7 +254,7 @@ gen_fifo # (
 
 $info("使用 ring-fifo策略，压栈不会压爆，但是会空");
 $warning("暂时没有commit反馈，冲刷只能全部刷掉");
-gen_ringFifo # (.DW(64), .AW(4)) ras(
+gen_ringStack # (.DW(64), .AW(4)) ras(
 	.stack_pop(ras_pop), .stack_push(ras_push),
 	.stack_empty(ras_empty),
 	.data_pop(ras_addr_pop), .data_push(ras_addr_push),

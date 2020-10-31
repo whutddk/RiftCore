@@ -1,12 +1,14 @@
 
 
+`include "define.v"
+
 module Crack_FrontEnd_TB();
 
-	reg  CKL;
+	reg  CLK;
 	reg  RSTn;
 
 
-	`define ITCM `s_frontEnd.i_pcGenerate.i_itcm
+	`define ITCM s_frontEnd.i_pcGenerate.i_itcm
 
 
 	initial begin
@@ -17,7 +19,7 @@ module Crack_FrontEnd_TB();
 
 	always
 	begin 
-		 #2 clk <= ~clk;
+		 #2 CLK <= ~CLK;
 	end
 
 
@@ -28,7 +30,7 @@ module Crack_FrontEnd_TB();
 
 		reg [7:0] itcm_mem [0:(ITCM_DP-1)*8];
 		initial begin
-			$readmemh({testcase, ".verilog"}, itcm_mem);
+			$readmemh("rv64ui-p-add.test", itcm_mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 					`ITCM.ram[i][00+7:00] = itcm_mem[i*8+0];
@@ -59,14 +61,14 @@ module Crack_FrontEnd_TB();
 
 wire instrFifo_push;
 wire instrFifo_full;
-wire [DECODE_INFO_DW-1:0] decode_microInstr;
+wire [`DECODE_INFO_DW-1:0] decode_microInstr;
 
 
 frontEnd s_frontEnd(
 
-	.instrFifo_full(instrFifo_full)
-	.instrFifo_push(instrFifo_push)
-	.decode_microInstr(decode_microInstr)
+	.instrFifo_full(instrFifo_full),
+	.instrFifo_push(instrFifo_push),
+	.decode_microInstr(decode_microInstr),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -74,7 +76,7 @@ frontEnd s_frontEnd(
 );
 
 
-gen_fifo # (.DW(DECODE_INFO_DW),.AW(4)) 
+gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
 	instr_fifo (
 		.fifo_pop(1'b0),
 		.fifo_push(instrFifo_push),
