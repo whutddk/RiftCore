@@ -71,16 +71,17 @@ wire instrFifo_full;
 wire [`DECODE_INFO_DW-1:0] decode_microInstr;
 
 
-frontEnd s_frontEnd(
+// frontEnd s_frontEnd(
 
-	.instrFifo_full(instrFifo_full),
-	.instrFifo_push(instrFifo_push),
-	.decode_microInstr(decode_microInstr),
+// 	.instrFifo_full(instrFifo_full),
+// 	.instrFifo_push(instrFifo_push),
+// 	.decode_microInstr(decode_microInstr),
 
-	.CLK(CLK),
-	.RSTn(RSTn)
+// 	.CLK(CLK),
+// 	.RSTn(RSTn)
 	
-);
+// );
+
 
 
 gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 

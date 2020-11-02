@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 10:36:56
+* @Last Modified time: 2020-11-02 14:27:53
 */
 
 `include "define.v"
@@ -56,11 +56,11 @@ pcGenerate i_pcGenerate
 
 	//from jalr exe
 	.jalr_vaild(1'b0),
-	.jalr_pc('b0),
+	.jalr_pc(64'b0),
 	
 	//from bru
 	.bru_res_vaild(1'b0),
-	.bru_takenBranch('b0),
+	.bru_takenBranch(1'b0),
 
 
 	// from expection 	
@@ -133,25 +133,54 @@ decoder i_decoder
 
 //////simulator
 
-	initial begin
-		CLK = 0;
-		RSTn = 0;
+initial begin
+	CLK = 0;
+	RSTn = 0;
 
-		#20
+	#20
 
-		RSTn <= 1;
+	RSTn <= 1;
 
-		#40000000
-				$display("Time Out !!!");
-		 $finish;
-	end
+	#400
+			$display("Time Out !!!");
+	 $finish;
+end
 
-	always
+initial begin
+	forever
 	begin 
 		 #5 CLK <= ~CLK;
 	end
+end
+
+initial
+begin            
+    $dumpfile("wave.vcd");        //生成的vcd文件名称
+    $dumpvars(0, frontEnd);    //tb模块名称
+end
 
 
+	`define ITCM i_pcGenerate.i_itcm
+	localparam  ITCM_DP = 2**14;
+	integer i;
+
+		reg [7:0] itcm_mem [0:(ITCM_DP-1)*8];
+		initial begin
+			$readmemh("./tb/rv64ui-p-add.test", itcm_mem);
+
+			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
+					`ITCM.ram[i] = itcm_mem[i*32+0];
+			end
+
+				$display("ITCM 0x00: %h", `ITCM.ram[8'h00]);
+				$display("ITCM 0x01: %h", `ITCM.ram[8'h01]);
+				$display("ITCM 0x02: %h", `ITCM.ram[8'h02]);
+				$display("ITCM 0x03: %h", `ITCM.ram[8'h03]);
+				$display("ITCM 0x04: %h", `ITCM.ram[8'h04]);
+				$display("ITCM 0x05: %h", `ITCM.ram[8'h05]);
+				$display("ITCM 0x06: %h", `ITCM.ram[8'h06]);
+				$display("ITCM 0x07: %h", `ITCM.ram[8'h07]);
+		end 
 
 
 endmodule

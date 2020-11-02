@@ -1,17 +1,11 @@
 /*
-* @File name: decode
+* @File name: decoder
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 17:33:30
+* @Last Modified time: 2020-11-02 13:58:49
 */
-
-
-
-
-
-`include "define.v"
 
 
 

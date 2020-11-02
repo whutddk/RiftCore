@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 10:21:24
+* @Last Modified time: 2020-11-02 11:56:22
 */
 
 module instr_fetch (
@@ -26,7 +26,7 @@ module instr_fetch (
 
 
 
-$warning("预留一拍做后处理");
+// $warning("预留一拍做后处理");
 
 
 wire [31:0] instr_fetch_qout;
