@@ -4,10 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 17:26:21
+* @Last Modified time: 2020-11-02 10:15:08
 */
 
-
+`timescale 1 ns / 1 ps
 
 
 module gen_fifo # (

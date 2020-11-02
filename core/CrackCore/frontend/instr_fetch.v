@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 17:46:25
+* @Last Modified time: 2020-11-02 10:21:24
 */
 
 module instr_fetch (
@@ -41,8 +41,8 @@ assign instr = instr_fetch_qout;
 
 
 gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn|~flush));
-gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn|~flush));
-gen_dffr # (.DW(1)) handshake ( .dnxt(isInstrReadOut), .qout(fetch_decode_vaild), .CLK(CLK), .RSTn(RSTn|~flush));
+gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn&~flush));
+gen_dffr # (.DW(1)) handshake ( .dnxt(isInstrReadOut), .qout(fetch_decode_vaild), .CLK(CLK), .RSTn(RSTn&~flush));
 
 endmodule
 

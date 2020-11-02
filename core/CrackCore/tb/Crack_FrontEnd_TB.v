@@ -1,4 +1,4 @@
-
+`timescale 1 ns / 1 ps
 
 `include "define.v"
 
@@ -12,6 +12,13 @@ module Crack_FrontEnd_TB();
 
 
 	initial begin
+		CLK = 0;
+		RSTn = 0;
+
+		#20
+
+		RSTn <= 1;
+
 		#40000000
 				$display("Time Out !!!");
 		 $finish;
@@ -19,7 +26,7 @@ module Crack_FrontEnd_TB();
 
 	always
 	begin 
-		 #2 CLK <= ~CLK;
+		 #5 CLK <= ~CLK;
 	end
 
 

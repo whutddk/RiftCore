@@ -4,21 +4,33 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 17:33:00
+* @Last Modified time: 2020-11-02 10:36:56
 */
 
 `include "define.v"
 
 module frontEnd (
 
-	input instrFifo_full,
-	output instrFifo_push,
-	output [`DECODE_INFO_DW-1:0] decode_microInstr,
+	// input instrFifo_full,
+	// output instrFifo_push,
+	// output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
-	input CLK,
-	input RSTn
+	// input CLK,
+	// input RSTn
 	
 );
+
+	reg instrFifo_full = 0;
+	wire instrFifo_push;
+	wire [`DECODE_INFO_DW-1:0] decode_microInstr;
+
+	reg CLK;
+	reg RSTn;
+
+
+
+
+
 
 
 wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
@@ -44,11 +56,11 @@ pcGenerate i_pcGenerate
 
 	//from jalr exe
 	.jalr_vaild(1'b0),
-	.jalr_pc(),
+	.jalr_pc('b0),
 	
 	//from bru
 	.bru_res_vaild(1'b0),
-	.bru_takenBranch(),
+	.bru_takenBranch('b0),
 
 
 	// from expection 	
@@ -119,7 +131,25 @@ decoder i_decoder
 
 
 
+//////simulator
 
+	initial begin
+		CLK = 0;
+		RSTn = 0;
+
+		#20
+
+		RSTn <= 1;
+
+		#40000000
+				$display("Time Out !!!");
+		 $finish;
+	end
+
+	always
+	begin 
+		 #5 CLK <= ~CLK;
+	end
 
 
 

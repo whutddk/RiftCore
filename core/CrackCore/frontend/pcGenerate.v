@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 17:49:05
+* @Last Modified time: 2020-11-02 11:20:22
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -48,7 +48,6 @@ module pcGenerate (
 
 
 // from branch predict
-wire [63:0] taken_pc;
 wire isTakenBranch;
 wire isPredit;
 
@@ -77,7 +76,7 @@ wire ras_empty;
 
 //分支历史表写入没有预测的分支项
 wire [63+1:0] bht_data_pop;
-wire [63+1:0] bht_data_push = {64{~isTakenBranch}} & taken_pc 
+wire [63+1:0] bht_data_push = {64{~isTakenBranch}} & take_pc 
 							|
 							 {64{isTakenBranch}} & next_pc;
 
@@ -91,7 +90,7 @@ wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
 
-assign fetch_pc_dnxt = 	pcGen_fetch_vaild? (
+assign fetch_pc_dnxt = 	pcGen_fetch_vaild ? (
 						( {64{isExpection}} & expection_pc )
 						| 
 						( ( {64{~isExpection}} ) & 
@@ -101,7 +100,7 @@ assign fetch_pc_dnxt = 	pcGen_fetch_vaild? (
 								(
 									{64{~isMisPredict}} &
 									(
-										{64{isTakenBranch}} & taken_pc 
+										{64{isTakenBranch}} & take_pc 
 										|
 										{64{~isTakenBranch}} & next_pc
 									)
@@ -205,8 +204,8 @@ itcm #
 	.addr(fetch_pc_dnxt[2 +: 14]),
 	.instr_out(load_instr),
 
-	.instr_in('b0),
-	.wen('b0),
+	// .instr_in('b0),
+	// .wen('b0),
 
 	.CLK(CLK)
 	
@@ -247,7 +246,7 @@ gen_fifo # (
 	.data_pop(bht_data_pop),
 
 	.CLK(CLK),
-	.RSTn()
+	.RSTn(RSTn)
 );
 
 
@@ -260,7 +259,7 @@ gen_ringStack # (.DW(64), .AW(4)) ras(
 	.data_pop(ras_addr_pop), .data_push(ras_addr_push),
 
 	.CLK(CLK),
-	.RSTn()
+	.RSTn(RSTn)
 );
 
 
