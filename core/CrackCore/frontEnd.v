@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 16:45:16
+* @Last Modified time: 2020-11-02 17:23:19
 */
 
 
@@ -19,6 +19,8 @@ module frontEnd (
 	
 );
 
+initial $warning("缺失分支预测commit通道");
+initial $warning("缺失前后端冲刷通道");
 
 wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
 wire isReset_qout;

@@ -4,30 +4,33 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-31 15:28:26
+* @Last Modified time: 2020-11-02 19:23:01
 */
 
 
 
 module dispatch (
 
-	input [63:0] dispat_pc,
-	input [63:0] imm,
-	input [5:0] shamt,
-	input [5+RNBIT-1:0] rd0,
-	input [5+RNBIT-1:0] rs1,
-	input [5+RNBIT-1:0] rs2,
+	//for rename
 
-	input [:] decode_microInstr,
+	output [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
+	input [ RNBIT*32 - 1 :0 ] rnAct_X_qout,
 
+	output [32*RNDEPTH-1 : 0] rnBufU_rename_set,
+	input [32*RNDEPTH-1 : 0] rnBufU_qout,
 
 
 
-	output  dispat_vaild,
-	input iOrder_ready,
+	input [DECODE_INFO_DW-1:0] decode_microInstr_pop,
+	output instrFifo_pop,
+	input instrFifo_empty,
+
+
+	output dispat_vaild,
+	input reOrder_ready,
 	input issueS_ready,
 
-	output [:] iOrder_info_push,
+	output [:] reOrder_info_push,
 	output [:] dispat_instr_info,
 
 
@@ -72,11 +75,16 @@ module dispatch (
 
 
 
-	output oth_issue_vaild,
-	input oth_issue_ready,
-	output [:] oth_issue_info,
-
 );
+
+
+wire [4:0] rd0_raw;
+wire [4:0] rs1_raw;
+wire [4:0] rs2_raw;
+
+wire [RNBIT-1:0] rs1_reName;
+wire [RNBIT-1:0] rs2_reName;
+wire [RNBIT-1:0] rd0_reName;
 
 
 
@@ -87,32 +95,10 @@ wire [] dispatch_instr_info;
 
 
 
-
-gen_fifo dispatch_fifo (
-	.DP(8)
-	.DW()
-) #
-(
-
-	.vaild_a, 
-	.ready_a, 
-	.data_a(renaming_instr),
-
-	.vaild_b(dispatch_vaild), 
-	.ready_b(dispatch_ready), 
-	.data_b(dispatch_instr),
-
-	.CLK,
-	.RSTn
-);
-
-
-
-
 assign {} = dispatch_instr;
 
 
-assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
+assign reOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
@@ -195,7 +181,6 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
-	wire [:] decode_microInstr;
 	wire [63:0] dispatch_pc;
 	wire [63:0] imm;
 	wire [5:0] shamt;
@@ -213,8 +198,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 				rv64i_fence, rv64zi_fence_i,
 				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 				is_rvc,
-				pc,imm,shamt, rd0,rs1,rs2
-			} = decode_microInstr;
+				pc, imm, shamt, rd0_raw, rs1_raw, rs2_raw
+			} = decode_microInstr_pop;
 
 
 
@@ -225,11 +210,9 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 	assign adder_issue_vaild = rv64i_lui | rv64i_auipc 
 							| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw ;
-							
-
 	assign adder_issue_info = { rv64i_lui, rv64i_auipc, 
 								rv64i_addi, rv64i_addiw, rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw,
-								dispat_pc, imm, rd0, rs1, rs2
+								dispat_pc, imm, rd0_reName, rs1_reName, rs2_reName
 								};
 
 
@@ -242,11 +225,10 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 	assign logCmp_issue_vaild = rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu
 								| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and;
-
 	assign logCmp_issue_info = { 
 								rv64i_slti, rv64i_sltiu, rv64i_slt, rv64i_sltu,
 								rv64i_xori, rv64i_ori, rv64i_andi, rv64i_xor, rv64i_or, rv64i_and,
-								dispat_pc, imm, rd0, rs1, rs2
+								dispat_pc, imm, rd0_reName, rs1_reName, rs2_reName
 								};
 
 
@@ -259,9 +241,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	assign shift_issue_info = { 
 								rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
 								rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
-								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw, 
-								
-								dispat_pc, imm, shamt, rd0, rs1, rs2
+								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw,
+								dispat_pc, imm, shamt, rd0_reName, rs1_reName, rs2_reName
 								};
 
 
@@ -271,8 +252,7 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	assign jal_issue_vaild = rv64i_jal | rv64i_jalr;
 	assign jal_issue_info = {
 								rv64i_jal, rv64i_jalr,
-								dispat_pc, imm, rd0, rs1, 
-
+								dispat_pc, imm, rd0_reName, rs1_reName,
 								is_rvc
 							};
 
@@ -289,8 +269,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	assign lu_issue_info = { 
 							rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
 							imm,
-							rd0,
-							rs1
+							rd0_reName,
+							rs1_reName
 							};
 
 
@@ -299,8 +279,8 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 	assign su_issue_info = {
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 								imm,
-								rs1,
-								rs2
+								rs1_reName,
+								rs2_reName
 								};
 
 	assign fence_execute_vaild = rv64zi_fence_i | rv64i_fence;
@@ -311,28 +291,42 @@ assign iOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 	assign csr_issue_vaild = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
-	
 	assign csr_issue_info = {
 								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-								imm[11:0], rd0, rs1
+								imm[11:0], rd0_reName, rs1_reName
 							}
 
 
 
 
-	// assign oth_issue_vaild = {
-	// 							rv64i_ecall | rv64i_ebreak
-	// 							};		
 
-	// assign oth_issue_info = {	
-	// 							rv64i_ecall, rv64i_ebreak,
-	// 							dispat_pc, imm, rd0, rs1, rs2
-	// 						}
+wire rd0_raw_vaild = adder_issue_vaild
+					| logCmp_issue_vaild
+					| shift_issue_vaild
+					| jal_issue_vaild
+					| lu_issue_vaild
+					| csr_issue_vaild;
 
+rename i_rename(
 
+	.rnAct_X_dnxt(rnAct_X_dnxt),
+	.rnAct_X_qout(rnAct_X_qout),	
 
+	.rnBufU_rename_set(rnBufU_rename_set),
+	.rnBufU_qout(rnBufU_qout),
 
+	.rs1_raw(rs1_raw),
+	.rs1_reName(rs1_reName),
 
+	.rs2_raw(rs2_raw),
+	.rs2_reName(rs2_reName),
+	
+	.rd0_raw_vaild(rd0_raw_vaild),
+	.rd0_raw(rd0_raw),
+	.rd0_reName(rd0_reName),
+	output rd0_runOut
+
+);
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 17:07:41
+* @Last Modified time: 2020-11-02 18:05:34
 */
 
 
@@ -13,6 +13,10 @@ module phyRegister (
 
 	input  [(64*RNDEPTH*32)-1:0] regFileX_dnxt,
 	output [(64*RNDEPTH*32)-1:0] regFileX_qout,
+
+
+	input [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
+	output [ RNBIT*32 - 1 :0 ] rnAct_X_qout,
 
 	input [32*RNDEPTH-1 : 0] rnBufU_rename_set,
 	input [32*RNDEPTH-1 : 0] rnBufU_commit_rst,
@@ -75,16 +79,12 @@ endgenerate
 //读操作不会改变重命名活动指针，
 //读操作需要通过重命名活动指针寻找正确的寄存器，
 //写操作需要改变重命名活动指针到一个新位置，需要是空的，否则挂起流水线
-wire [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt;
-wire [ RNBIT*32 - 1 :0 ] rnAct_X_qout;
 
-wire rnAct_X_dnxt [RNBIT - 1 :0] = 'b0;
-wire rnAct_X_qout [RNBIT - 1 :0] = 'b0;
 
 generate
 	for ( genvar i = 1 ; i < 32; i = i + 1 ) begin
 
-		rnAct_X_dnxt[RNBIT*i +: RNBIT] = (decode_rd0 == i) ? inOrder_rd0_reName : rnActive_X_qout[RNBIT*i +: RNBIT];
+		
 
 		gen_dffr #(.DW(RNBIT)) rnActive_X ( .dnxt(rnAct_X_dnxt[RNBIT*i +: RNBIT]), .qout(rnAct_X_qout[RNBIT*i +: RNBIT]), .CLK(CLK), .RSTn(RSTn) );
 	end

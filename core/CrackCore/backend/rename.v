@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 15:04:31
+* @Last Modified time: 2020-11-02 19:11:48
 */
 
 
@@ -22,35 +22,23 @@
 
 
 module rename (
+
+	output [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
+	input [ RNBIT*32 - 1 :0 ] rnAct_X_qout,	
+
+	output [32*RNDEPTH-1 : 0] rnBufU_rename_set,
+	input [32*RNDEPTH-1 : 0] rnBufU_qout,
+
+	input [4:0] rs1_raw,
+	output [RNBIT-1:0] rs1_reName,
+
+	input [4:0] rs2_raw,
+	output [RNBIT-1:0] rs2_reName,
 	
-	//from rob
-
-
-	//from decode
-
-	input rs1_vaild,
-	input [4:0] decode_rs1,
-
-	input rs2_vaild,
-	input [4:0] decode_rs2,
-	
-	input rd_vaild,
-	input [4:0] decode_rd0
-
-
-
-
-	//from dispatch
-
-	output dispatch_rs1_vaild,
-	output [RNBIT-1:0] dispatch_rs1_reName,
-
-	output dispatch_rs2_vaild,	
-	output [RNBIT-1:0] dispatch_rs2_reName,
-
-	output dispatch_rd_vaild,
-	output [RNBIT-1:0] dispatch_rd0_reName
-
+	input rd0_raw_vaild,
+	input [4:0] rd0_raw,
+	output [RNBIT-1:0] rd0_reName,
+	output rd0_runOut
 
 );
 
@@ -58,35 +46,37 @@ module rename (
 
 
 
-
-
-
-
-
-
-wire [RNDEPTH-1:0] regX_used = rnBuffUsed_qout[ RNDEPTH*decode_rd0 +: RNDEPTH ];
+assign rnAct_X_dnxt[ 0 +: RNBIT] = {RNBIT{1'b0}};
+generate
+	for ( genvar i = 1;  i < 32; i = i + 1 )begin
+		assign rnAct_X_dnxt[RNBIT*i +: RNBIT] = ( (rd0_raw == i) & rd0_vaild & ~rd0_runOut ) ? rd0_reName : rnAct_X_qout[RNBIT*i +: RNBIT];
+	end
+endgenerate
+	
 
 
 //指示顺序执行当前应该读哪个寄存器
-wire [RNBIT-1:0] inOrder_rs1_reName = rnActive_X[decode_rs1*RNBIT +: RNBIT];
-wire [RNBIT-1:0] inOrder_rs2_reName = rnActive_X[decode_rs2*RNBIT +: RNBIT];
-wire [RNBIT-1:0] inOrder_rd0_reName;
+assign rs1_reName = rnAct_X_qout[rs1_raw*RNBIT +: RNBIT];
+assign rs2_reName = rnAct_X_qout[rs2_raw*RNBIT +: RNBIT];
 
 
 
+wire [RNDEPTH-1:0] regX_used = rnBufU_qout[ RNDEPTH*rd0_raw +: RNDEPTH ];
 
 lzc #(
 	.WIDTH(RNDEPTH),
 	.CNT_WIDTH(RNBIT)
 ) (
 	.in_i(regX_used),
-	.cnt_o(inOrder_rd0_reName),
-	.empty_o(regX_runOut)//rnmae buff is running out of reg rd
+	.cnt_o(rd0_reName),
+	.empty_o(rd0_runOut)
 );
 
 
 
-
+assign rnBufU_rename_set = (rd0_vaild & ~rd0_runOut)
+								? {32*RNDEPTH{1'b0}} | (1'b1 << rd0_reName)
+								: {32*RNDEPTH{1'b0}};
 
 
 
