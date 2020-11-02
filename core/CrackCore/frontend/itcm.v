@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:46:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 14:26:15
+* @Last Modified time: 2020-11-02 17:16:28
 */
 
 
@@ -26,9 +26,11 @@ module itcm #
 	input RSTn
 	
 );
-// $warning("在没有调试器访问写入的情况下");
+initial $warning("在没有调试器访问写入的情况下");
 
-	reg [DW-1:0] ram[0:AW-1];
+	localparam DP = 2**AW;
+
+	reg [DW-1:0] ram[0:DP-1];
 	reg [DW-1:0] instr;
 
 	always @(posedge CLK or negedge RSTn) begin
@@ -39,7 +41,7 @@ module itcm #
 			// if(wen) begin
 			// 	ram[addr] <= instr_in;
 			// end else begin
-			instr <= ram[addr];
+			instr <= #1 ram[addr];
 			// end
 		end 
 	end

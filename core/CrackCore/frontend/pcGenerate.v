@@ -4,12 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 14:16:05
+* @Last Modified time: 2020-11-02 17:15:50
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
-
-`timescale 1 ns / 1 ps
 
 
 module pcGenerate (
@@ -57,7 +55,7 @@ wire pcGen_fetch_vaild;
 
 
 
-// $warning("暂时忽略中断异常");
+initial $warning("暂时忽略中断异常");
 wire expection_vaild = 1'b0;
 wire isExpection = 1'b0;
 wire [63:0] expection_pc = 64'h0;
@@ -113,13 +111,13 @@ assign fetch_pc_dnxt = 	pcGen_fetch_vaild ? (
 						:
 						fetch_pc_reg;
 
-// $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
-// $info("在jalr有可能卡流水线，保持输入指令不变");
-// $info("在指令fifo满时会卡流水线，保持输入指令不变");
+initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
+initial $info("在jalr有可能卡流水线，保持输入指令不变");
+initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
 assign pcGen_fetch_vaild =  ~ ( (bht_full & isPredit) 
-					 		| ( isJalr & ~jalr_vaild & ( ras_empty | ~isReturn ) )
-					 		| instrFifo_full
-					 		);
+								| ( isJalr & ~jalr_vaild & ( ras_empty | ~isReturn ) )
+								| instrFifo_full
+							);
 
 
 
@@ -144,7 +142,7 @@ assign pcGen_fetch_vaild =  ~ ( (bht_full & isPredit)
 								& (load_instr[19:15] != load_instr[11:7]);
 
 
-    // $warning("在没有压缩指令的情况下");
+    initial $warning("在没有压缩指令的情况下");
 	wire is_rvc_instr = 1'b0;
 	wire [63:0] imm = ({64{isJal}} & {{44{load_instr[31]}},load_instr[19:12],load_instr[20],load_instr[30:21],1'b0})
 	|
@@ -185,7 +183,7 @@ assign ras_addr_push = next_pc;
 
 
 wire isITCM = (fetch_pc_dnxt & 64'hFFFF_FFFF_FFFF_0000) == 64'h8000_0000;
-// $warning("在没有cache的情况下");
+initial $warning("在没有cache的情况下");
 wire isCache = 1'b0;
 
 
@@ -193,8 +191,8 @@ wire isCache = 1'b0;
 
 
 
-// $info("如果不能立即获得指令，当拍可能打多次");
-// $warning("在没有调试器访问写入的情况下,在不使用奇偶存储器情况下");
+initial $info("如果不能立即获得指令，当拍可能打多次");
+initial $warning("在没有调试器访问写入的情况下,在不使用奇偶存储器情况下");
 itcm #
 	(
 		.DW(32),
@@ -216,14 +214,13 @@ itcm #
 
 
 
-// $warning("在不考虑压缩指令并强制32bit对齐的情况下");
+initial $warning("在不考虑压缩指令并强制32bit对齐的情况下");
 assign instr_readout = load_instr;
 
-// $warning("在使用ITCM强制一拍必出指令的情况下");
-
-
+initial $warning("在使用ITCM强制一拍必出指令的情况下");
+initial $warning("isReadOut在指令fifo满的状况下会滞后一拍，需要关注影响");
 gen_dffr # (.DW(1)) isReadOut ( .dnxt(pcGen_fetch_vaild), .qout(isInstrReadOut), .CLK(CLK), .RSTn(RSTn));
-// $warning("itcm总是ready");
+initial $warning("itcm总是ready");
 wire mem_ready = 1'b1; 
 assign pcGen_ready = pcGen_fetch_vaild & mem_ready;
 
@@ -232,7 +229,7 @@ assign pcGen_ready = pcGen_fetch_vaild & mem_ready;
 
 //分支历史表
 //分支历史表必须保持最后一个结果显示，必须可以同时pop，push
-// $warning("假设分支最多16次,fifo满则挂机");
+initial $warning("假设分支最多16次,fifo满则挂机");
 
 gen_fifo # (
 	.DW(64+1),
@@ -253,8 +250,8 @@ gen_fifo # (
 
 
 
-// $info("使用 ring-fifo策略，压栈不会压爆，但是会空");
-// $warning("暂时没有commit反馈，冲刷只能全部刷掉");
+initial $info("使用 ring-fifo策略，压栈不会压爆，但是会空");
+initial $warning("暂时没有commit反馈，冲刷只能全部刷掉");
 gen_ringStack # (.DW(64), .AW(4)) ras(
 	.stack_pop(ras_pop), .stack_push(ras_push),
 	.stack_empty(ras_empty),

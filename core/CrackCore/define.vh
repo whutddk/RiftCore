@@ -4,9 +4,9 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-22 11:47:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 14:10:08
+* @Last Modified time: 2020-11-02 16:43:31
 */
-`timescale 1 ns / 1 ps
+
 
 `define RNDEPTH   4 //重命名深度
 `define RNBIT $clog2(RNDEPTH) 

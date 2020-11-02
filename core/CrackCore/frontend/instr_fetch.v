@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 11:56:22
+* @Last Modified time: 2020-11-02 17:15:57
 */
 
 module instr_fetch (
@@ -26,7 +26,7 @@ module instr_fetch (
 
 
 
-// $warning("预留一拍做后处理");
+initial $warning("预留一拍做后处理");
 
 
 wire [31:0] instr_fetch_qout;
@@ -40,7 +40,7 @@ assign instr = instr_fetch_qout;
 
 
 
-gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn|~flush));
+gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn&~flush));
 gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn&~flush));
 gen_dffr # (.DW(1)) handshake ( .dnxt(isInstrReadOut), .qout(fetch_decode_vaild), .CLK(CLK), .RSTn(RSTn&~flush));
 

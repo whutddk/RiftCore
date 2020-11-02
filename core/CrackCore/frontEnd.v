@@ -4,33 +4,20 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 14:27:53
+* @Last Modified time: 2020-11-02 16:45:16
 */
 
-`include "define.v"
 
 module frontEnd (
 
-	// input instrFifo_full,
-	// output instrFifo_push,
-	// output [`DECODE_INFO_DW-1:0] decode_microInstr,
+	input instrFifo_full,
+	output instrFifo_push,
+	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
-	// input CLK,
-	// input RSTn
+	input CLK,
+	input RSTn
 	
 );
-
-	reg instrFifo_full = 0;
-	wire instrFifo_push;
-	wire [`DECODE_INFO_DW-1:0] decode_microInstr;
-
-	reg CLK;
-	reg RSTn;
-
-
-
-
-
 
 
 wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
@@ -127,60 +114,6 @@ decoder i_decoder
 );
 
 
-
-
-
-
-//////simulator
-
-initial begin
-	CLK = 0;
-	RSTn = 0;
-
-	#20
-
-	RSTn <= 1;
-
-	#400
-			$display("Time Out !!!");
-	 $finish;
-end
-
-initial begin
-	forever
-	begin 
-		 #5 CLK <= ~CLK;
-	end
-end
-
-initial
-begin            
-    $dumpfile("wave.vcd");        //生成的vcd文件名称
-    $dumpvars(0, frontEnd);    //tb模块名称
-end
-
-
-	`define ITCM i_pcGenerate.i_itcm
-	localparam  ITCM_DP = 2**14;
-	integer i;
-
-		reg [7:0] itcm_mem [0:(ITCM_DP-1)*8];
-		initial begin
-			$readmemh("./tb/rv64ui-p-add.test", itcm_mem);
-
-			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
-					`ITCM.ram[i] = itcm_mem[i*32+0];
-			end
-
-				$display("ITCM 0x00: %h", `ITCM.ram[8'h00]);
-				$display("ITCM 0x01: %h", `ITCM.ram[8'h01]);
-				$display("ITCM 0x02: %h", `ITCM.ram[8'h02]);
-				$display("ITCM 0x03: %h", `ITCM.ram[8'h03]);
-				$display("ITCM 0x04: %h", `ITCM.ram[8'h04]);
-				$display("ITCM 0x05: %h", `ITCM.ram[8'h05]);
-				$display("ITCM 0x06: %h", `ITCM.ram[8'h06]);
-				$display("ITCM 0x07: %h", `ITCM.ram[8'h07]);
-		end 
 
 
 endmodule
