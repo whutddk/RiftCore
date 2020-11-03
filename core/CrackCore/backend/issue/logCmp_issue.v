@@ -4,25 +4,17 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 18:05:42
+* @Last Modified time: 2020-11-03 20:01:32
 */
-
-
-//接收从dispatch来的指令压入各自的fifo
-//保证进入的指令只有真相关数据冒险
-//根据单元空闲情况及RAW相关性处理
-//直接在这里设计scoreboard
 
 
 module logCmp_issue (
 	
-	//from dispatch
-	input  logCmp_dispat_vaild,
-	output logCmp_dispat_ready,
-	input [:] logCmp_issue_info_push,
-
-
-
+	//from buffer
+	output logCmp_buffer_pop,
+	output [$clog2(`LOGCMP_ISSUE_DEPTH)-1:0] logCmp_buffer_pop_index,
+	input [`LOGCMP_ISSUE_DEPTH-1:0] logCmp_buffer_malloc,
+	input [`LOGCMP_ISSUE_INFO_DW*`LOGCMP_ISSUE_DEPTH-1 : 0] logCmp_issue_info,
 
 	//from execute
 
@@ -32,38 +24,12 @@ module logCmp_issue (
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-
+	input [32*RNDEPTH-1 : 0] wbLog_qout
 );
 
 
 	//logCmp must be ready
 	assign logCmp_execute_ready = 1'b1;
-
-
-
-	wire logCmp_issue_push;
-	wire logCmp_issue_pop;
-	wire [$clog2(LOGCMP_ISSUE_DEPTH)-1:0] logCmp_issue_pop_index;
-	wire logCmp_buffer_full;
-	wire [LOGCMP_ISSUE_DEPTH-1:0] logCmp_buffer_vaild_qout;
-	wire [ : 0] logCmp_issue_info_qout;
-
-
-
-
-
-
-
-
-
-
-	//check RAW here
-	wire [ DP - 1 : 0 ] logCmp_isRAW;
-
-
-
-
-
 
 
 
@@ -83,12 +49,17 @@ module logCmp_issue (
 	wire [64*LOGCMP_ISSUE_DEPTH - 1:0] logCmp_pc;
 	wire [64*LOGCMP_ISSUE_DEPTH - 1:0] logCmp_imm;
 
-	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rd0_index;
-	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rs1_index;
-	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rs2_index;
+	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rd0;
+	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rs1;
+	wire [(5+RNBIT)*LOGCMP_ISSUE_DEPTH - 1] logCmp_rs2;
 
 	wire [LOGCMP_ISSUE_DEPTH - 1] rs1_ready;
 	wire [LOGCMP_ISSUE_DEPTH - 1] rs2_ready;
+
+	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_slt;
+	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_xor;
+	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_or;
+	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_and;
 
 	wire [64*LOGCMP_ISSUE_DEPTH-1 : 0] src1;
 	wire [64*LOGCMP_ISSUE_DEPTH-1 : 0] src2;
@@ -96,30 +67,25 @@ module logCmp_issue (
 	wire  [64*LOGCMP_ISSUE_DEPTH-1:0] op1,
 	wire  [64*LOGCMP_ISSUE_DEPTH-1:0] op2,
 
-	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_slt;
-	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_xor;
-	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_or;
-	wire [LOGCMP_ISSUE_DEPTH - 1:0] logCmp_fun_and;
-
 	wire [LOGCMP_ISSUE_DEPTH - 1:0] isUsi
 
 generate
-	for ( genvar i = 0; i < LOGCMP_ISSUE_DEPTH; i = i + 1 ) begin
+	for ( genvar i = 0; i < `LOGCMP_ISSUE_DEPTH; i = i + 1 ) begin
 
 		assign { 
 				rv64i_slti[i], rv64i_sltiu[i], rv64i_slt[i], rv64i_sltu[i],
 				rv64i_xori[i], rv64i_ori[i], rv64i_andi[i], rv64i_xor[i], rv64i_or[i], rv64i_and[i],
 				logCmp_pc[64*i +: 64], logCmp_imm[64*i +: 64],
-				logCmp_rd0_index[(5+RNBIT)*i +: (5+RNBIT)], 
-				logCmp_rs1_index[(5+RNBIT)*i +: (5+RNBIT)], 
-				logCmp_rs2_index[(5+RNBIT)*i +: (5+RNBIT)]
-				} = logCmp_issue_info_qout;
+				logCmp_rd0[(5+RNBIT)*i +: (5+RNBIT)], 
+				logCmp_rs1[(5+RNBIT)*i +: (5+RNBIT)], 
+				logCmp_rs2[(5+RNBIT)*i +: (5+RNBIT)]
+				} = logCmp_issue_info[`LOGCMP_ISSUE_INFO_DW*i +: `LOGCMP_ISSUE_INFO_DW];
 
-		assign rs1_ready[i] = writeBackBuffer_qout[logCmp_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
-		assign rs2_ready[i] = writeBackBuffer_qout[logCmp_rs2[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs1_ready[i] = wbBuf_qout[logCmp_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs2_ready[i] = wbBuf_qout[logCmp_rs2[(5+RNBIT)*i +: (5+RNBIT)]];
 		
 
-		assign logCmp_isClearRAW[i] = 	( logCmp_buffer_vaild_qout[i] ) & 
+		assign logCmp_isClearRAW[i] = 	( logCmp_buffer_malloc[i] ) & 
 										(
 											( rv64i_slti[i] & rs1_ready[i] )
 											| ( rv64i_sltiu[i] & rs1_ready[i] )
@@ -143,8 +109,8 @@ generate
 		assign logCmp_fun_or[i] = rv64i_ori[i] | rv64i_or[i];
 		assign logCmp_fun_and[i] = rv64i_andi[i] | rv64i_and[i];
 
-		assign src1[64*i +: 64] = regFileX_read[logCmp_rs1_index[(5+RNBIT)*i +: (5+RNBIT)]]
-		assign src2[64*i +: 64] = regFileX_read[logCmp_rs2_index[(5+RNBIT)*i +: (5+RNBIT)]]
+		assign src1[64*i +: 64] = regFileX_read[logCmp_rs1[(5+RNBIT)*i +: (5+RNBIT)]]
+		assign src2[64*i +: 64] = regFileX_read[logCmp_rs2[(5+RNBIT)*i +: (5+RNBIT)]]
 
 		assign op1[64*i +:64] = ( {64{rv64i_slti[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_sltiu[i]}} & src1[64*i +: 64] )
@@ -186,41 +152,34 @@ endgenerate
 	wire logCmp_all_RAW;
 
 	//应该为组合逻辑实现
-	lzc #(
-		.WIDTH(LOGCMP_ISSUE_DEPTH),
-		.CNT_WIDTH($clog2(LOGCMP_ISSUE_DEPTH))
+	lzp #(
+		.CW$clog2(LOGCMP_ISSUE_DEPTH))
 	) logCmp_RAWClear(
-		.in_i(logCmp_isClearRAW),
-		.cnt_o(logCmp_issue_pop_index),
-		.empty_o(logCmp_all_RAW)
+		.in_i(~logCmp_isClearRAW),
+		.cnt_o(logCmp_buffer_pop_index),
+		.empty_o(logCmp_all_RAW),
+		.full_o(),
 	);
 
 
 	assign logCmp_execute_info = { 
-									logCmp_fun_slt[ logCmp_issue_pop_index ],
-									logCmp_fun_xor[ logCmp_issue_pop_index ],
-									logCmp_fun_or[ logCmp_issue_index ],
-									logCmp_fun_and[ logCmp_issue_index ],
+									logCmp_fun_slt[ logCmp_buffer_pop_index ],
+									logCmp_fun_xor[ logCmp_buffer_pop_index ],
+									logCmp_fun_or[ logCmp_buffer_index ],
+									logCmp_fun_and[ logCmp_buffer_index ],
 
-									logCmp_rd0_index[(5+RNBIT)*logCmp_issue_pop_index +: (5+RNBIT)],
-									op1[ 64*logCmp_issue_pop_index +:64 ],
-									op2[ 64*logCmp_issue_pop_index +:64 ],
+									logCmp_rd0[(5+RNBIT)*logCmp_buffer_pop_index +: (5+RNBIT)],
+									op1[ 64*logCmp_buffer_pop_index +:64 ],
+									op2[ 64*logCmp_buffer_pop_index +:64 ],
 
-									isUsi[ logCmp_issue_pop_index ],
+									isUsi[ logCmp_buffer_pop_index ],
 									};
 
 
 	assign logCmp_execute_vaild =  ~logCmp_all_RAW;
 
+	assign logCmp_buffer_pop = ( logCmp_execute_ready & logCmp_execute_vaild );
 
-
-	assign logCmp_issue_push = ( logCmp_dispat_ready );
-	assign logCmp_issue_pop = ( logCmp_execute_ready & logCmp_execute_vaild );
-
-	// 现有vaild，表示信号准备好了，再有ready取信号。
-	// ready需要取信号，必须有空间，即nofull或者full，但是同时pop了
-	assign logCmp_dispat_ready = logCmp_dispat_vaild &
-								( ~logCmp_buffer_full | logCmp_buffer_full & logCmp_issue_pop);
 												
 
 

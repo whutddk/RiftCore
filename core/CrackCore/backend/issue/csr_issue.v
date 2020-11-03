@@ -4,18 +4,18 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 17:00:40
+* @Last Modified time: 2020-11-03 20:06:24
 */
 
 
 
 module csr_issue (
 	
-
-
-	input csr_issue_vaild,
-	output csr_issue_ready,
-	input [:] csr_issue_info,
+	//from buffer
+	output csr_buffer_pop,
+	output [$clog2(`CSR_ISSUE_DEPTH)-1:0] csr_buffer_pop_index,
+	input [`CSR_ISSUE_DEPTH-1:0] csr_buffer_malloc,
+	input [`CSR_ISSUE_INFO_DW*`CSR_ISSUE_DEPTH-1 : 0] csr_issue_info
 
 	
 	input csr_execute_ready,
@@ -25,7 +25,7 @@ module csr_issue (
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-
+	input [32*RNDEPTH-1 : 0] wbLog_qout
 
 
 	

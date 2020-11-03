@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:47:18
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 18:06:04
+* @Last Modified time: 2020-11-03 19:30:06
 */
 
 module Crack_BackEnd_TB (
@@ -67,30 +67,7 @@ backEnd (
 
 
 
-phyRegister (
 
-	input  [(64*RNDEPTH*32)-1:0] regFileX_dnxt,
-	output [(64*RNDEPTH*32)-1:0] regFileX_qout,
-
-	input [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
-	output [ RNBIT*32 - 1 :0 ] rnAct_X_qout,
-
-	input [32*RNDEPTH-1 : 0] rnBufU_rename_set,
-	input [32*RNDEPTH-1 : 0] rnBufU_commit_rst,
-	output [32*RNDEPTH-1 : 0] rnBufU_qout,
-
-	input [32*RNDEPTH-1 : 0] wbLog_writeb_set,
-	input [32*RNDEPTH-1 : 0] wbLog_commit_rst,
-	output [32*RNDEPTH-1 : 0] wbLog_qout,
-
-	input [ RNBIT*32 - 1 :0 ] archi_X_dnxt,
-	output [ RNBIT*32 - 1 :0 ] archi_X_qout,
-
-
-	input CLK,
-	input RSTn
-	
-);
 
 
 
