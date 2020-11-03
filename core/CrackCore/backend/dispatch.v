@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 19:23:01
+* @Last Modified time: 2020-11-03 10:22:44
 */
 
 
@@ -98,14 +98,7 @@ wire [] dispatch_instr_info;
 assign {} = dispatch_instr;
 
 
-assign reOrder_info_push = {dispat_pc, rd0, branch, ex0};
-
-
-
-
-
-
-
+assign reOrder_info_push = {dispat_pc, rd0_reName, branch, ex0};
 
 
 
@@ -178,15 +171,13 @@ assign reOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 	wire is_rvc;
 
-
-
-
-	wire [63:0] dispatch_pc;
+	wire [63:0] pc;
 	wire [63:0] imm;
 	wire [5:0] shamt;
-	wire [5+RNBIT-1:0:0] rd0;
-	wire [5+RNBIT-1:0:0] rs1;
-	wire [5+RNBIT-1:0:0] rs2;
+	wire [4:0] rd0_raw;
+	wire [4:0] rs1_raw;
+	wire [4:0] rs2_raw;
+	wire rd0_runOut;
 
 
 	assign { 	rv64i_lui, rv64i_auipc, 
@@ -208,69 +199,57 @@ assign reOrder_info_push = {dispat_pc, rd0, branch, ex0};
 
 
 
-	assign adder_issue_vaild = rv64i_lui | rv64i_auipc 
-							| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw ;
+	assign adder_issue_vaild = ( rv64i_lui | rv64i_auipc 
+									| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw ) & (~rd0_runOut);
+	
 	assign adder_issue_info = { rv64i_lui, rv64i_auipc, 
 								rv64i_addi, rv64i_addiw, rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw,
-								dispat_pc, imm, rd0_reName, rs1_reName, rs2_reName
+								pc, imm, rd0_reName, rs1_reName, rs2_reName
 								};
 
 
+	assign logCmp_issue_vaild = ( rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu
+									| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and ) & (~rd0_runOut);
 
-
-
-
-
-
-
-	assign logCmp_issue_vaild = rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu
-								| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and;
 	assign logCmp_issue_info = { 
 								rv64i_slti, rv64i_sltiu, rv64i_slt, rv64i_sltu,
 								rv64i_xori, rv64i_ori, rv64i_andi, rv64i_xor, rv64i_or, rv64i_and,
-								dispat_pc, imm, rd0_reName, rs1_reName, rs2_reName
+								pc, imm, rd0_reName, rs1_reName, rs2_reName
 								};
 
 
 
-	assign shift_issue_vaild =  rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw
-								| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw
-								| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw;
-							
+	assign shift_issue_vaild =  ( rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw
+									| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw
+									| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw ) & (~rd0_runOut);
 
 	assign shift_issue_info = { 
 								rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
 								rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
 								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw,
-								dispat_pc, imm, shamt, rd0_reName, rs1_reName, rs2_reName
+								pc, imm, shamt, rd0_reName, rs1_reName, rs2_reName
 								};
 
-
-
-
-
-	assign jal_issue_vaild = rv64i_jal | rv64i_jalr;
+	assign jal_issue_vaild = ( rv64i_jal | rv64i_jalr ) & (~rd0_runOut);
 	assign jal_issue_info = {
 								rv64i_jal, rv64i_jalr,
-								dispat_pc, imm, rd0_reName, rs1_reName,
+								pc, imm, rd0_reName, rs1_reName,
 								is_rvc
 							};
 
 
-	assign blu_issue_vaild = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
-	assign blu_issue_info = {
+	assign bru_issue_vaild = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
+	assign bru_issue_info = {
 								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
-								rs1, rs2
+								rs1_reName, rs2_reName
 							};
 
-
-
-	assign lu_issue_vaild = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	assign lu_issue_vaild = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu ) & (~rd0_runOut);
 	assign lu_issue_info = { 
-							rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
-							imm,
-							rd0_reName,
-							rs1_reName
+								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
+								imm,
+								rd0_reName,
+								rs1_reName
 							};
 
 
@@ -281,24 +260,20 @@ assign reOrder_info_push = {dispat_pc, rd0, branch, ex0};
 								imm,
 								rs1_reName,
 								rs2_reName
-								};
+							};
 
 	assign fence_execute_vaild = rv64zi_fence_i | rv64i_fence;
 	assign fence_execute_info = {
-								rv64zi_fence_i, rv64i_fence,
-								fence_imm
+									rv64zi_fence_i, rv64i_fence,
+									imm
 								};
 
 
-	assign csr_issue_vaild = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
+	assign csr_issue_vaild = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & (~rd0_runOut);
 	assign csr_issue_info = {
 								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 								imm[11:0], rd0_reName, rs1_reName
 							}
-
-
-
-
 
 wire rd0_raw_vaild = adder_issue_vaild
 					| logCmp_issue_vaild
@@ -306,6 +281,8 @@ wire rd0_raw_vaild = adder_issue_vaild
 					| jal_issue_vaild
 					| lu_issue_vaild
 					| csr_issue_vaild;
+
+
 
 rename i_rename(
 
@@ -324,7 +301,7 @@ rename i_rename(
 	.rd0_raw_vaild(rd0_raw_vaild),
 	.rd0_raw(rd0_raw),
 	.rd0_reName(rd0_reName),
-	output rd0_runOut
+	.rd0_runOut(rd0_runOut)
 
 );
 
