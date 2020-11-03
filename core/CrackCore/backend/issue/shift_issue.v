@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 16:59:34
+* @Last Modified time: 2020-11-03 17:42:54
 */
 
 
@@ -48,27 +48,6 @@ module shift_issue (
 	wire [SHIFT_ISSUE_DEPTH-1:0] shift_buffer_vaild_qout;
 	wire [ : 0] shift_issue_info_qout;
 
-issue_buffer 
-(
-	.DW(),
-	.DP(SHIFT_ISSUE_DEPTH),
-)
-# shift_issue_buffer
-(
-
-	.issue_info_push(shift_issue_info_push),
-	.issue_push(shift_issue_push),
-	.buffer_full(shift_buffer_full),
-
-	.issue_pop(shift_issue_pop),
-	.issue_pop_index(shift_issue_pop_index),
-	.issue_info_qout(shift_issue_info_qout),
-	.buffer_vaild_qout(shift_buffer_vaild_qout),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
 
 
 

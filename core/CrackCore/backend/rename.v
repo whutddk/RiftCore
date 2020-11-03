@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 19:11:48
+* @Last Modified time: 2020-11-03 16:18:45
 */
 
 
@@ -63,13 +63,13 @@ assign rs2_reName = rnAct_X_qout[rs2_raw*RNBIT +: RNBIT];
 
 wire [RNDEPTH-1:0] regX_used = rnBufU_qout[ RNDEPTH*rd0_raw +: RNDEPTH ];
 
-lzc #(
-	.WIDTH(RNDEPTH),
-	.CNT_WIDTH(RNBIT)
-) (
+lzp #(
+	.CW(RNBIT)
+) rd0_index(
 	.in_i(regX_used),
-	.cnt_o(rd0_reName),
-	.empty_o(rd0_runOut)
+	.pos_o(rd0_reName),
+	.full_o(rd0_runOut),
+	.empty_o()
 );
 
 

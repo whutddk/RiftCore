@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 18:06:24
+* @Last Modified time: 2020-11-03 17:57:00
 */
 
 
@@ -47,151 +47,234 @@ module backEnd (
 
 //C3
 
-dispatch (
+
+	wire [`REORDER_INFO_DW-1:0] reOrder_info_data;
+	wire reOrder_fifo_push;
+	wire reOrder_fifo_ful;
 
 
+	wire adder_buffer_push;
+	wire adder_buffer_full;
+	wire [`ADDER_ISSUE_INFO_DW-1:0] adder_dispat_info;
+
+	wire logCmp_buffer_push;
+	wire logCmp_buffer_full;
+	wire [`LOGCMP_ISSUE_INFO_DW-1:0] logCmp_dispat_info;
+
+	wire shift_buffer_push;
+	wire shift_buffer_full;
+	wire [`SHIFT_ISSUE_INFO_DW-1:0] shift_dispat_info;
+
+	wire jal_buffer_push;
+	wire jal_buffer_full;
+	wire [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info;
+
+	wire bru_dispat_push;
+	wire bru_fifo_full;
+	wire [`BRU_ISSUE_INFO_DW-1:0] bru_dispat_info;
+
+	wire su_fifo_push;
+	wire su_fifo_full;
+	wire [`SU_ISSUE_INFO_DW-1:0] su_dispat_info;
+
+	wire lu_buffer_push;
+	wire lu_buffer_full;
+	wire [`LU_ISSUE_INFO_DW-1:0] lu_dispat_info;
+
+	wire fence_fifo_push;
+	wire fence_fifo_full;
+	wire [`FENCE_ISSUE_INFO_DW-1:0] fence_dispat_info;
+
+	wire csr_buffer_push;
+	wire csr_buffer_full;
+	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
+
+
+dispatch i_dispatch(
+	//for rename
+	.rnAct_X_dnxt(rnAct_X_dnxt),
+	.rnAct_X_qout(rnAct_X_qout),
+
+	.rnBufU_rename_set(rnBufU_rename_set),
+	.rnBufU_qout(rnBufU_qout),
+
+	//from instr fifo
+	.decode_microInstr_pop(decode_microInstr_pop),
+	.instrFifo_pop(instrFifo_pop),
+	.instrFifo_empty(instrFifo_empty),
+
+	.reOrder_info_data(reOrder_info_data),
+	.reOrder_fifo_push(reOrder_fifo_push),
+	.reOrder_fifo_full(reOrder_fifo_full)
+
+
+
+	//to issue
+	.adder_buffer_push(adder_buffer_push),
+	.adder_buffer_full(adder_buffer_full),
+	.adder_dispat_info(adder_dispat_info),
+
+	.logCmp_buffer_push(logCmp_buffer_push),
+	.logCmp_buffer_full(logCmp_buffer_full),
+	.logCmp_dispat_info(logCmp_dispat_info),
+
+	.shift_buffer_push(shift_buffer_push),
+	.shift_buffer_full(shift_buffer_full),
+	.shift_dispat_info(shift_dispat_info),
+
+	.jal_buffer_push(jal_buffer_push),
+	.jal_buffer_full(jal_buffer_full),
+	.jal_dispat_info(jal_dispat_info),
+
+	.bru_fifo_push(bru_fifo_push),
+	.bru_fifo_full(bru_fifo_full),
+	.bru_dispat_info(bru_dispat_info),
+
+	.su_fifo_push(su_fifo_push),
+	.su_fifo_full(su_fifo_full),
+	.su_dispat_info(su_dispat_info),
+
+	.lu_buffer_push(lu_buffer_push),
+	.lu_buffer_full(lu_buffer_full),
+	.lu_dispat_info(lu_dispat_info),
+
+	.fence_fifo_push(fence_fifo_push),
+	.fence_fifo_full(fence_fifo_full),
+	.fence_dispat_info(fence_dispat_info),
+
+	.csr_buffer_push(csr_buffer_push),
+	.csr_buffer_full(csr_buffer_full),
+	.csr_dispat_info(csr_dispat_info),
 );
-
-
-
-
-
 
 
 
 
 //T3
-issue_buffer #( .DW(), .DP(ADDER_ISSUE_DEPTH),)
- adder_issue_buffer
+issue_buffer #( .DW(`ADDER_ISSUE_INFO_DW), .DP(ADDER_ISSUE_DEPTH))
+adder_issue_buffer
 (
-	.issue_info_push(adder_issue_info_push),
-	.issue_push(adder_issue_push),
+	.dispat_info(adder_dispat_info)
+	.issue_info_qout
+
+	.buffer_push(adder_buffer_push),
+	.buffer_pop,	
+
 	.buffer_full(adder_buffer_full),
-
-	.issue_pop(adder_issue_pop),
-	.issue_pop_index(adder_issue_pop_index),
-	.issue_info_qout(adder_issue_info_qout),
-	.buffer_vaild_qout(adder_buffer_vaild_qout),
-
+	.buffer_vaild_qout
+	.issue_pop_index,
 	.CLK(CLK),
 	.RSTn(RSTn)	
 );
 
-
-issue_fifo #( .DW(), .DP(BRU_ISSUE_DEPTH))
-bru_issue_fifo (
-	.issue_info_push(bru_issue_info_push),
-	.issue_info_pop(bru_issue_info_pop),
-
-	.issue_push(bru_issue_push),
-	.issue_pop(bru_issue_pop),
-	.fifo_full(bru_fifo_full),
-	.fifo_empty(bru_fifo_empty),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-gen_dffr csr_issue_buffer
-
-issue_buffer 
+issue_buffer #(.DW(`LOGCMP_ISSUE_INFO_DW), .DP(LOGCMP_ISSUE_DEPTH))
+logCmp_issue_buffer
 (
-	.DW(),
-	.DP(JAL_ISSUE_DEPTH),
-)
-# jal_issue_buffer
-(
+	.dispat_info(logCmp_dispat_info),
+	.issue_info_qout
 
-	.issue_info_push(jal_issue_info_push),
-	.issue_push(jal_issue_push),
-	.buffer_full(jal_buffer_full),
-
-	.issue_pop(jal_issue_pop),
-	.issue_pop_index(jal_issue_pop_index),
-	.issue_info_qout(jal_issue_info_qout),
-	.buffer_vaild_qout(jal_buffer_vaild_qout),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
+	.buffer_push(logCmp_buffer_push),
+	.buffer_pop,	
 	
-);
-
-issue_buffer 
-(
-	.DW(),
-	.DP(LOGCMP_ISSUE_DEPTH),
-)
-# logCmp_issue_buffer
-(
-
-	.issue_info_push(logCmp_issue_info_push),
-	.issue_push(logCmp_issue_push),
 	.buffer_full(logCmp_buffer_full),
+	.buffer_vaild_qout
+	.issue_pop_index,
+	.CLK(CLK),
+	.RSTn(RSTn)	
+	
+);
 
-	.issue_pop(logCmp_issue_pop),
-	.issue_pop_index(logCmp_issue_pop_index),
-	.issue_info_qout(logCmp_issue_info_qout),
-	.buffer_vaild_qout(logCmp_buffer_vaild_qout),
+issue_buffer #(	.DW(`SHIFT_ISSUE_INFO_DW), .DP(SHIFT_ISSUE_DEPTH))
+shift_issue_buffer
+(
+	.dispat_info(shift_dispat_info),
+	.issue_info_qout
+
+	.buffer_push(shift_buffer_push),
+	.buffer_pop,	
+	
+	.buffer_full(shift_buffer_full),
+	.buffer_vaild_qout
+	.issue_pop_index,
+	.CLK(CLK),
+	.RSTn(RSTn)	
+);
+
+issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(JAL_ISSUE_DEPTH))
+jal_issue_buffer
+(
+	.dispat_info(jal_dispat_info),
+	.issue_info_qout
+
+	.buffer_push(jal_buffer_push),
+	.buffer_pop,	
+	
+	.buffer_full(jal_buffer_full),
+	.buffer_vaild_qout
+	.issue_pop_index,
+	.CLK(CLK),
+	.RSTn(RSTn)	
+	
+);
+
+
+issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(BRU_ISSUE_DEPTH))
+bru_issue_fifo (
+	.issue_info_push(bru_dispat_info)
+	.issue_info_pop
+
+	.issue_push(bru_fifo_push)
+	.issue_pop
+	.fifo_full(bru_fifo_full)
+	.fifo_empty
 
 	.CLK(CLK),
 	.RSTn(RSTn)
-	
 );
-	issue_buffer #
-	(
-		.DW(),
-		.DP(LU_ISSUE_DEPTH),
-	)
-	lu_issue_buffer
-	(
 
-		.issue_info_push(lu_issue_info_push),
-		.issue_push(lu_issue_push),
-		.buffer_full(lu_buffer_full),
-
-		.issue_pop(lu_issue_pop),
-		.issue_pop_index(lu_issue_pop_index),
-		.issue_info_qout(lu_issue_info_qout),
-		.buffer_vaild_qout(lu_buffer_vaild_qout),
-
-		.CLK(CLK),
-		.RSTn(RSTn)
-		
-	);
-
-
-issue_fifo #(
-	.DW(),
-	.DP(SU_ISSUE_DEPTH),
-)
+issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(SU_ISSUE_DEPTH))
 su_issue_fifo
 (
-	.issue_info_push(su_issue_info_push),
-	.issue_info_pop(su_issue_info_pop),
+	.issue_info_push(su_dispat_info)
+	.issue_info_pop
 
-	.issue_push(su_issue_push),
-	.issue_pop(su_issue_pop),
-	.fifo_full(su_fifo_full),
-	.fifo_empty(su_fifo_empty),
+	.issue_push(su_fifo_push)
+	.issue_pop
+	.fifo_full(su_fifo_full)
+	.fifo_empty
 
 	.CLK(CLK),
 	.RSTn(RSTn)
 	
 );
 
-issue_fifo #(
-	.DW(),
-	.DP(1),
-)
+issue_buffer #(.DW(`LU_ISSUE_INFO_DW),.DP(LU_ISSUE_DEPTH))
+lu_issue_buffer
+(
+	.dispat_info(lu_dispat_info),
+	.issue_info_qout
+
+	.buffer_push(lu_buffer_push),
+	.buffer_pop,	
+	
+	.buffer_full(lu_buffer_full),
+	.buffer_vaild_qout
+	.issue_pop_index,
+	.CLK(CLK),
+	.RSTn(RSTn)	
+	
+);
+
+issue_fifo #(.DW(`FENCE_ISSUE_INFO_DW),.DP(1),)
 fence_issue_fifo
 (
-	.issue_info_push(fence_issue_info_push),
-	.issue_info_pop(fence_issue_info_pop),
+	.issue_info_push(fence_dispat_info)
+	.issue_info_pop
 
-	.issue_push(fence_issue_push),
-	.issue_pop(fence_issue_pop),
-	.fifo_full(fence_fifo_full),
-	.fifo_empty(fence_fifo_empty),
+	.issue_push(fence_fifo_push)
+	.issue_pop
+	.fifo_full(fence_fifo_full)
+	.fifo_empty
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -199,7 +282,22 @@ fence_issue_fifo
 );
 
 
+issue_buffer #(.DW(`CSR_ISSUE_INFO_DW),.DP(CSR_ISSUE_DEPTH))
+csr_issue_buffer
+(
+	.dispat_info(csr_dispat_info),
+	.issue_info_qout
 
+	.buffer_push(csr_buffer_push),
+	.buffer_pop,	
+	
+	.buffer_full(csr_buffer_full),
+	.buffer_vaild_qout
+	.issue_pop_index,
+	.CLK(CLK),
+	.RSTn(RSTn)	
+	
+);
 
 
 
@@ -239,7 +337,58 @@ commit ();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gen_fifo # (
+	.DW(REORDER_INFO_DW),
+	.AW(4)
+)
+reOrder_fifo(
+
+	
+	.fifo_push(reOrder_fifo_push),
+	.data_push(reOrder_info_data),
+
+	output fifo_empty, 
+	.fifo_full(reOrder_fifo_full), 
+
+	output [DW-1:0] data_pop,
+	input fifo_pop, 
+
+	input CLK,
+	input RSTn
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 endmodule
+
 
 
 
