@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 20:01:32
+* @Last Modified time: 2020-11-04 14:10:24
 */
 
 
@@ -19,8 +19,8 @@ module logCmp_issue (
 	//from execute
 
 	// input logCmp_execute_ready,
-	output logCmp_execute_vaild,
-	output [ :0] logCmp_execute_info,
+	output logCmp_exeparam_vaild_qout,
+	output [`LOGCMP_EXEPARAM_DW-1:0] logCmp_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
@@ -29,7 +29,7 @@ module logCmp_issue (
 
 
 	//logCmp must be ready
-	assign logCmp_execute_ready = 1'b1;
+	wire logCmp_exeparam_ready = 1'b1;
 
 
 
@@ -162,7 +162,7 @@ endgenerate
 	);
 
 
-	assign logCmp_execute_info = { 
+	assign logCmp_exeparam_dnxt = { 
 									logCmp_fun_slt[ logCmp_buffer_pop_index ],
 									logCmp_fun_xor[ logCmp_buffer_pop_index ],
 									logCmp_fun_or[ logCmp_buffer_index ],
@@ -175,13 +175,15 @@ endgenerate
 									isUsi[ logCmp_buffer_pop_index ],
 									};
 
+	wire logCmp_exeparam_vaild_qout;
+	assign logCmp_exeparam_vaild_dnxt =  ~logCmp_all_RAW;
 
-	assign logCmp_execute_vaild =  ~logCmp_all_RAW;
-
-	assign logCmp_buffer_pop = ( logCmp_execute_ready & logCmp_execute_vaild );
+	assign logCmp_buffer_pop = ( logCmp_exeparam_ready & logCmp_exeparam_vaild_dnxt );
 
 												
 
+gen_dffr # (.DW(`LOGCMP_EXEPARAM_DW)) logCmp_exeparam ( .dnxt(logCmp_exeparam_dnxt), .qout(logCmp_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) logCmp_exeparam_vaild ( .dnxt(logCmp_exeparam_vaild_dnxt), .qout(logCmp_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

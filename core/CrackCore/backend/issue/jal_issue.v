@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 20:01:59
+* @Last Modified time: 2020-11-04 17:03:16
 */
 
 
@@ -17,18 +17,17 @@ module jal_issue (
 	input [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_DEPTH-1 : 0] jal_issue_info
 	//from execute
 
-	// input jal_execute_ready,
-	output jal_execute_vaild,
-	output [ :0] jal_execute_info,
+
+	output jal_exeparam_vaild_qout,
+	output [`JAL_EXEPARAM_DW-1:0] jal_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
 	input [32*RNDEPTH-1 : 0] wbLog_qout
 );
 
+	wire jal_exeparam_ready = 1'b1;
 
-	//jal must be ready
-	assign jal_execute_ready = 1'b1;
 
 	wire [JAL_ISSUE_DEPTH - 1:0] rv64i_jal;
 	wire [JAL_ISSUE_DEPTH - 1:0] rv64i_jalr;
@@ -93,7 +92,7 @@ endgenerate
 	);
 
 
-	assign jal_execute_info = { 
+	assign jal_exeparam_dnxt = { 
 									bru_jal[ jal_buffer_pop_index ],
 									bru_jalr[ jal_buffer_pop_index ],
 								
@@ -105,15 +104,18 @@ endgenerate
 								};
 
 
-
-	assign jal_execute_vaild =  ~jal_all_RAW;
-
-
-	assign jal_buffer_pop = ( jal_execute_ready & jal_execute_vaild );
+	wire jal_exeparam_vaild_qout;
+	wire jal_execute_vaild_dnxt =  ~jal_all_RAW;
 
 
+	assign jal_buffer_pop = ( jal_exeparam_ready & jal_execute_vaild_dnxt );
 
 
+
+
+
+gen_dffr # (.DW(`JAL_EXEPARAM_DW)) jal_exeparam ( .dnxt(jal_exeparam_dnxt), .qout(jal_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) jal_exeparam_vaild ( .dnxt(jal_exeparam_vaild_dnxt), .qout(jal_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

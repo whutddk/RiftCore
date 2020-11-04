@@ -4,32 +4,25 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 17:33:48
-*/
-
-/*
-// 会发生跳转的情况：
-1.跳转指令（来自函数调用、返回、分支），均为指令形式由blu处理
-2.中断，异常，无法预测
+* @Last Modified time: 2020-11-04 15:20:52
 */
 
 module bru (
 
 	//from bru issue
-	output bru_execute_ready,
-	input bru_execute_vaild,
-	input [ :0] bru_execute_info, 
+	output bru_exeparam_ready,
+	input bru_exeparam_vaild,
+	input [`BRU_EXEPARAM_DW-1:0] bru_exeparam, 
 
 
 	// to pc generate
-	output blu_takenBranch,
+	input pcGen_ready,
+	output takenBranch_qout,
+	output takenBranch_vaild_qout,
 
 
-	// to writeback
-	output [(5+RNBIT-1):0] rd0,
-	output [63:0] bru_result
-
-
+	input CLK,
+	input RSTn
 
 );
 
@@ -66,23 +59,20 @@ wire take_gt = (bru_gt) & ($signed(op1) > $signed(op2));
 wire take_ltu = (bru_ltu) & ($unsigned(op1) < $unsigned(op2));
 wire take_gtu = (bru_gtu) & ($unsigned(op1) > $unsigned(op2));
 
+initial $info("没有ready则不更新");
+wire takenBranch_dnxt = vaild_dnxt 
+							? (take_eq | take_ne | take_lt | take_gt | take_ltu | take_gtu)
+							: takenBranch_qout;
 
-wire blu_takenBranch = take_eq | take_ne | take_lt | take_gt | take_ltu | take_gtu;
-
-
-
-assign rd0 = 'b0;
-assign bru_result = 'b0;
-
-
+initial $info("pcGen 没有准备好收或者上级空");
+wire vaild_dnxt = pcGen_ready & bru_exeparam_vaild;
 
 
+gen_dffr # (.DW(1)) takenBranch ( .dnxt(takenBranch_dnxt), .qout(takenBranch_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-
-
-
-
+assign bru_exeparam_ready = pcGen_ready;
 
 endmodule
 

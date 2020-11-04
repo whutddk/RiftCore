@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 20:13:13
+* @Last Modified time: 2020-11-04 17:24:09
 */
 
 module writeBack (
@@ -14,7 +14,6 @@ module writeBack (
 	output [(64*RNDEPTH*32)-1:0] regFileX_dnxt,
 
 	output [32*RNDEPTH-1 : 0] wbLog_writeb_set,
-
 
 
 	//from adder
@@ -33,22 +32,20 @@ module writeBack (
 	input [(5+RNBIT-1):0] shift_rd0,
 
 	//from jal
-	output [(5+RNBIT-1):0] jal_rd0,
-	output [63:0] jal_result
-
-	//from bru
-	input bru_writeback_vaild,
-	input [(5+RNBIT-1):0] bru_rd0,
-	input [63:0] bru_res,
+	input jal_writeback_vaild,
+	input [(5+RNBIT-1):0] jal_rd0,
+	input [63:0] jal_res,
 
 	//from lsu
 	input lsu_writeback_vaild,
 	input [(5+RNBIT-1):0] lsu_rd0,
 	input [63:0] lsu_res,
 
+	//from csr
+	input csr_writeback_vaild,
+	input [(5+RNBIT-1):0] csr_rd0,
+	input [63:0] csr_res,
 
-
-	
 );
 
 // adder wb
@@ -59,11 +56,10 @@ wire [(64*RNDEPTH*32)-1:0] logCmp_writeback_dnxt;
 wire [(64*RNDEPTH*32)-1:0] shift_writeback_dnxt;
 //jal wb
 wire [(64*RNDEPTH*32)-1:0] jal_writeback_dnxt;
-//bru wb
-wire [(64*RNDEPTH*32)-1:0] bru_writeback_dnxt;
 //lsu wb
 wire [(64*RNDEPTH*32)-1:0] lsu_writeback_dnxt;
-
+//csr wb
+wire [(64*RNDEPTH*32)-1:0] csr_writeback_dnxt;
 
 
 //write back
@@ -79,35 +75,36 @@ generate
 			localparam  SEL = regNum*4+depth;
 
 			assign regFileX_dnxt[64*SEL +: 64] =  
-
-				//adder wb
-				{64{adder_writeback_vaild & (adder_rd0 == SEL)}} & adder_res
+				(
+					//adder wb
+					{64{adder_writeback_vaild & (adder_rd0 == SEL)}} & adder_res
+					|
+					//logCmp wb
+					{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} & logCmp_res
+					|
+					//shift wb
+					{64{shift_writeback_vaild & (shift_rd0 == SEL)}} & shift_res
+					|
+					//jal wb
+					{64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res
+					|
+					//lsu wb
+					{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res
+					|
+					//csr wb
+					{64{csr_writeback_vaild & (csr_rd0 == SEL)}} & csr_res
+				)
 				|
-				//logCmp wb
-				{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} & logCmp_res
-				|
-				//shift wb
-				{64{shift_writeback_vaild & (shift_rd0 == SEL)}} & shift_res
-				|
-				//jal wb
-				{64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res
-				|
-				//bru wb
-				{64{bru_writeback_vaild & (bru_rd0 == SEL)}} & bru_res
-				|
-				//lsu wb
-				{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res
-
-
-				//nobody wb
-				(~{64{adder_writeback_vaild & (adder_rd0 == SEL)}} &
+				(
+					//nobody wb
+					(~{64{adder_writeback_vaild & (adder_rd0 == SEL)}} &
 					~{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} &
 					~{64{shift_writeback_vaild & (shift_rd0 == SEL)}} &
 					~{64{jal_writeback_vaild & (jal_rd0 == SEL)}} &
-					~{64{bru_writeback_vaild & (bru_rd0 == SEL)}} &
-					~{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}}) 
-					& regFileX_qout[64*SEL +: 64];
-		
+					~{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} &
+					~{64{csr_writeback_vaild & (csr_rd0 == SEL)}}) 
+					& regFileX_qout[64*SEL +: 64]
+				);
 
 			assign wbLog_writeb_set[SEL] = 
 				(adder_writeback_vaild & (adder_rd0 == SEL))
@@ -118,9 +115,9 @@ generate
 				|
 				(jal_writeback_vaild & (jal_rd0 == SEL))
 				| 
-				(bru_writeback_vaild & (bru_rd0 == SEL))
-				| 
 				(lsu_writeback_vaild & (lsu_rd0 == SEL))
+				| 
+				(csr_writeback_vaild & (csr_rd0 == SEL))
 				;
 
 

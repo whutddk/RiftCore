@@ -4,18 +4,20 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-28 16:25:12
+* @Last Modified time: 2020-11-04 12:05:32
 */
 
 
 module shift (
-	input shift_execute_vaild,
-	input [ :0] shift_execute_info,
-
+	input shift_exeparam_vaild,
+	input [`SHIFT_EXEPARAM_DW-1:0] shift_exeparam,
 
 	output shift_writeback_vaild,
-	output [63:0] shift_res,
-	output [(5+RNBIT-1):0] shift_rd0,
+	output [63:0] shift_res_qout,
+	output [(5+RNBIT-1):0] shift_rd0_qout,
+
+	input CLK,
+	input RSTn
 );
 
 
@@ -24,9 +26,9 @@ module shift (
 	wire rv64i_srl;
 	wire rv64i_sra;
 
-	wire [(5+RNBIT-1):0] alu_rd0,
-	wire  [63:0] op1,
-	wire  [63:0] op2,
+	wire [(5+RNBIT-1):0] shift_rd0_dnxt;
+	wire  [63:0] op1;
+	wire  [63:0] op2;
 
 	wire is32w;
 
@@ -36,17 +38,12 @@ assign { 	rv64i_sll,
 			rv64i_srl,
 			rv64i_sra,
 
-			shift_rd0,
+			shift_rd0_dnxt,
 			op1,
 			op2,
 
 			is32w
-		} = alu_execute_info;
-
-
-
-
-
+		} = shift_exeparam;
 
 
 
@@ -65,8 +62,14 @@ assign { 	rv64i_sll,
 	wire [63:0] shift_right = alu_shiftRight_op1 >>> shamt;
 
 
-	wire [63:0] shift_res =  ( {64{rv64i_sll}} & alu_shift_left )
+	wire [63:0] shift_res_dnxt =  ( {64{rv64i_sll}} & alu_shift_left )
 							| ( {64{rv64i_srl | rv64i_sra}} & alu_shift_right );
+
+
+gen_dffr # (.DW((5+RNBIT))) shift_rd0 ( .dnxt(shift_rd0_dnxt), .qout(shift_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64)) shift_res ( .dnxt(shift_res_dnxt), .qout(shift_res_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) vaild ( .dnxt(shift_exeparam_vaild), .qout(shift_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+
 
 endmodule
 

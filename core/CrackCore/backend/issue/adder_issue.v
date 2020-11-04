@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 19:53:27
+* @Last Modified time: 2020-11-04 14:10:36
 */
 
 
@@ -22,17 +22,20 @@ module adder_issue (
 	//from execute
 
 	// input adder_execute_ready,
-	output adder_execute_vaild,
-	output [ :0] adder_execute_info,
+	output adder_exeparam_vaild_qout,
+	output [`ADDER_EXEPARAM_DW-1:0] adder_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout
+	input [32*RNDEPTH-1 : 0] wbLog_qout,
+
+	input CLK,
+	input RSTn
 
 );
 
 	//adder must be ready
-	assign adder_execute_ready = 1'b1;
+	wire adder_exeparam_ready = 1'b1;
 
 
 
@@ -150,7 +153,7 @@ endgenerate
 		.full_o(),
 	);
 
-	assign adder_execute_info = { 
+	wire [`ADDER_EXEPARAM_DW-1:0] adder_exeparam_dnxt = adder_exeparam_vaild_dnxt ? { 
 								adder_fun_add[ adder_buffer_pop_index ],
 								adder_fun_sub[ adder_buffer_pop_index ],
 
@@ -160,22 +163,24 @@ endgenerate
 
 								is32[ adder_buffer_pop_index ]
 
-								};
+								}
+								: adder_exeparam_qout;
+
+	wire adder_exeparam_vaild_qout;
+	assign adder_exeparam_vaild_dnxt =  ~adder_all_RAW;
 
 
-	assign adder_execute_vaild =  ~adder_all_RAW;
-
-
-	assign adder_buffer_pop = ( adder_execute_ready & adder_execute_vaild );
-
-
-
+	assign adder_buffer_pop = ( adder_execute_ready & adder_exeparam_vaild_dnxt );
 
 
 
 
 
 
+//T4
+
+gen_dffr # (.DW(`ADDER_EXEPARAM_DW)) adder_exeparam ( .dnxt(adder_exeparam_dnxt), .qout(adder_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) adder_exeparam_vaild ( .dnxt(adder_exeparam_vaild_dnxt), .qout(adder_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

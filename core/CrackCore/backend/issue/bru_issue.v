@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 09:58:43
+* @Last Modified time: 2020-11-04 15:20:05
 */
 
 module bru_issue (
@@ -15,21 +15,16 @@ module bru_issue (
 
 	//from execute
 
-	// input bru_execute_ready,
-	output bru_execute_vaild,
-	output [ :0] bru_execute_info,
+	input bru_exeparam_ready,
+	output bru_exeparam_vaild_qout,
+	output [`BRU_EXEPARAM_DW-1:0] bru_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
 	input [32*RNDEPTH-1 : 0] wbLog_qout
 );
 
-	//bru must be ready
-	assign bru_execute_ready = 1'b1;
 
-
-
-//对于有条件分支预测，先解决分支也没用，必须等先序指令commit，因此还不如顺序发射
 
 	wire rv64i_beq;
 	wire rv64i_bne;
@@ -75,7 +70,7 @@ module bru_issue (
 	assign op2 = src2;
 
 
-	assign bru_execute_info = { 
+	assign bru_exeparam_dnxt =  bru_exeparam_ready ? { 
 								rv64i_beq,
 								rv64i_bne,
 								rv64i_blt,
@@ -85,15 +80,21 @@ module bru_issue (
 
 								op1,
 								op2
-								};
+								}
+								: bru_exeparam_qout
+								;
+
+	wire bru_exeparam_vaild_qout;
+	wire bru_exeparam_vaild_dnxt = bru_isClearRAW;
+
+	assign bru_issue_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );
 
 
-	assign bru_execute_vaild = bru_isClearRAW;
-
-	assign bru_issue_pop = ( bru_execute_ready & bru_execute_vaild );
 
 
 
+gen_dffr # (.DW(`BRU_EXEPARAM_DW)) bru_exeparam ( .dnxt(bru_exeparam_dnxt), .qout(bru_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) bru_exeparam_vaild ( .dnxt(bru_exeparam_vaild_dnxt), .qout(bru_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

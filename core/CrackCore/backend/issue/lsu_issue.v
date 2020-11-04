@@ -4,13 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 11:16:23
+* @Last Modified time: 2020-11-04 16:47:31
 */
 
 
 
 module lsu_issue (
-
 
 	//read 可以乱序
 	output lu_buffer_pop,
@@ -18,19 +17,18 @@ module lsu_issue (
 	input [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc,
 	input [`LU_ISSUE_INFO_DW*`LU_ISSUE_DEPTH-1 : 0] lu_issue_info
 
-	input lu_execute_ready,
-	output lu_execute_vaild,
-	output [ :0] lu_execute_info,
-
+	input lu_exeparam_ready,
+	output lu_exeparam_vaild_qout,
+	output [`LU_EXEPARAM_DW-1:0] lu_exeparam_info,
 
 	//write 暂时只能顺序
 	output su_fifo_pop,
 	input su_fifo_empty,
 	input [`SU_ISSUE_INFO_DW-1:0] su_issue_info,
 	
-	input su_execute_ready,
-	output su_execute_vaild,
-	output [ :0] su_execute_info,
+	input su_exeparam_ready,
+	output su_exeparam_vaild_qout,
+	output [`SU_EXEPARAM_DW-1:0] su_exeparam,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
@@ -138,7 +136,7 @@ wire lu_all_RAW;
 	);
 
 
-	assign lu_execute_info = { 
+	assign lu_exeparam_dnxt = { 
 								lu_fun_lb[lu_buffer_pop_index],
 								lu_fun_lh[lu_buffer_pop_index],
 								lu_fun_lw[lu_buffer_pop_index],
@@ -151,11 +149,15 @@ wire lu_all_RAW;
 
 								};
 
+	wire lu_exeparam_vaild_qout;
+	wire lu_exeparam_vaild_dnxt = lu_exeparam_ready ? ~lu_all_RAW : lu_exeparam_vaild_qout;
 
-	assign lu_execute_vaild =  ~lu_all_RAW;
+
+	assign lu_buffer_pop = ( lu_exeparam_ready & lu_exeparam_vaild_dnxt );
 
 
-	assign lu_buffer_pop = ( lu_execute_ready & lu_execute_vaild );
+gen_dffr # (.DW(`LU_EXEPARAM_DW)) lu_exeparam ( .dnxt(lu_exeparam_dnxt), .qout(lu_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) lu_exeparam_vaild ( .dnxt(lu_exeparam_vaild_dnxt), .qout(lu_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -233,17 +235,21 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 
 
 
-	assign su_execute_info = { 
+	assign su_exeparam_dnxt = { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
 								op1,
 								op2
 								};
 
-	assign su_execute_vaild = su_isClearRAW & suILP_ready;
-	assign su_issue_pop = ( su_execute_ready & su_execute_vaild );
+	wire su_exeparam_vaild_qout;
+	assign su_exeparam_vaild_dnxt = su_isClearRAW & suILP_ready;
+
+	assign su_issue_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
 
 
+gen_dffr # (.DW(`SU_EXEPARAM_DW)) su_exeparam ( .dnxt(su_exeparam_dnxt), .qout(su_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) su_exeparam_vaild ( .dnxt(su_exeparam_vaild_dnxt), .qout(su_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

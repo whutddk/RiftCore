@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 20:02:05
+* @Last Modified time: 2020-11-04 14:11:08
 */
 
 module shift_issue (
@@ -17,8 +17,8 @@ module shift_issue (
 
 	//from execute
 
-	output shift_execute_vaild,
-	output [ :0] shift_execute_info,
+	output shift_exeparam_vaild_qout,
+	output [`SHIFT_EXEPARAM_DW-1:0] shift_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
@@ -27,7 +27,7 @@ module shift_issue (
 
 
 	//shift must be ready
-	assign shift_execute_ready = 1'b1;
+	wire shift_exeparam_ready = 1'b1;
 
 
 
@@ -171,7 +171,7 @@ endgenerate
 	);
 
 
-	assign shift_execute_info = { 
+	assign shift_exeparam_dnxt = { 
 								shift_fun_sll[ shift_buffer_pop_index ],
 								shift_fun_srl[ shift_buffer_pop_index ],
 								shift_fun_sra[ shift_buffer_pop_index ],
@@ -183,14 +183,18 @@ endgenerate
 
 								};
 
-
-	assign shift_execute_vaild =  ~shift_all_RAW;
-
-
-	assign shift_buffer_pop = ( shift_execute_ready & shift_execute_vaild );
+	wire shift_exeparam_vaild_qout;
+	assign shift_exeparam_vaild_dnxt =  ~shift_all_RAW;
 
 
+	assign shift_buffer_pop = ( shift_exeparam_ready & shift_exeparam_vaild_dnxt );
 
+
+
+
+
+gen_dffr # (.DW(`SHIFT_EXEPARAM_DW)) shift_exeparam ( .dnxt(shift_exeparam_dnxt), .qout(shift_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) shift_exeparam_vaild ( .dnxt(shift_exeparam_vaild_dnxt), .qout(shift_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

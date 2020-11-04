@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-29 20:11:13
+* @Last Modified time: 2020-11-04 16:44:29
 */
 
 
@@ -13,31 +13,28 @@ module lsu (
 
 
 	//read 可以乱序
-	output lu_execute_ready,
-	input lu_execute_vaild,
-	input [ :0] lu_execute_info_dnxt,
+	output lu_exeparam_ready,
+	input lu_exeparam_vaild,
+	input [`LU_EXEPARAM_DW-1:0] lu_exeparam,
 
 
 	//write 暂时只能顺序
-	output su_execute_ready,
-	input su_execute_vaild,
-	input [ :0] su_execute_info,
-
-	//fence
-	output fence_execute_ready,
-	input fence_execute_vaild,
+	output su_exeparam_ready,
+	input su_exeparam_vaild,
+	input [`SU_EXEPARAM_DW-1:0] su_exeparam,
 	
 	output lsu_writeback_vaild,
-	output [63:0] lsu_res,
-	output [(5+RNBIT-1):0] lsu_rd0,
+	output [63:0] lsu_res_qout,
+	output [(5+RNBIT-1):0] lsu_rd0_qout,
 
-
+	input CLK,
+	input RSTn
 );
 
-$warning("定义store优先级高于load，fence与store，load不会同时出现");
-wire store_fun = su_execute_vaild;
-wire load_fun = lu_execute_vaild & ~su_execute_vaild;
-wire fence_fun = fence_execute_vaild;
+$warning("定义load优先级高于store");
+wire store_fun = su_execute_vaild ~lu_exeparam_vaild;
+wire load_fun = lu_execute_vaild;
+
 
 
 
@@ -61,62 +58,28 @@ wire fence_fun = fence_execute_vaild;
 
 
 
+	wire lu_fun_lb;
+	wire lu_fun_lh;
+	wire lu_fun_lw;
+	wire lu_fun_ld;
 
+	wire [(5+RNBIT-1):0] lu_rd0,
+	wire [63:0] lu_op1;
 
-
-
-
-
-
-wire lu_fun_lb_dnxt;
-wire lu_fun_lh_dnxt;
-wire lu_fun_lw_dnxt;
-wire lu_fun_ld_dnxt;
-wire [(5+RNBIT)-1:0] lu_rd0_dnxt;
-wire [(5+RNBIT)-1:0] lu_op1_dnxt;
-wire lu_isUsi_dnxt;
-
-wire lu_fun_lb_qout;
-wire lu_fun_lh_qout;
-wire lu_fun_lw_qout;
-wire lu_fun_ld_qout;
-wire [(5+RNBIT)-1:0] lu_rd0_qout;
-wire [(5+RNBIT)-1:0] lu_op1_qout;
-wire lu_isUsi_qout;
-wire [] lu_execute_info_qout;
-
+	wire lu_isUsi;
 
 	assign { 
-			lu_fun_lb_dnxt,
-			lu_fun_lh_dnxt,
-			lu_fun_lw_dnxt,
+			lu_fun_lb,
+			lu_fun_lh,
+			lu_fun_lw,
 			lu_fun_ld,
 
-			lu_rd0_dnxt,
-			lu_op1_dnxt,
+			lu_rd0,
+			lu_op1,
 
-			lu_isUsi_dnxt
+			lu_isUsi
 
-			} = lu_execute_info_dnxt;
-
-	assign { 
-			lu_fun_lb_qout,
-			lu_fun_lh_qout,
-			lu_fun_lw_qout,
-			lu_fun_ld_qout,
-
-			lu_rd0_qout,
-			lu_op1_qout,
-
-			lu_isUsi_qout
-
-			} = lu_execute_info_qout;
-
-gen_dffr lu_execute_info () 
-
-
-
-wire [63:0] load_res;
+			} = lu_exeparam;
 
 
 
@@ -127,7 +90,7 @@ wire [15:0] loadh_align = data_qout[ luaddr_align +: 16 ];
 wire [31:0] loadw_align = data_qout[ luaddr_align +: 32 ];
 wire [63:0] loadd_align = data_qout[ luaddr_align +: 64 ];
 
-assign load_res = 
+wire [63:0] lsu_res_dnxt = 
 			({64{lu_fun_lb}} & ( lu_isUsi_qout ? {56'b0,loadb_align} : {56{loadb_align[7]},loadb_align} ))
 			|
 			({64{lu_fun_lh}} & ( lu_isUsi_qout ? {48'b0,loadb_align} : {48{loadb_align[15]},loadb_align} ))
@@ -137,25 +100,9 @@ assign load_res =
 			({64{lu_fun_ld}} & loadd_align);
 
 
-			
-
-
-
-
-
-
 wire [63:0] lu_addrA_Raw = lu_op1_dnxt[3] ? lu_op1_dnxt + 64'b1000 : lu_op1_dnxt;
 wire [63:0] lu_addrB_Raw = lu_op1_dnxt[3] ? lu_op1_dnxt : lu_op1_dnxt | 64'b1000;
 wire [127:0] data_qout = lu_op1_dnxt[3] ? { data_qout_A, data_qout_B} : { data_qout_B, data_qout_A};
-
-
-
-
-
-
-
-
-
 
 
 //    SSSSSSSSSSSSSSS UUUUUUUU     UUUUUUUU
@@ -186,10 +133,6 @@ wire [127:0] data_qout = lu_op1_dnxt[3] ? { data_qout_A, data_qout_B} : { data_q
 
 
 
-
-
-
-
 	assign { 
 			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
@@ -215,10 +158,6 @@ wire [15:0] mask = ({16{rv64i_sb}} & ( 16'b1 << su_addr_align ))
 					({16{rv64i_sd}} & ( 16'b11111111 << su_addr_align ));
 
 
-
-
-
-
 assign { wmask_B, wmask_A } = su_op1[3] ? {mask[7:0],mask[15:8]} :mask;
 
 wire [127:0] data_dxnt = su_op2 << {su_addr_align,3'b0};
@@ -234,8 +173,8 @@ wire [AW-1:0] addr_B = ({AW{load_fun}} & lu_addrB_Raw[3 +:AW])
 					({AW{store_fun}} &  su_addrB_Raw[3 +:AW])
 					;
 
-wire [63:0] data_dxnt_A;
-wire [63:0] data_dxnt_B;
+wire [63:0] data_dnxt_A;
+wire [63:0] data_dnxt_B;
 
 wire wen_A = store_fun;
 wire wen_B = store_fun;
@@ -247,13 +186,9 @@ wire [63:0] data_qout_A;
 wire [63:0] data_qout_B;
 
 
-dtcm #
+dtcm #(.DW(64), .AW(AW)) 
+i_dtcm_A
 (
-	.DW(64),
-	.AW(AW),
-) i_dtcm_A
-(
-
 	.addr(addr_A),
 	.data_dxnt(data_dxnt_A),
 	.wen(wen_A),
@@ -266,13 +201,9 @@ dtcm #
 );
 
 
-dtcm #
+dtcm #( .DW(64), .AW(AW))
+i_dtcm_B
 (
-	.DW(64),
-	.AW(AW),
-) i_dtcm_B
-(
-
 	.addr(addr_B),
 	.data_dxnt(data_dxnt_B),
 	.wen(wen_B),
@@ -285,33 +216,34 @@ dtcm #
 );
 
 
-	$warning("定义store优先级高于load，fence与store，load不会同时出现");
-	assign lu_execute_ready = lsu_writeback_vaild_qout & lu_execute_vaild & ~su_execute_vaild;
-	assign su_execute_ready = lsu_writeback_vaild_qout & su_execute_vaild;
-	assign fence_execute_ready = lsu_writeback_vaild_qout;
-
-	$warning("直接握手前提是单拍出结果");
-	wire lsu_writeback_vaild_dnxt = lu_execute_ready | su_execute_ready | fence_execute_ready;
-	wire lsu_writeback_vaild_qout;
-
-	gen_dffr lsu_writeback_vaild ();
-
-	assign lsu_writeback_vaild = lsu_writeback_vaild_qout
 
 
+	initial $warning("直接握手前提是单拍出结果");
+	wire memory_ready = 1'b1;
 
-	assign lsu_res = load_res;
-	assign lsu_rd0 = ({(5+RNBIT){load_fun}} & lu_rd0_qout)
-					|
-					({(5+RNBIT){store_fun}} & 'd0)
-					|
-					({(5+RNBIT){fence_fun}} & 'd0);
+	initial $info("定义load优先级高于store");
+	assign lu_exeparam_ready = memory_ready;
+	assign su_exeparam_ready = memory_ready & ~lu_exeparam_vaild;
+
+
+	wire lsu_writeback_vaild_dnxt = (lu_exeparam_vaild & lu_exeparam_ready)
+									| (su_exeparam_vaild & su_exeparam_ready);
 
 
 
+	assign lsu_rd0_dnxt = ({(5+RNBIT){load_fun}} & lu_rd0)
+							|
+							({(5+RNBIT){store_fun}} & 'd0);
 
 
+wire lsu_vaild_dnxt = (lu_exeparam_vaild | su_exeparam_vaild);
+wire lsu_vaild_qout;
+assign lsu_writeback_vaild = lsu_vaild_qout & memory_ready;
 
+
+gen_dffr # (.DW((5+RNBIT))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64)) lsu_res ( .dnxt(lsu_res_dnxt), .qout(lsu_res_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) lsu_vaild ( .dnxt(lu_exeparam_vaild), .qout(lsu_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

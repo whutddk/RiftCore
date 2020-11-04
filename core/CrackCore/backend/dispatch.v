@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 11:24:04
+* @Last Modified time: 2020-11-04 17:55:09
 */
 
 
@@ -25,7 +25,7 @@ module dispatch (
 	output instrFifo_pop,
 	input instrFifo_empty,
 
-	output [`REORDER_INFO_DW-1:0] reOrder_info_data,
+	output [`REORDER_INFO_DW-1:0] dispat_info,
 	output reOrder_fifo_push,
 	input reOrder_fifo_full
 
@@ -65,8 +65,6 @@ module dispatch (
 	output csr_fifo_push,
 	input csr_fifo_full,
 	output [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info,
-
-
 
 );
 
@@ -173,7 +171,12 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 			} = decode_microInstr_pop;
 
 
-	assign reOrder_info_data = {pc, rd0_reName, branch};
+	wire isBranch = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
+	wire isSu = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+	wire isCsr = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
+
+
+	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
 	assign reOrder_fifo_push = adder_buffer_push
 								| logCmp_buffer_push
 								| shift_buffer_push

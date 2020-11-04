@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 10:31:57
+* @Last Modified time: 2020-11-04 15:33:39
 */
 
 
@@ -16,8 +16,8 @@ module csr_issue (
 	input csr_fifo_empty,
 	input [`CSR_ISSUE_INFO_DW-1:0] csr_issue_info,
 
-	output csr_execute_vaild,
-	output [ :0] csr_execute_info,
+	output csr_exeparam_vaild_qout,
+	output [`CSR_EXEPARAM_DW-1 :0] csr_exeparam_qout,
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
