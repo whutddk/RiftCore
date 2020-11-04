@@ -4,18 +4,14 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 18:03:58
+* @Last Modified time: 2020-11-04 09:58:43
 */
 
-
 module bru_issue (
-
-
-	input bru_issue_vaild,
-	output bru_issue_ready,
-	input [:] bru_issue_info_push,
-
-
+	//from fifo
+	output bru_fifo_pop,
+	input bru_fifo_empty,
+	input [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info,
 
 	//from execute
 
@@ -25,7 +21,7 @@ module bru_issue (
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-
+	input [32*RNDEPTH-1 : 0] wbLog_qout
 );
 
 	//bru must be ready
@@ -33,22 +29,8 @@ module bru_issue (
 
 
 
-
-	wire bru_issue_push;
-	wire bru_issue_pop;
-
-	wire bru_fifo_full;
-	wire bru_fifo_empty;
-	wire [ : 0] bru_issue_info_pop;
-
-
-
 //对于有条件分支预测，先解决分支也没用，必须等先序指令commit，因此还不如顺序发射
-//对于无条件指令，建议放到加法器中合并
 
-
-	wire rv64i_jal;
-	wire rv64i_jalr;
 	wire rv64i_beq;
 	wire rv64i_bne;
 	wire rv64i_blt;
@@ -66,7 +48,6 @@ module bru_issue (
 	wire  [63:0] op1;
 	wire  [63:0] op2;
 
-
 	assign {
 				rv64i_beq,
 				rv64i_bne,
@@ -77,7 +58,7 @@ module bru_issue (
 
 				bru_rs1,
 				bru_rs2
-			} = bru_issue_info_pop;
+			} = bru_issue_info;
 
 
 	assign rs1_ready = wbBuf_qout[bru_rs1];
@@ -94,8 +75,6 @@ module bru_issue (
 	assign op2 = src2;
 
 
-
-
 	assign bru_execute_info = { 
 								rv64i_beq,
 								rv64i_bne,
@@ -109,15 +88,11 @@ module bru_issue (
 								};
 
 
-	assign bru_execute_vaild = ~bru_isClearRAW;
+	assign bru_execute_vaild = bru_isClearRAW;
 
-
-	assign bru_issue_push = ( bru_dispat_ready );
 	assign bru_issue_pop = ( bru_execute_ready & bru_execute_vaild );
 
 
-	assign bru_dispat_ready = bru_dispat_vaild &
-								( ~bru_buffer_full | bru_buffer_full & bru_issue_pop);
 
 
 

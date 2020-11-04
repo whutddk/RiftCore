@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 20:05:41
+* @Last Modified time: 2020-11-04 11:23:41
 */
 
 
@@ -63,11 +63,21 @@ module backEnd (
 	wire [`JAL_ISSUE_DEPTH-1:0] jal_buffer_malloc;
 	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_DEPTH-1 : 0] jal_issue_info;
 
+	wire bru_fifo_pop;
+	wire bru_fifo_empty;
+	wire [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info;
 
+	wire csr_fifo_pop;
+	wire csr_fifo_empty;
+	wire [`CSR_ISSUE_INFO_DW-1:0] csr_issue_info;
 
-
-
-
+	wire lu_buffer_pop;
+	wire [$clog2(`ADDER_ISSUE_DEPTH)-1:0] lu_buffer_pop_index;
+	wire [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc;
+	wire [`LU_ISSUE_INFO_DW*`LU_ISSUE_DEPTH-1 : 0] lu_issue_info;
+	wire su_fifo_pop;
+	wire su_fifo_empty;
+	wire [`SU_ISSUE_INFO_DW-1:0] su_issue_info;
 
 
 //C3
@@ -110,9 +120,10 @@ module backEnd (
 	wire fence_fifo_full;
 	wire [`FENCE_ISSUE_INFO_DW-1:0] fence_dispat_info;
 
-	wire csr_buffer_push;
-	wire csr_buffer_full;
+	wire csr_fifo_push;
+	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
+
 
 
 dispatch i_dispatch(
@@ -158,17 +169,15 @@ dispatch i_dispatch(
 	.su_fifo_push(su_fifo_push),
 	.su_fifo_full(su_fifo_full),
 	.su_dispat_info(su_dispat_info),
+	.su_fifo_empty(su_fifo_empty),
 
 	.lu_buffer_push(lu_buffer_push),
 	.lu_buffer_full(lu_buffer_full),
 	.lu_dispat_info(lu_dispat_info),
+	.lu_buffer_malloc(lu_buffer_malloc),
 
-	.fence_fifo_push(fence_fifo_push),
-	.fence_fifo_full(fence_fifo_full),
-	.fence_dispat_info(fence_dispat_info),
-
-	.csr_buffer_push(csr_buffer_push),
-	.csr_buffer_full(csr_buffer_full),
+	.csr_fifo_push(csr_fifo_push),
+	.csr_fifo_full(csr_fifo_full),
 	.csr_dispat_info(csr_dispat_info),
 );
 
@@ -241,16 +250,15 @@ jal_issue_buffer
 	
 );
 
-
 issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(BRU_ISSUE_DEPTH))
 bru_issue_fifo (
-	.issue_info_push(bru_dispat_info)
-	.issue_info_pop
+	.issue_info_push(bru_dispat_info),
+	.issue_info_pop(bru_issue_info),
 
-	.issue_push(bru_fifo_push)
-	.issue_pop
-	.fifo_full(bru_fifo_full)
-	.fifo_empty
+	.issue_push(bru_fifo_push),
+	.issue_pop(bru_fifo_pop),
+	.fifo_full(bru_fifo_full),
+	.fifo_empty(bru_fifo_empty),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -259,13 +267,13 @@ bru_issue_fifo (
 issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(SU_ISSUE_DEPTH))
 su_issue_fifo
 (
-	.issue_info_push(su_dispat_info)
-	.issue_info_pop
+	.issue_info_push(su_dispat_info),
+	.issue_info_pop(su_issue_info),
 
-	.issue_push(su_fifo_push)
-	.issue_pop
-	.fifo_full(su_fifo_full)
-	.fifo_empty
+	.issue_push(su_fifo_push),
+	.issue_pop(su_fifo_pop),
+	.fifo_full(su_fifo_full),
+	.fifo_empty(su_fifo_empty),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -276,48 +284,31 @@ issue_buffer #(.DW(`LU_ISSUE_INFO_DW),.DP(LU_ISSUE_DEPTH))
 lu_issue_buffer
 (
 	.dispat_info(lu_dispat_info),
-	.issue_info_qout
+	.issue_info_qout(lu_issue_info),
 
 	.buffer_push(lu_buffer_push),
-	.buffer_pop,	
+	.buffer_pop(lu_buffer_pop),	
 	
 	.buffer_full(lu_buffer_full),
-	.buffer_malloc_qout
-	.issue_pop_index,
+	.buffer_malloc_qout(lu_buffer_malloc),
+	.issue_pop_index(lu_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn)	
 	
 );
 
-issue_fifo #(.DW(`FENCE_ISSUE_INFO_DW),.DP(1),)
-fence_issue_fifo
+issue_fifo #(.DW(`CSR_ISSUE_INFO_DW),.DP(1))
+csr_issue_fifo
 (
-	.issue_info_push(fence_dispat_info)
-	.issue_info_pop
+	.issue_info_push(csr_dispat_info),
+	.issue_info_pop(csr_issue_info),
 
-	.issue_push(fence_fifo_push)
-	.issue_pop
-	.fifo_full(fence_fifo_full)
-	.fifo_empty
-
-	.CLK(CLK),
-	.RSTn(RSTn)
+	.issue_push(csr_buffer_push),
+	.issue_pop(csr_fifo_pop),	
 	
-);
+	.fifo_full(csr_buffer_full),
+	.fifo_empty(csr_fifo_empty),
 
-
-issue_buffer #(.DW(`CSR_ISSUE_INFO_DW),.DP(CSR_ISSUE_DEPTH))
-csr_issue_buffer
-(
-	.dispat_info(csr_dispat_info),
-	.issue_info_qout
-
-	.buffer_push(csr_buffer_push),
-	.buffer_pop,	
-	
-	.buffer_full(csr_buffer_full),
-	.buffer_malloc_qout
-	.issue_pop_index,
 	.CLK(CLK),
 	.RSTn(RSTn)	
 	
@@ -382,13 +373,58 @@ jal_issue i_jalIssue(
 	.wbLog_qout(wbLog_qout)
 );
 
+bru_issue i_bruIssue(
+	.bru_fifo_pop(bru_fifo_pop),
+	.bru_fifo_empty(bru_fifo_empty),
+	.bru_issue_info(bru_issue_info),
 
+	output bru_execute_vaild,
+	output [ :0] bru_execute_info,
 
-bru_issue ();
-csr_issue ();
+	.regFileX_read(regFileX_read),
+	.wbLog_qout(wbLog_qout)
+);
 
+csr_issue i_csrIssue(
+	.csr_fifo_pop(csr_fifo_pop),
+	.csr_fifo_empty(csr_fifo_empty),
+	.csr_issue_info(csr_issue_info),
 
-lsu_issue ();
+	output csr_execute_vaild,
+	output [ :0] csr_execute_info,
+
+	.regFileX_read(regFileX_read),
+	.wbLog_qout(wbLog_qout),
+
+	//from commit
+	input csrILP_ready
+);
+
+lsu_issue i_lsuIssue(
+
+	.lu_buffer_pop(lu_buffer_pop),
+	.lu_buffer_pop_index(lu_buffer_pop_index),
+	.lu_buffer_malloc(lu_buffer_malloc),
+	.lu_issue_info(lu_issue_info),
+
+	input lu_execute_ready,
+	output lu_execute_vaild,
+	output [ :0] lu_execute_info,
+
+	.su_fifo_pop(su_fifo_pop),
+	.su_fifo_empty(su_fifo_empty),
+	.su_issue_info(su_issue_info),
+	
+	input su_execute_ready,
+	output su_execute_vaild,
+	output [ :0] su_execute_info,
+
+	.regFileX_read(regFileX_read),
+	.wbLog_qout(wbLog_qout),
+
+	//from commit
+	input suILP_ready
+);
 
 
 

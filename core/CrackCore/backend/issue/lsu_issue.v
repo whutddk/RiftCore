@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-30 18:10:02
+* @Last Modified time: 2020-11-04 11:16:23
 */
 
 
@@ -13,10 +13,10 @@ module lsu_issue (
 
 
 	//read 可以乱序
-	input lu_issue_vaild,
-	output lu_issue_ready,
-	input [:] lu_issue_info_push,
-
+	output lu_buffer_pop,
+	output [$clog2(`ADDER_ISSUE_DEPTH)-1:0] lu_buffer_pop_index,
+	input [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc,
+	input [`LU_ISSUE_INFO_DW*`LU_ISSUE_DEPTH-1 : 0] lu_issue_info
 
 	input lu_execute_ready,
 	output lu_execute_vaild,
@@ -24,28 +24,20 @@ module lsu_issue (
 
 
 	//write 暂时只能顺序
-	input su_issue_vaild,
-	output su_issue_ready,
-	input [:] su_issue_info_push,
+	output su_fifo_pop,
+	input su_fifo_empty,
+	input [`SU_ISSUE_INFO_DW-1:0] su_issue_info,
 	
 	input su_execute_ready,
 	output su_execute_vaild,
 	output [ :0] su_execute_info,
 
-	//fence
-	input fence_issue_vaild,
-	output fence_issue_ready,
-	input [:] fence_issue_info_push,
-	
-	input fence_execute_ready,
-	output fence_execute_vaild,
-	output [ :0] fence_execute_info,
-
-
-
-
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
+	input [32*RNDEPTH-1 : 0] wbLog_qout,
+
+	//from commit
+	input suILP_ready
 );
 
 
@@ -75,30 +67,6 @@ module lsu_issue (
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	wire lu_issue_push;
-	wire lu_issue_pop;
-	wire [$clog2(LU_ISSUE_DEPTH)-1:0] lu_issue_pop_index;
-	wire lu_buffer_full;
-	wire [LU_ISSUE_DEPTH-1:0] lu_buffer_vaild_qout;
-	wire [ : 0] lu_issue_info_qout;
-
-
-
-
 	wire [LU_ISSUE_DEPTH-1:0] rv64i_lb;
 	wire [LU_ISSUE_DEPTH-1:0] rv64i_lh;
 	wire [LU_ISSUE_DEPTH-1:0] rv64i_lw;
@@ -122,7 +90,7 @@ module lsu_issue (
 	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_lw;
 	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_ld;
 
-	wire [64*LU_ISSUE_DEPTH - 1:0] lu_op1;
+	wire [64*LU_ISSUE_DEPTH - 1:0] op1;
 
 	wire [LU_ISSUE_DEPTH - 1:0] lu_isUsi;
 
@@ -134,11 +102,11 @@ generate
 				lu_imm[64*i +: 64],
 				lu_rd0[(5+RNBIT)*i +: (5+RNBIT)],
 				lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]
-				} = lu_issue_info_pop;
+				} = lu_issue_info[`LU_ISSUE_INFO_DW*i +: `LU_ISSUE_INFO_DW];
 
-		assign lu_rs1_ready[i] = wbBuf_qout[adder_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs1_ready[i] = wbBuf_qout[lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
 
-		assign lu_isClearRAW[i] = lu_buffer_vaild_qout[i] & lu_rs1_ready;
+		assign lu_isClearRAW[i] = lu_buffer_malloc[i] & rs1_ready[i];
 
 
 		assign lu_fun_lb[i] = rv64i_lb[i] | rv64i_lbu[i];
@@ -148,7 +116,7 @@ generate
 
 
 
-		assign lu_op1[64*i +:64] = regFileX_read[lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]] + lu_imm[64*i +: 64];
+		assign op1[64*i +:64] = regFileX_read[lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]] + lu_imm[64*i +: 64];
 
 		assign lu_isUsi[i] = rv64i_lbu[i] | rv64i_lhu[i] | rv64i_lwu[i];
 
@@ -161,26 +129,25 @@ endgenerate
 wire lu_all_RAW;
 
 	//应该为组合逻辑实现
-	lzc #(
-		.WIDTH(LU_ISSUE_DEPTH),
-		.CNT_WIDTH($clog2(LU_ISSUE_DEPTH))
+	lzp #(
+		.CW($clog2(LU_ISSUE_DEPTH))
 	) lu_RAWClear(
-		.in_i(lu_isClearRAW),
-		.cnt_o(lu_issue_pop_index),
+		.in_i(~lu_isClearRAW),
+		.cnt_o(lu_buffer_pop_index),
 		.empty_o(lu_all_RAW)
 	);
 
 
 	assign lu_execute_info = { 
-								lu_fun_lb[lu_issue_pop_index],
-								lu_fun_lh[lu_issue_pop_index],
-								lu_fun_lw[lu_issue_pop_index],
-								lu_fun_ld[lu_issue_pop_index],
+								lu_fun_lb[lu_buffer_pop_index],
+								lu_fun_lh[lu_buffer_pop_index],
+								lu_fun_lw[lu_buffer_pop_index],
+								lu_fun_ld[lu_buffer_pop_index],
 
-								lu_rd0[(5+RNBIT)*lu_issue_pop_index +: (5+RNBIT)],
-								lu_op1[ 64*lu_issue_pop_index +:64 ],
+								lu_rd0[(5+RNBIT)*lu_buffer_pop_index +: (5+RNBIT)],
+								op1[ 64*lu_buffer_pop_index +:64 ],
 
-								lu_isUsi[ lu_issue_pop_index ]
+								lu_isUsi[ lu_buffer_pop_index ]
 
 								};
 
@@ -188,20 +155,8 @@ wire lu_all_RAW;
 	assign lu_execute_vaild =  ~lu_all_RAW;
 
 
+	assign lu_buffer_pop = ( lu_execute_ready & lu_execute_vaild );
 
-	assign lu_issue_push = ( lu_dispat_ready );
-	assign lu_issue_pop = ( lu_execute_ready & lu_execute_vaild );
-
-	// 现有vaild，表示信号准备好了，再有ready取信号。
-	// ready需要取信号，必须有空间，即nofull或者full，但是同时pop了
-	assign lu_dispat_ready = lu_dispat_vaild &
-								( ~lu_buffer_full | lu_buffer_full & lu_issue_pop);			
-								&
-								~( fence_LAS & ~su_fifo_empty )
-								&
-								~( fence_LAL & (| lu_buffer_vaild_qout) )
-								& 
-								~(  fence_ALL & ~su_fifo_empty & (| lu_buffer_vaild_qout) );
 
 
 
@@ -235,39 +190,15 @@ wire lu_all_RAW;
 
 
 
-$error("写存储器必须保证前序指令已经commit，本指令不会被撤销，需要从commit处顺序fifo跟踪");
-
-
-
-
-
-
-
-
-
-
-
-	wire su_issue_push;
-	wire su_issue_pop;
-
-	wire su_fifo_full;
-	wire su_fifo_empty;
-	wire [ : 0] su_issue_info_pop;
-
-
-
-
-
-
-
+initial $info("写存储器必须保证前序指令已经commit，本指令不会被撤销，需要从commit处顺序fifo跟踪");
 
 	wire rv64i_sb;
 	wire rv64i_sh;
 	wire rv64i_sw;
 	wire rv64i_sd;
 
-	wire su_rs1_ready;
-	wire su_rs2_ready;
+	wire rs1_ready;
+	wire rs2_ready;
 
 	wire [63:0] su_imm;
 
@@ -276,8 +207,8 @@ $error("写存储器必须保证前序指令已经commit，本指令不会被撤
 
 	wire su_isClearRAW;
 
-	wire  [63:0] su_op1;
-	wire  [63:0] su_op2;
+	wire [63:0] op1;
+	wire [63:0] op2;
 
 	assign {
 			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
@@ -285,18 +216,18 @@ $error("写存储器必须保证前序指令已经commit，本指令不会被撤
 			su_rs1,
 			su_rs2
 
-			} = su_issue_info_pop;
+			} = su_issue_info;
 
 
-	assign su_rs1_ready = wbBuf_qout[rs1];
-	assign su_rs2_ready = wbBuf_qout[rs2];
+	assign rs1_ready = wbBuf_qout[su_rs1];
+	assign rs2_ready = wbBuf_qout[su_rs2];
 
 	assign su_isClearRAW = ( ~su_fifo_empty ) & 
-											 su_rs1_ready & su_rs2_ready ;
+											 rs1_ready & rs2_ready ;
 
 
-	assign su_op1 = regFileX_read[rs1] + su_imm;
-	assign su_op2 = regFileX_read[rs2];
+	assign op1 = regFileX_read[su_rs1] + su_imm;
+	assign op2 = regFileX_read[su_rs2];
 
 
 
@@ -305,106 +236,12 @@ $error("写存储器必须保证前序指令已经commit，本指令不会被撤
 	assign su_execute_info = { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
-								su_op1,
-								su_op2
+								op1,
+								op2
 								};
 
-	assign su_execute_vaild = ~su_isClearRAW;
-
-
-	assign su_issue_push = ( su_dispat_ready );
+	assign su_execute_vaild = su_isClearRAW & suILP_ready;
 	assign su_issue_pop = ( su_execute_ready & su_execute_vaild );
-
-
-	assign su_dispat_ready = su_dispat_vaild &
-								( ~su_buffer_full | su_buffer_full & su_issue_pop)
-								&
-								~(fence_SAS & ~su_fifo_empty)
-								&
-								~(fence_SAL & (|lu_buffer_vaild_qout))
-								&
-								~(fence_ALL & ~su_fifo_empty & (|lu_buffer_vaild_qout) ) 
-								;
-
-
-
-
-
-// FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEEEEEEEEEEENNNNNNNN        NNNNNNNN        CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE
-// F::::::::::::::::::::FE::::::::::::::::::::EN:::::::N       N::::::N     CCC::::::::::::CE::::::::::::::::::::E
-// F::::::::::::::::::::FE::::::::::::::::::::EN::::::::N      N::::::N   CC:::::::::::::::CE::::::::::::::::::::E
-// FF::::::FFFFFFFFF::::FEE::::::EEEEEEEEE::::EN:::::::::N     N::::::N  C:::::CCCCCCCC::::CEE::::::EEEEEEEEE::::E
-//   F:::::F       FFFFFF  E:::::E       EEEEEEN::::::::::N    N::::::N C:::::C       CCCCCC  E:::::E       EEEEEE
-//   F:::::F               E:::::E             N:::::::::::N   N::::::NC:::::C                E:::::E             
-//   F::::::FFFFFFFFFF     E::::::EEEEEEEEEE   N:::::::N::::N  N::::::NC:::::C                E::::::EEEEEEEEEE   
-//   F:::::::::::::::F     E:::::::::::::::E   N::::::N N::::N N::::::NC:::::C                E:::::::::::::::E   
-//   F:::::::::::::::F     E:::::::::::::::E   N::::::N  N::::N:::::::NC:::::C                E:::::::::::::::E   
-//   F::::::FFFFFFFFFF     E::::::EEEEEEEEEE   N::::::N   N:::::::::::NC:::::C                E::::::EEEEEEEEEE   
-//   F:::::F               E:::::E             N::::::N    N::::::::::NC:::::C                E:::::E             
-//   F:::::F               E:::::E       EEEEEEN::::::N     N:::::::::N C:::::C       CCCCCC  E:::::E       EEEEEE
-// FF:::::::FF           EE::::::EEEEEEEE:::::EN::::::N      N::::::::N  C:::::CCCCCCCC::::CEE::::::EEEEEEEE:::::E
-// F::::::::FF           E::::::::::::::::::::EN::::::N       N:::::::N   CC:::::::::::::::CE::::::::::::::::::::E
-// F::::::::FF           E::::::::::::::::::::EN::::::N        N::::::N     CCC::::::::::::CE::::::::::::::::::::E
-// FFFFFFFFFFF           EEEEEEEEEEEEEEEEEEEEEENNNNNNNN         NNNNNNN        CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE
-
-
-	wire fence_issue_push;
-	wire fence_issue_pop;
-
-	wire fence_fifo_full;
-	wire fence_fifo_empty;
-	wire [ : 0] fence_issue_info_pop;
-
-
-
-	wire rv64zi_fence_i;
-	wire rv64i_fence;
-	wire [63:0] fence_imm;
-
-
-	assign {
-				rv64zi_fence_i, rv64i_fence,
-				fence_imm
-			} = fence_issue_info_pop;
-
-
-	$warning("暂不支持TSO");
-	$warning("暂不区分io和memory");
-
-
-	wire [3:0] predecessor = fence_imm[7:4];
-	wire [3:0] successor = fence_imm[3:0];
-
-	wire fence_SAS = | (successor & 4'b0101) & (predecessor & 4'b0101);
-	wire fence_SAL = | (successor & 4'b0101) & (predecessor & 4'b1010);
-	wire fence_LAS = | (successor & 4'b1010) & (predecessor & 4'b0101);
-	wire fence_LAL = | (successor & 4'b1010) & (predecessor & 4'b1010);
-	wire fence_ALL = rv64zi_fence_i
-
-
-	assign fence_execute_vaild = (~fence_fifo_empty) & 
-									( (fence_SAS & su_fifo_empty)
-										|
-										(fence_SAL & (&(~lu_buffer_vaild_qout)))
-										|
-										( fence_LAS & su_fifo_empty )
-										|
-										( fence_LAL & (&(~lu_buffer_vaild_qout) ))
-										| 
-										(  fence_ALL & su_fifo_empty & (&(~lu_buffer_vaild_qout) ) )
-									);
-
-
-
-	assign fence_issue_push = ( fence_dispat_ready );
-	assign fence_issue_pop = ( fence_execute_ready & fence_execute_vaild );
-
-
-	assign fence_dispat_ready = fence_dispat_vaild &
-								( ~fence_buffer_full | fence_buffer_full & fence_issue_pop);
-												
-
-
 
 
 

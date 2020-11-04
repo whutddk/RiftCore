@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 18:08:14
+* @Last Modified time: 2020-11-04 11:24:04
 */
 
 
@@ -54,18 +54,16 @@ module dispatch (
 	output su_fifo_push,
 	input su_fifo_full,
 	output [`SU_ISSUE_INFO_DW-1:0] su_dispat_info,
+	input su_fifo_empty,
+
 
 	output lu_buffer_push,
 	input lu_buffer_full,
 	output [`LU_ISSUE_INFO_DW-1:0] lu_dispat_info,
+	input [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc,
 
-	output fence_fifo_push,
-	input fence_fifo_full,
-	input [`FENCE_ISSUE_INFO_DW-1:0] fence_dispat_info,
-
-
-	output csr_buffer_push,
-	input csr_buffer_full,
+	output csr_fifo_push,
+	input csr_fifo_full,
 	output [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info,
 
 
@@ -183,9 +181,9 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 								| bru_fifo_push
 								| su_fifo_push
 								| lu_buffer_push
-								| fence_fifo_push
-								| csr_buffer_push;
-
+								| fence_dispat
+								| csr_fifo_push;
+	assign instrFifo_pop = reOrder_fifo_push;
 
 
 
@@ -234,6 +232,13 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 								rs1_reName, rs2_reName
 							};
 
+	assign csr_fifo_push = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & dispat_vaild & (~csr_fifo_full);
+	assign csr_dispat_info = {
+								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+								imm[11:0], rd0_reName, rs1_reName
+							}
+
+
 	assign lu_buffer_push = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu ) & dispat_vaild & (~lu_buffer_full);
 	assign lu_dispat_info = { 
 								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
@@ -252,20 +257,46 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 								rs2_reName
 							};
 
-	assign fence_fifo_push = (rv64zi_fence_i | rv64i_fence) & dispat_vaild & (~fence_fifo_full);
-	assign fence_dispat_info = {
-									rv64zi_fence_i, rv64i_fence,
-									imm
-								};
+	assign fence_dispat = (rv64zi_fence_i | rv64i_fence) & dispat_vaild 
+							& ~(fencing);
+
+	initial $warning("暂不支持TSO,暂不区分io和memory");
+	initial $warning("在派遣阶段做fence将会导致其它计算指令一同被fence");
+
+	wire [3:0] predecessor = imm[7:4];
+	wire [3:0] successor = imm[3:0];
+
+	wire fenceS = (successor & 4'b0100) || (successor & 4'b0001);
+	wire fenceL = (successor & 4'b1000) || (successor & 4'b0010);
+	wire afterS = (predecessor & 4'b0100) || (predecessor & 4'b0001);
+	wire afterL = (predecessor & 4'b1000) || (predecessor & 4'b0010);
+
+	wire fence_SAS = rv64i_fence & fenceS & afterS;
+	wire fence_SAL = rv64i_fence & fenceS & afterL;
+	wire fence_LAS = rv64i_fence & fenceL & afterS;
+	wire fence_LAL = rv64i_fence & fenceL & afterL;
+	wire fence_ALL = rv64zi_fence_i;
+
+	// wire fence_lu_dispat = ~( fence_LAS & ~su_fifo_empty )
+	// 						&
+	// 						~( fence_LAL & (| lu_buffer_malloc) )
+	// 						& 
+	// 						~( fence_ALL & ~su_fifo_empty & (| lu_buffer_malloc) );
+
+	// wire fence_su_dispat = ~(fence_SAS & ~su_fifo_empty)
+	// 						&
+	// 						~(fence_SAL & (| lu_buffer_malloc))
+	// 						&
+	// 						~(fence_ALL & ~su_fifo_empty & (|lu_buffer_malloc) );
+
+	wire fencing = ( fence_LAS & ~su_fifo_empty ) 
+					| ( fence_LAL & (| lu_buffer_malloc) )
+					| (fence_SAS & ~su_fifo_empty)
+					| (fence_SAL & (| lu_buffer_malloc))
+					| (fence_ALL & ~su_fifo_empty & (|lu_buffer_malloc) );
 
 
-	assign csr_buffer_push = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & dispat_vaild & (~csr_buffer_full);
-	assign csr_dispat_info = {
-								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-								imm[11:0], rd0_reName, rs1_reName
-							}
-
-wire rd0_raw_vaild = | (rv64i_lui, rv64i_auipc, 
+	wire rd0_raw_vaild = | (rv64i_lui, rv64i_auipc, 
 						rv64i_jal, rv64i_jalr, 
 						rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
 						rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
