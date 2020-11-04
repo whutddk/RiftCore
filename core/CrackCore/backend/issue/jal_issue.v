@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:03:16
+* @Last Modified time: 2020-11-04 19:39:19
 */
 
 
@@ -23,7 +23,10 @@ module jal_issue (
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout
+	input [32*RNDEPTH-1 : 0] wbLog_qout,
+
+	input CLK,
+	input RSTn
 );
 
 	wire jal_exeparam_ready = 1'b1;

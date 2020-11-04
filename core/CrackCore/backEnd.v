@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:52:34
+* @Last Modified time: 2020-11-04 19:43:38
 */
 
 
@@ -31,6 +31,8 @@ module backEnd (
 	input RSTn
 
 );
+
+	wire backend_Flush;
 
 
 
@@ -168,7 +170,8 @@ module backEnd (
 
 
 dispatch i_dispatch(
-	//for rename
+
+
 	.rnAct_X_dnxt(rnAct_X_dnxt),
 	.rnAct_X_qout(rnAct_X_qout),
 
@@ -238,7 +241,7 @@ adder_issue_buffer
 	.buffer_malloc_qout(adder_buffer_malloc),
 	.issue_pop_index(adder_buffer_pop_index),
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 );
 
 issue_buffer #(.DW(`LOGCMP_ISSUE_INFO_DW), .DP(LOGCMP_ISSUE_DEPTH))
@@ -254,7 +257,7 @@ logCmp_issue_buffer
 	.buffer_malloc_qout(logCmp_buffer_malloc),
 	.issue_pop_index(logCmp_buffer_pop_index),
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 	
 );
 
@@ -264,16 +267,16 @@ issue_buffer #(	.DW(`SHIFT_ISSUE_INFO_DW), .DP(SHIFT_ISSUE_DEPTH))
 shift_issue_buffer
 (
 	.dispat_info(shift_dispat_info),
-	.issue_info_qout
+	.issue_info_qout(shift_issue_info),
 
 	.buffer_push(shift_buffer_push),
 	.buffer_pop(shift_buffer_pop),	
 	
 	.buffer_full(shift_buffer_full),
-	.buffer_malloc_qout(shift_buffer_malloc)
+	.buffer_malloc_qout(shift_buffer_malloc),
 	.issue_pop_index(shift_buffer_pop_index),
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 );
 
 issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(JAL_ISSUE_DEPTH))
@@ -289,7 +292,7 @@ jal_issue_buffer
 	.buffer_malloc_qout(jal_buffer_malloc),
 	.issue_pop_index(jal_buffer_pop_index),
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 	
 );
 
@@ -304,7 +307,7 @@ bru_issue_fifo (
 	.fifo_empty(bru_fifo_empty),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(SU_ISSUE_DEPTH))
@@ -319,7 +322,7 @@ su_issue_fifo
 	.fifo_empty(su_fifo_empty),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 	
 );
 
@@ -336,7 +339,7 @@ lu_issue_buffer
 	.buffer_malloc_qout(lu_buffer_malloc),
 	.issue_pop_index(lu_buffer_pop_index),
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 	
 );
 
@@ -353,7 +356,7 @@ csr_issue_fifo
 	.fifo_empty(csr_fifo_empty),
 
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 	
 );
 
@@ -374,7 +377,7 @@ adder_issue i_adderIssue(
 	.wbLog_qout(wbLog_qout),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 logCmp_issue i_logCmpIssue(
@@ -387,7 +390,10 @@ logCmp_issue i_logCmpIssue(
 	.logCmp_exeparam_qout(logCmp_exeparam),
 
 	.regFileX_read(regFileX_qout),
-	.wbLog_qout(wbLog_qout)
+	.wbLog_qout(wbLog_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 shift_issue i_shiftIssue(
@@ -401,7 +407,10 @@ shift_issue i_shiftIssue(
 	.shift_exeparam_qout(shift_exeparam),
 
 	.regFileX_read(regFileX_read),
-	.wbLog_qout(wbLog_qout)
+	.wbLog_qout(wbLog_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 jal_issue i_jalIssue(
@@ -415,7 +424,10 @@ jal_issue i_jalIssue(
 	.jal_exeparam_qout(jal_exeparam),
 
 	.regFileX_read(regFileX_read),
-	.wbLog_qout(wbLog_qout)
+	.wbLog_qout(wbLog_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -429,7 +441,10 @@ bru_issue i_bruIssue(
 	.bru_exeparam_qout(bru_exeparam),
 
 	.regFileX_read(regFileX_read),
-	.wbLog_qout(wbLog_qout)
+	.wbLog_qout(wbLog_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -446,7 +461,10 @@ csr_issue i_csrIssue(
 	.wbLog_qout(wbLog_qout),
 
 	//from commit
-	.csrILP_ready(csrILP_ready)
+	.csrILP_ready(csrILP_ready),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -473,7 +491,10 @@ lsu_issue i_lsuIssue(
 	.regFileX_read(regFileX_read),
 	.wbLog_qout(wbLog_qout),
 
-	.suILP_ready(suILP_ready)
+	.suILP_ready(suILP_ready),
+
+	.CLK(CLK),
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -495,7 +516,7 @@ adder i_adder(
 	.adder_rd0_qout(adder_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 );
 
 
@@ -509,7 +530,7 @@ logCmp i_logCmp(
 	.logCmp_rd0_qout(logCmp_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 
 );
 
@@ -524,7 +545,7 @@ shift i_shift(
 	.shift_rd0_qout(shift_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)	
+	.RSTn(RSTn&(~beFlush))	
 );
 
 
@@ -542,7 +563,7 @@ jal i_jal(
 	.jal_rd0_qout(jal_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -558,7 +579,7 @@ bru i_bru(
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -572,7 +593,8 @@ csr i_csr(
 	.csr_rd0_qout(csr_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn),
+	.beFlush(beFlush)
 );
 
 lsu i_lsu(
@@ -589,7 +611,7 @@ lsu i_lsu(
 	.lsu_rd0_qout(lsu_rd0),
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -690,7 +712,7 @@ reOrder_fifo(
 	.fifo_pop(reOrder_fifo_pop), 
 
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&(~beFlush))
 );
 
 
@@ -702,6 +724,8 @@ reOrder_fifo(
 
 
 phyRegister (
+
+	.beFlush(beFlush)
 
 	.regFileX_dnxt(regFileX_dnxt),
 	.regFileX_qout(regFileX_qout),

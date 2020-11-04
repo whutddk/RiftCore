@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:55:09
+* @Last Modified time: 2020-11-04 19:29:39
 */
 
 
@@ -12,7 +12,6 @@
 module dispatch (
 
 	//for rename
-
 	output [ `RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
 	input [ `RNBIT*32 - 1 :0 ] rnAct_X_qout,
 

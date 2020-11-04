@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 15:32:44
+* @Last Modified time: 2020-11-04 19:36:15
 */
 
 
@@ -19,7 +19,8 @@ module csr (
 	output [(5+RNBIT-1):0] csr_rd0_qout,
 
 	input CLK,
-	input RSTn
+	input RSTn,
+	input beFlush
 	
 );
 
@@ -220,14 +221,9 @@ gen_dffr # (.DW(64)) mip ( .dnxt(mip_dnxt), .qout(mip_qout), .CLK(CLK), .RSTn(RS
 
 
 
-	gen_dffr #(.DW(1)) csr_vaild ( .dnxt(csr_execute_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn) );
-	gen_dffr #(.DW((5+RNBIT)) wb_rd0 ( .dnxt(rd0), .qout(csr_rd0), .CLK(CLK), .RSTn(RSTn) );
-
-
-
-gen_dffr # (.DW((5+RNBIT))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(64)) csr_res ( .dnxt(csr_res_dnxt), .qout(csr_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) vaild ( .dnxt(csr_exeparam_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW((5+RNBIT))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
+gen_dffr # (.DW(64)) csr_res ( .dnxt(csr_res_dnxt), .qout(csr_res_qout), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
+gen_dffr # (.DW(1)) vaild ( .dnxt(csr_exeparam_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
 
 
 

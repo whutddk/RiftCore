@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 15:33:39
+* @Last Modified time: 2020-11-04 19:41:40
 */
 
 
@@ -25,6 +25,9 @@ module csr_issue (
 
 	//from commit
 	input csrILP_ready,
+
+	input CLK,
+	input RSTn
 );
 
 
@@ -79,7 +82,7 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 	wire [11:0] addr = csr_imm;
 
 
-	assign csr_execute_info = { 
+	assign csr_exeparam_dnxt = { 
 			csr_rw,
 			csr_rs,
 			csr_rc,
@@ -90,11 +93,14 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 
 			};
 
+	wire csr_exeparam_vaild_qout;
+	wire csr_exeparam_vaild_dnxt = csr_isClearRAW & csrILP_ready,
 
-	assign csr_execute_vaild = csr_isClearRAW & csrILP_ready,
+	assign csr_fifo_pop = csr_exeparam_vaild & csr_exeparam_ready;
 
-	assign csr_fifo_pop = csr_execute_vaild & csr_execute_ready;
 
+	gen_dffr # (.DW(`CSR_EXEPARAM_DW)) csr_exeparam ( .dnxt(csr_exeparam_dnxt), .qout(csr_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) csr_exeparam_vaild ( .dnxt(csr_exeparam_vaild_dnxt), .qout(csr_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

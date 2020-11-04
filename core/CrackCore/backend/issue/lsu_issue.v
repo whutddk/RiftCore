@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 16:47:31
+* @Last Modified time: 2020-11-04 19:39:38
 */
 
 
@@ -35,7 +35,10 @@ module lsu_issue (
 	input [32*RNDEPTH-1 : 0] wbLog_qout,
 
 	//from commit
-	input suILP_ready
+	input suILP_ready,
+
+	input CLK,
+	input RSTn
 );
 
 

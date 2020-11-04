@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 15:20:05
+* @Last Modified time: 2020-11-04 19:38:32
 */
 
 module bru_issue (
@@ -21,7 +21,10 @@ module bru_issue (
 
 	//from regFile
 	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout
+	input [32*RNDEPTH-1 : 0] wbLog_qout,
+
+	input CLK,
+	input RSTn
 );
 
 
