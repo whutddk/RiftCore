@@ -4,8 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 16:18:45
+* @Last Modified time: 2020-11-05 11:57:59
 */
+
+
 
 
 //根据 ROB表中记录的实际寄存器使用情况，重新分配寄存器并记录回ROB
@@ -20,24 +22,26 @@
 
 //建议8组，每组4个寄存器，总共16组，共128个物理寄存器
 
+`include "define.vh"
+
 
 module rename (
 
-	output [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt,
-	input [ RNBIT*32 - 1 :0 ] rnAct_X_qout,	
+	output [ `RB*32 - 1 :0 ] rnAct_X_dnxt,
+	input [ `RB*32 - 1 :0 ] rnAct_X_qout,	
 
-	output [32*RNDEPTH-1 : 0] rnBufU_rename_set,
-	input [32*RNDEPTH-1 : 0] rnBufU_qout,
+	output [32*`RP-1 : 0] rnBufU_rename_set,
+	input [32*`RP-1 : 0] rnBufU_qout,
 
 	input [4:0] rs1_raw,
-	output [RNBIT-1:0] rs1_reName,
+	output [`RB-1:0] rs1_reName,
 
 	input [4:0] rs2_raw,
-	output [RNBIT-1:0] rs2_reName,
+	output [`RB-1:0] rs2_reName,
 	
 	input rd0_raw_vaild,
 	input [4:0] rd0_raw,
-	output [RNBIT-1:0] rd0_reName,
+	output [`RB-1:0] rd0_reName,
 	output rd0_runOut
 
 );
@@ -46,25 +50,25 @@ module rename (
 
 
 
-assign rnAct_X_dnxt[ 0 +: RNBIT] = {RNBIT{1'b0}};
+assign rnAct_X_dnxt[ 0 +: `RB] = {`RB{1'b0}};
 generate
 	for ( genvar i = 1;  i < 32; i = i + 1 )begin
-		assign rnAct_X_dnxt[RNBIT*i +: RNBIT] = ( (rd0_raw == i) & rd0_vaild & ~rd0_runOut ) ? rd0_reName : rnAct_X_qout[RNBIT*i +: RNBIT];
+		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_vaild & ~rd0_runOut ) ? rd0_reName : rnAct_X_qout[`RB*i +: `RB];
 	end
 endgenerate
 	
 
 
 //指示顺序执行当前应该读哪个寄存器
-assign rs1_reName = rnAct_X_qout[rs1_raw*RNBIT +: RNBIT];
-assign rs2_reName = rnAct_X_qout[rs2_raw*RNBIT +: RNBIT];
+assign rs1_reName = rnAct_X_qout[rs1_raw*`RB +: `RB];
+assign rs2_reName = rnAct_X_qout[rs2_raw*`RB +: `RB];
 
 
 
-wire [RNDEPTH-1:0] regX_used = rnBufU_qout[ RNDEPTH*rd0_raw +: RNDEPTH ];
+wire [`RP-1:0] regX_used = rnBufU_qout[ `RP*rd0_raw +: `RP ];
 
 lzp #(
-	.CW(RNBIT)
+	.CW(`RB)
 ) rd0_index(
 	.in_i(regX_used),
 	.pos_o(rd0_reName),
@@ -74,9 +78,9 @@ lzp #(
 
 
 
-assign rnBufU_rename_set = (rd0_vaild & ~rd0_runOut)
-								? {32*RNDEPTH{1'b0}} | (1'b1 << rd0_reName)
-								: {32*RNDEPTH{1'b0}};
+assign rnBufU_rename_set = (rd0_raw_vaild & ~rd0_runOut)
+								? {32*`RP{1'b0}} | (1'b1 << rd0_reName)
+								: {32*`RP{1'b0}};
 
 
 

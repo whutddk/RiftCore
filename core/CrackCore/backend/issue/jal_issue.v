@@ -4,26 +4,33 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 19:39:19
+* @Last Modified time: 2020-11-05 14:55:50
 */
 
+`include "define.vh"
 
-module jal_issue (
+module jal_issue #
+	(
+		parameter DW = `JAL_ISSUE_INFO_DW,
+		parameter DP = `JAL_ISSUE_INFO_DP,
+		parameter EXE_DW = `JAL_EXEPARAM_DW
+	)
+	(
 	
 	//from buffer
 	output jal_buffer_pop,
-	output [$clog2(`JAL_ISSUE_DEPTH)-1:0] jal_buffer_pop_index,
-	input [`JAL_ISSUE_DEPTH-1:0] jal_buffer_malloc,
-	input [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_DEPTH-1 : 0] jal_issue_info
+	output [$clog2(DP)-1:0] jal_buffer_pop_index,
+	input [DP-1:0] jal_buffer_malloc,
+	input [DW*DP-1 : 0] jal_issue_info,
 	//from execute
 
 
 	output jal_exeparam_vaild_qout,
-	output [`JAL_EXEPARAM_DW-1:0] jal_exeparam_qout,
+	output [EXE_DW-1:0] jal_exeparam_qout,
 
 	//from regFile
-	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout,
+	input [(64*`RP*32)-1:0] regFileX_read,
+	input [32*`RP-1 : 0] wbLog_qout,
 
 	input CLK,
 	input RSTn
@@ -32,27 +39,29 @@ module jal_issue (
 	wire jal_exeparam_ready = 1'b1;
 
 
-	wire [JAL_ISSUE_DEPTH - 1:0] rv64i_jal;
-	wire [JAL_ISSUE_DEPTH - 1:0] rv64i_jalr;
+	wire [DP-1:0] rv64i_jal;
+	wire [DP-1:0] rv64i_jalr;
 
-	wire [64*JAL_ISSUE_DEPTH - 1:0] jal_pc;
+	wire [64*DP-1:0] jal_pc;
 
-	wire [(5+RNBIT)*JAL_ISSUE_DEPTH - 1] jal_rd0;
-	wire [(5+RNBIT)*JAL_ISSUE_DEPTH - 1] jal_rs1;
-
-
-	wire [JAL_ISSUE_DEPTH - 1] rs1_ready;
-
-	wire [64*JAL_ISSUE_DEPTH-1 : 0] src1;
+	wire [(5+`RB)*DP-1:0] jal_rd0;
+	wire [(5+`RB)*DP-1:0] jal_rs1;
 
 
-	wire  [64*JAL_ISSUE_DEPTH-1:0] op1;
-	wire  [64*JAL_ISSUE_DEPTH-1:0] op2;
+	wire [DP-1:0] rs1_ready;
 
-	wire [JAL_ISSUE_DEPTH-1:0] is_rvc;
+	wire [DP-1:0] jal_isClearRAW;
+
+	wire [64*DP-1:0] src1;
+
+
+	wire  [64*DP-1:0] op1;
+	wire  [64*DP-1:0] op2;
+
+	wire [DP-1:0] is_rvc;
 
 generate
-	for ( genvar i = 0; i < JAL_ISSUE_DEPTH; i = i + 1 ) begin
+	for ( genvar i = 0; i < DP; i = i + 1 ) begin
 
 		assign { 
 				rv64i_jal[i],
@@ -60,13 +69,13 @@ generate
 
 				jal_pc[64*i +: 64],
 
-				jal_rd0[(5+RNBIT)*i +: (5+RNBIT)], 
-				jal_rs1[(5+RNBIT)*i +: (5+RNBIT)], 
+				jal_rd0[(5+`RB)*i +: (5+`RB)], 
+				jal_rs1[(5+`RB)*i +: (5+`RB)], 
 
 				is_rvc[i]
-				} = jal_issue_info[`JAL_ISSUE_INFO_DW*i +: `JAL_ISSUE_INFO_DW];
+				} = jal_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbBuf_qout[jal_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs1_ready[i] = wbLog_qout[jal_rs1[(5+`RB)*i +: (5+`RB)]];
 
 
 		assign jal_isClearRAW[i] = 	( jal_buffer_malloc[i] ) & 
@@ -76,7 +85,7 @@ generate
 										);
 
 
-		assign src1[64*i +: 64] = regFileX_read[jal_rs1[(5+RNBIT)*i +: (5+RNBIT)]]
+		assign src1[64*i +: 64] = regFileX_read[jal_rs1[(5+`RB)*i +: (5+`RB)]];
 
 	end
 endgenerate
@@ -86,22 +95,22 @@ endgenerate
 
 
 	lzp #(
-		.CW($clog2(JAL_ISSUE_DEPTH))
+		.CW($clog2(DP))
 	) jal_RAWClear(
 		.in_i(~jal_isClearRAW),
-		.cnt_o(jal_buffer_pop_index),
+		.pos_o(jal_buffer_pop_index),
 		.empty_o(jal_all_RAW),
-		.full_o(),
+		.full_o()
 	);
 
 
-	assign jal_exeparam_dnxt = { 
-									bru_jal[ jal_buffer_pop_index ],
-									bru_jalr[ jal_buffer_pop_index ],
+	wire [EXE_DW-1:0] jal_exeparam_dnxt = { 
+									rv64i_jal[ jal_buffer_pop_index ],
+									rv64i_jalr[ jal_buffer_pop_index ],
 								
-									jal_rd0[(5+RNBIT)*jal_buffer_pop_index +: (5+RNBIT)],
+									jal_rd0[(5+`RB)*jal_buffer_pop_index +: (5+`RB)],
 									src1[ 64*jal_buffer_pop_index +:64 ],
-									pc[ 64*jal_buffer_pop_index +:64 ],
+									jal_pc[ 64*jal_buffer_pop_index +:64 ],
 
 									is_rvc[ jal_buffer_pop_index ]
 								};
@@ -117,7 +126,7 @@ endgenerate
 
 
 
-gen_dffr # (.DW(`JAL_EXEPARAM_DW)) jal_exeparam ( .dnxt(jal_exeparam_dnxt), .qout(jal_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(EXE_DW)) jal_exeparam ( .dnxt(jal_exeparam_dnxt), .qout(jal_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) jal_exeparam_vaild ( .dnxt(jal_exeparam_vaild_dnxt), .qout(jal_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 

@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 17:23:19
+* @Last Modified time: 2020-11-05 11:23:48
 */
 
+`include "define.vh"
 
 module frontEnd (
 

@@ -4,8 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 17:15:57
+* @Last Modified time: 2020-11-05 11:24:43
 */
+
+`include "define.vh"
 
 module instr_fetch (
 	input [31:0] instr_readout,

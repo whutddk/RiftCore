@@ -4,17 +4,21 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:16:34
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 12:04:22
+* @Last Modified time: 2020-11-05 14:57:54
 */
 
-module adder (
+module adder #
+	(
+		parameter DW = `ADDER_EXEPARAM_DW 
+	)
+	(
 
 	input adder_exeparam_vaild,
-	input [`ADDER_EXEPARAM_DW-1:0] adder_exeparam,
+	input [DW-1:0] adder_exeparam,
 
 	output adder_writeback_vaild,
 	output [63:0] adder_res_qout,
-	output [(5+RNBIT-1):0] adder_rd0_qout,
+	output [(5+`RB)-1:0] adder_rd0_qout,
 
 	input CLK,
 	input RSTn
@@ -25,7 +29,7 @@ module adder (
 	wire rv64i_add;
 	wire rv64i_sub;
 
-	wire [(5+RNBIT-1):0] adder_rd0_dnxt;
+	wire [(5+`RB)-1:0] adder_rd0_dnxt;
 
 	wire  [63:0] op1;
 	wire  [63:0] op2;
@@ -50,11 +54,11 @@ wire [63:0] adder_op1 = op1;
 wire [63:0] adder_op2 = rv64i_sub ? ((~op2) + 64'd1) : op2;
 
 wire [63:0] adder_cal = $unsigned(adder_op1) + $unsigned(adder_op2);
-wire [63:0] adder_res_dnxt = alu_64n_32 ? {{32{adder_cal[31]}}, adder_cal[31:0]} : adder_cal;
+wire [63:0] adder_res_dnxt = is32 ? {{32{adder_cal[31]}}, adder_cal[31:0]} : adder_cal;
 
 
 
-gen_dffr # (.DW((5+RNBIT))) adder_rd0 ( .dnxt(adder_rd0_dnxt), .qout(adder_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW((5+`RB))) adder_rd0 ( .dnxt(adder_rd0_dnxt), .qout(adder_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) adder_res ( .dnxt(adder_res_dnxt), .qout(adder_res_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) vaild ( .dnxt(adder_exeparam_vaild), .qout(adder_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 

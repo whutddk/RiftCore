@@ -4,16 +4,16 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 19:43:38
+* @Last Modified time: 2020-11-05 16:06:17
 */
 
-
+`include "define.vh"
 
 module backEnd (
 
 
 
-	input [DECODE_INFO_DW-1:0] decode_microInstr_pop,
+	input [`DECODE_INFO_DW-1:0] decode_microInstr_pop,
 	output instrFifo_pop,
 	input instrFifo_empty,
 
@@ -37,48 +37,55 @@ module backEnd (
 
 
 
-	wire  [(64*RNDEPTH*32)-1:0] regFileX_dnxt;
-	wire [(64*RNDEPTH*32)-1:0] regFileX_qout;
-	wire [ RNBIT*32 - 1 :0 ] rnAct_X_dnxt;
-	wire [ RNBIT*32 - 1 :0 ] rnAct_X_qout;
-	wire [32*RNDEPTH-1 : 0] rnBufU_rename_set;
-	wire [32*RNDEPTH-1 : 0] rnBufU_commit_rst;
-	wire [32*RNDEPTH-1 : 0] rnBufU_qout;
-	wire [32*RNDEPTH-1 : 0] wbLog_writeb_set;
-	wire [32*RNDEPTH-1 : 0] wbLog_commit_rst;
-	wire [32*RNDEPTH-1 : 0] wbLog_qout;
-	wire [ RNBIT*32 - 1 :0 ] archi_X_dnxt;
-	wire [ RNBIT*32 - 1 :0 ] archi_X_qout;
+	wire  [(64*`RP*32)-1:0] regFileX_dnxt;
+	wire [(64*`RP*32)-1:0] regFileX_qout;
+	wire [ `RB*32 - 1 :0 ] rnAct_X_dnxt;
+	wire [ `RB*32 - 1 :0 ] rnAct_X_qout;
+	wire [32*`RP-1 : 0] rnBufU_rename_set;
+	wire [32*`RP-1 : 0] rnBufU_commit_rst;
+	wire [32*`RP-1 : 0] rnBufU_qout;
+	wire [32*`RP-1 : 0] wbLog_writeb_set;
+	wire [32*`RP-1 : 0] wbLog_commit_rst;
+	wire [32*`RP-1 : 0] wbLog_qout;
+	wire [ `RB*32 - 1 :0 ] archi_X_dnxt;
+	wire [ `RB*32 - 1 :0 ] archi_X_qout;
 
 
 
 	//dispat to issue
 	wire adder_buffer_pop;
-	wire [$clog2(`ADDER_ISSUE_DEPTH)-1:0] adder_buffer_pop_index;
-	wire [`ADDER_ISSUE_DEPTH-1:0] adder_buffer_malloc;
-	wire [`ADDER_ISSUE_INFO_DW*`ADDER_ISSUE_DEPTH-1 : 0] adder_issue_info
+	wire [$clog2(`ADDER_ISSUE_INFO_DP)-1:0] adder_buffer_pop_index;
+	wire [`ADDER_ISSUE_INFO_DP-1:0] adder_buffer_malloc;
+	wire [`ADDER_ISSUE_INFO_DW*`ADDER_ISSUE_INFO_DP-1 : 0] adder_issue_info;
+
 	wire logCmp_buffer_pop;
-	wire [$clog2(`LOGCMP_ISSUE_DEPTH)-1:0] logCmp_buffer_pop_index;
-	wire [`LOGCMP_ISSUE_DEPTH-1:0] logCmp_buffer_malloc;
-	wire [`LOGCMP_ISSUE_INFO_DW*`LOGCMP_ISSUE_DEPTH-1 : 0] logCmp_issue_info;
+	wire [$clog2(`LOGCMP_ISSUE_INFO_DP)-1:0] logCmp_buffer_pop_index;
+	wire [`LOGCMP_ISSUE_INFO_DP-1:0] logCmp_buffer_malloc;
+	wire [`LOGCMP_ISSUE_INFO_DW*`LOGCMP_ISSUE_INFO_DP-1 : 0] logCmp_issue_info;
+
 	wire shift_buffer_pop;
-	wire [$clog2(`SHIFT_ISSUE_DEPTH)-1:0] shift_buffer_pop_index;
-	wire [`SHIFT_ISSUE_DEPTH-1:0] shift_buffer_malloc;
-	wire [`SHIFT_ISSUE_INFO_DW*`SHIFT_ISSUE_DEPTH-1 : 0] shift_issue_info;
+	wire [$clog2(`SHIFT_ISSUE_INFO_DP)-1:0] shift_buffer_pop_index;
+	wire [`SHIFT_ISSUE_INFO_DP-1:0] shift_buffer_malloc;
+	wire [`SHIFT_ISSUE_INFO_DW*`SHIFT_ISSUE_INFO_DP-1 : 0] shift_issue_info;
+
 	wire jal_buffer_pop;
-	wire [$clog2(`JAL_ISSUE_DEPTH)-1:0] jal_buffer_pop_index;
-	wire [`JAL_ISSUE_DEPTH-1:0] jal_buffer_malloc;
-	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_DEPTH-1 : 0] jal_issue_info;
+	wire [$clog2(`JAL_ISSUE_INFO_DP)-1:0] jal_buffer_pop_index;
+	wire [`JAL_ISSUE_INFO_DP-1:0] jal_buffer_malloc;
+	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_INFO_DP-1 : 0] jal_issue_info;
+
 	wire bru_fifo_pop;
 	wire bru_fifo_empty;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info;
+
 	wire csr_fifo_pop;
 	wire csr_fifo_empty;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_issue_info;
+
 	wire lu_buffer_pop;
-	wire [$clog2(`ADDER_ISSUE_DEPTH)-1:0] lu_buffer_pop_index;
-	wire [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc;
-	wire [`LU_ISSUE_INFO_DW*`LU_ISSUE_DEPTH-1 : 0] lu_issue_info;
+	wire [$clog2(`LU_ISSUE_INFO_DP)-1:0] lu_buffer_pop_index;
+	wire [`LU_ISSUE_INFO_DP-1:0] lu_buffer_malloc;
+	wire [`LU_ISSUE_INFO_DW*`LU_ISSUE_INFO_DP-1 : 0] lu_issue_info;
+
 	wire su_fifo_pop;
 	wire su_fifo_empty;
 	wire [`SU_ISSUE_INFO_DW-1:0] su_issue_info;
@@ -109,21 +116,21 @@ module backEnd (
 	//execute to writeback
 	wire adder_writeback_vaild;
 	wire [63:0] adder_res;
-	wire [(5+RNBIT-1):0] adder_rd0;
+	wire [(5+`RB-1):0] adder_rd0;
 	wire logCmp_writeback_vaild;
 	wire [63:0] logCmp_res;
-	wire [(5+RNBIT-1):0] logCmp_rd0;
+	wire [(5+`RB-1):0] logCmp_rd0;
 	wire shift_writeback_vaild;
 	wire [63:0] shift_res;
-	wire [(5+RNBIT-1):0] shift_rd0;
+	wire [(5+`RB-1):0] shift_rd0;
 	wire jal_writeback_vaild;
 	wire [63:0] jal_res;
-	wire [(5+RNBIT-1):0] jal_rd0;
+	wire [(5+`RB-1):0] jal_rd0;
 	wire lsu_writeback_vaild;
-	wire [(5+RNBIT-1):0] lsu_rd0;
+	wire [(5+`RB-1):0] lsu_rd0;
 	wire [63:0] lsu_res;
 	wire csr_writeback_vaild;
-	wire [(5+RNBIT-1):0] csr_rd0;
+	wire [(5+`RB-1):0] csr_rd0;
 	wire [63:0] csr_res;
 
 	wire csrILP_ready;
@@ -160,9 +167,6 @@ module backEnd (
 	wire lu_buffer_push;
 	wire lu_buffer_full;
 	wire [`LU_ISSUE_INFO_DW-1:0] lu_dispat_info;
-	wire fence_fifo_push;
-	wire fence_fifo_full;
-	wire [`FENCE_ISSUE_INFO_DW-1:0] fence_dispat_info;
 	wire csr_fifo_push;
 	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
@@ -170,8 +174,6 @@ module backEnd (
 
 
 dispatch i_dispatch(
-
-
 	.rnAct_X_dnxt(rnAct_X_dnxt),
 	.rnAct_X_qout(rnAct_X_qout),
 
@@ -185,7 +187,7 @@ dispatch i_dispatch(
 
 	.dispat_info(dispat_info),
 	.reOrder_fifo_push(reOrder_fifo_push),
-	.reOrder_fifo_full(reOrder_fifo_full)
+	.reOrder_fifo_full(reOrder_fifo_full),
 
 
 
@@ -222,13 +224,13 @@ dispatch i_dispatch(
 
 	.csr_fifo_push(csr_fifo_push),
 	.csr_fifo_full(csr_fifo_full),
-	.csr_dispat_info(csr_dispat_info),
+	.csr_dispat_info(csr_dispat_info)
 );
 
 
 
 //T3
-issue_buffer #( .DW(`ADDER_ISSUE_INFO_DW), .DP(ADDER_ISSUE_DEPTH))
+issue_buffer #( .DW(`ADDER_ISSUE_INFO_DW), .DP(`ADDER_ISSUE_INFO_DP))
 adder_issue_buffer
 (
 	.dispat_info(adder_dispat_info),
@@ -239,12 +241,12 @@ adder_issue_buffer
 
 	.buffer_full(adder_buffer_full),
 	.buffer_malloc_qout(adder_buffer_malloc),
-	.issue_pop_index(adder_buffer_pop_index),
+	.pop_index(adder_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))	
 );
 
-issue_buffer #(.DW(`LOGCMP_ISSUE_INFO_DW), .DP(LOGCMP_ISSUE_DEPTH))
+issue_buffer #(.DW(`LOGCMP_ISSUE_INFO_DW), .DP(`LOGCMP_ISSUE_INFO_DP))
 logCmp_issue_buffer
 (
 	.dispat_info(logCmp_dispat_info),
@@ -255,7 +257,7 @@ logCmp_issue_buffer
 	
 	.buffer_full(logCmp_buffer_full),
 	.buffer_malloc_qout(logCmp_buffer_malloc),
-	.issue_pop_index(logCmp_buffer_pop_index),
+	.pop_index(logCmp_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))	
 	
@@ -263,7 +265,7 @@ logCmp_issue_buffer
 
 
 
-issue_buffer #(	.DW(`SHIFT_ISSUE_INFO_DW), .DP(SHIFT_ISSUE_DEPTH))
+issue_buffer #(	.DW(`SHIFT_ISSUE_INFO_DW), .DP(`SHIFT_ISSUE_INFO_DP))
 shift_issue_buffer
 (
 	.dispat_info(shift_dispat_info),
@@ -274,12 +276,12 @@ shift_issue_buffer
 	
 	.buffer_full(shift_buffer_full),
 	.buffer_malloc_qout(shift_buffer_malloc),
-	.issue_pop_index(shift_buffer_pop_index),
+	.pop_index(shift_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))	
 );
 
-issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(JAL_ISSUE_DEPTH))
+issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(`JAL_ISSUE_INFO_DP))
 jal_issue_buffer
 (
 	.dispat_info(jal_dispat_info),
@@ -290,13 +292,13 @@ jal_issue_buffer
 	
 	.buffer_full(jal_buffer_full),
 	.buffer_malloc_qout(jal_buffer_malloc),
-	.issue_pop_index(jal_buffer_pop_index),
+	.pop_index(jal_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))	
 	
 );
 
-issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(BRU_ISSUE_DEPTH))
+issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(`BRU_ISSUE_INFO_DP))
 bru_issue_fifo (
 	.issue_info_push(bru_dispat_info),
 	.issue_info_pop(bru_issue_info),
@@ -310,7 +312,7 @@ bru_issue_fifo (
 	.RSTn(RSTn&(~beFlush))
 );
 
-issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(SU_ISSUE_DEPTH))
+issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(`SU_ISSUE_INFO_DP))
 su_issue_fifo
 (
 	.issue_info_push(su_dispat_info),
@@ -326,7 +328,7 @@ su_issue_fifo
 	
 );
 
-issue_buffer #(.DW(`LU_ISSUE_INFO_DW),.DP(LU_ISSUE_DEPTH))
+issue_buffer #(.DW(`LU_ISSUE_INFO_DW),.DP(`LU_ISSUE_INFO_DP))
 lu_issue_buffer
 (
 	.dispat_info(lu_dispat_info),
@@ -337,13 +339,13 @@ lu_issue_buffer
 	
 	.buffer_full(lu_buffer_full),
 	.buffer_malloc_qout(lu_buffer_malloc),
-	.issue_pop_index(lu_buffer_pop_index),
+	.pop_index(lu_buffer_pop_index),
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))	
 	
 );
 
-issue_fifo #(.DW(`CSR_ISSUE_INFO_DW),.DP(1))
+issue_fifo #(.DW(`CSR_ISSUE_INFO_DW),.DP(`CSR_ISSUE_INFO_DP))
 csr_issue_fifo
 (
 	.issue_info_push(csr_dispat_info),
@@ -406,7 +408,7 @@ shift_issue i_shiftIssue(
 	.shift_exeparam_vaild_qout(shift_exeparam_vaild),
 	.shift_exeparam_qout(shift_exeparam),
 
-	.regFileX_read(regFileX_read),
+	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.CLK(CLK),
@@ -423,7 +425,7 @@ jal_issue i_jalIssue(
 	.jal_exeparam_vaild_qout(jal_exeparam_vaild),
 	.jal_exeparam_qout(jal_exeparam),
 
-	.regFileX_read(regFileX_read),
+	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.CLK(CLK),
@@ -440,7 +442,7 @@ bru_issue i_bruIssue(
 	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
 	.bru_exeparam_qout(bru_exeparam),
 
-	.regFileX_read(regFileX_read),
+	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.CLK(CLK),
@@ -457,7 +459,7 @@ csr_issue i_csrIssue(
 	.csr_exeparam_vaild_qout(csr_exeparam_vaild),
 	.csr_exeparam_qout(csr_exeparam),
 
-	.regFileX_read(regFileX_read),
+	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	//from commit
@@ -478,7 +480,7 @@ lsu_issue i_lsuIssue(
 
 	.lu_exeparam_ready(lu_exeparam_ready),
 	.lu_exeparam_vaild_qout(lu_exeparam_vaild),
-	.lu_exeparam_info(lu_exeparam),
+	.lu_exeparam_qout(lu_exeparam),
 
 	.su_fifo_pop(su_fifo_pop),
 	.su_fifo_empty(su_fifo_empty),
@@ -486,9 +488,9 @@ lsu_issue i_lsuIssue(
 	
 	.su_exeparam_ready(su_exeparam_ready),
 	.su_exeparam_vaild_qout(su_exeparam_vaild),
-	.su_exeparam(su_exeparam),
+	.su_exeparam_qout(su_exeparam),
 
-	.regFileX_read(regFileX_read),
+	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.suILP_ready(suILP_ready),
@@ -496,12 +498,6 @@ lsu_issue i_lsuIssue(
 	.CLK(CLK),
 	.RSTn(RSTn&(~beFlush))
 );
-
-
-
-
-
-
 
 
 
@@ -653,10 +649,6 @@ writeBack i_writeBack(
 
 );
 
-
-wire csrILP_ready;
-wire suILP_ready;
-
 //C7 and T7
 commit i_commit(
 	.archi_X_dnxt(archi_X_dnxt),
@@ -669,7 +661,7 @@ commit i_commit(
 
 	.reOrder_fifo_pop(reOrder_fifo_pop),
 	.reOrder_fifo_empty(reOrder_fifo_empty),
-	.commit_fifo(commit_fifo)
+	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
 
@@ -723,12 +715,12 @@ reOrder_fifo(
 
 
 
-phyRegister (
+phyRegister i_phyRegister(
 
-	.beFlush(beFlush)
+	.beFlush(beFlush),
 
 	.regFileX_dnxt(regFileX_dnxt),
-	.regFileX_qout(regFileX_qout),
+	.regFileX_qout(regFileX_qout), 
 
 	.rnAct_X_dnxt(rnAct_X_dnxt),
 	.rnAct_X_qout(rnAct_X_qout),

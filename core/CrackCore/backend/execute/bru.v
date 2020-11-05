@@ -4,15 +4,19 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 15:20:52
+* @Last Modified time: 2020-11-05 15:11:14
 */
 
-module bru (
+module bru #
+	(
+		parameter DW = `BRU_EXEPARAM_DW
+	)
+	(
 
 	//from bru issue
 	output bru_exeparam_ready,
 	input bru_exeparam_vaild,
-	input [`BRU_EXEPARAM_DW-1:0] bru_exeparam, 
+	input [DW-1:0] bru_exeparam, 
 
 
 	// to pc generate
@@ -48,7 +52,7 @@ module bru (
 
 			op1,
 			op2
-			} = bru_execute_info;
+			} = bru_exeparam;
 
 
 

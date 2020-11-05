@@ -4,15 +4,15 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-03 10:23:12
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-03 16:59:13
+* @Last Modified time: 2020-11-05 16:10:50
 */
 
 
 
 
-module lzp (
-	parameter CW = 7,
-	parameter DW = CW**2
+module lzp #(
+	parameter CW = 2,
+	parameter DW = 2**CW
 ) (
 	input [DW-1:0] in_i,
 	output [CW-1:0] pos_o,
@@ -22,7 +22,7 @@ module lzp (
 
 
 assign full_o = &in_i;
-assign empty_o = &(~in_i)
+assign empty_o = &(~in_i);
 
 
 
@@ -83,10 +83,10 @@ generate
 		assign sel_lever1[i] = ~index_lever2[i*2];
 	end	
 
-	for ( genvar i = 0; i < 1; i = i + 1 ) begin
-		assign index_lever0[i] = index_lever1[i*2] & index_lever1[i*2+1];
-		assign sel_lever0[i] = ~index_lever1[i*2];
-	end	
+
+	assign index_lever0 = index_lever1[0] & index_lever1[1];
+	assign sel_lever0 = ~index_lever1[0];
+	
 
 endgenerate
 

@@ -4,25 +4,31 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 19:39:48
+* @Last Modified time: 2020-11-05 14:54:35
 */
 
-module shift_issue (
+module shift_issue #
+	(
+		parameter DW = `SHIFT_ISSUE_INFO_DW,
+		parameter DP = `SHIFT_ISSUE_INFO_DP,
+		parameter EXE_DW = `SHIFT_EXEPARAM_DW
+	)
+	(
 	
 	//from buffer
 	output shift_buffer_pop,
-	output [$clog2(`SHIFT_ISSUE_DEPTH)-1:0] shift_buffer_pop_index,
-	input [`SHIFT_ISSUE_DEPTH-1:0] shift_buffer_malloc,
-	input [`SHIFT_ISSUE_INFO_DW*`SHIFT_ISSUE_DEPTH-1 : 0] shift_issue_info
+	output [$clog2(DP)-1:0] shift_buffer_pop_index,
+	input [DP-1:0] shift_buffer_malloc,
+	input [DW*DP-1 : 0] shift_issue_info,
 
 	//from execute
 
 	output shift_exeparam_vaild_qout,
-	output [`SHIFT_EXEPARAM_DW-1:0] shift_exeparam_qout,
+	output [EXE_DW-1:0] shift_exeparam_qout,
 
 	//from regFile
-	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout,
+	input [(64*`RP*32)-1:0] regFileX_read,
+	input [32*`RP-1 : 0] wbLog_qout,
 
 	input CLK,
 	input RSTn
@@ -34,45 +40,47 @@ module shift_issue (
 
 
 
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_slli;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_slliw;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_srli;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_srliw;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_srai;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_sraiw;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_sll;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_sllw;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_srl;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_srlw;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_sra;
-	wire [SHIFT_ISSUE_DEPTH - 1:0] rv64i_sraw;
+	wire [DP-1:0] rv64i_slli;
+	wire [DP-1:0] rv64i_slliw;
+	wire [DP-1:0] rv64i_srli;
+	wire [DP-1:0] rv64i_srliw;
+	wire [DP-1:0] rv64i_srai;
+	wire [DP-1:0] rv64i_sraiw;
+	wire [DP-1:0] rv64i_sll;
+	wire [DP-1:0] rv64i_sllw;
+	wire [DP-1:0] rv64i_srl;
+	wire [DP-1:0] rv64i_srlw;
+	wire [DP-1:0] rv64i_sra;
+	wire [DP-1:0] rv64i_sraw;
 
 
-	wire [64*SHIFT_ISSUE_DEPTH - 1:0] shift_pc;
-	wire [64*SHIFT_ISSUE_DEPTH - 1:0] shift_imm;
-	wire [5*SHIFT_ISSUE_DEPTH - 1:0] shift_shamt;
+	wire [64*DP-1:0] shift_pc;
+	wire [64*DP-1:0] shift_imm;
+	wire [5*DP-1:0] shift_shamt;
 
-	wire [(5+RNBIT)*SHIFT_ISSUE_DEPTH - 1] shift_rd0;
-	wire [(5+RNBIT)*SHIFT_ISSUE_DEPTH - 1] shift_rs1;
-	wire [(5+RNBIT)*SHIFT_ISSUE_DEPTH - 1] shift_rs2;
+	wire [(5+`RB)*DP-1:0] shift_rd0;
+	wire [(5+`RB)*DP-1:0] shift_rs1;
+	wire [(5+`RB)*DP-1:0] shift_rs2;
 
-	wire [SHIFT_ISSUE_DEPTH - 1] rs1_ready;
-	wire [SHIFT_ISSUE_DEPTH - 1] rs2_ready;
+	wire [DP-1:0] rs1_ready;
+	wire [DP-1:0] rs2_ready;
 
-	wire [SHIFT_ISSUE_DEPTH - 1] shift_fun_sll;
-	wire [SHIFT_ISSUE_DEPTH - 1] shift_fun_srl;
-	wire [SHIFT_ISSUE_DEPTH - 1] shift_fun_sra;
+	wire [DP-1:0] shift_isClearRAW;
 
-	wire [64*SHIFT_ISSUE_DEPTH-1 : 0] src1;
-	wire [64*SHIFT_ISSUE_DEPTH-1 : 0] src2;
+	wire [DP-1:0] shift_fun_sll;
+	wire [DP-1:0] shift_fun_srl;
+	wire [DP-1:0] shift_fun_sra;
 
-	wire  [64*SHIFT_ISSUE_DEPTH-1:0] op1,
-	wire  [64*SHIFT_ISSUE_DEPTH-1:0] op2,
+	wire [64*DP-1:0] src1;
+	wire [64*DP-1:0] src2;
 
-	wire [SHIFT_ISSUE_DEPTH-1:0] is32;
+	wire  [64*DP-1:0] op1;
+	wire  [64*DP-1:0] op2;
+
+	wire [DP-1:0] is32;
 
 generate
-	for ( genvar i = 0; i < SHIFT_ISSUE_DEPTH; i = i + 1 ) begin
+	for ( genvar i = 0; i < DP; i = i + 1 ) begin
 
 		assign { 
 				rv64i_slli[i], rv64i_slliw[i], rv64i_sll[i], rv64i_sllw[i],
@@ -80,13 +88,13 @@ generate
 				rv64i_srai[i], rv64i_sraiw[i], rv64i_sra[i], rv64i_sraw[i], 
 				
 				shift_pc[64*i +: 64], shift_imm[64*i +: 64], shift_shamt[5*i +: 5], 
-				shift_rd0[(5+RNBIT)*i +: (5+RNBIT)], 
-				shift_rs1[(5+RNBIT)*i +: (5+RNBIT)], 
-				shift_rs2[(5+RNBIT)*i +: (5+RNBIT)]
-				} = shift_issue_info[`SHIFT_ISSUE_INFO_DW*i +: `SHIFT_ISSUE_INFO_DW];
+				shift_rd0[(5+`RB)*i +: (5+`RB)], 
+				shift_rs1[(5+`RB)*i +: (5+`RB)], 
+				shift_rs2[(5+`RB)*i +: (5+`RB)]
+				} = shift_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbBuf_qout[shift_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
-		assign rs2_ready[i] = wbBuf_qout[shift_rs2[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign rs1_ready[i] = wbLog_qout[shift_rs1[(5+`RB)*i +: (5+`RB)]];
+		assign rs2_ready[i] = wbLog_qout[shift_rs2[(5+`RB)*i +: (5+`RB)]];
 		
 
 		assign shift_isClearRAW[i] = 	( shift_buffer_malloc[i] ) & 
@@ -114,8 +122,8 @@ generate
 		assign shift_fun_sra[i] = rv64i_srai[i] | rv64i_sraiw[i] | rv64i_sra[i] | rv64i_sraw[i];
 
 
-		assign src1[64*i +: 64] = regFileX_read[shift_rs1[(5+RNBIT)*i +: (5+RNBIT)]]
-		assign src2[64*i +: 64] = regFileX_read[shift_rs2[(5+RNBIT)*i +: (5+RNBIT)]]
+		assign src1[64*i +: 64] = regFileX_read[shift_rs1[(5+`RB)*i +: (5+`RB)]];
+		assign src2[64*i +: 64] = regFileX_read[shift_rs2[(5+`RB)*i +: (5+`RB)]];
 
 		assign op1[64*i +:64] = ( {64{rv64i_slli[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_slliw[i]}} & src1[64*i +: 64] )
@@ -163,23 +171,22 @@ endgenerate
 
 	wire shift_all_RAW;
 
-	//应该为组合逻辑实现
 	lzp #(
-		.CW($clog2(shift_ISSUE_DEPTH))
+		.CW($clog2(DP))
 	) shift_RAWClear(
 		.in_i(~shift_isClearRAW),
-		.cnt_o(shift_buffer_pop_index),
+		.pos_o(shift_buffer_pop_index),
 		.empty_o(shift_all_RAW),
-		.full_o(),
+		.full_o()
 	);
 
 
-	assign shift_exeparam_dnxt = { 
+	wire [EXE_DW-1:0] shift_exeparam_dnxt = { 
 								shift_fun_sll[ shift_buffer_pop_index ],
 								shift_fun_srl[ shift_buffer_pop_index ],
 								shift_fun_sra[ shift_buffer_pop_index ],
 
-								shift_rd0[(5+RNBIT)*shift_buffer_pop_index +: (5+RNBIT)],
+								shift_rd0[(5+`RB)*shift_buffer_pop_index +: (5+`RB)],
 								op1[ 64*shift_buffer_pop_index +:64 ],
 								op2[ 64*shift_buffer_pop_index +:64 ],
 								is32[ shift_buffer_pop_index ]
@@ -193,11 +200,8 @@ endgenerate
 	assign shift_buffer_pop = ( shift_exeparam_ready & shift_exeparam_vaild_dnxt );
 
 
-
-
-
-gen_dffr # (.DW(`SHIFT_EXEPARAM_DW)) shift_exeparam ( .dnxt(shift_exeparam_dnxt), .qout(shift_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) shift_exeparam_vaild ( .dnxt(shift_exeparam_vaild_dnxt), .qout(shift_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(EXE_DW)) shift_exeparam ( .dnxt(shift_exeparam_dnxt), .qout(shift_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) shift_exeparam_vaild ( .dnxt(shift_exeparam_vaild_dnxt), .qout(shift_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

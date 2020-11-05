@@ -4,73 +4,75 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:24:09
+* @Last Modified time: 2020-11-05 11:42:44
 */
+
+`include "define.vh"
 
 module writeBack (
 
 	//from phyRegister
-	input  [(64*RNDEPTH*32)-1:0] regFileX_qout,
-	output [(64*RNDEPTH*32)-1:0] regFileX_dnxt,
+	input  [(64*`RP*32)-1:0] regFileX_qout,
+	output [(64*`RP*32)-1:0] regFileX_dnxt,
 
-	output [32*RNDEPTH-1 : 0] wbLog_writeb_set,
+	output [32*`RP-1 : 0] wbLog_writeb_set,
 
 
 	//from adder
 	input adder_writeback_vaild,
 	input [63:0] adder_res,
-	input [(5+RNBIT-1):0] adder_rd0,
+	input [(5+`RB-1):0] adder_rd0,
 
 	//from logCmp
 	input logCmp_writeback_vaild,
 	input [63:0] logCmp_res,
-	input [(5+RNBIT-1):0] logCmp_rd0,
+	input [(5+`RB-1):0] logCmp_rd0,
 
 	//from shift
 	input shift_writeback_vaild,
 	input [63:0] shift_res,
-	input [(5+RNBIT-1):0] shift_rd0,
+	input [(5+`RB-1):0] shift_rd0,
 
 	//from jal
 	input jal_writeback_vaild,
-	input [(5+RNBIT-1):0] jal_rd0,
+	input [(5+`RB-1):0] jal_rd0,
 	input [63:0] jal_res,
 
 	//from lsu
 	input lsu_writeback_vaild,
-	input [(5+RNBIT-1):0] lsu_rd0,
+	input [(5+`RB-1):0] lsu_rd0,
 	input [63:0] lsu_res,
 
 	//from csr
 	input csr_writeback_vaild,
-	input [(5+RNBIT-1):0] csr_rd0,
-	input [63:0] csr_res,
+	input [(5+`RB-1):0] csr_rd0,
+	input [63:0] csr_res
 
 );
 
 // adder wb
-wire [(64*RNDEPTH*32)-1:0] adder_writeback_dnxt;
+wire [(64*`RP*32)-1:0] adder_writeback_dnxt;
 // logCmp wb
-wire [(64*RNDEPTH*32)-1:0] logCmp_writeback_dnxt;
+wire [(64*`RP*32)-1:0] logCmp_writeback_dnxt;
 // shift wb
-wire [(64*RNDEPTH*32)-1:0] shift_writeback_dnxt;
+wire [(64*`RP*32)-1:0] shift_writeback_dnxt;
 //jal wb
-wire [(64*RNDEPTH*32)-1:0] jal_writeback_dnxt;
+wire [(64*`RP*32)-1:0] jal_writeback_dnxt;
 //lsu wb
-wire [(64*RNDEPTH*32)-1:0] lsu_writeback_dnxt;
+wire [(64*`RP*32)-1:0] lsu_writeback_dnxt;
 //csr wb
-wire [(64*RNDEPTH*32)-1:0] csr_writeback_dnxt;
+wire [(64*`RP*32)-1:0] csr_writeback_dnxt;
 
 
 //write back
 
-assign wbLog_writeb_set[RNDEPTH-1 : 0]  = {RNDEPTH{1'b1}};
+assign wbLog_writeb_set[`RP-1 : 0]  = {`RP{1'b1}};
 
 
 generate
 	
 	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
-		for ( genvar depth = 0 ; depth < RNDEPTH; depth = depth + 1 ) begin
+		for ( genvar depth = 0 ; depth < `RP; depth = depth + 1 ) begin
 
 			localparam  SEL = regNum*4+depth;
 

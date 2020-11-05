@@ -4,19 +4,21 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:56:21
+* @Last Modified time: 2020-11-05 15:57:21
 */
+
+`include "define.vh"
 
 module commit (
 
 	//from phyRegister
-	output [ RNBIT*32 - 1 :0 ] archi_X_dnxt,
-	input  [ RNBIT*32 - 1 :0 ] archi_X_qout,
+	output [ `RB*32 - 1 :0 ] archi_X_dnxt,
+	input  [ `RB*32 - 1 :0 ] archi_X_qout,
 
-	output [32*RNDEPTH-1 : 0] wbLog_commit_rst,
-	input [32*RNDEPTH-1 : 0] wbLog_qout,
+	output [32*`RP-1 : 0] wbLog_commit_rst,
+	input [32*`RP-1 : 0] wbLog_qout,
 
-	output [32*RNDEPTH-1 : 0] rnBufU_commit_rst,
+	output [32*`RP-1 : 0] rnBufU_commit_rst,
 
 	//from reOrder FIFO
 	input [`REORDER_INFO_DW-1:0] commit_fifo,
@@ -35,9 +37,11 @@ module commit (
 	output suILP_ready
 );
 
+initial $warning("暂时无法产生异常");
+	wire isSynExcept  = 1'b0;
 
 	wire [63:0] commit_pc;
-	wire [5+RNBIT-1:0] commit_rd0;
+	wire [5+`RB-1:0] commit_rd0;
 	wire isBranch;
 
 	wire isSu;
@@ -55,30 +59,21 @@ module commit (
 
 	assign rnBufU_commit_rst = wbLog_commit_rst;
 
-	assign reOrder_fifo_pop = ~reOrder_fifo_empty
+	assign reOrder_fifo_pop = ~reOrder_fifo_empty;
 
-
+	wire commit_wb = (wbLog_qout[commit_rd0] == 1'b1) & (~reOrder_fifo_empty);
+	wire commit_comfirm = ~commit_abort & commit_wb; 
 
 generate
 	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
-		for ( genvar depth = 0 ; depth < RNDEPTH; depth = depth + 1 ) begin
 
-			localparam SEL = regNum*4+depth;
-
-
-			assign archi_X_dnxt[regNum] = ((wbLog_qout[SEL] == 1'b1) & (commit_rd0 == SEL) & (~commit_abort)) & (~reOrder_fifo_empty)
-											?  depth
-											: archi_X_qout[regNum];
-
-
-			assign wbLog_commit_rst[archi_X_qout[regNum]] = (wbLog_qout[SEL] == 1'b1) & (commit_rd0 == SEL) & (~commit_abort) & (~reOrder_fifo_empty)
-															? 1'b0
-															: 1'b1;
-		end
+			assign archi_X_dnxt[regNum +: `RB] = ( regNum == commit_rd0[`RB +: 5] ) & commit_comfirm
+											?  commit_rd0[`RB-1:0]
+											: archi_X_qout[regNum +: `RB];
 	end
 endgenerate
 
-
+	assign wbLog_commit_rst = commit_comfirm ? 1'b1 << commit_rd0 : {32*`RP{1'b0}};
 
 
 

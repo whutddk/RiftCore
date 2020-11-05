@@ -4,13 +4,13 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 13:58:49
+* @Last Modified time: 2020-11-05 11:24:44
 */
 
 
 
 
-
+`include "define.vh"
 
 
 module decoder 

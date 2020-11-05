@@ -4,11 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 17:15:50
+* @Last Modified time: 2020-11-05 11:24:51
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
 
+`include "define.vh"
 
 module pcGenerate (
 

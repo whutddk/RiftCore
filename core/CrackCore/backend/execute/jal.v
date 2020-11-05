@@ -4,14 +4,17 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 17:03:19
+* @Last Modified time: 2020-11-05 15:07:44
 */
 
-module jal (
+module jal #
+	(
+		parameter DW = `JAL_EXEPARAM_DW
+	)(
 	
 	//from jal issue
 	input jal_exeparam_vaild,
-	input [`JAL_EXEPARAM_DW-1:0] jal_exeparam, 
+	input [DW-1:0] jal_exeparam, 
 
 
 	// to branch predict
@@ -21,7 +24,7 @@ module jal (
 	// to writeback
 	output jal_writeback_vaild,
 	output [63:0] jal_res_qout,
-	output [(5+RNBIT-1):0] jal_rd0_qout,
+	output [(5+`RB-1):0] jal_rd0_qout,
 
 	input CLK,
 	input RSTn
@@ -31,8 +34,8 @@ module jal (
 	wire bru_jal;
 	wire bru_jalr;
 
-	wire [(5+RNBIT-1):0] jal_rd0_dnxt;
-	wire [63:0] pc,
+	wire [(5+`RB-1):0] jal_rd0_dnxt;
+	wire [63:0] pc;
 	
 	wire [63:0] src1;	
 
@@ -50,7 +53,7 @@ module jal (
 
 wire [63:0] jalr_pc_dnxt = pc + src1;
 
-wire [63:0] jal_res_dnxt = {64{(blu_jal | blu_jalr)}} & ( pc + ( is_rvc ? 64'd2 : 64'd4 ) );
+wire [63:0] jal_res_dnxt = {64{(bru_jal | bru_jalr)}} & ( pc + ( is_rvc ? 64'd2 : 64'd4 ) );
 
 wire jalr_vaild_dnxt = bru_jalr & jal_exeparam_vaild;
 
@@ -58,7 +61,7 @@ wire jalr_vaild_dnxt = bru_jalr & jal_exeparam_vaild;
 
 
 
-gen_dffr # (.DW((5+RNBIT))) jal_rd0 ( .dnxt(jal_rd0_dnxt), .qout(jal_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW((5+`RB))) jal_rd0 ( .dnxt(jal_rd0_dnxt), .qout(jal_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) jal_res ( .dnxt(jal_res_dnxt), .qout(jal_res_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) vaild ( .dnxt(jal_exeparam_vaild), .qout(jal_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 

@@ -4,26 +4,27 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-21 14:34:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-27 14:31:57
+* @Last Modified time: 2020-11-05 11:24:15
 */
 
+`include "define.vh"
 
-module regFiles #
+module regFiles
 (
 
-	output [(64*RNDEPTH*32)-1:0] regFileX_qout,
-	input  [(64*RNDEPTH*32)-1:0] regFileX_dnxt,
+	output [(64*`RP*32)-1:0] regFileX_qout,
+	input  [(64*`RP*32)-1:0] regFileX_dnxt,
 
 	input CLK,
 	input RSTn
 );
 
-assign regFileX_qout[64*RNDEPTH-1:0] = 'b0;
+assign regFileX_qout[64*`RP-1:0] = 'b0;
 
 generate
 	
 	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
-		for ( genvar depth = 0 ; depth < RNDEPTH; depth = depth + 1 ) begin
+		for ( genvar depth = 0 ; depth < `RP; depth = depth + 1 ) begin
 
 			localparam  SEL = regNum*4+depth;
 

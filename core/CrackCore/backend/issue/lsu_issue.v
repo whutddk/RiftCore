@@ -4,41 +4,49 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 19:39:38
+* @Last Modified time: 2020-11-05 14:57:03
 */
 
 
 
-module lsu_issue (
+module lsu_issue #
+	(
+		parameter LU_DW = `LU_ISSUE_INFO_DW,
+		parameter LU_DP = `LU_ISSUE_INFO_DP,
+		parameter LU_EXE_DW = `LU_EXEPARAM_DW,
+		parameter SU_DW = `SU_ISSUE_INFO_DW,
+		parameter SU_EXE_DW = `SU_EXEPARAM_DW
+	)
+	(
 
-	//read 可以乱序
-	output lu_buffer_pop,
-	output [$clog2(`ADDER_ISSUE_DEPTH)-1:0] lu_buffer_pop_index,
-	input [`LU_ISSUE_DEPTH-1:0] lu_buffer_malloc,
-	input [`LU_ISSUE_INFO_DW*`LU_ISSUE_DEPTH-1 : 0] lu_issue_info
+		//read 可以乱序
+		output lu_buffer_pop,
+		output [$clog2(LU_DP)-1:0] lu_buffer_pop_index,
+		input [LU_DP-1:0] lu_buffer_malloc,
+		input [LU_DW*LU_DP-1 : 0] lu_issue_info,
 
-	input lu_exeparam_ready,
-	output lu_exeparam_vaild_qout,
-	output [`LU_EXEPARAM_DW-1:0] lu_exeparam_info,
+		input lu_exeparam_ready,
+		output lu_exeparam_vaild_qout,
+		output [LU_EXE_DW-1:0] lu_exeparam_qout,
 
-	//write 暂时只能顺序
-	output su_fifo_pop,
-	input su_fifo_empty,
-	input [`SU_ISSUE_INFO_DW-1:0] su_issue_info,
-	
-	input su_exeparam_ready,
-	output su_exeparam_vaild_qout,
-	output [`SU_EXEPARAM_DW-1:0] su_exeparam,
+		//write 暂时只能顺序
+		output su_fifo_pop,
+		input su_fifo_empty,
+		input [SU_DW-1:0] su_issue_info,
+		
+		input su_exeparam_ready,
+		output su_exeparam_vaild_qout,
+		output [SU_EXE_DW-1:0] su_exeparam_qout,
 
-	//from regFile
-	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout,
+		//from regFile
+		input [(64*`RP*32)-1:0] regFileX_read,
+		input [32*`RP-1 : 0] wbLog_qout,
 
-	//from commit
-	input suILP_ready,
+		//from commit
+		input suILP_ready,
 
-	input CLK,
-	input RSTn
+		input CLK,
+		input RSTn
 );
 
 
@@ -68,46 +76,46 @@ module lsu_issue (
 
 
 
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lb;
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lh;
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lw;
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_ld;
+	wire [LU_DP-1:0] rv64i_lb;
+	wire [LU_DP-1:0] rv64i_lh;
+	wire [LU_DP-1:0] rv64i_lw;
+	wire [LU_DP-1:0] rv64i_ld;
 
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lbu;
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lhu;
-	wire [LU_ISSUE_DEPTH-1:0] rv64i_lwu;
+	wire [LU_DP-1:0] rv64i_lbu;
+	wire [LU_DP-1:0] rv64i_lhu;
+	wire [LU_DP-1:0] rv64i_lwu;
 
 
-	wire [64*LU_ISSUE_DEPTH - 1:0] lu_imm;
+	wire [64*LU_DP-1:0] lu_imm;
 
-	wire [(5+RNBIT)*LU_ISSUE_DEPTH - 1:0] lu_rd0;
-	wire [(5+RNBIT)*LU_ISSUE_DEPTH - 1:0] lu_rs1;
+	wire [(5+`RB)*LU_DP-1:0] lu_rd0;
+	wire [(5+`RB)*LU_DP-1:0] lu_rs1;
 
-	wire [LU_ISSUE_DEPTH - 1:0] rs1_ready;
-	wire [LU_ISSUE_DEPTH - 1:0] lu_isClearRAW;
+	wire [LU_DP-1:0] lu_rs1_ready;
+	wire [LU_DP-1:0] lu_isClearRAW;
 
-	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_lb;
-	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_lh;
-	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_lw;
-	wire [LU_ISSUE_DEPTH - 1:0] lu_fun_ld;
+	wire [LU_DP-1:0] lu_fun_lb;
+	wire [LU_DP-1:0] lu_fun_lh;
+	wire [LU_DP-1:0] lu_fun_lw;
+	wire [LU_DP-1:0] lu_fun_ld;
 
-	wire [64*LU_ISSUE_DEPTH - 1:0] op1;
+	wire [64*LU_DP-1:0] lu_op1;
 
-	wire [LU_ISSUE_DEPTH - 1:0] lu_isUsi;
+	wire [LU_DP-1:0] lu_isUsi;
 
 generate
-	for ( genvar i = 0; i < LU_ISSUE_DEPTH; i = i + 1 ) begin
+	for ( genvar i = 0; i < LU_DP; i = i + 1 ) begin
 
 		assign { 
 				rv64i_lb[i], rv64i_lh[i], rv64i_lw[i], rv64i_ld[i], rv64i_lbu[i], rv64i_lhu[i], rv64i_lwu[i], 
 				lu_imm[64*i +: 64],
-				lu_rd0[(5+RNBIT)*i +: (5+RNBIT)],
-				lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]
-				} = lu_issue_info[`LU_ISSUE_INFO_DW*i +: `LU_ISSUE_INFO_DW];
+				lu_rd0[(5+`RB)*i +: (5+`RB)],
+				lu_rs1[(5+`RB)*i +: (5+`RB)]
+				} = lu_issue_info[LU_DW*i +: LU_DW];
 
-		assign rs1_ready[i] = wbBuf_qout[lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]];
+		assign lu_rs1_ready[i] = wbLog_qout[lu_rs1[(5+`RB)*i +: (5+`RB)]];
 
-		assign lu_isClearRAW[i] = lu_buffer_malloc[i] & rs1_ready[i];
+		assign lu_isClearRAW[i] = lu_buffer_malloc[i] & lu_rs1_ready[i];
 
 
 		assign lu_fun_lb[i] = rv64i_lb[i] | rv64i_lbu[i];
@@ -117,7 +125,7 @@ generate
 
 
 
-		assign op1[64*i +:64] = regFileX_read[lu_rs1[(5+RNBIT)*i +: (5+RNBIT)]] + lu_imm[64*i +: 64];
+		assign lu_op1[64*i +:64] = regFileX_read[lu_rs1[(5+`RB)*i +: (5+`RB)]] + lu_imm[64*i +: 64];
 
 		assign lu_isUsi[i] = rv64i_lbu[i] | rv64i_lhu[i] | rv64i_lwu[i];
 
@@ -131,35 +139,35 @@ wire lu_all_RAW;
 
 	//应该为组合逻辑实现
 	lzp #(
-		.CW($clog2(LU_ISSUE_DEPTH))
+		.CW($clog2(LU_DP))
 	) lu_RAWClear(
 		.in_i(~lu_isClearRAW),
-		.cnt_o(lu_buffer_pop_index),
-		.empty_o(lu_all_RAW)
+		.pos_o(lu_buffer_pop_index),
+		.empty_o(lu_all_RAW),
+		.full_o()
 	);
 
 
-	assign lu_exeparam_dnxt = { 
+	wire [LU_EXE_DW-1:0] lu_exeparam_dnxt = { 
 								lu_fun_lb[lu_buffer_pop_index],
 								lu_fun_lh[lu_buffer_pop_index],
 								lu_fun_lw[lu_buffer_pop_index],
 								lu_fun_ld[lu_buffer_pop_index],
 
-								lu_rd0[(5+RNBIT)*lu_buffer_pop_index +: (5+RNBIT)],
-								op1[ 64*lu_buffer_pop_index +:64 ],
+								lu_rd0[(5+`RB)*lu_buffer_pop_index +: (5+`RB)],
+								lu_op1[ 64*lu_buffer_pop_index +:64 ],
 
 								lu_isUsi[ lu_buffer_pop_index ]
 
 								};
 
-	wire lu_exeparam_vaild_qout;
 	wire lu_exeparam_vaild_dnxt = lu_exeparam_ready ? ~lu_all_RAW : lu_exeparam_vaild_qout;
 
 
 	assign lu_buffer_pop = ( lu_exeparam_ready & lu_exeparam_vaild_dnxt );
 
 
-gen_dffr # (.DW(`LU_EXEPARAM_DW)) lu_exeparam ( .dnxt(lu_exeparam_dnxt), .qout(lu_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(LU_EXE_DW)) lu_exeparam ( .dnxt(lu_exeparam_dnxt), .qout(lu_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) lu_exeparam_vaild ( .dnxt(lu_exeparam_vaild_dnxt), .qout(lu_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
@@ -202,18 +210,18 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 	wire rv64i_sw;
 	wire rv64i_sd;
 
-	wire rs1_ready;
-	wire rs2_ready;
+	wire su_rs1_ready;
+	wire su_rs2_ready;
 
 	wire [63:0] su_imm;
 
-	wire [(5+RNBIT) - 1:0] su_rd0;
-	wire [(5+RNBIT) - 1:0] su_rs1;
+	wire [(5+`RB) - 1:0] su_rd0;
+	wire [(5+`RB) - 1:0] su_rs1;
 
 	wire su_isClearRAW;
 
-	wire [63:0] op1;
-	wire [63:0] op2;
+	wire [63:0] su_op1;
+	wire [63:0] su_op2;
 
 	assign {
 			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
@@ -224,34 +232,33 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 			} = su_issue_info;
 
 
-	assign rs1_ready = wbBuf_qout[su_rs1];
-	assign rs2_ready = wbBuf_qout[su_rs2];
+	assign su_rs1_ready = wbLog_qout[su_rs1];
+	assign su_rs2_ready = wbLog_qout[su_rs2];
 
 	assign su_isClearRAW = ( ~su_fifo_empty ) & 
-											 rs1_ready & rs2_ready ;
+											 su_rs1_ready & su_rs2_ready ;
 
 
-	assign op1 = regFileX_read[su_rs1] + su_imm;
-	assign op2 = regFileX_read[su_rs2];
+	assign su_op1 = regFileX_read[su_rs1] + su_imm;
+	assign su_op2 = regFileX_read[su_rs2];
 
 
 
 
 
-	assign su_exeparam_dnxt = { 
+	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
-								op1,
-								op2
+								su_op1,
+								su_op2
 								};
 
-	wire su_exeparam_vaild_qout;
 	assign su_exeparam_vaild_dnxt = su_isClearRAW & suILP_ready;
 
 	assign su_issue_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
 
 
-gen_dffr # (.DW(`SU_EXEPARAM_DW)) su_exeparam ( .dnxt(su_exeparam_dnxt), .qout(su_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(SU_EXE_DW)) su_exeparam ( .dnxt(su_exeparam_dnxt), .qout(su_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) su_exeparam_vaild ( .dnxt(su_exeparam_vaild_dnxt), .qout(su_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 

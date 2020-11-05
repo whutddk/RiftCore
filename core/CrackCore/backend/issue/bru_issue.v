@@ -4,24 +4,30 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-04 19:38:32
+* @Last Modified time: 2020-11-05 14:57:33
 */
 
-module bru_issue (
+module bru_issue #
+	(
+		parameter DW = `BRU_ISSUE_INFO_DW,
+		parameter EXE_DW = `BRU_EXEPARAM_DW
+	)
+	(
+
 	//from fifo
 	output bru_fifo_pop,
 	input bru_fifo_empty,
-	input [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info,
+	input [DW-1:0] bru_issue_info,
 
 	//from execute
 
 	input bru_exeparam_ready,
 	output bru_exeparam_vaild_qout,
-	output [`BRU_EXEPARAM_DW-1:0] bru_exeparam_qout,
+	output [EXE_DW-1:0] bru_exeparam_qout,
 
 	//from regFile
-	input [(64*RNDEPTH*32)-1:0] regFileX_read,
-	input [32*RNDEPTH-1 : 0] wbLog_qout,
+	input [(64*`RP*32)-1:0] regFileX_read,
+	input [32*`RP-1 : 0] wbLog_qout,
 
 	input CLK,
 	input RSTn
@@ -43,8 +49,8 @@ module bru_issue (
 	wire [63 : 0] src1;
 	wire [63 : 0] src2;
 
-	wire  [63:0] op1;
-	wire  [63:0] op2;
+	wire [63:0] op1;
+	wire [63:0] op2;
 
 	assign {
 				rv64i_beq,
@@ -59,21 +65,21 @@ module bru_issue (
 			} = bru_issue_info;
 
 
-	assign rs1_ready = wbBuf_qout[bru_rs1];
-	assign rs2_ready = wbBuf_qout[bru_rs2];
+	assign rs1_ready = wbLog_qout[bru_rs1];
+	assign rs2_ready = wbLog_qout[bru_rs2];
 
-	assign bru_isClearRAW = ( ~bru_fifo_empty ) & 
-											 rs1_ready & rs2_ready ;
+	wire bru_isClearRAW = ( ~bru_fifo_empty ) & 
+											 rs1_ready & rs2_ready;
 
 
-	assign src1 = regFileX_read[bru_rs1_index]
-	assign src2 = regFileX_read[bru_rs2_index]
+	assign src1 = regFileX_read[bru_rs1];
+	assign src2 = regFileX_read[bru_rs2];
 
 	assign op1 = src1;
 	assign op2 = src2;
 
 
-	assign bru_exeparam_dnxt =  bru_exeparam_ready ? { 
+	wire [EXE_DW-1:0] bru_exeparam_dnxt =  bru_exeparam_ready ? { 
 								rv64i_beq,
 								rv64i_bne,
 								rv64i_blt,
@@ -96,8 +102,8 @@ module bru_issue (
 
 
 
-gen_dffr # (.DW(`BRU_EXEPARAM_DW)) bru_exeparam ( .dnxt(bru_exeparam_dnxt), .qout(bru_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) bru_exeparam_vaild ( .dnxt(bru_exeparam_vaild_dnxt), .qout(bru_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(EXE_DW)) bru_exeparam ( .dnxt(bru_exeparam_dnxt), .qout(bru_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) bru_exeparam_vaild ( .dnxt(bru_exeparam_vaild_dnxt), .qout(bru_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
