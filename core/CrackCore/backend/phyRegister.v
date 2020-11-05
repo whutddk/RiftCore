@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:38:32
+* @Last Modified time: 2020-11-05 17:42:43
 */
 
 `include "define.vh"
@@ -72,6 +72,7 @@ endgenerate
 //写操作需要改变重命名活动指针到一个新位置，需要是空的，否则挂起流水线
 
 
+assign rnAct_X_qout[ 0 +: `RB] = {`RB{1'b0}};
 generate
 	for ( genvar i = 1 ; i < 32; i = i + 1 ) begin
 		gen_dffr #(.DW(`RB)) 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 14:55:50
+* @Last Modified time: 2020-11-05 18:51:18
 */
 
 `include "define.vh"
@@ -116,11 +116,10 @@ endgenerate
 								};
 
 
-	wire jal_exeparam_vaild_qout;
-	wire jal_execute_vaild_dnxt =  ~jal_all_RAW;
+	wire jal_exeparam_vaild_dnxt =  ~jal_all_RAW;
 
 
-	assign jal_buffer_pop = ( jal_exeparam_ready & jal_execute_vaild_dnxt );
+	assign jal_buffer_pop = ( jal_exeparam_ready & jal_exeparam_vaild_dnxt );
 
 
 

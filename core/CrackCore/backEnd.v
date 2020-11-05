@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:55:10
+* @Last Modified time: 2020-11-05 17:44:55
 */
 
 `include "define.vh"
@@ -353,10 +353,10 @@ csr_issue_fifo
 	.issue_info_push(csr_dispat_info),
 	.issue_info_pop(csr_issue_info),
 
-	.issue_push(csr_buffer_push),
+	.issue_push(csr_fifo_push),
 	.issue_pop(csr_fifo_pop),	
 	
-	.fifo_full(csr_buffer_full),
+	.fifo_full(csr_fifo_full),
 	.fifo_empty(csr_fifo_empty),
 
 	.CLK(CLK),

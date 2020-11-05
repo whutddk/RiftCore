@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:42:44
+* @Last Modified time: 2020-11-05 17:48:36
 */
 
 `include "define.vh"
@@ -68,7 +68,7 @@ wire [(64*`RP*32)-1:0] csr_writeback_dnxt;
 
 assign wbLog_writeb_set[`RP-1 : 0]  = {`RP{1'b1}};
 
-
+assign regFileX_dnxt[64*`RP-1:0] = {64*`RP{1'b0}};
 generate
 	
 	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin

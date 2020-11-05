@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:07:38
+* @Last Modified time: 2020-11-05 18:02:23
 */
 
 `include "define.vh"
@@ -255,7 +255,7 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 
 	assign su_exeparam_vaild_dnxt = su_isClearRAW & suILP_ready;
 
-	assign su_issue_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
+	assign su_fifo_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
 
 
 gen_dffr # (.DW(SU_EXE_DW)) su_exeparam ( .dnxt(su_exeparam_dnxt), .qout(su_exeparam_qout), .CLK(CLK), .RSTn(RSTn));

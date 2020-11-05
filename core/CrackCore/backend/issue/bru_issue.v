@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:07:21
+* @Last Modified time: 2020-11-05 19:53:11
 */
 
 `include "define.vh"
@@ -44,8 +44,8 @@ module bru_issue #
 	wire rv64i_bltu;
 	wire rv64i_bgeu;
 
-	wire bru_rs1;
-	wire bru_rs2;
+	wire [5+`RB-1:0] bru_rs1;
+	wire [5+`RB-1:0] bru_rs2;
 
 
 	wire [63 : 0] src1;
@@ -98,7 +98,7 @@ module bru_issue #
 	wire bru_exeparam_vaild_qout;
 	wire bru_exeparam_vaild_dnxt = bru_isClearRAW;
 
-	assign bru_issue_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );
+	assign bru_fifo_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );
 
 
 

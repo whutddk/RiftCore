@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 14:35:57
+* @Last Modified time: 2020-11-05 17:59:30
 */
 
 module issue_buffer #
@@ -43,7 +43,7 @@ module issue_buffer #
 	wire [$clog2(DP)-1:0] issue_push_index = (buffer_pop & buffer_push) ? pop_index : issue_push_index_pre;
 	wire [DP-1:0] buffer_vaild_dnxt;
 	wire [DP-1:0] buffer_vaild_qout;
-
+	assign buffer_malloc_qout = buffer_vaild_qout;
 
 	generate
 		for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin

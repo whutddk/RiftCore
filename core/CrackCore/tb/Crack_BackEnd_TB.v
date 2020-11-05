@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:47:18
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:25:08
+* @Last Modified time: 2020-11-05 17:14:58
 */
 
 `include "define.vh"
@@ -16,7 +16,7 @@ module Crack_BackEnd_TB (
 
 
 
-gen_fifo # (.DW(DECODE_INFO_DW),.AW(4)) 
+gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
 	instr_fifo (
 		.fifo_pop(1'b0),
 		.fifo_push(instrFifo_push),

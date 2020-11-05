@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-21 14:34:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:24:15
+* @Last Modified time: 2020-11-05 17:48:13
 */
 
 `include "define.vh"
@@ -19,7 +19,7 @@ module regFiles
 	input RSTn
 );
 
-assign regFileX_qout[64*`RP-1:0] = 'b0;
+assign regFileX_qout[64*`RP-1:0] = {64*`RP{1'b0}};
 
 generate
 	
