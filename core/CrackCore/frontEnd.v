@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:23:48
+* @Last Modified time: 2020-11-05 16:24:15
 */
 
 `include "define.vh"
@@ -15,19 +15,25 @@ module frontEnd (
 	output instrFifo_push,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
+	output isMisPredict,
+	output pcGen_ready,
+	input bru_res_vaild,
+	input bru_takenBranch,
+	input jalr_vaild,
+	input [63:0] jalr_pc,
+
 	input CLK,
 	input RSTn
 	
 );
 
-initial $warning("缺失分支预测commit通道");
-initial $warning("缺失前后端冲刷通道");
+wire flush = isMisPredict;
 
 wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
 wire isReset_qout;
 
 
-gen_dffr # (.DW(64)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn&~flush));
 gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
 
 wire [31:0] instr_readout;
@@ -45,12 +51,12 @@ pcGenerate i_pcGenerate
 	.isReset(~isReset_qout),
 
 	//from jalr exe
-	.jalr_vaild(1'b0),
-	.jalr_pc(64'b0),
+	.jalr_vaild(jalr_vaild),
+	.jalr_pc(jalr_pc),
 	
 	//from bru
-	.bru_res_vaild(1'b0),
-	.bru_takenBranch(1'b0),
+	.bru_res_vaild(bru_res_vaild),
+	.bru_takenBranch(bru_takenBranch),
 
 
 	// from expection 	
@@ -60,9 +66,9 @@ pcGenerate i_pcGenerate
 	.instr_readout(instr_readout),
 
 	//to commit to flush
-	.isMisPredict(),
+	.isMisPredict(isMisPredict),
 
-	.pcGen_ready(),
+	.pcGen_ready(pcGen_ready),
 	.isInstrReadOut(isInstrReadOut),
 	.instrFifo_full(instrFifo_full),
 
@@ -90,9 +96,8 @@ instr_fetch i_instr_fetch(
 	.fetch_decode_vaild(fetch_decode_vaild),
 	.instrFifo_full(instrFifo_full),
 
-	.flush(1'b0),
 	.CLK(CLK),
-	.RSTn(RSTn)
+	.RSTn(RSTn&~flush)
 	
 );
 

@@ -12,10 +12,6 @@
 `define RB $clog2(`RP) 
 
 
-`define MAXINDIS 20 //最大顺序派遣数 MAX_INFIY_DISPATCH
-
-
-
 
 `define DECODE_INFO_DW (52+1+6+1+64+64+6+5+5+5) 
 `define REORDER_INFO_DW (64+(5+`RB)+3)

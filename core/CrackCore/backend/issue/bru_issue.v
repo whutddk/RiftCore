@@ -4,8 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 14:57:33
+* @Last Modified time: 2020-11-05 17:07:21
 */
+
+`include "define.vh"
 
 module bru_issue #
 	(

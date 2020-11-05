@@ -4,10 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 10:36:07
+* @Last Modified time: 2020-11-05 17:08:14
 */
 
-
+`include "define.vh"
 
 module csr #
 	(
@@ -24,7 +24,7 @@ module csr #
 
 	input CLK,
 	input RSTn,
-	input beFlush
+	input flush
 	
 );
 
@@ -225,9 +225,9 @@ gen_dffr # (.DW(64)) mip ( .dnxt(mip_dnxt), .qout(mip_qout), .CLK(CLK), .RSTn(RS
 
 
 
-gen_dffr # (.DW((5+`RB))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
-gen_dffr # (.DW(64)) csr_res ( .dnxt(csr_res_dnxt), .qout(csr_res_qout), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
-gen_dffr # (.DW(1)) vaild ( .dnxt(csr_exeparam_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn&(~beFlush)));
+gen_dffr # (.DW((5+`RB))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(64)) csr_res ( .dnxt(csr_res_dnxt), .qout(csr_res_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(1)) vaild ( .dnxt(csr_exeparam_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
 
 

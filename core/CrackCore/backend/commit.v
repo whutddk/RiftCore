@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 15:57:21
+* @Last Modified time: 2020-11-05 16:39:44
 */
 
 `include "define.vh"
@@ -28,7 +28,7 @@ module commit (
 	//from pc generate 
 	//此处只需要向前握手进行pop，因为一定有数据
 	input isMisPredict,
-
+	output commit_abort,
 
 	//from Outsize
 	input isAsynExcept,
@@ -52,9 +52,10 @@ initial $warning("暂时无法产生异常");
 
 	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr} = commit_fifo;
 
-	wire commit_abort = (isBranch & isMisPredict) 
+	assign commit_abort = (isBranch & isMisPredict) 
 						| (isSynExcept)
 						| (isAsynExcept);
+
 
 
 	assign rnBufU_commit_rst = wbLog_commit_rst;

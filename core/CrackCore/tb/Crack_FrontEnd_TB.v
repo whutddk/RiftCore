@@ -110,7 +110,7 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, Crack_FrontEnd_TB);//tb模块名称
+	$dumpvars(0, crack_FrontEnd_TB);//tb模块名称
 end
 
 

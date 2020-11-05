@@ -4,13 +4,13 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 15:32:03
+* @Last Modified time: 2020-11-05 16:38:32
 */
 
 `include "define.vh"
 
 module phyRegister (
-	input beFlush,
+	input flush,
 
 
 	input  [(64*`RP*32)-1:0] regFileX_dnxt,
@@ -77,8 +77,8 @@ generate
 		gen_dffr #(.DW(`RB)) 
 		rnActive_X 
 		( 
-			.dnxt( {`RB{~beFlush}} & rnAct_X_dnxt[`RB*i +: `RB] 
-					| {`RB{beFlush}} & archi_X_qout[`RB*i +: `RB]),
+			.dnxt( {`RB{~flush}} & rnAct_X_dnxt[`RB*i +: `RB] 
+					| {`RB{flush}} & archi_X_qout[`RB*i +: `RB]),
 			.qout(rnAct_X_qout[`RB*i +: `RB]),
 			.CLK(CLK),
 			.RSTn(RSTn)
@@ -98,7 +98,7 @@ generate
 	for ( genvar i = 1; i < 32; i = i + 1 ) begin
 
 		//commit的复位，重命名的置位
-		assign rnBufU_dnxt[`RP*i +: `RP] = beFlush ? 
+		assign rnBufU_dnxt[`RP*i +: `RP] = flush ? 
 													({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
 													: (rnBufU_qout[`RP*i +: `RP] 
 															|   rnBufU_rename_set[`RP*i +: `RP]
@@ -124,7 +124,7 @@ generate
 	for ( genvar i = 1; i < 32; i = i + 1 ) begin
 
 		//写回时置1，commit时复位
-		assign wbLog_dnxt[`RP*i +: `RP] = beFlush ? 
+		assign wbLog_dnxt[`RP*i +: `RP] = flush ? 
 											({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
 											: (wbLog_qout[`RP*i +: `RP] 
 											| wbLog_writeb_set[`RP*i +: `RP]

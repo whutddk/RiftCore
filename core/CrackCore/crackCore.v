@@ -4,61 +4,104 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-10-22 12:00:54
+* @Last Modified time: 2020-11-05 17:03:12
 */
 
-
-
+`include "define.vh"
+`include "iverilog.vh"
 module crackCore (
 	
-
-
-
 	input CLK,
 	input RSTn
 	
 );
 
 
-pc_generate i_pcgenerate();
+wire instrFifo_push;
+wire instrFifo_full;
+wire [`DECODE_INFO_DW-1:0] decode_microInstr_push;
+
+wire feflush;
+wire beflush;
+
+wire [`DECODE_INFO_DW-1:0] decode_microInstr_pop;
+wire instrFifo_pop;
+wire instrFifo_empty;
+wire jalr_vaild;
+wire [63:0] jalr_pc;
+
+wire pcGen_ready;
+wire istakenBranch;
+wire takenBranch_vaild;
+
+
+frontEnd i_frontEnd(
+
+	.instrFifo_full(instrFifo_full),
+	.instrFifo_push(instrFifo_push),
+	.decode_microInstr(decode_microInstr_push),
+
+	.isMisPredict(feflush),
+	.pcGen_ready(pcGen_ready),
+
+	.bru_res_vaild(takenBranch_vaild&~isMisPredict_qout),
+	.bru_takenBranch(istakenBranch),
+
+	.jalr_vaild(jalr_vaild&(~isMisPredict_qout)),
+	.jalr_pc(jalr_pc),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+	
+);
+
+
+gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
+	instr_fifo (
+		.fifo_pop(instrFifo_pop),
+		.fifo_push(instrFifo_push),
+
+		.data_push(decode_microInstr_push),
+		.data_pop(decode_microInstr_pop),
+
+		.fifo_empty(instrFifo_empty),
+		.fifo_full(instrFifo_full),
+
+		.CLK(CLK),
+		.RSTn(RSTn&~feflush)
+);
+
+
+
+backEnd i_backEnd(
+	.decode_microInstr_pop(decode_microInstr_pop),
+	.instrFifo_pop(instrFifo_pop),
+	.instrFifo_empty(instrFifo_empty | isMisPredict_qout),
+
+	// to pcGen
+	.jalr_vaild_qout(jalr_vaild),
+	.jalr_pc_qout(jalr_pc),
+	.isMisPredict(isMisPredict_qout),
+
+	.pcGen_ready(pcGen_ready),
+	.takenBranch_qout(istakenBranch),
+	.takenBranch_vaild_qout(takenBranch_vaild),
+
+	.isFlush(beflush),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+
+);
 
 
 
 
-decode i_decode();
-
-
-rename i_rename();
-
-
-
-dispatch i_dispatch();
-
-
-issue i_issue();
-
-
-excute i_excute();
-
-
-writeBack i_writeBack();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
+						| (~feflush & beflush & 1'b0)
+						| (feflush & ~beflush & 1'b1);
+wire isMisPredict_qout;
+gen_dffr # (.DW(1)) isFlush ( .dnxt(isMisPredict_dnxt), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 

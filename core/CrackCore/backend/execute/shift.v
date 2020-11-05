@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 15:54:26
+* @Last Modified time: 2020-11-05 17:08:24
 */
 
+`include "define.vh"
 
 module shift #
 	(

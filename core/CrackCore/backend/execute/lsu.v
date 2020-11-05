@@ -4,10 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:05:04
+* @Last Modified time: 2020-11-05 17:08:22
 */
 
-
+`include "define.vh"
 
 module lsu #
 	(
