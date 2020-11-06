@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:11:14
+* @Last Modified time: 2020-11-06 16:52:38
 */
 
 `include "define.vh"
@@ -75,7 +75,7 @@ generate
 				is_rvc[i]
 				} = jal_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[jal_rs1[(5+`RB)*i +: (5+`RB)]];
+		assign rs1_ready[i] = wbLog_qout[jal_rs1[(5+`RB)*i +: (5+`RB)]] | (jal_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
 
 
 		assign jal_isClearRAW[i] = 	( jal_buffer_malloc[i] ) & 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 15:49:26
+* @Last Modified time: 2020-11-06 20:13:19
 */
 
 `include "define.vh"
@@ -54,8 +54,6 @@ module phyRegister (
 //代表架构寄存器，指向128个寄存器中的地址，完成commit
 //指向当前前端可以用的寄存器位置（只会读寄存器），读完不管,32个寄存器，每个可能深度为4
 //架构寄存器在commit阶段更新，同时释放rename位置
-wire  [ `RB*32 - 1 :0 ] archi_X_dnxt;
-wire  [ `RB*32 - 1 :0 ] archi_X_qout;
 
 generate
 	for ( genvar i = 0 ; i < 32; i = i + 1 ) begin
@@ -86,7 +84,6 @@ endgenerate
 
 //指示128-32个寄存器组中哪些被用了
 wire [32*`RP-1 : 0] rnBufU_dnxt;
-wire [32*`RP-1 : 0] rnBufU_qout;
 
 generate
 	for ( genvar i = 0; i < 32; i = i + 1 ) begin
@@ -94,9 +91,9 @@ generate
 		//commit的复位，重命名的置位
 		assign rnBufU_dnxt[`RP*i +: `RP] = flush ? 
 													({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
-													: (rnBufU_qout[`RP*i +: `RP] 
-															|   rnBufU_rename_set[`RP*i +: `RP]
-															& (~rnBufU_commit_rst[`RP*i +: `RP]));
+													: ( ( rnBufU_qout[`RP*i +: `RP] 
+														| rnBufU_rename_set[`RP*i +: `RP] )
+														& (~rnBufU_commit_rst[`RP*i +: `RP]));
 
 		gen_dffr #(.DW(`RP), .rstValue(`RP'b1)) rnBufU ( .dnxt(rnBufU_dnxt[`RP*i +: `RP]), .qout(rnBufU_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );
 
@@ -109,7 +106,6 @@ endgenerate
 
 	//指示乱序写回是否完成,影响真数据冒险
 	wire [32*`RP-1 : 0] wbLog_dnxt;
-	wire [32*`RP-1 : 0] wbLog_qout;
 
 generate
 	for ( genvar i = 0; i < 32; i = i + 1 ) begin
@@ -118,8 +114,8 @@ generate
 		assign wbLog_dnxt[`RP*i +: `RP] = flush ? 
 											({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
 											: 	(
-													wbLog_qout[`RP*i +: `RP] 
-													| wbLog_writeb_set[`RP*i +: `RP]
+													(wbLog_qout[`RP*i +: `RP] 
+													| wbLog_writeb_set[`RP*i +: `RP])
 													& ~wbLog_commit_rst[`RP*i +: `RP]);
 
 		gen_dffr #(.DW(`RP), .rstValue(`RP'b1)) wbLog ( .dnxt(wbLog_dnxt[`RP*i +: `RP]), .qout(wbLog_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );

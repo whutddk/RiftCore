@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:24:51
+* @Last Modified time: 2020-11-06 19:21:20
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -76,9 +76,10 @@ wire ras_empty;
 
 //分支历史表写入没有预测的分支项
 wire [63+1:0] bht_data_pop;
-wire [63+1:0] bht_data_push = {64{~isTakenBranch}} & take_pc 
-							|
-							 {64{isTakenBranch}} & next_pc;
+wire [63+1:0] bht_data_push = {
+								isTakenBranch, 
+								(({64{~isTakenBranch}} & take_pc) | ({64{isTakenBranch}} & next_pc))
+								};
 
 wire bht_full;
 wire bht_pop = bru_res_vaild;

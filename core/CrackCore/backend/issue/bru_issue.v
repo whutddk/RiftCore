@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 19:53:11
+* @Last Modified time: 2020-11-06 18:10:38
 */
 
 `include "define.vh"
@@ -48,8 +48,8 @@ module bru_issue #
 	wire [5+`RB-1:0] bru_rs2;
 
 
-	wire [63 : 0] src1;
-	wire [63 : 0] src2;
+	wire [63:0] src1;
+	wire [63:0] src2;
 
 	wire [63:0] op1;
 	wire [63:0] op2;
@@ -67,8 +67,13 @@ module bru_issue #
 			} = bru_issue_info;
 
 
-	assign rs1_ready = wbLog_qout[bru_rs1];
-	assign rs2_ready = wbLog_qout[bru_rs2];
+	wire temp1 = wbLog_qout[bru_rs1];
+	wire temp2 = wbLog_qout[bru_rs2];
+	wire [4:0] temp3 = bru_rs1[`RB +: 5];
+	wire [4:0] temp4 = bru_rs2[`RB +: 5];
+
+	wire rs1_ready = wbLog_qout[bru_rs1] | (bru_rs1[`RB +: 5] == 5'd0);
+	wire rs2_ready = wbLog_qout[bru_rs2] | (bru_rs2[`RB +: 5] == 5'd0);
 
 	wire bru_isClearRAW = ( ~bru_fifo_empty ) & 
 											 rs1_ready & rs2_ready;
@@ -95,7 +100,6 @@ module bru_issue #
 								: bru_exeparam_qout
 								;
 
-	wire bru_exeparam_vaild_qout;
 	wire bru_exeparam_vaild_dnxt = bru_isClearRAW;
 
 	assign bru_fifo_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );

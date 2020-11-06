@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:03:12
+* @Last Modified time: 2020-11-06 17:50:19
 */
 
 `include "define.vh"
@@ -33,6 +33,11 @@ wire [63:0] jalr_pc;
 wire pcGen_ready;
 wire istakenBranch;
 wire takenBranch_vaild;
+
+wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
+						| (~feflush & beflush & 1'b0)
+						| (feflush & ~beflush & 1'b1);
+wire isMisPredict_qout;
 
 
 frontEnd i_frontEnd(
@@ -97,10 +102,7 @@ backEnd i_backEnd(
 
 
 
-wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
-						| (~feflush & beflush & 1'b0)
-						| (feflush & ~beflush & 1'b1);
-wire isMisPredict_qout;
+
 gen_dffr # (.DW(1)) isFlush ( .dnxt(isMisPredict_dnxt), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule

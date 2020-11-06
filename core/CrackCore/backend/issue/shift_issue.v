@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:13:09
+* @Last Modified time: 2020-11-06 17:52:17
 */
 
 `include "define.vh"
@@ -95,8 +95,8 @@ generate
 				shift_rs2[(5+`RB)*i +: (5+`RB)]
 				} = shift_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[shift_rs1[(5+`RB)*i +: (5+`RB)]];
-		assign rs2_ready[i] = wbLog_qout[shift_rs2[(5+`RB)*i +: (5+`RB)]];
+		assign rs1_ready[i] = wbLog_qout[shift_rs1[(5+`RB)*i +: (5+`RB)]] | (shift_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[shift_rs2[(5+`RB)*i +: (5+`RB)]] | (shift_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
 		
 
 		assign shift_isClearRAW[i] = 	( shift_buffer_malloc[i] ) & 
@@ -195,7 +195,6 @@ endgenerate
 
 								};
 
-	wire shift_exeparam_vaild_qout;
 	assign shift_exeparam_vaild_dnxt =  ~shift_all_RAW;
 
 

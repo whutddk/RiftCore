@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:12:45
+* @Last Modified time: 2020-11-06 17:51:25
 */
 
 `include "define.vh"
@@ -91,8 +91,8 @@ generate
 				logCmp_rs2[(5+`RB)*i +: (5+`RB)]
 				} = logCmp_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[logCmp_rs1[(5+`RB)*i +: (5+`RB)]];
-		assign rs2_ready[i] = wbLog_qout[logCmp_rs2[(5+`RB)*i +: (5+`RB)]];
+		assign rs1_ready[i] = wbLog_qout[logCmp_rs1[(5+`RB)*i +: (5+`RB)]] | (logCmp_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[logCmp_rs2[(5+`RB)*i +: (5+`RB)]] | (logCmp_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
 		
 
 		assign logCmp_isClearRAW[i] = 	( logCmp_buffer_malloc[i] ) & 
@@ -184,7 +184,6 @@ endgenerate
 									isUsi[ logCmp_buffer_pop_index ]
 									};
 
-	wire logCmp_exeparam_vaild_qout;
 	assign logCmp_exeparam_vaild_dnxt =  ~logCmp_all_RAW;
 
 	assign logCmp_buffer_pop = ( logCmp_exeparam_ready & logCmp_exeparam_vaild_dnxt );

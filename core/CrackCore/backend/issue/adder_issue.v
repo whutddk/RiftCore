@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:14:43
+* @Last Modified time: 2020-11-06 17:50:45
 */
 
 
@@ -92,8 +92,8 @@ generate
 				adder_rs2[(5+`RB)*i +: (5+`RB)]
 				} = adder_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[adder_rs1[(5+`RB)*i +: (5+`RB)]];
-		assign rs2_ready[i] = wbLog_qout[adder_rs2[(5+`RB)*i +: (5+`RB)]];
+		assign rs1_ready[i] = wbLog_qout[adder_rs1[(5+`RB)*i +: (5+`RB)]] | | (adder_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[adder_rs2[(5+`RB)*i +: (5+`RB)]] | | (adder_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
 		
 		assign adder_isClearRAW[i] = ( adder_buffer_malloc[i] ) & 
 										(
@@ -174,7 +174,6 @@ endgenerate
 								}
 								: adder_exeparam_qout;
 
-	wire adder_exeparam_vaild_qout;
 	assign adder_exeparam_vaild_dnxt =  ~adder_all_RAW;
 
 

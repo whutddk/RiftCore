@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:07:23
+* @Last Modified time: 2020-11-06 16:48:49
 */
 
 `include "define.vh"
@@ -72,10 +72,10 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 	wire csr_rs = rv64csr_rs | rv64csr_rsi;
 	wire csr_rc = rv64csr_rc | rv64csr_rci;
 
-	wire rs1_ready = wbLog_qout[csr_rs1];
+	wire rs1_ready = wbLog_qout[csr_rs1] | (csr_rs1[`RB +: 5] == 5'd0);
 
 	wire csr_isClearRAW = ( ~csr_fifo_empty ) & ( 
-													((rv64csr_rw | rv64csr_rs | rv64csr_rc ) & rs1_ready)
+													((rv64csr_rw | rv64csr_rs | rv64csr_rc ) & rs1_ready )
 													|
 													(rv64csr_rwi | rv64csr_rsi | rv64csr_rci )
 												);
@@ -98,7 +98,6 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 
 			};
 
-	wire csr_exeparam_vaild_qout;
 	wire csr_exeparam_vaild_dnxt = csr_isClearRAW & csrILP_ready;
 
 	assign csr_fifo_pop = csr_exeparam_vaild_dnxt & csr_exeparam_ready;

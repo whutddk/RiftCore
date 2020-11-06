@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 09:56:04
+* @Last Modified time: 2020-11-06 19:24:58
 */
 
 `include "define.vh"
@@ -33,7 +33,7 @@ wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
 wire isReset_qout;
 
 
-gen_dffr # (.DW(64)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn&~flush));
+gen_dffr # (.DW(64)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
 
 wire [31:0] isInstrFetch;

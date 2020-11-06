@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 09:39:25
+* @Last Modified time: 2020-11-06 19:31:59
 */
 
 `include "iverilog.vh"
@@ -36,7 +36,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#400
+	#4000
 			$display("Time Out !!!");
 	 $finish;
 end

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:12:58
+* @Last Modified time: 2020-11-06 17:00:12
 */
 
 `include "define.vh"
@@ -113,7 +113,7 @@ generate
 				lu_rs1[(5+`RB)*i +: (5+`RB)]
 				} = lu_issue_info[LU_DW*i +: LU_DW];
 
-		assign lu_rs1_ready[i] = wbLog_qout[lu_rs1[(5+`RB)*i +: (5+`RB)]];
+		assign lu_rs1_ready[i] = wbLog_qout[lu_rs1[(5+`RB)*i +: (5+`RB)]] | (lu_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
 
 		assign lu_isClearRAW[i] = lu_buffer_malloc[i] & lu_rs1_ready[i];
 
@@ -209,13 +209,15 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 	wire rv64i_sw;
 	wire rv64i_sd;
 
+
 	wire su_rs1_ready;
 	wire su_rs2_ready;
 
 	wire [63:0] su_imm;
 
-	wire [(5+`RB) - 1:0] su_rd0;
-	wire [(5+`RB) - 1:0] su_rs1;
+	wire [5+`RB-1:0] su_rd0;
+	wire [5+`RB-1:0] su_rs1;
+	wire [5+`RB-1:0] su_rs2;
 
 	wire su_isClearRAW;
 
@@ -231,8 +233,8 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 			} = su_issue_info;
 
 
-	assign su_rs1_ready = wbLog_qout[su_rs1];
-	assign su_rs2_ready = wbLog_qout[su_rs2];
+	assign su_rs1_ready = wbLog_qout[su_rs1] | ( su_rs1[`RB +: 5] == 5'd0 );
+	assign su_rs2_ready = wbLog_qout[su_rs2] | ( su_rs2[`RB +: 5] == 5'd0 );
 
 	assign su_isClearRAW = ( ~su_fifo_empty ) & 
 											 su_rs1_ready & su_rs2_ready ;
