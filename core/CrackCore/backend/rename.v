@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 11:09:01
+* @Last Modified time: 2020-11-06 15:00:22
 */
 
 
@@ -50,9 +50,8 @@ module rename (
 wire [`RB-1:0] rd0_malloc;
 assign rd0_reName = {rd0_raw, rd0_malloc};
 
-assign rnAct_X_dnxt[ 0 +: `RB] = {`RB{1'b0}};
 generate
-	for ( genvar i = 1;  i < 32; i = i + 1 )begin
+	for ( genvar i = 0;  i < 32; i = i + 1 )begin
 		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_vaild & ~rd0_runOut ) ? rd0_malloc : rnAct_X_qout[`RB*i +: `RB];
 	end
 endgenerate

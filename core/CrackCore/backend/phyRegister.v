@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:42:43
+* @Last Modified time: 2020-11-06 15:49:26
 */
 
 `include "define.vh"
@@ -56,12 +56,9 @@ module phyRegister (
 //架构寄存器在commit阶段更新，同时释放rename位置
 wire  [ `RB*32 - 1 :0 ] archi_X_dnxt;
 wire  [ `RB*32 - 1 :0 ] archi_X_qout;
-//格式一致，排除X0
-
-assign archi_X_qout[`RB-1:0] = 'd0;
 
 generate
-	for ( genvar i = 1 ; i < 32; i = i + 1 ) begin
+	for ( genvar i = 0 ; i < 32; i = i + 1 ) begin
 		gen_dffr #(.DW(`RB)) archi_X ( .dnxt(archi_X_dnxt[`RB*i +: `RB]), .qout(archi_X_qout[`RB*i +: `RB]), .CLK(CLK), .RSTn(RSTn) );
 	end
 endgenerate
@@ -72,9 +69,8 @@ endgenerate
 //写操作需要改变重命名活动指针到一个新位置，需要是空的，否则挂起流水线
 
 
-assign rnAct_X_qout[ 0 +: `RB] = {`RB{1'b0}};
 generate
-	for ( genvar i = 1 ; i < 32; i = i + 1 ) begin
+	for ( genvar i = 0 ; i < 32; i = i + 1 ) begin
 		gen_dffr #(.DW(`RB)) 
 		rnActive_X 
 		( 
@@ -92,11 +88,8 @@ endgenerate
 wire [32*`RP-1 : 0] rnBufU_dnxt;
 wire [32*`RP-1 : 0] rnBufU_qout;
 
-assign rnBufU_dnxt[`RP-1 : 0] = 'b0;
-assign rnBufU_qout[`RP-1 : 0] = 'b0;
-
 generate
-	for ( genvar i = 1; i < 32; i = i + 1 ) begin
+	for ( genvar i = 0; i < 32; i = i + 1 ) begin
 
 		//commit的复位，重命名的置位
 		assign rnBufU_dnxt[`RP*i +: `RP] = flush ? 
@@ -105,7 +98,7 @@ generate
 															|   rnBufU_rename_set[`RP*i +: `RP]
 															& (~rnBufU_commit_rst[`RP*i +: `RP]));
 
-		gen_dffr #(.DW(`RP)) rnBufU ( .dnxt(rnBufU_dnxt[`RP*i +: `RP]), .qout(rnBufU_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );
+		gen_dffr #(.DW(`RP), .rstValue(`RP'b1)) rnBufU ( .dnxt(rnBufU_dnxt[`RP*i +: `RP]), .qout(rnBufU_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );
 
 
 	end
@@ -118,20 +111,18 @@ endgenerate
 	wire [32*`RP-1 : 0] wbLog_dnxt;
 	wire [32*`RP-1 : 0] wbLog_qout;
 
-	assign wbLog_dnxt[`RP-1 : 0] = {`RP{1'b1}};
-	assign wbLog_qout[`RP-1 : 0] = {`RP{1'b1}};
-
 generate
-	for ( genvar i = 1; i < 32; i = i + 1 ) begin
+	for ( genvar i = 0; i < 32; i = i + 1 ) begin
 
 		//写回时置1，commit时复位
 		assign wbLog_dnxt[`RP*i +: `RP] = flush ? 
 											({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
-											: (wbLog_qout[`RP*i +: `RP] 
-											| wbLog_writeb_set[`RP*i +: `RP]
-											& wbLog_commit_rst[`RP*i +: `RP]);
+											: 	(
+													wbLog_qout[`RP*i +: `RP] 
+													| wbLog_writeb_set[`RP*i +: `RP]
+													& ~wbLog_commit_rst[`RP*i +: `RP]);
 
-		gen_dffr #(.DW(`RP)) wbLog ( .dnxt(wbLog_dnxt[`RP*i +: `RP]), .qout(wbLog_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );
+		gen_dffr #(.DW(`RP), .rstValue(`RP'b1)) wbLog ( .dnxt(wbLog_dnxt[`RP*i +: `RP]), .qout(wbLog_qout[`RP*i +: `RP]), .CLK(CLK), .RSTn(RSTn) );
 
 	end
 endgenerate

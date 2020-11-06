@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 14:33:33
+* @Last Modified time: 2020-11-06 15:39:27
 */
 
 `include "define.vh"
@@ -65,10 +65,7 @@ wire [(64*`RP*32)-1:0] csr_writeback_dnxt;
 
 
 //write back
-
-
-
-assign regFileX_dnxt[64*`RP-1:0] = {64*`RP{1'b0}};
+assign regFileX_dnxt[0 +: 64*`RP] = {64*`RP{1'b0}};
 generate
 	
 	// for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
@@ -120,8 +117,7 @@ generate
 endgenerate
 
 
-	assign wbLog_writeb_set = {`RP{1'b1}}
-		|
+	assign wbLog_writeb_set = 
 		( adder_writeback_vaild << adder_rd0 )
 		|
 		( logCmp_writeback_vaild << logCmp_rd0 )

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 14:50:10
+* @Last Modified time: 2020-11-06 14:59:27
 */
 
 `include "define.vh"
@@ -65,9 +65,8 @@ initial $warning("暂时无法产生异常");
 	wire commit_wb = (wbLog_qout[commit_rd0] == 1'b1) & (~reOrder_fifo_empty);
 	wire commit_comfirm = ~commit_abort & commit_wb; 
 
-	assign archi_X_dnxt[0 +:`RB] = {`RB{1'b0}};
 generate
-	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
+	for ( genvar regNum = 0; regNum < 32; regNum = regNum + 1 ) begin
 
 			assign archi_X_dnxt[regNum*`RB +: `RB] = (( regNum == commit_rd0[`RB +: 5] ) & commit_comfirm)
 											? commit_rd0[`RB-1:0]

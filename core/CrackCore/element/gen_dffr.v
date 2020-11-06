@@ -4,13 +4,14 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-14 10:25:09
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 10:15:07
+* @Last Modified time: 2020-11-06 15:14:13
 */
 
 `timescale 1 ns / 1 ps
 
 module gen_dffr # (
-	parameter DW = 32
+	parameter DW = 32,
+	parameter rstValue = {DW{1'b0}}
 )
 (
 
@@ -25,7 +26,7 @@ reg [DW-1:0] qout_r;
 
 always @(posedge CLK or negedge RSTn) begin
 	if ( !RSTn )
-		qout_r <= {DW{1'b0}};
+		qout_r <= rstValue;
 	else                  
 		qout_r <= #1 dnxt;
 end

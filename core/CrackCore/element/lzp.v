@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-03 10:23:12
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 14:43:31
+* @Last Modified time: 2020-11-06 15:35:22
 */
 
 
@@ -29,7 +29,7 @@ assign all1 = &in_i;
 
 
 
-wire [127:0] invert_in = ~ (in_i | ( {128{1'b1}} & {DW{1'b0}} ) );
+wire [127:0] invert_in = ~ (in_i | ( {{(128-DW){1'b1}} , {DW{1'b0}}} ) );
 
 wire sel_lever0;
 wire index_lever0;
@@ -55,37 +55,37 @@ wire [63:0] index_lever6;
 wire [6:0] pos;
 generate
 	for ( genvar i = 0; i < 64; i = i + 1 ) begin
-		assign index_lever6[i] = invert_in[i*2] & invert_in[i*2+1];
+		assign index_lever6[i] = invert_in[i*2] | invert_in[i*2+1];
 		assign sel_lever6[i] = ~invert_in[i*2];
 	end
 
 	for ( genvar i = 0; i < 32; i = i + 1 ) begin
-		assign index_lever5[i] = index_lever6[i*2] & index_lever6[i*2+1];
+		assign index_lever5[i] = index_lever6[i*2] | index_lever6[i*2+1];
 		assign sel_lever5[i] = ~index_lever6[i*2];
 	end
 
 	for ( genvar i = 0; i < 16; i = i + 1 ) begin
-		assign index_lever4[i] = index_lever5[i*2] & index_lever5[i*2+1];
+		assign index_lever4[i] = index_lever5[i*2] | index_lever5[i*2+1];
 		assign sel_lever4[i] = ~index_lever5[i*2];
 	end	
 
 	for ( genvar i = 0; i < 8; i = i + 1 ) begin
-		assign index_lever3[i] = index_lever4[i*2] & index_lever4[i*2+1];
+		assign index_lever3[i] = index_lever4[i*2] | index_lever4[i*2+1];
 		assign sel_lever3[i] = ~index_lever4[i*2];
 	end	
 
 	for ( genvar i = 0; i < 4; i = i + 1 ) begin
-		assign index_lever2[i] = index_lever3[i*2] & index_lever3[i*2+1];
+		assign index_lever2[i] = index_lever3[i*2] | index_lever3[i*2+1];
 		assign sel_lever2[i] = ~index_lever3[i*2];
 	end	
 
 	for ( genvar i = 0; i < 2; i = i + 1 ) begin
-		assign index_lever1[i] = index_lever2[i*2] & index_lever2[i*2+1];
+		assign index_lever1[i] = index_lever2[i*2] | index_lever2[i*2+1];
 		assign sel_lever1[i] = ~index_lever2[i*2];
 	end	
 
 
-	assign index_lever0 = index_lever1[0] & index_lever1[1];
+	assign index_lever0 = index_lever1[0] | index_lever1[1];
 	assign sel_lever0 = ~index_lever1[0];
 	
 
