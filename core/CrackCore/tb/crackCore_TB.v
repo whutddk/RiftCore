@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:35:18
+* @Last Modified time: 2020-11-06 09:39:25
 */
 
 `include "iverilog.vh"
@@ -56,7 +56,7 @@ end
 
 		reg [7:0] itcm_mem [0:(ITCM_DP-1)*4];
 		initial begin
-			$readmemh("./tb/rv64ui-p-add.test", itcm_mem);
+			$readmemh("./tb/rv64ui-p-addi.test", itcm_mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 					`ITCM.ram[i][7:0] = itcm_mem[i*4+0];

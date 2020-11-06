@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:08:17
+* @Last Modified time: 2020-11-06 10:56:58
 */
 
 `include "define.vh"
@@ -33,8 +33,8 @@ module jal #
 
 );
 
-	wire bru_jal;
-	wire bru_jalr;
+	wire rv64i_jal;
+	wire rv64i_jalr;
 
 	wire [(5+`RB-1):0] jal_rd0_dnxt;
 	wire [63:0] pc;
@@ -42,8 +42,8 @@ module jal #
 	wire [63:0] src1;	
 
 	assign { 
-			bru_jal,
-			bru_jalr,
+			rv64i_jal,
+			rv64i_jalr,
 
 			jal_rd0_dnxt,
 			src1,
@@ -55,9 +55,9 @@ module jal #
 
 wire [63:0] jalr_pc_dnxt = pc + src1;
 
-wire [63:0] jal_res_dnxt = {64{(bru_jal | bru_jalr)}} & ( pc + ( is_rvc ? 64'd2 : 64'd4 ) );
+wire [63:0] jal_res_dnxt = {64{(rv64i_jal | rv64i_jalr)}} & ( pc + ( is_rvc ? 64'd2 : 64'd4 ) );
 
-wire jalr_vaild_dnxt = bru_jalr & jal_exeparam_vaild;
+wire jalr_vaild_dnxt = rv64i_jalr & jal_exeparam_vaild;
 
 
 

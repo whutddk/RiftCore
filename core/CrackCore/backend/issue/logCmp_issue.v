@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 14:52:32
+* @Last Modified time: 2020-11-06 11:12:45
 */
 
 `include "define.vh"
@@ -166,8 +166,8 @@ endgenerate
 	) logCmp_RAWClear(
 		.in_i(~logCmp_isClearRAW),
 		.pos_o(logCmp_buffer_pop_index),
-		.empty_o(logCmp_all_RAW),
-		.full_o()
+		.all1(logCmp_all_RAW),
+		.all0()
 	);
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 14:52:19
+* @Last Modified time: 2020-11-06 11:14:43
 */
 
 
@@ -157,8 +157,8 @@ endgenerate
 	) adder_RAWClear(
 		.in_i(~adder_isClearRAW),
 		.pos_o(adder_buffer_pop_index),
-		.empty_o(adder_all_RAW),
-		.full_o()
+		.all1(adder_all_RAW),
+		.all0()
 	);
 
 	wire [EXE_DW-1:0] adder_exeparam_dnxt = adder_exeparam_vaild_dnxt ? { 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:57:59
+* @Last Modified time: 2020-11-06 11:09:01
 */
 
 
@@ -34,34 +34,34 @@ module rename (
 	input [32*`RP-1 : 0] rnBufU_qout,
 
 	input [4:0] rs1_raw,
-	output [`RB-1:0] rs1_reName,
+	output [5+`RB-1:0] rs1_reName,
 
 	input [4:0] rs2_raw,
-	output [`RB-1:0] rs2_reName,
+	output [5+`RB-1:0] rs2_reName,
 	
 	input rd0_raw_vaild,
 	input [4:0] rd0_raw,
-	output [`RB-1:0] rd0_reName,
+	output [5+`RB-1:0] rd0_reName,
 	output rd0_runOut
 
 );
 
 
-
-
+wire [`RB-1:0] rd0_malloc;
+assign rd0_reName = {rd0_raw, rd0_malloc};
 
 assign rnAct_X_dnxt[ 0 +: `RB] = {`RB{1'b0}};
 generate
 	for ( genvar i = 1;  i < 32; i = i + 1 )begin
-		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_vaild & ~rd0_runOut ) ? rd0_reName : rnAct_X_qout[`RB*i +: `RB];
+		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_vaild & ~rd0_runOut ) ? rd0_malloc : rnAct_X_qout[`RB*i +: `RB];
 	end
 endgenerate
 	
 
 
 //指示顺序执行当前应该读哪个寄存器
-assign rs1_reName = rnAct_X_qout[rs1_raw*`RB +: `RB];
-assign rs2_reName = rnAct_X_qout[rs2_raw*`RB +: `RB];
+assign rs1_reName = {rs1_raw, rnAct_X_qout[rs1_raw*`RB +: `RB]};
+assign rs2_reName = {rs2_raw, rnAct_X_qout[rs2_raw*`RB +: `RB]};
 
 
 
@@ -71,15 +71,15 @@ lzp #(
 	.CW(`RB)
 ) rd0_index(
 	.in_i(regX_used),
-	.pos_o(rd0_reName),
-	.full_o(rd0_runOut),
-	.empty_o()
+	.pos_o(rd0_malloc),
+	.all0(),
+	.all1(rd0_runOut)
 );
 
 
 
 assign rnBufU_rename_set = (rd0_raw_vaild & ~rd0_runOut)
-								? {32*`RP{1'b0}} | (1'b1 << rd0_reName)
+								? {32*`RP{1'b0}} | (1'b1 << rd0_malloc)
 								: {32*`RP{1'b0}};
 
 

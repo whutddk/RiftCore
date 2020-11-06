@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:48:36
+* @Last Modified time: 2020-11-06 14:33:33
 */
 
 `include "define.vh"
@@ -66,70 +66,74 @@ wire [(64*`RP*32)-1:0] csr_writeback_dnxt;
 
 //write back
 
-assign wbLog_writeb_set[`RP-1 : 0]  = {`RP{1'b1}};
+
 
 assign regFileX_dnxt[64*`RP-1:0] = {64*`RP{1'b0}};
 generate
 	
-	for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
-		for ( genvar depth = 0 ; depth < `RP; depth = depth + 1 ) begin
-
-			localparam  SEL = regNum*4+depth;
+	// for ( genvar regNum = 1; regNum < 32; regNum = regNum + 1 ) begin
+	// 	for ( genvar depth = 0 ; depth < `RP; depth = depth + 1 ) begin
+	for ( genvar SEL = `RP; SEL < 32*`RP; SEL = SEL + 1 ) begin
+			// localparam  SEL = regNum*`RP+depth;
 
 			assign regFileX_dnxt[64*SEL +: 64] =  
 				(
 					//adder wb
-					{64{adder_writeback_vaild & (adder_rd0 == SEL)}} & adder_res
+					({64{adder_writeback_vaild & (adder_rd0 == SEL)}} & adder_res)
 					|
 					//logCmp wb
-					{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} & logCmp_res
+					({64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} & logCmp_res)
 					|
 					//shift wb
-					{64{shift_writeback_vaild & (shift_rd0 == SEL)}} & shift_res
+					({64{shift_writeback_vaild & (shift_rd0 == SEL)}} & shift_res)
 					|
 					//jal wb
-					{64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res
+					({64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res)
 					|
 					//lsu wb
-					{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res
+					({64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res)
 					|
 					//csr wb
-					{64{csr_writeback_vaild & (csr_rd0 == SEL)}} & csr_res
+					({64{csr_writeback_vaild & (csr_rd0 == SEL)}} & csr_res)
 				)
 				|
 				(
 					//nobody wb
-					(~{64{adder_writeback_vaild & (adder_rd0 == SEL)}} &
-					~{64{logCmp_writeback_vaild & (logCmp_rd0 == SEL)}} &
-					~{64{shift_writeback_vaild & (shift_rd0 == SEL)}} &
-					~{64{jal_writeback_vaild & (jal_rd0 == SEL)}} &
-					~{64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} &
-					~{64{csr_writeback_vaild & (csr_rd0 == SEL)}}) 
+					( 
+						 
+						{64{~(adder_writeback_vaild & adder_rd0 == SEL)
+						& ~(logCmp_writeback_vaild & logCmp_rd0 == SEL)
+						& ~(shift_writeback_vaild & shift_rd0 == SEL)
+						& ~(jal_writeback_vaild & jal_rd0 == SEL)
+						& ~(lsu_writeback_vaild & lsu_rd0 == SEL)
+						& ~(csr_writeback_vaild & csr_rd0 == SEL)}}
+					) 
 					& regFileX_qout[64*SEL +: 64]
 				);
 
-			assign wbLog_writeb_set[SEL] = 
-				(adder_writeback_vaild & (adder_rd0 == SEL))
-				|
-				(logCmp_writeback_vaild & (logCmp_rd0 == SEL))
-				|
-				(shift_writeback_vaild & (shift_rd0 == SEL))
-				|
-				(jal_writeback_vaild & (jal_rd0 == SEL))
-				| 
-				(lsu_writeback_vaild & (lsu_rd0 == SEL))
-				| 
-				(csr_writeback_vaild & (csr_rd0 == SEL))
-				;
 
 
-		end
 	end
+	// 	end
+	// end
 
 endgenerate
 
 
-
+	assign wbLog_writeb_set = {`RP{1'b1}}
+		|
+		( adder_writeback_vaild << adder_rd0 )
+		|
+		( logCmp_writeback_vaild << logCmp_rd0 )
+		|
+		( shift_writeback_vaild << shift_rd0 )
+		|
+		( jal_writeback_vaild << jal_rd0 )
+		| 
+		( lsu_writeback_vaild << lsu_rd0 )
+		| 
+		( csr_writeback_vaild << csr_rd0 )
+		;
 
 
 

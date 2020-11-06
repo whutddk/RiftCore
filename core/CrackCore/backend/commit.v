@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:57:08
+* @Last Modified time: 2020-11-06 14:50:10
 */
 
 `include "define.vh"
@@ -60,7 +60,7 @@ initial $warning("暂时无法产生异常");
 
 	assign rnBufU_commit_rst = wbLog_commit_rst;
 
-	assign reOrder_fifo_pop = ~reOrder_fifo_empty;
+	assign reOrder_fifo_pop = commit_comfirm;
 
 	wire commit_wb = (wbLog_qout[commit_rd0] == 1'b1) & (~reOrder_fifo_empty);
 	wire commit_comfirm = ~commit_abort & commit_wb; 

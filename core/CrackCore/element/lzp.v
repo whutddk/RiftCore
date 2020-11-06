@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-03 10:23:12
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:10:50
+* @Last Modified time: 2020-11-06 14:43:31
 */
 
 
-
+//最后一个0的位置
 
 module lzp #(
 	parameter CW = 2,
@@ -16,19 +16,20 @@ module lzp #(
 ) (
 	input [DW-1:0] in_i,
 	output [CW-1:0] pos_o,
-	output full_o,
-	output empty_o
+	output all1,
+	output all0
 );
 
-
-assign full_o = &in_i;
-assign empty_o = &(~in_i);
-
-
-
+//全部是0
+assign all0 = &(~in_i);
+//没有0，全是1
+assign all1 = &in_i;
 
 
-wire [127:0] invert_in = ~ (in_i | ( {128{1'b1}} | {DW{1'b0}} ) );
+
+
+
+wire [127:0] invert_in = ~ (in_i | ( {128{1'b1}} & {DW{1'b0}} ) );
 
 wire sel_lever0;
 wire index_lever0;

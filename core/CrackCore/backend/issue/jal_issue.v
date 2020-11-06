@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 18:51:18
+* @Last Modified time: 2020-11-06 11:11:14
 */
 
 `include "define.vh"
@@ -99,8 +99,8 @@ endgenerate
 	) jal_RAWClear(
 		.in_i(~jal_isClearRAW),
 		.pos_o(jal_buffer_pop_index),
-		.empty_o(jal_all_RAW),
-		.full_o()
+		.all1(jal_all_RAW),
+		.all0()
 	);
 
 

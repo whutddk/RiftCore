@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 18:02:23
+* @Last Modified time: 2020-11-06 11:12:58
 */
 
 `include "define.vh"
@@ -137,14 +137,13 @@ endgenerate
 
 wire lu_all_RAW;
 
-	//应该为组合逻辑实现
 	lzp #(
 		.CW($clog2(LU_DP))
 	) lu_RAWClear(
 		.in_i(~lu_isClearRAW),
 		.pos_o(lu_buffer_pop_index),
-		.empty_o(lu_all_RAW),
-		.full_o()
+		.all1(lu_all_RAW),
+		.all0()
 	);
 
 

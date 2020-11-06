@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:07:39
+* @Last Modified time: 2020-11-06 11:13:09
 */
 
 `include "define.vh"
@@ -178,8 +178,8 @@ endgenerate
 	) shift_RAWClear(
 		.in_i(~shift_isClearRAW),
 		.pos_o(shift_buffer_pop_index),
-		.empty_o(shift_all_RAW),
-		.full_o()
+		.all1(shift_all_RAW),
+		.all0()
 	);
 
 

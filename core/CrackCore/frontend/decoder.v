@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:24:44
+* @Last Modified time: 2020-11-06 10:10:59
 */
 
 
@@ -226,7 +226,8 @@ module decoder
 	wire iType = rv64i_jalr 
 					| rv64i_lb | rv64i_lh | rv64i_lw | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_ld
 					| rv64i_addi | rv64i_addiw | rv64i_slti | rv64i_sltiu | rv64i_xori | rv64i_ori | rv64i_andi
-					| rv64i_fence | rv64zi_fence_i;
+					| rv64i_fence | rv64zi_fence_i
+					| rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 	wire sType = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
 	wire bType = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
 	wire uType = rv64i_lui | op_auipc;
