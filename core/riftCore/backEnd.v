@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:46
+* @Last Modified time: 2020-11-08 15:46:47
 */
 
 `timescale 1 ns / 1 ps
@@ -38,7 +38,7 @@ module backEnd (
 	assign isFlush = flush;
 
 
-
+	wire [63:0] commit_pc;
 
 	wire  [(64*`RP*32)-1:0] regFileX_dnxt;
 	wire [(64*`RP*32)-1:0] regFileX_qout;
@@ -136,7 +136,6 @@ module backEnd (
 	wire [(5+`RB-1):0] csr_rd0;
 	wire [63:0] csr_res;
 
-	wire csrILP_ready;
 	wire suILP_ready;
 //C3
 
@@ -466,7 +465,7 @@ csr_issue i_csrIssue(
 	.wbLog_qout(wbLog_qout),
 
 	//from commit
-	.csrILP_ready(csrILP_ready),
+	.commit_pc(commit_pc),
 
 	.CLK(CLK),
 	.RSTn(RSTn&(~flush))
@@ -671,7 +670,7 @@ commit i_commit(
 
 	.isAsynExcept(1'b0),
 
-	.csrILP_ready(csrILP_ready),
+	.commit_pc(commit_pc),
 	.suILP_ready(suILP_ready)
 );
 

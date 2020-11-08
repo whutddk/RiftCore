@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:51
+* @Last Modified time: 2020-11-08 15:04:12
 */
 
 
@@ -78,7 +78,7 @@ lzp #(
 
 
 assign rnBufU_rename_set = (rd0_raw_vaild & ~rd0_runOut)
-								? {32*`RP{1'b0}} | (1'b1 << rd0_malloc)
+								? {32*`RP{1'b0}} | (1'b1 << rd0_reName)
 								: {32*`RP{1'b0}};
 
 

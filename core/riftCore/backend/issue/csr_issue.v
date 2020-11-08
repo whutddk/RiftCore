@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:01
+* @Last Modified time: 2020-11-08 15:52:39
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -29,7 +29,7 @@ module csr_issue #
 	input [32*`RP-1 : 0] wbLog_qout,
 
 	//from commit
-	input csrILP_ready,
+	input [63:0] commit_pc,
 
 	input CLK,
 	input RSTn
@@ -50,14 +50,16 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 	wire rv64csr_rsi;
 	wire rv64csr_rci;
 
+	wire [63:0] issue_pc;
 	wire [(5+`RB)-1:0] csr_rd0;
 	wire [(5+`RB)-1:0] csr_rs1;
 	wire [11:0] csr_imm;
 
+	wire csrILP_ready = (commit_pc == issue_pc);
 
 	assign { 
 			rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-			csr_imm, csr_rd0, csr_rs1
+			issue_pc, csr_imm, csr_rd0, csr_rs1
 
 
 			} = csr_issue_info;

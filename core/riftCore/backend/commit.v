@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:37
+* @Last Modified time: 2020-11-08 15:47:33
 */
 
 `timescale 1 ns / 1 ps
@@ -34,21 +34,20 @@ module commit (
 	//from Outsize
 	input isAsynExcept,
 
-	output csrILP_ready,
+	output [63:0] commit_pc,
 	output suILP_ready
 );
 
 initial $warning("暂时无法产生异常");
 	wire isSynExcept  = 1'b0;
 
-	wire [63:0] commit_pc;
 	wire [5+`RB-1:0] commit_rd0;
 	wire isBranch;
 
 	wire isSu;
 	wire isCsr;
 
-	assign csrILP_ready = isCsr;
+	wire csrILP_ready = isCsr;
 	assign suILP_ready = isSu;
 
 	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr} = commit_fifo;
@@ -72,10 +71,14 @@ generate
 			assign archi_X_dnxt[regNum*`RB +: `RB] = (( regNum == commit_rd0[`RB +: 5] ) & commit_comfirm)
 											? commit_rd0[`RB-1:0]
 											: archi_X_qout[regNum*`RB +: `RB];
+
+			assign wbLog_commit_rst[regNum*`RP +: `RP] = (( regNum == commit_rd0[`RB +: 5] ) & commit_comfirm)
+														?	(1'b1 <<	archi_X_qout[regNum*`RB +: `RB])
+														: {`RP{1'b0}};
 	end
 endgenerate
 
-	assign wbLog_commit_rst = commit_comfirm ? 1'b1 << commit_rd0 : {32*`RP{1'b0}};
+
 
 
 
