@@ -4,9 +4,9 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 14:45:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:08:19
+* @Last Modified time: 2020-11-08 14:53:44
 */
-
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module logCmp #

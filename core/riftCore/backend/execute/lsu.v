@@ -4,9 +4,9 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:08:22
+* @Last Modified time: 2020-11-08 14:53:46
 */
-
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module lsu #

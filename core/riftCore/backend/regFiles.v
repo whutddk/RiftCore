@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-21 14:34:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:48:13
+* @Last Modified time: 2020-11-08 14:51:48
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module regFiles

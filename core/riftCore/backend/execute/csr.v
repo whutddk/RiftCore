@@ -4,9 +4,9 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:08:14
+* @Last Modified time: 2020-11-08 14:53:42
 */
-
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module csr #

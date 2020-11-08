@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:32:59
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:00:06
+* @Last Modified time: 2020-11-08 14:51:42
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module dtcm #

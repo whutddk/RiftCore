@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 15:39:27
+* @Last Modified time: 2020-11-08 14:51:54
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module writeBack (

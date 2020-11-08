@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 15:34:24
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 11:19:47
+* @Last Modified time: 2020-11-08 14:52:07
 */
 
+`timescale 1 ns / 1 ps
 
 module issue_fifo #(
 	parameter DW = 100,

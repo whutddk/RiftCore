@@ -4,8 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 19:16:07
+* @Last Modified time: 2020-11-08 14:52:04
 */
+
+`timescale 1 ns / 1 ps
 
 module issue_buffer #
 (

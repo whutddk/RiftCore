@@ -1,7 +1,7 @@
 @REM @Author: Ruige Lee
 @REM @Date:   2020-11-02 11:29:57
 @REM @Last Modified by:   Ruige Lee
-@REM Modified time: 2020-11-06 10:19:08
+@REM Modified time: 2020-11-08 14:56:51
 
 
 
@@ -16,7 +16,7 @@ iverilog.exe -W all -o ./build/wave.iverilog -y ./ -y ./backend -y ./backend/iss
 
 vvp.exe -n ./build/wave.iverilog -lxt2
 
-rem gtkwave.exe ./build/wave.vcd
+gtkwave.exe ./build/wave.vcd
 
 rem @pause
 

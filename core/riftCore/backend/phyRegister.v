@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 20:13:19
+* @Last Modified time: 2020-11-08 14:51:45
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module phyRegister (

@@ -4,8 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 17:50:19
+* @Last Modified time: 2020-11-08 14:54:36
 */
+
+`timescale 1 ns / 1 ps
 
 `include "define.vh"
 `include "iverilog.vh"

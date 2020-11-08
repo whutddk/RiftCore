@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 17:44:55
+* @Last Modified time: 2020-11-08 14:52:46
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module backEnd (

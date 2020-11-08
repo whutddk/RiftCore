@@ -4,10 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-03 10:23:12
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 15:35:22
+* @Last Modified time: 2020-11-08 14:54:22
 */
 
-
+`timescale 1 ns / 1 ps
 //最后一个0的位置
 
 module lzp #(

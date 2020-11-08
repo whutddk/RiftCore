@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 15:00:22
+* @Last Modified time: 2020-11-08 14:51:51
 */
 
 
-
+`timescale 1 ns / 1 ps
 
 //根据 ROB表中记录的实际寄存器使用情况，重新分配寄存器并记录回ROB
 //1

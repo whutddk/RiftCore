@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 17:52:17
+* @Last Modified time: 2020-11-08 14:52:16
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module shift_issue #

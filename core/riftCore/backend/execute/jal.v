@@ -4,9 +4,9 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 10:56:58
+* @Last Modified time: 2020-11-08 14:53:43
 */
-
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module jal #

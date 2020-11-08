@@ -4,10 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 19:21:20
+* @Last Modified time: 2020-11-08 14:51:19
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
+
+`timescale 1 ns / 1 ps
 
 `include "define.vh"
 

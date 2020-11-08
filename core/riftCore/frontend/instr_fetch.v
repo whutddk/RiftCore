@@ -4,9 +4,10 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-05 16:22:38
+* @Last Modified time: 2020-11-08 14:51:26
 */
 
+`timescale 1 ns / 1 ps
 `include "define.vh"
 
 module instr_fetch (
