@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:54
+* @Last Modified time: 2020-11-09 16:23:00
 */
 
 `timescale 1 ns / 1 ps
@@ -39,6 +39,11 @@ module writeBack (
 	input [(5+`RB-1):0] jal_rd0,
 	input [63:0] jal_res,
 
+	//from bru
+	input bru_writeback_vaild,
+	input [(5+`RB-1):0] bru_rd0,
+	input [63:0] bru_res,
+
 	//from lsu
 	input lsu_writeback_vaild,
 	input [(5+`RB-1):0] lsu_rd0,
@@ -59,6 +64,8 @@ wire [(64*`RP*32)-1:0] logCmp_writeback_dnxt;
 wire [(64*`RP*32)-1:0] shift_writeback_dnxt;
 //jal wb
 wire [(64*`RP*32)-1:0] jal_writeback_dnxt;
+//bru wb
+wire [(64*`RP*32)-1:0] bru_writeback_dnxt;
 //lsu wb
 wire [(64*`RP*32)-1:0] lsu_writeback_dnxt;
 //csr wb
@@ -88,6 +95,9 @@ generate
 					//jal wb
 					({64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res)
 					|
+					//bru wb
+					({64{bru_writeback_vaild & (bru_rd0 == SEL)}} & bru_res)
+					|
 					//lsu wb
 					({64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res)
 					|
@@ -103,6 +113,7 @@ generate
 						& ~(logCmp_writeback_vaild & logCmp_rd0 == SEL)
 						& ~(shift_writeback_vaild & shift_rd0 == SEL)
 						& ~(jal_writeback_vaild & jal_rd0 == SEL)
+						& ~(bru_writeback_vaild & bru_rd0 == SEL)
 						& ~(lsu_writeback_vaild & lsu_rd0 == SEL)
 						& ~(csr_writeback_vaild & csr_rd0 == SEL)}}
 					) 
@@ -126,6 +137,8 @@ endgenerate
 		( shift_writeback_vaild << shift_rd0 )
 		|
 		( jal_writeback_vaild << jal_rd0 )
+		| 
+		( bru_writeback_vaild << bru_rd0 )
 		| 
 		( lsu_writeback_vaild << lsu_rd0 )
 		| 

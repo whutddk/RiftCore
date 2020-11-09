@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 11:50:22
+* @Last Modified time: 2020-11-09 16:20:50
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -20,12 +20,15 @@ module bru #
 	input bru_exeparam_vaild,
 	input [DW-1:0] bru_exeparam, 
 
-
 	// to pc generate
 	input bru_pcGen_ready,
 	output takenBranch_qout,
 	output takenBranch_vaild_qout,
 
+
+	output bru_writeback_vaild,
+	output [63:0] bru_res_qout,
+	output [(5+`RB)-1:0] bru_rd0_qout,
 
 	input CLK,
 	input RSTn
@@ -42,6 +45,8 @@ module bru #
 
 	wire [63:0] op1;
 	wire [63:0] op2;
+	wire [(5+`RB)-1:0] bru_rd0_dnxt;
+
 
 
 	assign { 
@@ -52,6 +57,7 @@ module bru #
 			bru_ltu,
 			bru_gtu,
 
+			bru_rd0_dnxt,
 			op1,
 			op2
 			} = bru_exeparam;
@@ -79,6 +85,15 @@ gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .C
 
 
 assign bru_exeparam_ready = bru_pcGen_ready;
+
+
+gen_dffr # (.DW((5+`RB))) bru_rd0 ( .dnxt(bru_rd0_dnxt), .qout(bru_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+assign bru_res_qout = 64'b0;
+assign bru_writeback_vaild = takenBranch_vaild_qout;
+
+
+
+
 
 endmodule
 

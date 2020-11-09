@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 11:49:06
+* @Last Modified time: 2020-11-09 16:55:53
 */
 
 `timescale 1 ns / 1 ps
@@ -130,6 +130,9 @@ module backEnd (
 	wire jal_writeback_vaild;
 	wire [63:0] jal_res;
 	wire [(5+`RB-1):0] jal_rd0;
+	wire bru_writeback_vaild;
+	wire [(5+`RB-1):0] bru_rd0;
+	wire [63:0] bru_res;
 	wire lsu_writeback_vaild;
 	wire [(5+`RB-1):0] lsu_rd0;
 	wire [63:0] lsu_res;
@@ -577,6 +580,10 @@ bru i_bru(
 	.takenBranch_qout(takenBranch_qout),
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
 
+	.bru_writeback_vaild(bru_writeback_vaild),
+	.bru_res_qout(bru_res),
+	.bru_rd0_qout(bru_rd0),
+
 	.CLK(CLK),
 	.RSTn(RSTn&(~flush))
 );
@@ -642,6 +649,10 @@ writeBack i_writeBack(
 	.jal_res(jal_res),
 	.jal_rd0(jal_rd0),
 	
+	.bru_writeback_vaild(bru_writeback_vaild),
+	.bru_res(bru_res),
+	.bru_rd0(bru_rd0),
+
 	.lsu_writeback_vaild(lsu_writeback_vaild),
 	.lsu_rd0(lsu_rd0),
 	.lsu_res(lsu_res),
@@ -652,6 +663,7 @@ writeBack i_writeBack(
 
 );
 
+wire commit_abort;
 //C7 and T7
 commit i_commit(
 	.archi_X_dnxt(archi_X_dnxt),
@@ -667,7 +679,7 @@ commit i_commit(
 	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
-	.commit_abort(flush),
+	.commit_abort(commit_abort),
 
 	.isAsynExcept(1'b0),
 
@@ -676,7 +688,7 @@ commit i_commit(
 );
 
 
-
+gen_dffr # (.DW(1)) beflush ( .dnxt(commit_abort), .qout(flush), .CLK(CLK), .RSTn(RSTn));
 
 
 

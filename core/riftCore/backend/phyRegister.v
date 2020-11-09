@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-23 15:42:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:45
+* @Last Modified time: 2020-11-09 17:03:46
 */
 
 `timescale 1 ns / 1 ps
@@ -91,7 +91,7 @@ generate
 
 		//commit的复位，重命名的置位
 		assign rnBufU_dnxt[`RP*i +: `RP] = flush ? 
-													({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
+													(1'b1 << archi_X_qout[`RB*i +: `RB])
 													: ( ( rnBufU_qout[`RP*i +: `RP] 
 														| rnBufU_rename_set[`RP*i +: `RP] )
 														& (~rnBufU_commit_rst[`RP*i +: `RP]));
@@ -113,7 +113,7 @@ generate
 
 		//写回时置1，commit时复位
 		assign wbLog_dnxt[`RP*i +: `RP] = flush ? 
-											({`RP{1'b1}} << archi_X_qout[`RB*i +: `RB])
+											(1'b1 << archi_X_qout[`RB*i +: `RB])
 											: 	(
 													(wbLog_qout[`RP*i +: `RP] 
 													| wbLog_writeb_set[`RP*i +: `RP])

@@ -32,9 +32,9 @@
 `define JAL_ISSUE_INFO_DP 2
 `define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+1)
 
-`define BRU_ISSUE_INFO_DW (6+(5+`RB)+(5+`RB))
+`define BRU_ISSUE_INFO_DW (6+(5+`RB)+(5+`RB)+(5+`RB))
 `define BRU_ISSUE_INFO_DP 2
-`define BRU_EXEPARAM_DW (6+64+64)
+`define BRU_EXEPARAM_DW (6+(5+`RB)+64+64)
 
 `define LU_ISSUE_INFO_DW (7+64+(5+`RB)+(5+`RB))
 `define LU_ISSUE_INFO_DP 4

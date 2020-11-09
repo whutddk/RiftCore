@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 16:05:18
+* @Last Modified time: 2020-11-09 16:14:27
 */
 
 `timescale 1 ns / 1 ps
@@ -230,7 +230,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	assign bru_fifo_push = (rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
 	assign bru_dispat_info = {
 								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
-								rs1_reName, rs2_reName
+								rd0_reName, rs1_reName, rs2_reName
 							};
 
 	assign csr_fifo_push = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & dispat_vaild & (~csr_fifo_full);
@@ -297,12 +297,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 					| (fence_ALL & ~su_fifo_empty & (|lu_buffer_malloc) );
 
 
-	wire rd0_raw_vaild = | {rv64i_lui, rv64i_auipc, 
-							rv64i_jal, rv64i_jalr, 
-							rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
-							rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
-							rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,		
-							rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci};
+	wire rd0_raw_vaild = reOrder_fifo_push;
 
 
 

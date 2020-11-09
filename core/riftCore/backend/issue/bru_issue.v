@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:59
+* @Last Modified time: 2020-11-09 16:15:37
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -44,6 +44,7 @@ module bru_issue #
 	wire rv64i_bltu;
 	wire rv64i_bgeu;
 
+	wire [5+`RB-1:0] bru_rd0;
 	wire [5+`RB-1:0] bru_rs1;
 	wire [5+`RB-1:0] bru_rs2;
 
@@ -62,6 +63,7 @@ module bru_issue #
 				rv64i_bltu,
 				rv64i_bgeu,
 
+				bru_rd0,
 				bru_rs1,
 				bru_rs2
 			} = bru_issue_info;
@@ -94,6 +96,7 @@ module bru_issue #
 								rv64i_bltu,
 								rv64i_bgeu,
 
+								bru_rd0,
 								op1,
 								op2
 								}
