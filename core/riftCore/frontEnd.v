@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 11:48:51
+* @Last Modified time: 2020-11-09 18:05:07
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -33,8 +33,8 @@ wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
 wire isReset_qout;
 
 
-gen_dffr # (.DW(64)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
+// gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
 
 wire [31:0] isInstrFetch;
 wire [31:0] instr;
@@ -48,7 +48,7 @@ pcGenerate i_pcGenerate
 	//feedback
 	.fetch_pc_dnxt(fetch_pc_dnxt),
 	.fetch_pc_reg(fetch_pc_qout),
-	.isReset(~isReset_qout),
+	// .isReset(~isReset_qout),
 
 	//from jalr exe
 	.jalr_vaild(jalr_vaild),

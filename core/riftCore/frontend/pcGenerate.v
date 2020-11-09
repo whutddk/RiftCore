@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 17:54:15
+* @Last Modified time: 2020-11-09 18:05:20
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -18,7 +18,7 @@ module pcGenerate (
 	//feedback
 	output [63:0] fetch_pc_dnxt,
 	input [63:0] fetch_pc_reg,
-	input isReset,
+	// input isReset,
 
 	//from jalr exe
 	input jalr_vaild,
@@ -170,7 +170,7 @@ wire ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_vaild;
 wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_vaild;
 
 //计算两种分支结果
-assign next_pc = isReset ? (64'h80000000) : fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
+assign next_pc = fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
 assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_reg + imm) )
 					| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
 					| ( {64{isJalr & !ras_pop & jalr_vaild}} & jalr_pc  );
