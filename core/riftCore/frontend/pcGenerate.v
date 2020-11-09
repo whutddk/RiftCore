@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 15:34:14
+* @Last Modified time: 2020-11-09 17:54:15
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -93,7 +93,7 @@ wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
 
-assign fetch_pc_dnxt = 	pcGen_fetch_vaild ? (
+assign fetch_pc_dnxt = 	(isInstrReadOut & ~instrFifo_full) ? (
 						( {64{isExpection}} & expection_pc )
 						| 
 						( ( {64{~isExpection}} ) & 
