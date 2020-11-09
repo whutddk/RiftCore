@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:57
+* @Last Modified time: 2020-11-09 09:43:38
 */
 
 
@@ -161,6 +161,7 @@ endgenerate
 		.all0()
 	);
 
+	wire adder_exeparam_vaild_dnxt;
 	wire [EXE_DW-1:0] adder_exeparam_dnxt = adder_exeparam_vaild_dnxt ? { 
 								adder_fun_add[ adder_buffer_pop_index ],
 								adder_fun_sub[ adder_buffer_pop_index ],

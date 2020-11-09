@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:42
+* @Last Modified time: 2020-11-09 10:09:57
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -37,6 +37,15 @@ module csr #
 	wire [63:0] op;
 	wire [11:0] addr;
 
+wire [63:0] mstatus_dnxt,mstatus_qout;
+wire [63:0] mie_dnxt, mie_qout;
+wire [63:0] mtvec_dnxt,mtvec_qout; 
+wire [63:0] mepc_dnxt,mepc_qout;
+wire [63:0] mcause_dnxt,mcause_qout;
+wire [63:0] mtval_dnxt,mtval_qout;
+wire [63:0] mip_dnxt,mip_qout;
+
+
 	assign { 
 			rv64csr_rw,
 			rv64csr_rs,
@@ -58,7 +67,7 @@ initial $warning("暂时不产生异常");
 
 wire illagle_op = 1'b0;
 
-wire [63:0] csr_res_dnxt = (~dontRead) &
+wire [63:0] csr_res_dnxt = {64{(~dontRead) & csr_exeparam_vaild}} &
 						(
 							({64{addr == 12'hF11}} & {32'b0,mvendorid})
 							|
@@ -87,7 +96,7 @@ wire [63:0] csr_res_dnxt = (~dontRead) &
 
 
 
-assign mstatus_dnxt = {64{~dontWrite}} & {64{addr == 12'h300}} &
+assign mstatus_dnxt = {64{~dontWrite & (addr == 12'h300) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -96,7 +105,7 @@ assign mstatus_dnxt = {64{~dontWrite}} & {64{addr == 12'h300}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mie_dnxt = {64{~dontWrite}} & {64{addr == 12'h304}} &
+assign mie_dnxt = {64{~dontWrite & (addr == 12'h304) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -105,7 +114,7 @@ assign mie_dnxt = {64{~dontWrite}} & {64{addr == 12'h304}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mtvec_dnxt = {64{~dontWrite}} & {64{addr == 12'h305}} &
+assign mtvec_dnxt = {64{~dontWrite & (addr == 12'h305) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -114,7 +123,7 @@ assign mtvec_dnxt = {64{~dontWrite}} & {64{addr == 12'h305}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mepc_dnxt = {64{~dontWrite}} & {64{addr == 12'h341}} &
+assign mepc_dnxt = {64{~dontWrite & (addr == 12'h341) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -123,7 +132,7 @@ assign mepc_dnxt = {64{~dontWrite}} & {64{addr == 12'h341}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mcause_dnxt = {64{~dontWrite}} & {64{addr == 12'h342}} &
+assign mcause_dnxt = {64{~dontWrite & (addr == 12'h342) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -132,7 +141,7 @@ assign mcause_dnxt = {64{~dontWrite}} & {64{addr == 12'h342}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mtval_dnxt = {64{~dontWrite}} & {64{addr == 12'h343}} &
+assign mtval_dnxt = {64{~dontWrite & (addr == 12'h343) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -141,7 +150,7 @@ assign mtval_dnxt = {64{~dontWrite}} & {64{addr == 12'h343}} &
 							({64{rv64csr_rc}} & (~op))
 						);
 
-assign mip_dnxt = {64{~dontWrite}} & {64{addr == 12'h344}} &
+assign mip_dnxt = {64{~dontWrite & (addr == 12'h344) & csr_exeparam_vaild}} &
 						(
 							({64{rv64csr_rw}} & op)
 							|
@@ -155,13 +164,7 @@ assign mip_dnxt = {64{~dontWrite}} & {64{addr == 12'h344}} &
 
 
 
-wire [63:0] mstatus_dnxt,mstatus_qout;
-wire [63:0] mie_dnxt, mie_qout;
-wire [63:0] mtvec_dnxt,mtvec_qout; 
-wire [63:0] mepc_dnxt,mepc_qout;
-wire [63:0] mcause_dnxt,mcause_qout;
-wire [63:0] mtval_dnxt,mtval_qout;
-wire [63:0] mip_dnxt,mip_qout;
+
 
 
 // Machine Information Registers

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:12
+* @Last Modified time: 2020-11-09 10:54:55
 */
 
 `timescale 1 ns / 1 ps
@@ -92,8 +92,8 @@ generate
 				logCmp_rs2[(5+`RB)*i +: (5+`RB)]
 				} = logCmp_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[logCmp_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64] | (logCmp_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
-		assign rs2_ready[i] = wbLog_qout[logCmp_rs2[(5+`RB)*i +: (5+`RB)]*64 +: 64] | (logCmp_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs1_ready[i] = wbLog_qout[logCmp_rs1[(5+`RB)*i +: (5+`RB)]] | (logCmp_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[logCmp_rs2[(5+`RB)*i +: (5+`RB)]] | (logCmp_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
 		
 
 		assign logCmp_isClearRAW[i] = 	( logCmp_buffer_malloc[i] ) & 
@@ -120,8 +120,8 @@ generate
 		assign logCmp_fun_or[i] = rv64i_ori[i] | rv64i_or[i];
 		assign logCmp_fun_and[i] = rv64i_andi[i] | rv64i_and[i];
 
-		assign src1[64*i +: 64] = regFileX_read[logCmp_rs1[(5+`RB)*i +: (5+`RB)]];
-		assign src2[64*i +: 64] = regFileX_read[logCmp_rs2[(5+`RB)*i +: (5+`RB)]];
+		assign src1[64*i +: 64] = regFileX_read[logCmp_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64];
+		assign src2[64*i +: 64] = regFileX_read[logCmp_rs2[(5+`RB)*i +: (5+`RB)]*64 +: 64];
 
 		assign op1[64*i +:64] = ( {64{rv64i_slti[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_sltiu[i]}} & src1[64*i +: 64] )
@@ -171,8 +171,8 @@ endgenerate
 		.all0()
 	);
 
-
-	wire [EXE_DW-1:0] logCmp_exeparam_dnxt = { 
+	wire logCmp_exeparam_vaild_dnxt;
+	wire [EXE_DW-1:0] logCmp_exeparam_dnxt = logCmp_exeparam_vaild_dnxt ? { 
 									logCmp_fun_slt[ logCmp_buffer_pop_index ],
 									logCmp_fun_xor[ logCmp_buffer_pop_index ],
 									logCmp_fun_or[ logCmp_buffer_pop_index ],
@@ -183,7 +183,8 @@ endgenerate
 									op2[ 64*logCmp_buffer_pop_index +:64 ],
 
 									isUsi[ logCmp_buffer_pop_index ]
-									};
+									}
+									: logCmp_exeparam_qout;
 
 	assign logCmp_exeparam_vaild_dnxt =  ~logCmp_all_RAW;
 

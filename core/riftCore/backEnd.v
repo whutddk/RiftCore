@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 15:46:47
+* @Last Modified time: 2020-11-09 11:49:06
 */
 
 `timescale 1 ns / 1 ps
@@ -23,7 +23,7 @@ module backEnd (
 	output [63:0] jalr_pc_qout,
 	input isMisPredict,
 
-	input pcGen_ready,
+	input bru_pcGen_ready,
 	output takenBranch_qout,
 	output takenBranch_vaild_qout,
 
@@ -77,6 +77,7 @@ module backEnd (
 	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_INFO_DP-1 : 0] jal_issue_info;
 
 	wire bru_fifo_pop;
+	wire bru_fifo_push;
 	wire bru_fifo_empty;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info;
 
@@ -142,7 +143,7 @@ module backEnd (
 
 	wire [`REORDER_INFO_DW-1:0] dispat_info;
 	wire reOrder_fifo_push;
-	wire reOrder_fifo_ful;
+	wire reOrder_fifo_full;
 	wire reOrder_fifo_empty;
 	wire reOrder_fifo_pop;
 	wire [`REORDER_INFO_DW-1:0] commit_info;
@@ -572,7 +573,7 @@ bru i_bru(
 	.bru_exeparam_vaild(bru_exeparam_vaild),
 	.bru_exeparam(bru_exeparam), 
 
-	.pcGen_ready(pcGen_ready),
+	.bru_pcGen_ready(bru_pcGen_ready),
 	.takenBranch_qout(takenBranch_qout),
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
 

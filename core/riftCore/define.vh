@@ -24,7 +24,7 @@
 `define LOGCMP_ISSUE_INFO_DP 4
 `define LOGCMP_EXEPARAM_DW (4+(5+`RB)+64+64+1)
 
-`define SHIFT_ISSUE_INFO_DW (12+64+64+6+(5+`RB)+(5+`RB)+(5+`RB))
+`define SHIFT_ISSUE_INFO_DW (12+64+6+(5+`RB)+(5+`RB)+(5+`RB))
 `define SHIFT_ISSUE_INFO_DP 4
 `define SHIFT_EXEPARAM_DW (3+(5+`RB)+64+64+1)
 

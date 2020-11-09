@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:43
+* @Last Modified time: 2020-11-09 09:49:18
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -40,6 +40,8 @@ module jal #
 	wire [63:0] pc;
 	
 	wire [63:0] src1;	
+
+	wire is_rvc;
 
 	assign { 
 			rv64i_jal,

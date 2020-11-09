@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:28
+* @Last Modified time: 2020-11-09 15:53:23
 */
 
 
@@ -36,7 +36,16 @@ module decoder
 
 
 	wire [6:0] opcode 	= instr_32[6:0];
-	wire [4:0] rd0 		= instr_32[11:7];
+
+
+	wire [4:0] rd0 	= (rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu | 
+							rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd |
+							rv64i_ecall | rv64i_ebreak)
+							? 5'd0
+							: instr_32[11:7];
+
+
+
 	wire [2:0] funct3 	= instr_32[14:12];
 	wire [4:0] rs1 		= instr_32[19:15];
 	wire [4:0] rs2 		= instr_32[24:20];
@@ -245,8 +254,7 @@ module decoder
 	wire [5:0] shamt = instr_32[25:20];
 
 
-
-
+ 
 
 	assign decode_microInstr = 
 		{ rv64i_lui, rv64i_auipc, rv64i_jal, rv64i_jalr,

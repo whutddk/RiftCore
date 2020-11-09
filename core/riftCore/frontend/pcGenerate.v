@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:51:19
+* @Last Modified time: 2020-11-09 15:34:14
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -27,7 +27,7 @@ module pcGenerate (
 	//from bru
 	input bru_res_vaild,
 	input bru_takenBranch,
-
+	output bru_pcGen_ready,
 
 	// from expection 	
 
@@ -39,7 +39,7 @@ module pcGenerate (
 
 
 	//hadnshake
-	output pcGen_ready,
+
 	output isInstrReadOut,
 	input instrFifo_full,
 
@@ -85,7 +85,7 @@ wire [63+1:0] bht_data_push = {
 
 wire bht_full;
 wire bht_pop = bru_res_vaild;
-wire bht_push = isPredit & ~bht_full;
+wire bht_push = isPredit & ~bht_full & pcGen_fetch_vaild;
 
 //分支历史表必须保持最后一个结果显示
 assign isMisPredict = bru_res_vaild & ( bru_takenBranch ^ bht_data_pop[64]);
@@ -115,13 +115,7 @@ assign fetch_pc_dnxt = 	pcGen_fetch_vaild ? (
 						:
 						fetch_pc_reg;
 
-initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
-initial $info("在jalr有可能卡流水线，保持输入指令不变");
-initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
-assign pcGen_fetch_vaild =  ~ ( (bht_full & isPredit) 
-								| ( isJalr & ~jalr_vaild & ( ras_empty | ~isReturn ) )
-								| instrFifo_full
-							);
+
 
 
 
@@ -172,8 +166,8 @@ wire [63:0] ras_addr_push;
 
 
 
-wire ras_push = isCall & ( isJal | isJalr );
-wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty );
+wire ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_vaild;
+wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_vaild;
 
 //计算两种分支结果
 assign next_pc = isReset ? (64'h80000000) : fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
@@ -226,9 +220,18 @@ initial $warning("isReadOut在指令fifo满的状况下会滞后一拍，需要�
 gen_dffr # (.DW(1)) isReadOut ( .dnxt(pcGen_fetch_vaild), .qout(isInstrReadOut), .CLK(CLK), .RSTn(RSTn));
 initial $warning("itcm总是ready");
 wire mem_ready = 1'b1; 
-assign pcGen_ready = pcGen_fetch_vaild & mem_ready;
+wire instrFifo_stall = instrFifo_full;
+wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
+wire bht_stall = (bht_full & isPredit);
+
+assign bru_pcGen_ready = (~jalr_stall
+							& ~instrFifo_stall ) & mem_ready;
 
 
+initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
+initial $info("在jalr有可能卡流水线，保持输入指令不变");
+initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
+assign pcGen_fetch_vaild = ~bht_stall & ~jalr_stall & ~instrFifo_stall & mem_ready;
 
 
 //分支历史表

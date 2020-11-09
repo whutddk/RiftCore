@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:04
+* @Last Modified time: 2020-11-09 09:42:49
 */
 
 `timescale 1 ns / 1 ps
@@ -85,7 +85,7 @@ module issue_buffer #
 	) empty_buffer(
 		.in_i(buffer_vaild_qout),
 		.pos_o(issue_push_index_pre),
-		.all0(buffer_empty),
+		.all0(),
 		.all1(buffer_full)
 	);
 

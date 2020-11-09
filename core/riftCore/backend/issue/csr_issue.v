@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 15:52:39
+* @Last Modified time: 2020-11-09 10:32:35
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -84,7 +84,7 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 
 	wire [63:0] op = ({64{rv64csr_rw | rv64csr_rs | rv64csr_rc}} & regFileX_read[csr_rs1*64 +: 64])
 					|
-					({64{rv64csr_rwi | rv64csr_rsi | rv64csr_rci}} & csr_rs1 );
+					({64{rv64csr_rwi | rv64csr_rsi | rv64csr_rci}} & {{(64-5){1'b0}}, csr_rs1[`RB +: 5]} );
 
 	wire [11:0] addr = csr_imm;
 

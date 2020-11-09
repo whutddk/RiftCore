@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:40
+* @Last Modified time: 2020-11-09 11:50:22
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -22,7 +22,7 @@ module bru #
 
 
 	// to pc generate
-	input pcGen_ready,
+	input bru_pcGen_ready,
 	output takenBranch_qout,
 	output takenBranch_vaild_qout,
 
@@ -71,14 +71,14 @@ wire takenBranch_dnxt = vaild_dnxt
 							: takenBranch_qout;
 
 initial $info("pcGen 没有准备好收或者上级空");
-wire vaild_dnxt = pcGen_ready & bru_exeparam_vaild;
+wire vaild_dnxt = bru_pcGen_ready & bru_exeparam_vaild;
 
 
 gen_dffr # (.DW(1)) takenBranch ( .dnxt(takenBranch_dnxt), .qout(takenBranch_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-assign bru_exeparam_ready = pcGen_ready;
+assign bru_exeparam_ready = bru_pcGen_ready;
 
 endmodule
 

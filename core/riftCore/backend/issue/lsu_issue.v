@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:14
+* @Last Modified time: 2020-11-09 10:54:34
 */
 
 `timescale 1 ns / 1 ps
@@ -114,7 +114,7 @@ generate
 				lu_rs1[(5+`RB)*i +: (5+`RB)]
 				} = lu_issue_info[LU_DW*i +: LU_DW];
 
-		assign lu_rs1_ready[i] = wbLog_qout[lu_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64] | (lu_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign lu_rs1_ready[i] = wbLog_qout[lu_rs1[(5+`RB)*i +: (5+`RB)]] | (lu_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
 
 		assign lu_isClearRAW[i] = lu_buffer_malloc[i] & lu_rs1_ready[i];
 
@@ -126,7 +126,7 @@ generate
 
 
 
-		assign lu_op1[64*i +:64] = regFileX_read[lu_rs1[(5+`RB)*i +: (5+`RB)]] + lu_imm[64*i +: 64];
+		assign lu_op1[64*i +:64] = regFileX_read[lu_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64] + lu_imm[64*i +: 64];
 
 		assign lu_isUsi[i] = rv64i_lbu[i] | rv64i_lhu[i] | rv64i_lwu[i];
 
@@ -247,13 +247,14 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 
 
 
-
-	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = { 
+	wire su_exeparam_vaild_dnxt;
+	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = su_exeparam_vaild_dnxt ? { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
 								su_op1,
 								su_op2
-								};
+								}
+								: su_exeparam_qout;
 
 	assign su_exeparam_vaild_dnxt = su_isClearRAW & suILP_ready;
 

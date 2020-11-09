@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:54:36
+* @Last Modified time: 2020-11-09 11:50:52
 */
 
 `timescale 1 ns / 1 ps
@@ -32,7 +32,7 @@ wire instrFifo_empty;
 wire jalr_vaild;
 wire [63:0] jalr_pc;
 
-wire pcGen_ready;
+wire bru_pcGen_ready;
 wire istakenBranch;
 wire takenBranch_vaild;
 
@@ -49,7 +49,7 @@ frontEnd i_frontEnd(
 	.decode_microInstr(decode_microInstr_push),
 
 	.isMisPredict(feflush),
-	.pcGen_ready(pcGen_ready),
+	.bru_pcGen_ready(bru_pcGen_ready),
 
 	.bru_res_vaild(takenBranch_vaild&~isMisPredict_qout),
 	.bru_takenBranch(istakenBranch),
@@ -90,7 +90,7 @@ backEnd i_backEnd(
 	.jalr_pc_qout(jalr_pc),
 	.isMisPredict(isMisPredict_qout),
 
-	.pcGen_ready(pcGen_ready),
+	.bru_pcGen_ready(bru_pcGen_ready),
 	.takenBranch_qout(istakenBranch),
 	.takenBranch_vaild_qout(takenBranch_vaild),
 

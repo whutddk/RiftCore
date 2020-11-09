@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:16
+* @Last Modified time: 2020-11-09 11:20:58
 */
 
 `timescale 1 ns / 1 ps
@@ -58,8 +58,7 @@ module shift_issue #
 
 
 	wire [64*DP-1:0] shift_pc;
-	wire [64*DP-1:0] shift_imm;
-	wire [5*DP-1:0] shift_shamt;
+	wire [6*DP-1:0] shift_shamt;
 
 	wire [(5+`RB)*DP-1:0] shift_rd0;
 	wire [(5+`RB)*DP-1:0] shift_rs1;
@@ -90,14 +89,14 @@ generate
 				rv64i_srli[i], rv64i_srliw[i], rv64i_srl[i], rv64i_srlw[i],
 				rv64i_srai[i], rv64i_sraiw[i], rv64i_sra[i], rv64i_sraw[i], 
 				
-				shift_pc[64*i +: 64], shift_imm[64*i +: 64], shift_shamt[5*i +: 5], 
+				shift_pc[64*i +: 64], shift_shamt[6*i +: 6], 
 				shift_rd0[(5+`RB)*i +: (5+`RB)], 
 				shift_rs1[(5+`RB)*i +: (5+`RB)], 
 				shift_rs2[(5+`RB)*i +: (5+`RB)]
 				} = shift_issue_info[DW*i +: DW];
 
-		assign rs1_ready[i] = wbLog_qout[shift_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64] | (shift_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
-		assign rs2_ready[i] = wbLog_qout[shift_rs2[(5+`RB)*i +: (5+`RB)]*64 +: 64] | (shift_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs1_ready[i] = wbLog_qout[shift_rs1[(5+`RB)*i +: (5+`RB)]] | (shift_rs1[(5+`RB)*i+`RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[shift_rs2[(5+`RB)*i +: (5+`RB)]] | (shift_rs2[(5+`RB)*i+`RB +: 5] == 5'd0);
 		
 
 		assign shift_isClearRAW[i] = 	( shift_buffer_malloc[i] ) & 
@@ -125,8 +124,8 @@ generate
 		assign shift_fun_sra[i] = rv64i_srai[i] | rv64i_sraiw[i] | rv64i_sra[i] | rv64i_sraw[i];
 
 
-		assign src1[64*i +: 64] = regFileX_read[shift_rs1[(5+`RB)*i +: (5+`RB)]];
-		assign src2[64*i +: 64] = regFileX_read[shift_rs2[(5+`RB)*i +: (5+`RB)]];
+		assign src1[64*i +: 64] = regFileX_read[shift_rs1[(5+`RB)*i +: (5+`RB)]*64 +: 64];
+		assign src2[64*i +: 64] = regFileX_read[shift_rs2[(5+`RB)*i +: (5+`RB)]*64 +: 64];
 
 		assign op1[64*i +:64] = ( {64{rv64i_slli[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_slliw[i]}} & src1[64*i +: 64] )
@@ -143,20 +142,20 @@ generate
 								| ( {64{rv64i_sra[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_sraw[i]}} & src1[64*i +: 64] );
 
-		assign op2[64*i +:64] = ( {64{rv64i_slli[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_slliw[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_sll[i]}} & { 59'b0, shift_shamt[5*i +: 5]} )
-								| ( {64{rv64i_sllw[i]}} & { 59'b0, shift_shamt[5*i +: 5]} )
+		assign op2[64*i +:64] = ( {64{rv64i_slli[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_slliw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_sll[i]}} & src2[64*i +: 64] )
+								| ( {64{rv64i_sllw[i]}} & src2[64*i +: 64] )
 
-								| ( {64{rv64i_srli[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_srliw[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_srl[i]}} & { 59'b0, shift_shamt[5*i +: 5]} )
-								| ( {64{rv64i_srlw[i]}} & { 59'b0, shift_shamt[5*i +: 5]} )
+								| ( {64{rv64i_srli[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_srliw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_srl[i]}} & src2[64*i +: 64] )
+								| ( {64{rv64i_srlw[i]}} & src2[64*i +: 64] )
 
-								| ( {64{rv64i_srai[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_sraiw[i]}} & shift_imm[64*i +: 64] )
-								| ( {64{rv64i_sra[i]}} & { 59'b0, shift_shamt[5*i +: 5]} )
-								| ( {64{rv64i_sraw[i]}} & { 59'b0, shift_shamt[5*i +: 5]} );
+								| ( {64{rv64i_srai[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_sraiw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_sra[i]}} & src2[64*i +: 64] )
+								| ( {64{rv64i_sraw[i]}} & src2[64*i +: 64] );
 
 
 		assign is32[i] = rv64i_slliw[i]
@@ -183,8 +182,8 @@ endgenerate
 		.all0()
 	);
 
-
-	wire [EXE_DW-1:0] shift_exeparam_dnxt = { 
+	wire shift_exeparam_vaild_dnxt;
+	wire [EXE_DW-1:0] shift_exeparam_dnxt = shift_exeparam_vaild_dnxt ? { 
 								shift_fun_sll[ shift_buffer_pop_index ],
 								shift_fun_srl[ shift_buffer_pop_index ],
 								shift_fun_sra[ shift_buffer_pop_index ],
@@ -194,7 +193,8 @@ endgenerate
 								op2[ 64*shift_buffer_pop_index +:64 ],
 								is32[ shift_buffer_pop_index ]
 
-								};
+								}
+								: shift_exeparam_qout;
 
 	assign shift_exeparam_vaild_dnxt =  ~shift_all_RAW;
 

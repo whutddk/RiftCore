@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:52
+* @Last Modified time: 2020-11-09 11:48:51
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -16,7 +16,7 @@ module frontEnd (
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
 	output isMisPredict,
-	output pcGen_ready,
+	output bru_pcGen_ready,
 	input bru_res_vaild,
 	input bru_takenBranch,
 	input jalr_vaild,
@@ -57,7 +57,7 @@ pcGenerate i_pcGenerate
 	//from bru
 	.bru_res_vaild(bru_res_vaild),
 	.bru_takenBranch(bru_takenBranch),
-
+	.bru_pcGen_ready(bru_pcGen_ready),
 
 	// from expection 	
 
@@ -68,7 +68,6 @@ pcGenerate i_pcGenerate
 	//to commit to flush
 	.isMisPredict(isMisPredict),
 
-	.pcGen_ready(pcGen_ready),
 	.isInstrReadOut(isInstrReadOut),
 	.instrFifo_full(instrFifo_full),
 

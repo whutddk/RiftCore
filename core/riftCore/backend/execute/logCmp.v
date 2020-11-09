@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 14:45:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:44
+* @Last Modified time: 2020-11-09 09:48:38
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -27,9 +27,10 @@ module logCmp #
 );
 
 	
-	wire rv64i_xor;
-	wire rv64i_or;
-	wire rv64i_and;
+	wire logCmp_fun_slt;
+	wire logCmp_fun_xor;
+	wire logCmp_fun_or;
+	wire logCmp_fun_and;
 
 	wire [(5+`RB-1):0] logCmp_rd0_dnxt;
 	wire [63:0] op1;

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 15:42:57
+* @Last Modified time: 2020-11-09 16:05:18
 */
 
 `timescale 1 ns / 1 ps
@@ -154,6 +154,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	wire [5:0] shamt;
 	wire rd0_runOut;
 
+	wire fence_dispat;
 
 	assign { 	rv64i_lui, rv64i_auipc, 
 				rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu, 
@@ -215,7 +216,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 								rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
 								rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
 								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw,
-								pc, imm, shamt, rd0_reName, rs1_reName, rs2_reName
+								pc, shamt, rd0_reName, rs1_reName, rs2_reName
 								};
 
 	assign jal_buffer_push = ( rv64i_jal | rv64i_jalr ) & dispat_vaild & (~jal_buffer_full);

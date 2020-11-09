@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:16:34
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:39
+* @Last Modified time: 2020-11-09 09:47:37
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -47,7 +47,7 @@ assign {
 			op1,
 			op2,
 
-			is32
+			is32w
 		} = adder_exeparam;
 
 
@@ -56,7 +56,7 @@ wire [63:0] adder_op1 = op1;
 wire [63:0] adder_op2 = rv64i_sub ? ((~op2) + 64'd1) : op2;
 
 wire [63:0] adder_cal = $unsigned(adder_op1) + $unsigned(adder_op2);
-wire [63:0] adder_res_dnxt = is32 ? {{32{adder_cal[31]}}, adder_cal[31:0]} : adder_cal;
+wire [63:0] adder_res_dnxt = is32w ? {{32{adder_cal[31]}}, adder_cal[31:0]} : adder_cal;
 
 
 
