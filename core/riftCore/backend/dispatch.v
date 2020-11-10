@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:45
+* @Last Modified time: 2020-11-10 19:37:32
 */
 
 /*
@@ -195,7 +195,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
 
 	initial $warning("unRealized instructions and fence_instr will not be dispatch");
-	wire unRealized = privil_mret | rv64i_ecall | rv64i_ebreak;
+	wire unRealized = privil_mret  | rv64i_ebreak;//| rv64i_ecall
 	assign reOrder_fifo_push = adder_buffer_push
 								| logCmp_buffer_push
 								| shift_buffer_push
