@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 16:14:19
+* @Last Modified time: 2020-11-10 16:21:19
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -92,7 +92,7 @@ module pcGenerate (
 
 
 
-	assign fetch_pc_dnxt = 	pcGen_fetch_vaild ? (
+	assign fetch_pc_dnxt = 	( ~jalr_stall & isReadOut_qout) ? (
 							( {64{isExpection}} & expection_pc )
 							| 
 							( ( {64{~isExpection}} ) & 
@@ -102,9 +102,17 @@ module pcGenerate (
 									(
 										{64{~isMisPredict}} &
 										(
-											{64{isTakenBranch}} & take_pc 
-											|
-											{64{~isTakenBranch}} & next_pc
+											{64{~bht_stall &~instrFifo_stall}} &
+											(
+												{64{isTakenBranch}} & take_pc 
+												|
+												{64{~isTakenBranch}} & next_pc
+											)
+											| 
+											{64{bht_stall | instrFifo_stall}} &
+											(
+												fetch_pc_reg
+											)
 										)
 
 									)
