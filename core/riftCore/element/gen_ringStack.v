@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-02 10:15:10
+* @Last Modified time: 2020-11-10 10:52:51
 */
 
 
@@ -23,6 +23,7 @@ module gen_ringStack # (
 	output [DW-1:0] data_pop,
 	input [DW-1:0] data_push,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -58,12 +59,12 @@ endgenerate
 
 	assign data_pop = stack_data_qout[DW*read_addr+:DW];
 
-	assign btm_addr_dnxt = ( (stack_push & stack_full) ) ? btm_addr_qout + 'd1 : btm_addr_qout;
-	assign top_addr_dnxt =  ({64{stack_push}} & (top_addr_qout + 'd1 ))
-							|
-							({64{stack_pop & ~stack_empty}} & (top_addr_qout - 'd1)) 
-							|
-							({64{~stack_push | ~(stack_pop & ~stack_empty)}} & top_addr_qout);
+	assign btm_addr_dnxt = flush ? {(AW+1){1'b0}} : ( (stack_push & stack_full) ? btm_addr_qout + 'd1 : btm_addr_qout );
+	assign top_addr_dnxt = flush ? {(AW+1){1'b0}} : (({64{stack_push}} & (top_addr_qout + 'd1 ))
+										|
+										({64{stack_pop & ~stack_empty}} & (top_addr_qout - 'd1)) 
+										|
+										({64{~stack_push | ~(stack_pop & ~stack_empty)}} & top_addr_qout));
 
 endmodule 
 

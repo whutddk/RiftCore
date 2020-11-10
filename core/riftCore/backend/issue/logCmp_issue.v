@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 10:54:55
+* @Last Modified time: 2020-11-10 11:43:19
 */
 
 `timescale 1 ns / 1 ps
@@ -34,6 +34,7 @@ module logCmp_issue #
 	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -172,7 +173,8 @@ endgenerate
 	);
 
 	wire logCmp_exeparam_vaild_dnxt;
-	wire [EXE_DW-1:0] logCmp_exeparam_dnxt = logCmp_exeparam_vaild_dnxt ? { 
+	wire [EXE_DW-1:0] logCmp_exeparam_dnxt = flush ? {EXE_DW{1'b0}} :
+									(logCmp_exeparam_vaild_dnxt ? { 
 									logCmp_fun_slt[ logCmp_buffer_pop_index ],
 									logCmp_fun_xor[ logCmp_buffer_pop_index ],
 									logCmp_fun_or[ logCmp_buffer_pop_index ],
@@ -184,9 +186,9 @@ endgenerate
 
 									isUsi[ logCmp_buffer_pop_index ]
 									}
-									: logCmp_exeparam_qout;
+									: logCmp_exeparam_qout);
 
-	assign logCmp_exeparam_vaild_dnxt =  ~logCmp_all_RAW;
+	assign logCmp_exeparam_vaild_dnxt = flush ? 1'b0 : ~logCmp_all_RAW;
 
 	assign logCmp_buffer_pop = ( logCmp_exeparam_ready & logCmp_exeparam_vaild_dnxt );
 

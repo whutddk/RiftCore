@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 17:52:21
+* @Last Modified time: 2020-11-10 11:25:55
 */
 
 `timescale 1 ns / 1 ps
@@ -21,6 +21,7 @@ module instr_fetch (
 	output fetch_decode_vaild,
 	input instrFifo_full,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -33,21 +34,22 @@ initial $warning("预留一拍做后处理");
 
 
 wire [31:0] instr_fetch_qout;
-wire [31:0] instr_fetch_dnxt = (isInstrReadOut & ~instrFifo_full) ? instr_readout : instr_fetch_qout;
+wire [31:0] instr_fetch_dnxt = flush ? 32'b0 : ((isInstrReadOut & ~instrFifo_full) ? instr_readout : instr_fetch_qout);
 wire [63:0] pc_qout;
-wire [63:0] pc_dnxt = (isInstrReadOut & ~instrFifo_full) ? pc_in : pc_qout;
-wire isVaild = (isInstrReadOut & ~instrFifo_full);
+wire [63:0] pc_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? pc_in : pc_qout);
+wire isVaild = flush ? 1'b0 : (isInstrReadOut );
 
 
 assign pc_out = pc_qout;
 
 assign instr = instr_fetch_qout;
 
-
+wire isVaild_qout;
+assign fetch_decode_vaild = isVaild_qout & ~instrFifo_full;
 
 gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) handshake ( .dnxt(isVaild), .qout(fetch_decode_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) handshake ( .dnxt(isVaild), .qout(isVaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 

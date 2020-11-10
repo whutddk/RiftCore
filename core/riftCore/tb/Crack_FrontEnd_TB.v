@@ -66,6 +66,7 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 		.fifo_empty(),
 		.fifo_full(instrFifo_full),
 
+		.flush(1'b0),
 		.CLK(CLK),
 		.RSTn(RSTn)
 );

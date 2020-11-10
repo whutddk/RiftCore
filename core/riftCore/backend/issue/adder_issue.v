@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 09:43:38
+* @Last Modified time: 2020-11-10 11:41:54
 */
 
 
@@ -35,6 +35,7 @@ module adder_issue #(
 		input [(64*`RP*32)-1:0] regFileX_read,
 		input [32*`RP-1 : 0] wbLog_qout,
 
+		input flush,
 		input CLK,
 		input RSTn
 
@@ -162,20 +163,21 @@ endgenerate
 	);
 
 	wire adder_exeparam_vaild_dnxt;
-	wire [EXE_DW-1:0] adder_exeparam_dnxt = adder_exeparam_vaild_dnxt ? { 
-								adder_fun_add[ adder_buffer_pop_index ],
-								adder_fun_sub[ adder_buffer_pop_index ],
+	wire [EXE_DW-1:0] adder_exeparam_dnxt = flush ? {EXE_DW{1'b0}} :
+													(adder_exeparam_vaild_dnxt ? { 
+													adder_fun_add[ adder_buffer_pop_index ],
+													adder_fun_sub[ adder_buffer_pop_index ],
+					
+													adder_rd0[(5+`RB)*adder_buffer_pop_index +: (5+`RB)],
+													op1[ 64*adder_buffer_pop_index +:64 ],
+													op2[ 64*adder_buffer_pop_index +:64 ],
+					
+													is32[ adder_buffer_pop_index ]
+					
+													}
+													: adder_exeparam_qout);
 
-								adder_rd0[(5+`RB)*adder_buffer_pop_index +: (5+`RB)],
-								op1[ 64*adder_buffer_pop_index +:64 ],
-								op2[ 64*adder_buffer_pop_index +:64 ],
-
-								is32[ adder_buffer_pop_index ]
-
-								}
-								: adder_exeparam_qout;
-
-	assign adder_exeparam_vaild_dnxt =  ~adder_all_RAW;
+	assign adder_exeparam_vaild_dnxt = flush ? 1'b0 : ~adder_all_RAW;
 
 
 	assign adder_buffer_pop = ( adder_exeparam_ready & adder_exeparam_vaild_dnxt );

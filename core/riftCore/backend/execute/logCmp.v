@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 14:45:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 09:48:38
+* @Last Modified time: 2020-11-10 11:55:05
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -22,6 +22,7 @@ module logCmp #
 	output [63:0] logCmp_res_qout,
 	output [(5+`RB-1):0] logCmp_rd0_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -78,7 +79,7 @@ wire [63:0] logCmp_res_dnxt =   ( {64{logCmp_fun_slt}} & logCmp_slt_res )
 
 gen_dffr # (.DW((5+`RB))) logCmp_rd0 ( .dnxt(logCmp_rd0_dnxt), .qout(logCmp_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) logCmp_res ( .dnxt(logCmp_res_dnxt), .qout(logCmp_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) vaild ( .dnxt(logCmp_exeparam_vaild), .qout(logCmp_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) vaild ( .dnxt(logCmp_exeparam_vaild&(~flush)), .qout(logCmp_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 
 
 

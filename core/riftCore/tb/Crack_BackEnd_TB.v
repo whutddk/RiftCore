@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:47:18
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:12
+* @Last Modified time: 2020-11-10 10:50:45
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -27,6 +27,7 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 		.fifo_empty(instrFifo_empty),
 		.fifo_full(instrFifo_full),
 
+		.flush(1'b0),
 		.CLK(CLK),
 		.RSTn(RSTn)
 );

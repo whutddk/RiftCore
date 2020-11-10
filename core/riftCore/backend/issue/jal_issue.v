@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:10
+* @Last Modified time: 2020-11-10 14:15:44
 */
 
 `timescale 1 ns / 1 ps
@@ -33,6 +33,7 @@ module jal_issue #
 	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -105,7 +106,8 @@ endgenerate
 	);
 
 
-	wire [EXE_DW-1:0] jal_exeparam_dnxt = { 
+	wire [EXE_DW-1:0] jal_exeparam_dnxt = flush ? {EXE_DW{1'b0}} :
+									( jal_exeparam_vaild_dnxt ? {
 									rv64i_jal[ jal_buffer_pop_index ],
 									rv64i_jalr[ jal_buffer_pop_index ],
 								
@@ -113,11 +115,10 @@ endgenerate
 									src1[ 64*jal_buffer_pop_index +:64 ],
 									jal_pc[ 64*jal_buffer_pop_index +:64 ],
 
-									is_rvc[ jal_buffer_pop_index ]
-								};
+									is_rvc[ jal_buffer_pop_index ]} : jal_exeparam_qout);
 
 
-	wire jal_exeparam_vaild_dnxt =  ~jal_all_RAW;
+	wire jal_exeparam_vaild_dnxt = flush ? 1'b0 : ~jal_all_RAW;
 
 
 	assign jal_buffer_pop = ( jal_exeparam_ready & jal_exeparam_vaild_dnxt );

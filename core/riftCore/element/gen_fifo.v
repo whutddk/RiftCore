@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-06 19:05:58
+* @Last Modified time: 2020-11-10 10:47:39
 */
 
 `timescale 1 ns / 1 ps
@@ -23,6 +23,7 @@ module gen_fifo # (
 	output fifo_full, 
 	output [DW-1:0] data_pop,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -60,8 +61,8 @@ endgenerate
 
 	assign data_pop = fifo_data_qout[DW*read_addr_qout[AW-1:0]+:DW];
 
-	assign read_addr_dnxt = ( fifo_pop & ~fifo_empty ) ? read_addr_qout + 'd1 : read_addr_qout;
-	assign write_addr_dnxt = ( fifo_push & ~fifo_full ) ? write_addr_qout + 'd1 :  write_addr_qout;
+	assign read_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_pop & ~fifo_empty ) ? read_addr_qout + 'd1 : read_addr_qout);
+	assign write_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_push & ~fifo_full ) ? write_addr_qout + 'd1 :  write_addr_qout);
 
 
 endmodule 

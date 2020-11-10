@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 16:15:37
+* @Last Modified time: 2020-11-10 14:43:36
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -31,6 +31,7 @@ module bru_issue #
 	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -88,22 +89,22 @@ module bru_issue #
 	assign op2 = src2;
 
 
-	wire [EXE_DW-1:0] bru_exeparam_dnxt =  bru_exeparam_ready ? { 
-								rv64i_beq,
-								rv64i_bne,
-								rv64i_blt,
-								rv64i_bge,
-								rv64i_bltu,
-								rv64i_bgeu,
+	wire [EXE_DW-1:0] bru_exeparam_dnxt = flush ? {EXE_DW{1'b0}} : 
+									(bru_exeparam_ready ? { 
+									rv64i_beq,
+									rv64i_bne,
+									rv64i_blt,
+									rv64i_bge,
+									rv64i_bltu,
+									rv64i_bgeu,
+	
+									bru_rd0,
+									op1,
+									op2
+									}
+									: bru_exeparam_qout);
 
-								bru_rd0,
-								op1,
-								op2
-								}
-								: bru_exeparam_qout
-								;
-
-	wire bru_exeparam_vaild_dnxt = bru_isClearRAW;
+	wire bru_exeparam_vaild_dnxt = flush ? 1'b0 : bru_exeparam_ready & bru_isClearRAW;
 
 	assign bru_fifo_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );
 

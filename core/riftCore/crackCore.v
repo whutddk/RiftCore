@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 11:50:52
+* @Last Modified time: 2020-11-10 11:33:45
 */
 
 `timescale 1 ns / 1 ps
@@ -38,7 +38,8 @@ wire takenBranch_vaild;
 
 wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
 						| (~feflush & beflush & 1'b0)
-						| (feflush & ~beflush & 1'b1);
+						| (feflush & ~beflush & 1'b1)
+						| (~feflush & ~beflush & isMisPredict_qout);
 wire isMisPredict_qout;
 
 
@@ -74,8 +75,9 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 		.fifo_empty(instrFifo_empty),
 		.fifo_full(instrFifo_full),
 
+		.flush(feflush),
 		.CLK(CLK),
-		.RSTn(RSTn&~feflush)
+		.RSTn(RSTn)
 );
 
 

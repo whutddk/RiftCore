@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 18:05:07
+* @Last Modified time: 2020-11-10 11:20:47
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -95,8 +95,9 @@ instr_fetch i_instr_pre(
 	.fetch_decode_vaild(fetch_decode_vaild),
 	.instrFifo_full(instrFifo_full),
 
+	.flush(flush),
 	.CLK(CLK),
-	.RSTn(RSTn&~flush)
+	.RSTn(RSTn)
 	
 );
 

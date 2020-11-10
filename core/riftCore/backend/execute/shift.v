@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:48
+* @Last Modified time: 2020-11-10 11:55:39
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -21,6 +21,7 @@ module shift #
 		output [63:0] shift_res_qout,
 		output [(5+`RB-1):0] shift_rd0_qout,
 
+		input flush,
 		input CLK,
 		input RSTn
 );
@@ -73,7 +74,7 @@ assign { 	rv64i_sll,
 
 gen_dffr # (.DW((5+`RB))) shift_rd0 ( .dnxt(shift_rd0_dnxt), .qout(shift_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) shift_res ( .dnxt(shift_res_dnxt), .qout(shift_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) vaild ( .dnxt(shift_exeparam_vaild), .qout(shift_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) vaild ( .dnxt(shift_exeparam_vaild&(~flush)), .qout(shift_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 
 
 endmodule

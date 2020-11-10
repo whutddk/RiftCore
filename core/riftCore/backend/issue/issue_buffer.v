@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 09:42:49
+* @Last Modified time: 2020-11-10 10:55:56
 */
 
 `timescale 1 ns / 1 ps
@@ -28,6 +28,7 @@ module issue_buffer #
 	output [ DW*DP - 1 : 0] issue_info_qout,
 	output [DP - 1 : 0] buffer_malloc_qout,
 	
+	input flush,
 	input CLK,
 	input RSTn
 	
@@ -63,20 +64,20 @@ module issue_buffer #
 
 	gen_dffr #(.DW(DP)) buffer_vaild ( .dnxt(buffer_vaild_dnxt), .qout(buffer_vaild_qout), .CLK(CLK), .RSTn(RSTn) );
 
-	assign buffer_vaild_dnxt = ( 
-										{DP{(buffer_pop & buffer_push) | (~buffer_pop & ~buffer_push)}}
-										& buffer_vaild_qout
-									)
-									| 
-									( 
-										{DP{(buffer_push & ~buffer_pop) }}
-										& (buffer_vaild_qout | (1'b1 << issue_push_index_pre))
-									) 
-									| 
-									( 
-										{DP{(~buffer_push & buffer_pop)}}
-										& (buffer_vaild_qout & ~(1'b1 << pop_index))
-									);
+	assign buffer_vaild_dnxt = flush ? {DP{1'b0}} : (( 
+														{DP{(buffer_pop & buffer_push) | (~buffer_pop & ~buffer_push)}}
+														& buffer_vaild_qout
+													)
+													| 
+													( 
+														{DP{(buffer_push & ~buffer_pop) }}
+														& (buffer_vaild_qout | (1'b1 << issue_push_index_pre))
+													) 
+													| 
+													( 
+														{DP{(~buffer_push & buffer_pop)}}
+														& (buffer_vaild_qout & ~(1'b1 << pop_index))
+													));
 
 	
 

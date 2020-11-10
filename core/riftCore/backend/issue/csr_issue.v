@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 10:32:35
+* @Last Modified time: 2020-11-10 11:50:22
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -31,6 +31,7 @@ module csr_issue #
 	//from commit
 	input [63:0] commit_pc,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -89,18 +90,18 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 	wire [11:0] addr = csr_imm;
 
 
-	wire [EXE_DW-1:0] csr_exeparam_dnxt = { 
-			csr_rw,
-			csr_rs,
-			csr_rc,
+	wire [EXE_DW-1:0] csr_exeparam_dnxt = flush ? {EXE_DW{1'b0}} : 
+										( csr_exeparam_vaild_dnxt ? { 
+											csr_rw,
+											csr_rs,
+											csr_rc,
+								
+											csr_rd0,
+											op,
+											addr
+											} : csr_exeparam_qout);
 
-			csr_rd0,
-			op,
-			addr
-
-			};
-
-	wire csr_exeparam_vaild_dnxt = csr_isClearRAW & csrILP_ready;
+	wire csr_exeparam_vaild_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready);
 
 	assign csr_fifo_pop = csr_exeparam_vaild_dnxt & csr_exeparam_ready;
 

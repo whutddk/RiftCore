@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:16:34
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 09:47:37
+* @Last Modified time: 2020-11-10 11:54:22
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -22,6 +22,7 @@ module adder #
 	output [63:0] adder_res_qout,
 	output [(5+`RB)-1:0] adder_rd0_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 	
@@ -62,7 +63,7 @@ wire [63:0] adder_res_dnxt = is32w ? {{32{adder_cal[31]}}, adder_cal[31:0]} : ad
 
 gen_dffr # (.DW((5+`RB))) adder_rd0 ( .dnxt(adder_rd0_dnxt), .qout(adder_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) adder_res ( .dnxt(adder_res_dnxt), .qout(adder_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) vaild ( .dnxt(adder_exeparam_vaild), .qout(adder_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) vaild ( .dnxt(adder_exeparam_vaild&(~flush)), .qout(adder_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 
 
 

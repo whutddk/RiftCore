@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:53:46
+* @Last Modified time: 2020-11-10 14:14:29
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -34,6 +34,7 @@ module lsu #
 	output [63:0] lsu_res_qout,
 	output [(5+`RB-1):0] lsu_rd0_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -250,7 +251,7 @@ assign lsu_writeback_vaild = lsu_vaild_qout & memory_ready;
 
 gen_dffr # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) lsu_res ( .dnxt(lsu_res_dnxt), .qout(lsu_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) lsu_vaild ( .dnxt(lu_exeparam_vaild), .qout(lsu_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) lsu_vaild ( .dnxt(lu_exeparam_vaild&(~flush)), .qout(lsu_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

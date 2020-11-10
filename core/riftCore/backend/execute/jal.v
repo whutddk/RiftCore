@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 09:49:18
+* @Last Modified time: 2020-11-10 11:56:10
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -28,6 +28,7 @@ module jal #
 	output [63:0] jal_res_qout,
 	output [(5+`RB-1):0] jal_rd0_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 
@@ -74,7 +75,7 @@ initial $warning("jalr 已经发射，而pcGen理论上正在等待jalr的正确
 initial $warning("发生前端冲刷获得jalr，需要挂起等待后端冲刷后的jalr返回信号");
 
 gen_dffr # (.DW(1)) jalr_vaild ( .dnxt(jalr_vaild_dnxt), .qout(jalr_vaild_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(64)) jalr_pc ( .dnxt(jalr_pc_dnxt), .qout(jalr_pc_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64)) jalr_pc ( .dnxt(jalr_pc_dnxt&(~flush)), .qout(jalr_pc_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

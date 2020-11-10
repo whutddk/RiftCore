@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 15:34:24
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-08 14:52:07
+* @Last Modified time: 2020-11-10 10:49:23
 */
 
 `timescale 1 ns / 1 ps
@@ -23,7 +23,7 @@ module issue_fifo #(
 	output fifo_full,
 	output fifo_empty,
 
-
+	input flush,
 	input CLK,
 	input RSTn
 	
@@ -41,6 +41,7 @@ i_fifo(
 	.fifo_full(fifo_full), 
 	.data_pop(issue_info_pop),
 
+	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );

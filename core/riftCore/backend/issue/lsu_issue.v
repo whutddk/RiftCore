@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 10:54:34
+* @Last Modified time: 2020-11-10 11:52:42
 */
 
 `timescale 1 ns / 1 ps
@@ -46,6 +46,7 @@ module lsu_issue #
 		//from commit
 		input suILP_ready,
 
+		input flush,
 		input CLK,
 		input RSTn
 );
@@ -148,7 +149,7 @@ wire lu_all_RAW;
 	);
 
 
-	wire [LU_EXE_DW-1:0] lu_exeparam_dnxt = { 
+	wire [LU_EXE_DW-1:0] lu_exeparam_dnxt = flush ? {LU_EXE_DW{1'b0}} : { 
 								lu_fun_lb[lu_buffer_pop_index],
 								lu_fun_lh[lu_buffer_pop_index],
 								lu_fun_lw[lu_buffer_pop_index],
@@ -161,7 +162,7 @@ wire lu_all_RAW;
 
 								};
 
-	wire lu_exeparam_vaild_dnxt = lu_exeparam_ready ? ~lu_all_RAW : lu_exeparam_vaild_qout;
+	wire lu_exeparam_vaild_dnxt = flush ? 1'b0 : (lu_exeparam_ready ? ~lu_all_RAW : lu_exeparam_vaild_qout);
 
 
 	assign lu_buffer_pop = ( lu_exeparam_ready & lu_exeparam_vaild_dnxt );
@@ -248,7 +249,7 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 
 
 	wire su_exeparam_vaild_dnxt;
-	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = su_exeparam_vaild_dnxt ? { 
+	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = flush ? {SU_EXE_DW{1'b0}} : su_exeparam_vaild_dnxt ? { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
 								su_op1,
@@ -256,7 +257,7 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 								}
 								: su_exeparam_qout;
 
-	assign su_exeparam_vaild_dnxt = su_isClearRAW & suILP_ready;
+	assign su_exeparam_vaild_dnxt = flush ? 1'b0 : su_isClearRAW & suILP_ready;
 
 	assign su_fifo_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
 

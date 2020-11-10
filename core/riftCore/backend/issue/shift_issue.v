@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 11:20:58
+* @Last Modified time: 2020-11-10 14:16:06
 */
 
 `timescale 1 ns / 1 ps
@@ -33,6 +33,7 @@ module shift_issue #
 	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
+	input flush,
 	input CLK,
 	input RSTn
 );
@@ -183,7 +184,8 @@ endgenerate
 	);
 
 	wire shift_exeparam_vaild_dnxt;
-	wire [EXE_DW-1:0] shift_exeparam_dnxt = shift_exeparam_vaild_dnxt ? { 
+	wire [EXE_DW-1:0] shift_exeparam_dnxt = flush ? {EXE_DW{1'b0}} : 
+								(shift_exeparam_vaild_dnxt ? { 
 								shift_fun_sll[ shift_buffer_pop_index ],
 								shift_fun_srl[ shift_buffer_pop_index ],
 								shift_fun_sra[ shift_buffer_pop_index ],
@@ -194,9 +196,9 @@ endgenerate
 								is32[ shift_buffer_pop_index ]
 
 								}
-								: shift_exeparam_qout;
+								: shift_exeparam_qout);
 
-	assign shift_exeparam_vaild_dnxt =  ~shift_all_RAW;
+	assign shift_exeparam_vaild_dnxt = flush ? 1'b0 : ~shift_all_RAW;
 
 
 	assign shift_buffer_pop = ( shift_exeparam_ready & shift_exeparam_vaild_dnxt );
