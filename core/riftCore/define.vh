@@ -13,7 +13,7 @@
 
 
 
-`define DECODE_INFO_DW (52+1+6+1+64+64+6+5+5+5) 
+`define DECODE_INFO_DW (53+1+6+1+64+64+6+5+5+5) 
 `define REORDER_INFO_DW (64+(5+`RB)+3)
 
 `define ADDER_ISSUE_INFO_DW (8+64+64+(5+`RB)+(5+`RB)+(5+`RB))

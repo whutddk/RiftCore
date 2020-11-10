@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 16:14:27
+* @Last Modified time: 2020-11-10 15:24:47
 */
 
 `timescale 1 ns / 1 ps
@@ -77,7 +77,6 @@ wire [5+`RB-1:0] rs1_reName;
 wire [5+`RB-1:0] rs2_reName;
 wire [5+`RB-1:0] rd0_reName;
 
-initial $warning("fifo保持最后一个数据可见，先读再pop");
 wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 
 	wire rv64i_lui;
@@ -147,6 +146,8 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	wire rv64csr_rsi;
 	wire rv64csr_rci;
 
+	wire privil_mret;
+
 	wire is_rvc;
 
 	wire [63:0] pc;
@@ -164,6 +165,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 				rv64i_fence, rv64zi_fence_i,
 				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+				privil_mret,
 				is_rvc,
 				pc, imm, shamt, rd0_raw, rs1_raw, rs2_raw
 			} = decode_microInstr_pop;
@@ -175,6 +177,9 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 
 
 	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
+
+	initial $warning("unRealized instructions will be dispatch with rd = 0, but not thing will happen");
+	wire unRealized = privil_mret;
 	assign reOrder_fifo_push = adder_buffer_push
 								| logCmp_buffer_push
 								| shift_buffer_push
@@ -183,7 +188,8 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 								| su_fifo_push
 								| lu_buffer_push
 								| fence_dispat
-								| csr_fifo_push;
+								| csr_fifo_push
+								| unRealized;
 	assign instrFifo_pop = reOrder_fifo_push;
 
 

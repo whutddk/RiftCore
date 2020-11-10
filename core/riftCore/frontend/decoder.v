@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-09 15:53:23
+* @Last Modified time: 2020-11-10 15:20:41
 */
 
 
@@ -216,8 +216,7 @@ module decoder
 	wire rv64i_fence 	= op_misc_mem & funct3_000;
 	wire rv64zi_fence_i = op_misc_mem & funct3_001;	
 
-	wire rv64i_ecall 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000000);
-	wire rv64i_ebreak 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000001);
+
 	wire rv64csr_rw 	= op_system & funct3_001;
 	wire rv64csr_rs 	= op_system & funct3_010;
 	wire rv64csr_rc 	= op_system & funct3_011;
@@ -225,7 +224,11 @@ module decoder
 	wire rv64csr_rsi 	= op_system & funct3_110;
 	wire rv64csr_rci 	= op_system & funct3_111;
 
+	wire rv64i_ecall 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000000);
+	wire rv64i_ebreak 	= op_system & funct3_000 & (instr_32[31:20] == 12'b000000000001);
 
+
+	wire privil_mret 	= (instr_32 == 32'b0011000_00010_00000_000_00000_1110011);
 
 
 
@@ -265,7 +268,7 @@ module decoder
 		rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 		rv64i_fence, rv64zi_fence_i,
 		rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-
+		privil_mret,
 		is_rvc,
 		pc, imm, shamt, rd0,rs1,rs2
 		};
