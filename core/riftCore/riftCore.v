@@ -1,17 +1,17 @@
 /*
-* @File name: crackCore
+* @File name: riftCore
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 15:46:45
+* @Last Modified time: 2020-11-10 16:52:38
 */
 
 `timescale 1 ns / 1 ps
 
 `include "define.vh"
 `include "iverilog.vh"
-module crackCore (
+module riftCore (
 	
 	input CLK,
 	input RSTn

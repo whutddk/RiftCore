@@ -3,7 +3,7 @@
 `include "iverilog.vh"
 `include "define.vh"
 
-module Crack_FrontEnd_TB();
+module Rift_FrontEnd_TB();
 
 	reg  CLK;
 	reg  RSTn;
@@ -111,7 +111,7 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, crack_FrontEnd_TB);//tb模块名称
+	$dumpvars(0, rift_FrontEnd_TB);//tb模块名称
 end
 
 

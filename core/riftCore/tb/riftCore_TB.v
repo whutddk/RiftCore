@@ -1,17 +1,17 @@
 /*
-* @File name: crackCore_TB
+* @File name: riftCore_TB
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 16:22:38
+* @Last Modified time: 2020-11-10 16:53:37
 */
 `timescale 1 ns / 1 ps
 `include "iverilog.vh"
 `include "define.vh"
 
 
-module crackCore_TB (
+module riftCore_TB (
 
 );
 
@@ -19,7 +19,7 @@ module crackCore_TB (
 	reg RSTn;
 
 
-crackCore s_CC(
+riftCore s_RC(
 	
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -50,7 +50,7 @@ initial begin
 end
 
 
-`define ITCM s_CC.i_frontEnd.i_pcGenerate.i_itcm
+`define ITCM s_RC.i_frontEnd.i_pcGenerate.i_itcm
 	localparam  ITCM_DP = 2**10;
 	integer i;
 
@@ -89,7 +89,7 @@ end
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, crackCore_TB);//tb模块名称
+	$dumpvars(0, riftCore_TB);//tb模块名称
 end
 
 endmodule

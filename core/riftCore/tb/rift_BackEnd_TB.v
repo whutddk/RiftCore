@@ -1,15 +1,15 @@
 /*
-* @File name: Crack_BackEnd_TB
+* @File name: rift_BackEnd_TB
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:47:18
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 10:50:45
+* @Last Modified time: 2020-11-10 16:51:11
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
 
-module Crack_BackEnd_TB (
+module Rift_BackEnd_TB (
 
 	
 );
