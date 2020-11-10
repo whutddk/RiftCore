@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 14:18:40
+* @Last Modified time: 2020-11-10 15:46:16
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -21,7 +21,6 @@ module bru #
 	input [DW-1:0] bru_exeparam, 
 
 	// to pc generate
-	input bru_pcGen_ready,
 	output takenBranch_qout,
 	output takenBranch_vaild_qout,
 
@@ -36,7 +35,7 @@ module bru #
 
 );
 
-
+	wire bru_pcGen_ready = 1'b1;
 	wire bru_eq;
 	wire bru_ne;
 	wire bru_lt;

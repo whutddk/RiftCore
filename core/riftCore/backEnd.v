@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 14:13:30
+* @Last Modified time: 2020-11-10 15:46:57
 */
 
 `timescale 1 ns / 1 ps
@@ -23,7 +23,6 @@ module backEnd (
 	output [63:0] jalr_pc_qout,
 	input isMisPredict,
 
-	input bru_pcGen_ready,
 	output takenBranch_qout,
 	output takenBranch_vaild_qout,
 
@@ -600,7 +599,6 @@ bru i_bru(
 	.bru_exeparam_vaild(bru_exeparam_vaild),
 	.bru_exeparam(bru_exeparam), 
 
-	.bru_pcGen_ready(bru_pcGen_ready),
 	.takenBranch_qout(takenBranch_qout),
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
 

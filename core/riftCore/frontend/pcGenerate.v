@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 11:28:25
+* @Last Modified time: 2020-11-10 16:14:19
 */
 
 //产生的pc不是执行pc，每条指令应该对应一个pc
@@ -27,7 +27,6 @@ module pcGenerate (
 	//from bru
 	input bru_res_vaild,
 	input bru_takenBranch,
-	output bru_pcGen_ready,
 
 	// from expection 	
 
@@ -229,10 +228,6 @@ assign isReadOut_dnxt = mem_ready;
 wire instrFifo_stall = instrFifo_full;
 wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
 wire bht_stall = (bht_full & isPredit);
-
-assign bru_pcGen_ready = (~jalr_stall
-							& ~instrFifo_stall ) & isReadOut_qout;
-
 
 initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
 initial $info("在jalr有可能卡流水线，保持输入指令不变");
