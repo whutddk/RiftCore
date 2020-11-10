@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 11:41:54
+* @Last Modified time: 2020-11-10 14:46:37
 */
 
 
@@ -177,10 +177,10 @@ endgenerate
 													}
 													: adder_exeparam_qout);
 
-	assign adder_exeparam_vaild_dnxt = flush ? 1'b0 : ~adder_all_RAW;
+	assign adder_exeparam_vaild_dnxt = flush ? 1'b0 : (adder_exeparam_ready & ~adder_all_RAW);
 
 
-	assign adder_buffer_pop = ( adder_exeparam_ready & adder_exeparam_vaild_dnxt );
+	assign adder_buffer_pop = adder_exeparam_vaild_dnxt;
 
 
 

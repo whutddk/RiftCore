@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 14:43:36
+* @Last Modified time: 2020-11-10 14:46:11
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -104,9 +104,9 @@ module bru_issue #
 									}
 									: bru_exeparam_qout);
 
-	wire bru_exeparam_vaild_dnxt = flush ? 1'b0 : bru_exeparam_ready & bru_isClearRAW;
+	wire bru_exeparam_vaild_dnxt = flush ? 1'b0 : (bru_exeparam_ready & bru_isClearRAW);
 
-	assign bru_fifo_pop = ( bru_exeparam_ready & bru_exeparam_vaild_dnxt );
+	assign bru_fifo_pop = bru_exeparam_vaild_dnxt;
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 11:43:19
+* @Last Modified time: 2020-11-10 14:47:48
 */
 
 `timescale 1 ns / 1 ps
@@ -188,9 +188,9 @@ endgenerate
 									}
 									: logCmp_exeparam_qout);
 
-	assign logCmp_exeparam_vaild_dnxt = flush ? 1'b0 : ~logCmp_all_RAW;
+	assign logCmp_exeparam_vaild_dnxt = flush ? 1'b0 : (logCmp_exeparam_ready & ~logCmp_all_RAW);
 
-	assign logCmp_buffer_pop = ( logCmp_exeparam_ready & logCmp_exeparam_vaild_dnxt );
+	assign logCmp_buffer_pop = logCmp_exeparam_vaild_dnxt;
 
 												
 

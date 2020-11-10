@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 11:50:22
+* @Last Modified time: 2020-11-10 14:46:51
 */
 `timescale 1 ns / 1 ps
 `include "define.vh"
@@ -101,9 +101,9 @@ initial $info("操作csr必须保证前序指令已经commit，本指令不会�
 											addr
 											} : csr_exeparam_qout);
 
-	wire csr_exeparam_vaild_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready);
+	wire csr_exeparam_vaild_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready & csr_exeparam_ready);
 
-	assign csr_fifo_pop = csr_exeparam_vaild_dnxt & csr_exeparam_ready;
+	assign csr_fifo_pop = csr_exeparam_vaild_dnxt;
 
 
 	gen_dffr # (.DW(EXE_DW)) csr_exeparam ( .dnxt(csr_exeparam_dnxt), .qout(csr_exeparam_qout), .CLK(CLK), .RSTn(RSTn));

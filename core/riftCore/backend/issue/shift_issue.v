@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 14:16:06
+* @Last Modified time: 2020-11-10 14:49:56
 */
 
 `timescale 1 ns / 1 ps
@@ -198,10 +198,10 @@ endgenerate
 								}
 								: shift_exeparam_qout);
 
-	assign shift_exeparam_vaild_dnxt = flush ? 1'b0 : ~shift_all_RAW;
+	assign shift_exeparam_vaild_dnxt = flush ? 1'b0 : (shift_exeparam_ready & ~shift_all_RAW);
 
 
-	assign shift_buffer_pop = ( shift_exeparam_ready & shift_exeparam_vaild_dnxt );
+	assign shift_buffer_pop = shift_exeparam_vaild_dnxt;
 
 
 	gen_dffr # (.DW(EXE_DW)) shift_exeparam ( .dnxt(shift_exeparam_dnxt), .qout(shift_exeparam_qout), .CLK(CLK), .RSTn(RSTn));

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 14:15:44
+* @Last Modified time: 2020-11-10 14:47:33
 */
 
 `timescale 1 ns / 1 ps
@@ -118,10 +118,10 @@ endgenerate
 									is_rvc[ jal_buffer_pop_index ]} : jal_exeparam_qout);
 
 
-	wire jal_exeparam_vaild_dnxt = flush ? 1'b0 : ~jal_all_RAW;
+	wire jal_exeparam_vaild_dnxt = flush ? 1'b0 : (jal_exeparam_ready & ~jal_all_RAW);
 
 
-	assign jal_buffer_pop = ( jal_exeparam_ready & jal_exeparam_vaild_dnxt );
+	assign jal_buffer_pop = jal_exeparam_vaild_dnxt;
 
 
 

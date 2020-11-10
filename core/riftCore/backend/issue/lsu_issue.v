@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 11:52:42
+* @Last Modified time: 2020-11-10 14:49:09
 */
 
 `timescale 1 ns / 1 ps
@@ -257,9 +257,9 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 								}
 								: su_exeparam_qout;
 
-	assign su_exeparam_vaild_dnxt = flush ? 1'b0 : su_isClearRAW & suILP_ready;
+	assign su_exeparam_vaild_dnxt = flush ? 1'b0 : (su_exeparam_ready & su_isClearRAW & suILP_ready);
 
-	assign su_fifo_pop = ( su_exeparam_ready & su_exeparam_vaild_dnxt );
+	assign su_fifo_pop = su_exeparam_vaild_dnxt;
 
 
 gen_dffr # (.DW(SU_EXE_DW)) su_exeparam ( .dnxt(su_exeparam_dnxt), .qout(su_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
