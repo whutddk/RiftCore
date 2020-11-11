@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 14:53:11
+* @Last Modified time: 2020-11-11 15:21:57
 */
 
 /*
@@ -73,10 +73,10 @@ assign { 	rv64i_sll,
 	//shift SLL SRL SRA
 
 	wire [63:0] shiftLeft_op1 = op1;
-	wire signed [64:0] shiftRigt_op1 = is32w ? { {32{(op1[31] & rv64i_sra)}}, op1[31:0]} 
+	wire signed [64:0] shiftRigt_op1 = is32w ? { {33{(op1[31] & rv64i_sra)}}, op1[31:0]} 
 												: { (op1[63] & rv64i_sra), op1 };
 
-	wire [5:0] shamt = op2[5:0];
+	wire [5:0] shamt = is32w ? {1'b0, op2[4:0]} : op2[5:0];
 
 	wire [63:0] shift_left64 = shiftLeft_op1 << shamt;
 	wire [63:0] shift_left32 = {32'b0,shift_left64[31:0]};
