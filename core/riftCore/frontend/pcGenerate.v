@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:09
+* @Last Modified time: 2020-11-11 11:06:03
 */
 
 /*
@@ -32,10 +32,9 @@
 
 module pcGenerate (
 
-	//feedback
-	output [63:0] fetch_pc_dnxt,
-	input [63:0] fetch_pc_reg,
-	// input isReset,
+	output [63:0] fetch_pc_qout,
+
+	input isReset,
 
 	//from jalr exe
 	input jalr_vaild,
@@ -63,6 +62,9 @@ module pcGenerate (
 	input RSTn
 
 );
+
+	wire [63:0] fetch_pc_dnxt;
+	wire [63:0] fetch_pc_qout;
 
 
 	// from branch predict
@@ -108,36 +110,42 @@ module pcGenerate (
 	wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
+// wire instrFifo_stall = instrFifo_full;
+wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
+wire bht_stall = (bht_full & isPredit);
 
-	assign fetch_pc_dnxt = 	( ~jalr_stall & isReadOut_qout) ? (
-							( {64{isExpection}} & expection_pc )
-							| 
-							( ( {64{~isExpection}} ) & 
-								(	
-									( {64{isMisPredict}} & resolve_pc)
-									|
-									(
-										{64{~isMisPredict}} &
-										(
-											{64{~bht_stall &~instrFifo_stall}} &
-											(
-												{64{isTakenBranch}} & take_pc 
-												|
-												{64{~isTakenBranch}} & next_pc
-											)
-											| 
-											{64{bht_stall | instrFifo_stall}} &
-											(
-												fetch_pc_reg
-											)
-										)
+initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
+initial $info("在jalr有可能卡流水线，保持输入指令不变");
+initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
+assign pcGen_fetch_vaild = ~bht_stall & ~jalr_stall & itcm_ready;
 
-									)
 
-								)
-							) )
-							:
-							fetch_pc_reg;
+	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
+							|
+							({64{~isReset}} & (( {64{isExpection}} & expection_pc )
+															| 
+															( ( {64{~isExpection}} ) & 
+																(	
+																	( {64{isMisPredict}} & resolve_pc)
+																	|
+																	(
+																		{64{~isMisPredict}} &
+																		(
+																			{64{~bht_stall}} &
+																			(
+																				{64{isTakenBranch}} & take_pc 
+																				|
+																				{64{~isTakenBranch}} & next_pc
+																			)
+																			| 
+																			{64{bht_stall | jalr_stall}} &
+																			(
+																				fetch_pc_qout
+																			)
+																		)
+																	)
+																)
+															)));
 
 
 
@@ -194,12 +202,10 @@ module pcGenerate (
 	wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_vaild;
 
 	//计算两种分支结果
-	assign next_pc = fetch_pc_reg + ( is_rvc_instr ? 64'd2 : 64'd4 );
-	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_reg + imm) )
+	assign next_pc = fetch_pc_qout + ( is_rvc_instr ? 64'd2 : 64'd4 );
+	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_qout + imm) )
 						| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
 						| ( {64{isJalr & !ras_pop & jalr_vaild}} & jalr_pc  );
-
-
 	assign ras_addr_push = next_pc;
 
 
@@ -215,22 +221,20 @@ module pcGenerate (
 
 	initial $info("如果不能立即获得指令，当拍可能打多次");
 	initial $warning("在没有调试器访问写入的情况下,在不使用奇偶存储器情况下");
-	itcm #
-		(
-			.DW(32),
-			.AW(14)
-		)i_itcm
-		(
+	itcm i_itcm
+	(
+		.itcm_ready(itcm_ready),
+		.pcGen_vaild(pcGen_fetch_vaild),
+		.instrFifo_full(instrFifo_full),
 
-		.addr(fetch_pc_dnxt[2 +: 14]),
+		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.instr_out(load_instr),
 
-		// .instr_in('b0),
-		// .wen('b0),
+		.instr_vaild(isInstrReadOut),
+		.fetch_pc_qout(fetch_pc_qout),
 
 		.CLK(CLK),
-		.RSTn(RSTn)
-		
+		.RSTn(RSTn)		
 	);
 
 
@@ -239,25 +243,9 @@ module pcGenerate (
 	initial $warning("在不考虑压缩指令并强制32bit对齐的情况下");
 	assign instr_readout = load_instr;
 
-	initial $warning("在使用ITCM强制一拍必出指令的情况下");
-	wire mem_ready = 1'b1; 
 
-	wire isReadOut_dnxt;
-	wire isReadOut_qout;
 
-assign isInstrReadOut = isReadOut_qout;
-gen_dffr # (.DW(1)) isReadOut ( .dnxt(isReadOut_dnxt), .qout(isReadOut_qout), .CLK(CLK), .RSTn(RSTn));
 
-assign isReadOut_dnxt = mem_ready;
-
-wire instrFifo_stall = instrFifo_full;
-wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
-wire bht_stall = (bht_full & isPredit);
-
-initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
-initial $info("在jalr有可能卡流水线，保持输入指令不变");
-initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
-assign pcGen_fetch_vaild = ~bht_stall & ~jalr_stall & ~instrFifo_stall & isReadOut_qout;
 
 
 //分支历史表

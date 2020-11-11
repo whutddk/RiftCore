@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:46:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:05
+* @Last Modified time: 2020-11-11 11:11:59
 */
 
 /*
@@ -32,12 +32,18 @@ module itcm #
 		parameter AW = 14
 	)
 	(
+	output itcm_ready,
+	input pcGen_vaild,
+	input instrFifo_full,
 
-	input [AW-1:0] addr,
+	input [63:0] fetch_pc_dnxt,
 	output [DW-1:0] instr_out,
 
 	// input [DW-1:0] instr_in,
 	// input wen,
+
+	output reg instr_vaild,
+	output reg [63:0] fetch_pc_qout,
 
 	input CLK,
 	input RSTn
@@ -47,23 +53,36 @@ initial $warning("在没有调试器访问写入的情况下");
 
 	localparam DP = 2**AW;
 
+	wire [AW-1:0] addr = fetch_pc_dnxt[2 +: AW];
+
 	reg [DW-1:0] ram[0:DP-1];
 	reg [DW-1:0] instr;
 
 	always @(posedge CLK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			instr <= {DW{1'b0}};
+			fetch_pc_qout <= 64'h80000000;
+			instr_vaild <= 1'b0;
 		end
 		else begin
 			// if(wen) begin
 			// 	ram[addr] <= instr_in;
 			// end else begin
-			instr <= #1 ram[addr];
+			instr <= #1 instrFifo_full ? instr : ram[addr];
+			fetch_pc_qout <= #1 instrFifo_full ? fetch_pc_qout : fetch_pc_dnxt;
+			instr_vaild <= #1 instrFifo_full ? instr_vaild : pcGen_vaild ;
+
 			// end
 		end 
 	end
 
 	assign instr_out = instr;
+	assign itcm_ready = ~instrFifo_full;
+
+
+
+
+
 
 endmodule
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:42:35
+* @Last Modified time: 2020-11-11 10:59:06
 */
 
 /*
@@ -46,12 +46,12 @@ module frontEnd (
 
 wire flush = isMisPredict;
 
-wire [63:0] fetch_pc_dnxt,fetch_pc_qout;
+wire [63:0] fetch_pc_qout;
 wire isReset_qout;
 
 
-gen_dffr # (.DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
-// gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
+// gen_dffr # (.DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
 
 wire [31:0] isInstrFetch;
 wire [31:0] instr;
@@ -63,9 +63,9 @@ wire fetch_decode_vaild;
 pcGenerate i_pcGenerate
 (
 	//feedback
-	.fetch_pc_dnxt(fetch_pc_dnxt),
-	.fetch_pc_reg(fetch_pc_qout),
-	// .isReset(~isReset_qout),
+	// .fetch_pc_dnxt(fetch_pc_dnxt),
+	.fetch_pc_qout(fetch_pc_qout),
+	.isReset(~isReset_qout),
 
 	//from jalr exe
 	.jalr_vaild(jalr_vaild),

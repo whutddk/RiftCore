@@ -44,9 +44,9 @@
 `define SHIFT_ISSUE_INFO_DP 4
 `define SHIFT_EXEPARAM_DW (3+(5+`RB)+64+64+1)
 
-`define JAL_ISSUE_INFO_DW (2+64+(5+`RB)+(5+`RB)+1)
+`define JAL_ISSUE_INFO_DW (2+64+64+(5+`RB)+(5+`RB)+1)
 `define JAL_ISSUE_INFO_DP 2
-`define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+1)
+`define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+64+1)
 
 `define BRU_ISSUE_INFO_DW (6+(5+`RB)+(5+`RB)+(5+`RB))
 `define BRU_ISSUE_INFO_DP 2

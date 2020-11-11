@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 19:37:32
+* @Last Modified time: 2020-11-11 11:41:05
 */
 
 /*
@@ -243,7 +243,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	assign jal_buffer_push = ( rv64i_jal | rv64i_jalr ) & dispat_vaild & (~jal_buffer_full);
 	assign jal_dispat_info = {
 								rv64i_jal, rv64i_jalr,
-								pc, rd0_reName, rs1_reName,
+								pc, imm, rd0_reName, rs1_reName,
 								is_rvc
 							};
 
