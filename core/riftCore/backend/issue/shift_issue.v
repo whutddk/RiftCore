@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:52
+* @Last Modified time: 2020-11-11 15:38:32
 */
 
 /*
@@ -159,18 +159,18 @@ generate
 								| ( {64{rv64i_sra[i]}} & src1[64*i +: 64] )
 								| ( {64{rv64i_sraw[i]}} & src1[64*i +: 64] );
 
-		assign op2[64*i +:64] = ( {64{rv64i_slli[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
-								| ( {64{rv64i_slliw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+		assign op2[64*i +:64] = ( {64{rv64i_slli[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_slliw[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
 								| ( {64{rv64i_sll[i]}} & src2[64*i +: 64] )
 								| ( {64{rv64i_sllw[i]}} & src2[64*i +: 64] )
 
-								| ( {64{rv64i_srli[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
-								| ( {64{rv64i_srliw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_srli[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_srliw[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
 								| ( {64{rv64i_srl[i]}} & src2[64*i +: 64] )
 								| ( {64{rv64i_srlw[i]}} & src2[64*i +: 64] )
 
-								| ( {64{rv64i_srai[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
-								| ( {64{rv64i_sraiw[i]}} & { 59'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_srai[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
+								| ( {64{rv64i_sraiw[i]}} & { 58'b0, shift_shamt[6*i +: 6]} )
 								| ( {64{rv64i_sra[i]}} & src2[64*i +: 64] )
 								| ( {64{rv64i_sraw[i]}} & src2[64*i +: 64] );
 

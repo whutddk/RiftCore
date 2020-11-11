@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 15:21:57
+* @Last Modified time: 2020-11-11 15:30:01
 */
 
 /*
@@ -44,7 +44,6 @@ module shift #
 );
 
 
-	wire rv64i_slt;
 	wire rv64i_sll;
 	wire rv64i_srl;
 	wire rv64i_sra;
