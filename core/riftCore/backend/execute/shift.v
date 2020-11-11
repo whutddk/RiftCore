@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 16:16:23
+* @Last Modified time: 2020-11-11 16:26:39
 */
 
 /*
@@ -80,9 +80,13 @@ assign { 	rv64i_sll,
 	wire [63:0] shift_left64 = shiftLeft_op1 << shamt;
 	wire [63:0] shift_left32 = {{32{shift_left64[31]}},shift_left64[31:0]};
 
-	wire [63:0] shift_left  = is32w ? shift_left32 : shift_left64;
-	wire signed [63:0] shift_rigt = shiftRigt_op1 >>> shamt;
+	
 
+	wire signed [63:0] shift_rigt64 = shiftRigt_op1 >>> shamt;
+	wire signed [63:0] shift_rigt32 = {{32{shift_rigt64[31]}},shift_rigt64[31:0]};
+
+	wire [63:0] shift_left  = is32w ? shift_left32 : shift_left64;
+	wire [63:0] shift_rigt  = is32w ? shift_rigt32 : shift_rigt64;
 
 	wire [63:0] shift_res_dnxt =  ( {64{rv64i_sll}} & shift_left )
 								| ( {64{rv64i_srl | rv64i_sra}} & shift_rigt );
