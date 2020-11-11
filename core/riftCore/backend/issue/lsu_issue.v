@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:55
+* @Last Modified time: 2020-11-11 16:38:58
 */
 
 /*
@@ -245,6 +245,7 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 	assign {
 			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 			su_imm,
+			su_rd0,
 			su_rs1,
 			su_rs2
 

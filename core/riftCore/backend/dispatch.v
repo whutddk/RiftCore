@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 11:41:05
+* @Last Modified time: 2020-11-11 16:38:13
 */
 
 /*
@@ -275,6 +275,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	assign su_dispat_info = {
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 								imm,
+								rd0_reName,
 								rs1_reName,
 								rs2_reName
 							};

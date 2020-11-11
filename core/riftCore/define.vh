@@ -56,9 +56,9 @@
 `define LU_ISSUE_INFO_DP 4
 `define LU_EXEPARAM_DW (4+(5+`RB)+64+1)
 
-`define SU_ISSUE_INFO_DW (4+64+(5+`RB)+(5+`RB))
+`define SU_ISSUE_INFO_DW (4+64+(5+`RB)+(5+`RB)+(5+`RB))
 `define SU_ISSUE_INFO_DP 2
-`define SU_EXEPARAM_DW (4+64+64)
+`define SU_EXEPARAM_DW (4+(5+`RB)+64+64)
 
 
 `define CSR_ISSUE_INFO_DW (6+64+12+(5+`RB)+(5+`RB))

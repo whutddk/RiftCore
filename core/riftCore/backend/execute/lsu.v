@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:25
+* @Last Modified time: 2020-11-11 16:40:32
 */
 
 /*
@@ -153,6 +153,8 @@ wire [127:0] data_qout = lu_op1[3] ? { data_qout_A, data_qout_B} : { data_qout_B
 	wire rv64i_sh;
 	wire rv64i_sw;
 	wire rv64i_sd;
+
+	wire [(5+`RB-1):0] su_rd0;
 	wire [63:0] su_op1;
 	wire [63:0] su_op2;
 
@@ -257,8 +259,8 @@ i_dtcm_B
 
 
 	wire [(5+`RB)-1 : 0] lsu_rd0_dnxt = ({(5+`RB){load_fun}} & lu_rd0)
-							|
-							({(5+`RB){store_fun}} & 'd0);
+										|
+										({(5+`RB){store_fun}} & su_rd0);
 
 
 wire lsu_vaild_dnxt = (lu_exeparam_vaild | su_exeparam_vaild);
