@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 14:06:14
+* @Last Modified time: 2020-11-11 15:58:11
 */
 
 /*
@@ -119,7 +119,7 @@ wire bht_stall = (bht_full & isPredit);
 initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
 initial $info("在jalr有可能卡流水线，保持输入指令不变");
 initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
-assign pcGen_fetch_vaild = ~bht_stall & ~jalr_stall & itcm_ready;
+assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
