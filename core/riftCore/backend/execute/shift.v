@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 16:10:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:22
+* @Last Modified time: 2020-11-11 14:53:11
 */
 
 /*
@@ -73,7 +73,7 @@ assign { 	rv64i_sll,
 	//shift SLL SRL SRA
 
 	wire [63:0] shiftLeft_op1 = op1;
-	wire [64:0] shiftRight_op1 = is32w ? { {33{(op1[31] & rv64i_sra)}}, op1[31:0]} 
+	wire signed [64:0] shiftRigt_op1 = is32w ? { {32{(op1[31] & rv64i_sra)}}, op1[31:0]} 
 												: { (op1[63] & rv64i_sra), op1 };
 
 	wire [5:0] shamt = op2[5:0];
@@ -82,11 +82,11 @@ assign { 	rv64i_sll,
 	wire [63:0] shift_left32 = {32'b0,shift_left64[31:0]};
 
 	wire [63:0] shift_left  = is32w ? shift_left32 : shift_left64;
-	wire [63:0] shift_right = shiftRight_op1 >>> shamt;
+	wire signed [63:0] shift_rigt = shiftRigt_op1 >>> shamt;
 
 
 	wire [63:0] shift_res_dnxt =  ( {64{rv64i_sll}} & shift_left )
-								| ( {64{rv64i_srl | rv64i_sra}} & shift_right );
+								| ( {64{rv64i_srl | rv64i_sra}} & shift_rigt );
 
 
 gen_dffr # (.DW((5+`RB))) shift_rd0 ( .dnxt(shift_rd0_dnxt), .qout(shift_rd0_qout), .CLK(CLK), .RSTn(RSTn));

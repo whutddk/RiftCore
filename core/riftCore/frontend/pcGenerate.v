@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 11:06:03
+* @Last Modified time: 2020-11-11 14:06:14
 */
 
 /*
@@ -92,6 +92,8 @@ module pcGenerate (
 	wire [63:0] next_pc;
 	wire [63:0] take_pc;
 	wire ras_empty;
+
+	wire itcm_ready;
 
 
 	//分支历史表写入没有预测的分支项
