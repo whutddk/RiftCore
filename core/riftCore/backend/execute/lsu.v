@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 16:40:32
+* @Last Modified time: 2020-11-11 18:56:58
 */
 
 /*
@@ -31,7 +31,7 @@ module lsu #
 		parameter LU_DW = `LU_EXEPARAM_DW,
 		parameter SU_DW = `SU_EXEPARAM_DW,
 
-		parameter AW = 14
+		parameter AW = 8
 	)
 	(
 
@@ -110,10 +110,10 @@ wire load_fun = lu_exeparam_vaild;
 
 wire [2:0] luAddr_align = lu_op1[2:0];
 
-wire [7:0] loadB_align = data_qout[ luAddr_align +: 8 ];
-wire [15:0] loadH_align = data_qout[ luAddr_align +: 16 ];
-wire [31:0] loadW_align = data_qout[ luAddr_align +: 32 ];
-wire [63:0] loadD_align = data_qout[ luAddr_align +: 64 ];
+wire [7:0] loadB_align = data_qout[ luAddr_align*8 +: 8 ];
+wire [15:0] loadH_align = data_qout[ luAddr_align*8 +: 16 ];
+wire [31:0] loadW_align = data_qout[ luAddr_align*8 +: 32 ];
+wire [63:0] loadD_align = data_qout[ luAddr_align*8 +: 64 ];
 
 wire [63:0] lsu_res_dnxt = 
 			({64{lu_fun_lb}} & ( lu_isUsi ? {56'b0,loadB_align} : {{56{loadB_align[7]}},loadB_align} ))
@@ -163,6 +163,7 @@ wire [127:0] data_qout = lu_op1[3] ? { data_qout_A, data_qout_B} : { data_qout_B
 	assign { 
 			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
 
+			su_rd0,
 			su_op1,
 			su_op2
 			} = su_exeparam;
@@ -198,17 +199,17 @@ wire [15:0] mask = ({16{rv64i_sb}} & ( 16'b1 << su_addr_align ))
 
 assign { wmask_B, wmask_A } = su_op1[3] ? {mask[7:0],mask[15:8]} :mask;
 
-wire [127:0] data_dxnt = su_op2 << {su_addr_align,3'b0};
-assign {data_dnxt_B, data_dnxt_A} = su_op1[3] ? {data_dxnt[63:0],data_dxnt[127:64]} : data_dxnt;
+wire [127:0] data_dnxt = su_op2 << {su_addr_align,3'b0};
+assign {data_dnxt_B, data_dnxt_A} = su_op1[3] ? {data_dnxt[63:0],data_dnxt[127:64]} : data_dnxt;
 
 
-wire [AW-1:0] addr_A = ({AW{load_fun}} & lu_addrA_Raw[3 +:AW])
+wire [AW-1:0] addr_A = ({AW{load_fun}} & lu_addrA_Raw[4 +:AW])
 					|
-					({AW{store_fun}} &  su_addrA_Raw[3+:AW])
+					({AW{store_fun}} &  su_addrA_Raw[4+:AW])
 					;
-wire [AW-1:0] addr_B = ({AW{load_fun}} & lu_addrB_Raw[3 +:AW])
+wire [AW-1:0] addr_B = ({AW{load_fun}} & lu_addrB_Raw[4 +:AW])
 					|
-					({AW{store_fun}} &  su_addrB_Raw[3 +:AW])
+					({AW{store_fun}} &  su_addrB_Raw[4 +:AW])
 					;
 
 
@@ -217,7 +218,7 @@ dtcm #(.DW(64), .AW(AW))
 i_dtcm_A
 (
 	.addr(addr_A),
-	.data_dxnt(data_dnxt_A),
+	.data_dnxt(data_dnxt_A),
 	.wen(wen_A),
 	.wmask(wmask_A),
 	.data_qout(data_qout_A),
@@ -232,7 +233,7 @@ dtcm #( .DW(64), .AW(AW))
 i_dtcm_B
 (
 	.addr(addr_B),
-	.data_dxnt(data_dnxt_B),
+	.data_dnxt(data_dnxt_B),
 	.wen(wen_B),
 	.wmask(wmask_B),
 	.data_qout(data_qout_B),

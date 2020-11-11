@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:32:59
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:42
+* @Last Modified time: 2020-11-11 16:53:40
 */
 
 /*
@@ -34,7 +34,7 @@ module dtcm #
 (
 
 	input [AW-1:0] addr,
-	input [DW-1:0] data_dxnt,
+	input [DW-1:0] data_dnxt,
 	input wen,
 	input [(DW/8)-1:0] wmask,
 	output reg [DW-1:0] data_qout,
@@ -65,7 +65,7 @@ initial $info("奇偶存储器的实现应该放在dtcm里面");
 		end
 		else begin
 			if(wen) begin
-				ram[addr] <= (ram[addr] & clear_mask) | (data_dxnt & write_mask);
+				ram[addr] <= (ram[addr] & clear_mask) | (data_dnxt & write_mask);
 			end else begin
 				data_qout <= ram[addr];
 			end
