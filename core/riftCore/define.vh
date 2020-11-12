@@ -44,21 +44,17 @@
 `define SHIFT_ISSUE_INFO_DP 4
 `define SHIFT_EXEPARAM_DW (3+(5+`RB)+64+64+1)
 
-`define JAL_ISSUE_INFO_DW (2+64+(5+`RB)+(5+`RB)+1)
+`define JAL_ISSUE_INFO_DW (2+64+64+(5+`RB)+(5+`RB)+1)
 `define JAL_ISSUE_INFO_DP 2
-`define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+1)
+`define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+64+1)
 
 `define BRU_ISSUE_INFO_DW (6+(5+`RB)+(5+`RB)+(5+`RB))
 `define BRU_ISSUE_INFO_DP 2
 `define BRU_EXEPARAM_DW (6+(5+`RB)+64+64)
 
-`define LU_ISSUE_INFO_DW (7+64+(5+`RB)+(5+`RB))
-`define LU_ISSUE_INFO_DP 4
-`define LU_EXEPARAM_DW (4+(5+`RB)+64+1)
-
-`define SU_ISSUE_INFO_DW (4+64+(5+`RB)+(5+`RB))
-`define SU_ISSUE_INFO_DP 2
-`define SU_EXEPARAM_DW (4+64+64)
+`define LSU_ISSUE_INFO_DW (13+64+(5+`RB)+(5+`RB)+(5+`RB))
+`define LSU_ISSUE_INFO_DP 4
+`define LSU_EXEPARAM_DW (13+(5+`RB)+64+64)
 
 
 `define CSR_ISSUE_INFO_DW (6+64+12+(5+`RB)+(5+`RB))

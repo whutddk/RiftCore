@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:43:59
+* @Last Modified time: 2020-11-12 09:26:20
 */
 
 /*
@@ -53,10 +53,11 @@ module decoder
 
 
 	wire [4:0] rd0 	= (rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu | 
-							rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd |
-							rv64i_ecall | rv64i_ebreak)
-							? 5'd0
-							: instr_32[11:7];
+						rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd |
+						rv64i_fence | rv64zi_fence_i |						
+						rv64i_ecall | rv64i_ebreak)
+						? 5'd0
+						: instr_32[11:7];
 
 
 

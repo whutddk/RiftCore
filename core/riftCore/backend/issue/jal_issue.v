@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:00
+* @Last Modified time: 2020-11-11 11:42:35
 */
 
 /*
@@ -61,6 +61,7 @@ module jal_issue #
 	wire [DP-1:0] rv64i_jalr;
 
 	wire [64*DP-1:0] jal_pc;
+	wire [64*DP-1:0] jal_imm;
 
 	wire [(5+`RB)*DP-1:0] jal_rd0;
 	wire [(5+`RB)*DP-1:0] jal_rs1;
@@ -86,6 +87,7 @@ generate
 				rv64i_jalr[i],
 
 				jal_pc[64*i +: 64],
+				jal_imm[64*i +: 64],
 
 				jal_rd0[(5+`RB)*i +: (5+`RB)], 
 				jal_rs1[(5+`RB)*i +: (5+`RB)], 
@@ -130,6 +132,7 @@ endgenerate
 									jal_rd0[(5+`RB)*jal_buffer_pop_index +: (5+`RB)],
 									src1[ 64*jal_buffer_pop_index +:64 ],
 									jal_pc[ 64*jal_buffer_pop_index +:64 ],
+									jal_imm[ 64*jal_buffer_pop_index +:64 ],
 
 									is_rvc[ jal_buffer_pop_index ]} : jal_exeparam_qout);
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:42:45
+* @Last Modified time: 2020-11-12 10:42:03
 */
 
 /*
@@ -101,14 +101,9 @@ module backEnd (
 	wire csr_fifo_empty;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_issue_info;
 
-	wire lu_buffer_pop;
-	wire [$clog2(`LU_ISSUE_INFO_DP)-1:0] lu_buffer_pop_index;
-	wire [`LU_ISSUE_INFO_DP-1:0] lu_buffer_malloc;
-	wire [`LU_ISSUE_INFO_DW*`LU_ISSUE_INFO_DP-1 : 0] lu_issue_info;
-
-	wire su_fifo_pop;
-	wire su_fifo_empty;
-	wire [`SU_ISSUE_INFO_DW-1:0] su_issue_info;
+	wire lsu_fifo_pop;
+	wire lsu_fifo_empty;
+	wire [`LSU_ISSUE_INFO_DW-1:0] lsu_issue_info;
 
 	//issue to execute
 	wire adder_exeparam_vaild;
@@ -124,12 +119,9 @@ module backEnd (
 	wire [`BRU_EXEPARAM_DW-1:0] bru_exeparam;
 	wire csr_exeparam_vaild;
 	wire [`CSR_EXEPARAM_DW-1 :0] csr_exeparam;
-	wire lu_exeparam_ready;
-	wire lu_exeparam_vaild;
-	wire [`LU_EXEPARAM_DW-1:0] lu_exeparam;
-	wire su_exeparam_ready;
-	wire su_exeparam_vaild;
-	wire [`SU_EXEPARAM_DW-1:0] su_exeparam;
+	wire lsu_exeparam_ready;
+	wire lsu_exeparam_vaild;
+	wire [`LSU_EXEPARAM_DW-1:0] lsu_exeparam;
 
 
 
@@ -183,12 +175,9 @@ module backEnd (
 	wire bru_dispat_push;
 	wire bru_fifo_full;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_dispat_info;
-	wire su_fifo_push;
-	wire su_fifo_full;
-	wire [`SU_ISSUE_INFO_DW-1:0] su_dispat_info;
-	wire lu_buffer_push;
-	wire lu_buffer_full;
-	wire [`LU_ISSUE_INFO_DW-1:0] lu_dispat_info;
+	wire lsu_fifo_push;
+	wire lsu_fifo_full;
+	wire [`LSU_ISSUE_INFO_DW-1:0] lsu_dispat_info;
 	wire csr_fifo_push;
 	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
@@ -234,15 +223,10 @@ dispatch i_dispatch(
 	.bru_fifo_full(bru_fifo_full),
 	.bru_dispat_info(bru_dispat_info),
 
-	.su_fifo_push(su_fifo_push),
-	.su_fifo_full(su_fifo_full),
-	.su_dispat_info(su_dispat_info),
-	.su_fifo_empty(su_fifo_empty),
-
-	.lu_buffer_push(lu_buffer_push),
-	.lu_buffer_full(lu_buffer_full),
-	.lu_dispat_info(lu_dispat_info),
-	.lu_buffer_malloc(lu_buffer_malloc),
+	.lsu_fifo_push(lsu_fifo_push),
+	.lsu_fifo_full(lsu_fifo_full),
+	.lsu_dispat_info(lsu_dispat_info),
+	.lsu_fifo_empty(lsu_fifo_empty),
 
 	.csr_fifo_push(csr_fifo_push),
 	.csr_fifo_full(csr_fifo_full),
@@ -343,39 +327,20 @@ bru_issue_fifo (
 	.RSTn(RSTn)
 );
 
-issue_fifo #(.DW(`SU_ISSUE_INFO_DW), .DP(`SU_ISSUE_INFO_DP))
-su_issue_fifo
+issue_fifo #(.DW(`LSU_ISSUE_INFO_DW), .DP(`LSU_ISSUE_INFO_DP))
+lsu_issue_fifo
 (
-	.issue_info_push(su_dispat_info),
-	.issue_info_pop(su_issue_info),
+	.issue_info_push(lsu_dispat_info),
+	.issue_info_pop(lsu_issue_info),
 
-	.issue_push(su_fifo_push),
-	.issue_pop(su_fifo_pop),
-	.fifo_full(su_fifo_full),
-	.fifo_empty(su_fifo_empty),
+	.issue_push(lsu_fifo_push),
+	.issue_pop(lsu_fifo_pop),
+	.fifo_full(lsu_fifo_full),
+	.fifo_empty(lsu_fifo_empty),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
-	
-);
-
-issue_buffer #(.DW(`LU_ISSUE_INFO_DW),.DP(`LU_ISSUE_INFO_DP))
-lu_issue_buffer
-(
-	.dispat_info(lu_dispat_info),
-	.issue_info_qout(lu_issue_info),
-
-	.buffer_push(lu_buffer_push),
-	.buffer_pop(lu_buffer_pop),	
-	
-	.buffer_full(lu_buffer_full),
-	.buffer_malloc_qout(lu_buffer_malloc),
-	.pop_index(lu_buffer_pop_index),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
 	
 );
 
@@ -513,23 +478,13 @@ csr_issue i_csrIssue(
 
 
 lsu_issue i_lsuIssue(
+	.lsu_fifo_pop(lsu_fifo_pop),
+	.lsu_fifo_empty(lsu_fifo_empty),
+	.lsu_issue_info(lsu_issue_info),
 
-	.lu_buffer_pop(lu_buffer_pop),
-	.lu_buffer_pop_index(lu_buffer_pop_index),
-	.lu_buffer_malloc(lu_buffer_malloc),
-	.lu_issue_info(lu_issue_info),
-
-	.lu_exeparam_ready(lu_exeparam_ready),
-	.lu_exeparam_vaild_qout(lu_exeparam_vaild),
-	.lu_exeparam_qout(lu_exeparam),
-
-	.su_fifo_pop(su_fifo_pop),
-	.su_fifo_empty(su_fifo_empty),
-	.su_issue_info(su_issue_info),
-	
-	.su_exeparam_ready(su_exeparam_ready),
-	.su_exeparam_vaild_qout(su_exeparam_vaild),
-	.su_exeparam_qout(su_exeparam),
+	.lsu_exeparam_ready(lsu_exeparam_ready),
+	.lsu_exeparam_vaild_qout(lsu_exeparam_vaild),
+	.lsu_exeparam_qout(lsu_exeparam),
 
 	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
@@ -644,13 +599,10 @@ csr i_csr(
 );
 
 lsu i_lsu(
-	.lu_exeparam_ready(lu_exeparam_ready),
-	.lu_exeparam_vaild(lu_exeparam_vaild),
-	.lu_exeparam(lu_exeparam),
 
-	.su_exeparam_ready(su_exeparam_ready),
-	.su_exeparam_vaild(su_exeparam_vaild),
-	.su_exeparam(su_exeparam),
+	.lsu_exeparam_ready(lsu_exeparam_ready),
+	.lsu_exeparam_vaild(lsu_exeparam_vaild),
+	.lsu_exeparam(lsu_exeparam),
 	
 	.lsu_writeback_vaild(lsu_writeback_vaild),
 	.lsu_res_qout(lsu_res),

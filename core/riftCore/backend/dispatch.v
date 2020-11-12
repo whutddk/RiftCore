@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:45
+* @Last Modified time: 2020-11-12 09:32:20
 */
 
 /*
@@ -62,21 +62,14 @@ module dispatch (
 	input jal_buffer_full,
 	output [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info,
 
-
 	output bru_fifo_push,
 	input bru_fifo_full,
 	output [`BRU_ISSUE_INFO_DW-1:0] bru_dispat_info,
 
-	output su_fifo_push,
-	input su_fifo_full,
-	output [`SU_ISSUE_INFO_DW-1:0] su_dispat_info,
-	input su_fifo_empty,
-
-
-	output lu_buffer_push,
-	input lu_buffer_full,
-	output [`LU_ISSUE_INFO_DW-1:0] lu_dispat_info,
-	input [`LU_ISSUE_INFO_DP-1:0] lu_buffer_malloc,
+	output lsu_fifo_push,
+	input lsu_fifo_full,
+	output [`LSU_ISSUE_INFO_DW-1:0] lsu_dispat_info,
+	input lsu_fifo_empty,
 
 	output csr_fifo_push,
 	input csr_fifo_full,
@@ -194,18 +187,17 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 
 	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
 
-	initial $warning("unRealized instructions and fence_instr will not be dispatch");
-	wire unRealized = privil_mret | rv64i_ecall | rv64i_ebreak;
+	initial $warning("unRealized instructions will not be dispatch");
+	wire unRealized = privil_mret | rv64i_ebreak;//| rv64i_ecall
 	assign reOrder_fifo_push = adder_buffer_push
 								| logCmp_buffer_push
 								| shift_buffer_push
 								| jal_buffer_push
 								| bru_fifo_push
-								| su_fifo_push
-								| lu_buffer_push
+								| lsu_fifo_push
 								| csr_fifo_push
 								;
-	assign instrFifo_pop = reOrder_fifo_push | fence_dispat | unRealized;
+	assign instrFifo_pop = reOrder_fifo_push  | unRealized;
 
 
 
@@ -243,7 +235,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	assign jal_buffer_push = ( rv64i_jal | rv64i_jalr ) & dispat_vaild & (~jal_buffer_full);
 	assign jal_dispat_info = {
 								rv64i_jal, rv64i_jalr,
-								pc, rd0_reName, rs1_reName,
+								pc, imm, rd0_reName, rs1_reName,
 								is_rvc
 							};
 
@@ -261,61 +253,19 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 							};
 
 
-	assign lu_buffer_push = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu ) & dispat_vaild & (~lu_buffer_full);
-	assign lu_dispat_info = { 
-								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu, 
+
+	assign lsu_fifo_push = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd | rv64zi_fence_i | rv64i_fence) & dispat_vaild & (~lsu_fifo_full);
+	assign lsu_dispat_info = {
+								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
+								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
+								rv64zi_fence_i, rv64i_fence,
 								imm,
 								rd0_reName,
-								rs1_reName
-							};
-
-
-
-	assign su_fifo_push = (rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd) & dispat_vaild & (~su_fifo_full);
-	assign su_dispat_info = {
-								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
-								imm,
 								rs1_reName,
 								rs2_reName
 							};
 
-	assign fence_dispat = (rv64zi_fence_i | rv64i_fence) & dispat_vaild 
-							& ~(fencing);
-
-	initial $warning("暂不支持TSO,暂不区分io和memory");
-	initial $warning("在派遣阶段做fence将会导致其它计算指令一同被fence");
-
-	wire [3:0] predecessor = imm[7:4];
-	wire [3:0] successor = imm[3:0];
-
-	wire fenceS = (successor & 4'b0100) || (successor & 4'b0001);
-	wire fenceL = (successor & 4'b1000) || (successor & 4'b0010);
-	wire afterS = (predecessor & 4'b0100) || (predecessor & 4'b0001);
-	wire afterL = (predecessor & 4'b1000) || (predecessor & 4'b0010);
-
-	wire fence_SAS = rv64i_fence & fenceS & afterS;
-	wire fence_SAL = rv64i_fence & fenceS & afterL;
-	wire fence_LAS = rv64i_fence & fenceL & afterS;
-	wire fence_LAL = rv64i_fence & fenceL & afterL;
-	wire fence_ALL = rv64zi_fence_i;
-
-	// wire fence_lu_dispat = ~( fence_LAS & ~su_fifo_empty )
-	// 						&
-	// 						~( fence_LAL & (| lu_buffer_malloc) )
-	// 						& 
-	// 						~( fence_ALL & ~su_fifo_empty & (| lu_buffer_malloc) );
-
-	// wire fence_su_dispat = ~(fence_SAS & ~su_fifo_empty)
-	// 						&
-	// 						~(fence_SAL & (| lu_buffer_malloc))
-	// 						&
-	// 						~(fence_ALL & ~su_fifo_empty & (|lu_buffer_malloc) );
-
-	wire fencing = ( fence_LAS & ~su_fifo_empty ) 
-					| ( fence_LAL & (| lu_buffer_malloc) )
-					| (fence_SAS & ~su_fifo_empty)
-					| (fence_SAL & (| lu_buffer_malloc))
-					| (fence_ALL & ~su_fifo_empty & (|lu_buffer_malloc) );
+	
 
 
 	wire rd0_raw_vaild = reOrder_fifo_push;

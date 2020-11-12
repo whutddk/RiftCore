@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:33
+* @Last Modified time: 2020-11-11 11:42:56
 */
 
 /*
@@ -56,6 +56,7 @@ module jal #
 
 	wire [(5+`RB-1):0] jal_rd0_dnxt;
 	wire [63:0] pc;
+	wire [63:0] imm;
 	
 	wire [63:0] src1;	
 
@@ -68,12 +69,13 @@ module jal #
 			jal_rd0_dnxt,
 			src1,
 			pc,
+			imm,
 
 			is_rvc
 			} = jal_exeparam;
 
 
-wire [63:0] jalr_pc_dnxt = pc + src1;
+wire [63:0] jalr_pc_dnxt = src1 + imm;
 
 wire [63:0] jal_res_dnxt = {64{(rv64i_jal | rv64i_jalr)}} & ( pc + ( is_rvc ? 64'd2 : 64'd4 ) );
 
