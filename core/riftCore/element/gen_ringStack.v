@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:20
+* @Last Modified time: 2020-11-12 15:37:01
 */
 
 /*
@@ -76,11 +76,11 @@ endgenerate
 	assign data_pop = stack_data_qout[DW*read_addr+:DW];
 
 	assign btm_addr_dnxt = flush ? {(AW+1){1'b0}} : ( (stack_push & stack_full) ? btm_addr_qout + 'd1 : btm_addr_qout );
-	assign top_addr_dnxt = flush ? {(AW+1){1'b0}} : (({64{stack_push}} & (top_addr_qout + 'd1 ))
-										|
-										({64{stack_pop & ~stack_empty}} & (top_addr_qout - 'd1)) 
-										|
-										({64{~stack_push | ~(stack_pop & ~stack_empty)}} & top_addr_qout));
+	assign top_addr_dnxt = flush ? {(AW+1){1'b0}} : (({(AW+1){stack_push}} & (top_addr_qout + 'd1 ))
+													|
+													({(AW+1){stack_pop & ~stack_empty}} & (top_addr_qout - 'd1)) 
+													|
+													({(AW+1){~stack_push & ~(stack_pop & ~stack_empty)}} & top_addr_qout));
 
 endmodule 
 
