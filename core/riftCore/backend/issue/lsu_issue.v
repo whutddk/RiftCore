@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 16:38:58
+* @Last Modified time: 2020-11-11 22:26:26
 */
 
 /*
@@ -268,7 +268,7 @@ initial $info("写存储器必须保证前序指令已经commit，本指令不�
 	wire su_exeparam_vaild_dnxt;
 	wire [SU_EXE_DW-1:0] su_exeparam_dnxt = flush ? {SU_EXE_DW{1'b0}} : su_exeparam_vaild_dnxt ? { 
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
-
+								su_rd0,
 								su_op1,
 								su_op2
 								}
