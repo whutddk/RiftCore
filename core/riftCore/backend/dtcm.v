@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:32:59
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 16:53:40
+* @Last Modified time: 2020-11-12 15:53:12
 */
 
 /*
@@ -44,7 +44,9 @@ module dtcm #
 
 );
 
-	reg [DW-1:0] ram[0:AW-1];
+	localparam DP = 2**AW;
+
+	reg [DW-1:0] ram[0:DP-1];
 
 	wire [DW-1:0] write_mask;
 	wire [DW-1:0] clear_mask = ~write_mask;
