@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 22:22:50
+* @Last Modified time: 2020-11-12 10:46:54
 */
 
 /*
@@ -28,24 +28,17 @@
 
 module lsu #
 	(
-		parameter LU_DW = `LU_EXEPARAM_DW,
-		parameter SU_DW = `SU_EXEPARAM_DW,
+		parameter DW = `LSU_EXEPARAM_DW,
 
 		parameter AW = 8
 	)
 	(
 
 
-	//read 可以乱序
-	output lu_exeparam_ready,
-	input lu_exeparam_vaild,
-	input [LU_DW-1:0] lu_exeparam,
-
-
-	//write 暂时只能顺序
-	output su_exeparam_ready,
-	input su_exeparam_vaild,
-	input [SU_DW-1:0] su_exeparam,
+	//can only execute in order right now
+	output lsu_exeparam_ready,
+	input lsu_exeparam_vaild,
+	input [DW-1:0] lsu_exeparam,
 	
 	output lsu_writeback_vaild,
 	output [63:0] lsu_res_qout,
@@ -56,9 +49,66 @@ module lsu #
 	input RSTn
 );
 
-initial $warning("定义load优先级高于store");
-wire store_fun = su_exeparam_vaild & ~lu_exeparam_vaild;
-wire load_fun = lu_exeparam_vaild;
+
+wire [DW-1:0] lsu_exeparam_hold_dnxt = lsu_exeparam;
+wire [DW-1:0] lsu_exeparam_hold_qout;
+gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu_exeparam_hold_qout), .CLK(CLK), .RSTn(RSTn));
+
+	
+	wire rv64i_lb;
+	wire rv64i_lh;
+	wire rv64i_lw;
+	wire rv64i_ld;
+	wire rv64i_lbu;
+	wire rv64i_lhu;
+	wire rv64i_lwu;
+	wire rv64i_sb;
+	wire rv64i_sh;
+	wire rv64i_sw;
+	wire rv64i_sd;
+	wire rv64zi_fence_i;
+	wire rv64i_fence;
+
+	wire [(5+`RB)-1:0] lsu_rd0_dnxt;
+	wire [63:0] lsu_op1;
+	wire [63:0] lsu_op2;
+
+	assign { 
+			rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
+			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
+			rv64zi_fence_i, rv64i_fence,
+			lsu_rd0_dnxt,
+			lsu_op1,
+			lsu_op2
+			} = lsu_exeparam;
+
+
+	wire isUsi;
+
+	wire lsu_fun_lb;
+	wire lsu_fun_lh;
+	wire lsu_fun_lw;
+	wire lsu_fun_ld;
+
+	wire [2:0] lAddr_align;
+	wire odd;
+
+	gen_dffr # (.DW(1)) isUsiHold ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .CLK(CLK), .RSTn(RSTn));
+	
+	gen_dffr # (.DW(1)) islb ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) islh ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) islw ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) isld ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .CLK(CLK), .RSTn(RSTn));
+
+	gen_dffr # (.DW(3)) lAddrAlignHold ( .dnxt(lsu_op1[2:0]), .qout(lAddr_align), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) isOdd ( .dnxt(lsu_op1[3]), .qout(odd), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
 
 
 
@@ -83,68 +133,28 @@ wire load_fun = lu_exeparam_vaild;
 
 
 
-	wire lu_fun_lb_dnxt;
-	wire lu_fun_lh_dnxt;
-	wire lu_fun_lw_dnxt;
-	wire lu_fun_ld_dnxt;
-
-	wire [(5+`RB-1):0] lu_rd0_dnxt;
-	wire [63:0] lu_op1_dnxt;
-
-	wire lu_isUsi_dnxt;
-
-	assign { 
-			lu_fun_lb_dnxt,
-			lu_fun_lh_dnxt,
-			lu_fun_lw_dnxt,
-			lu_fun_ld_dnxt,
-			lu_rd0_dnxt,
-			lu_op1_dnxt,
-			lu_isUsi_dnxt
-			} = lu_exeparam;
-
-	wire lu_fun_lb_qout;
-	wire lu_fun_lh_qout;
-	wire lu_fun_lw_qout;
-	wire lu_fun_ld_qout;
-	wire [(5+`RB-1):0] lu_rd0_qout;
-	wire [63:0] lu_op1_qout;
-	wire lu_isUsi_qout;
-
-	assign { 
-			lu_fun_lb_qout,
-			lu_fun_lh_qout,
-			lu_fun_lw_qout,
-			lu_fun_ld_qout,
-
-			lu_rd0_qout,
-			lu_op1_qout,
-
-			lu_isUsi_qout
-
-			} = lu_exeparam_syn_qout;
 
 
-wire [2:0] luAddr_align_qout = lu_op1_qout[2:0];
 
-wire [7:0] loadB_align = data_qout[ luAddr_align_qout*8 +: 8 ];
-wire [15:0] loadH_align = data_qout[ luAddr_align_qout*8 +: 16 ];
-wire [31:0] loadW_align = data_qout[ luAddr_align_qout*8 +: 32 ];
-wire [63:0] loadD_align = data_qout[ luAddr_align_qout*8 +: 64 ];
+
+
+wire [7:0] loadB_align = data_qout[ lAddr_align*8 +: 8 ];
+wire [15:0] loadH_align = data_qout[ lAddr_align*8 +: 16 ];
+wire [31:0] loadW_align = data_qout[ lAddr_align*8 +: 32 ];
+wire [63:0] loadD_align = data_qout[ lAddr_align*8 +: 64 ];
 
 	assign lsu_res_qout = 
-			({64{lu_fun_lb_qout}} & ( lu_isUsi_qout ? {56'b0,loadB_align} : {{56{loadB_align[7]}},loadB_align} ))
+			({64{lsu_fun_lb}} & ( isUsi ? {56'b0,loadB_align} : {{56{loadB_align[7]}},loadB_align} ))
 			|
-			({64{lu_fun_lh_qout}} & ( lu_isUsi_qout ? {48'b0,loadH_align} : {{48{loadH_align[15]}},loadH_align} ))
+			({64{lsu_fun_lh}} & ( isUsi ? {48'b0,loadH_align} : {{48{loadH_align[15]}},loadH_align} ))
 			|
-			({64{lu_fun_lw_qout}} & ( lu_isUsi_qout ? {32'b0,loadW_align} : {{32{loadW_align[31]}},loadW_align} ))
+			({64{lsu_fun_lw}} & ( isUsi ? {32'b0,loadW_align} : {{32{loadW_align[31]}},loadW_align} ))
 			|
-			({64{lu_fun_ld_qout}} & loadD_align);
+			({64{lsu_fun_ld}} & loadD_align);
 
 
-wire [63:0] lu_addrA_Raw = lu_op1_dnxt[3] ? lu_op1_dnxt + 64'b1000 : lu_op1_dnxt;
-wire [63:0] lu_addrB_Raw = lu_op1_dnxt[3] ? lu_op1_dnxt : lu_op1_dnxt | 64'b1000;
-wire [127:0] data_qout = lu_op1_qout[3] ? { data_qout_A, data_qout_B} : { data_qout_B, data_qout_A};
+
+wire [127:0] data_qout = odd ? { data_qout_A, data_qout_B} : { data_qout_B, data_qout_A};
 
 
 //    SSSSSSSSSSSSSSS UUUUUUUU     UUUUUUUU
@@ -166,37 +176,18 @@ wire [127:0] data_qout = lu_op1_qout[3] ? { data_qout_A, data_qout_B} : { data_q
 
 
 
-	wire rv64i_sb;
-	wire rv64i_sh;
-	wire rv64i_sw;
-	wire rv64i_sd;
 
-	wire [(5+`RB-1):0] su_rd0;
-	wire [63:0] su_op1;
-	wire [63:0] su_op2;
+wire [63:0] lsu_addrA_Raw = lsu_op1[3] ? lsu_op1 + 64'b1000 : lsu_op1;
+wire [63:0] lsu_addrB_Raw = lsu_op1[3] ? lsu_op1 : lsu_op1 | 64'b1000;
 
 
-
-	assign { 
-			rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
-
-			su_rd0,
-			su_op1,
-			su_op2
-			} = su_exeparam;
-
-
-
-wire [63:0] su_addrA_Raw = su_op1[3] ? su_op1 + 64'b1000 : su_op1;
-wire [63:0] su_addrB_Raw = su_op1[3] ? su_op1 : su_op1 | 64'b1000;
-
-wire [2:0] su_addr_align = su_op1[2:0];
+wire [2:0] sAddr_align = lsu_op1[2:0];
 
 wire [63:0] data_dnxt_A;
 wire [63:0] data_dnxt_B;
 
-wire wen_A = store_fun;
-wire wen_B = store_fun;
+wire wen_A = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+wire wen_B = wen_A;
 
 wire [7:0] wmask_A;
 wire [7:0] wmask_B;
@@ -205,29 +196,23 @@ wire [63:0] data_qout_A;
 wire [63:0] data_qout_B;
 
 
-wire [15:0] mask = ({16{rv64i_sb}} & ( 16'b1 << su_addr_align ))
+wire [15:0] mask = ({16{rv64i_sb}} & ( 16'b1 << sAddr_align ))
 					|
-					({16{rv64i_sh}} & ( 16'b11 << su_addr_align ))
+					({16{rv64i_sh}} & ( 16'b11 << sAddr_align ))
 					|
-					({16{rv64i_sw}} & ( 16'b1111 << su_addr_align ))
+					({16{rv64i_sw}} & ( 16'b1111 << sAddr_align ))
 					|
-					({16{rv64i_sd}} & ( 16'b11111111 << su_addr_align ));
+					({16{rv64i_sd}} & ( 16'b11111111 << sAddr_align ));
 
 
-assign { wmask_B, wmask_A } = su_op1[3] ? {mask[7:0],mask[15:8]} :mask;
+assign { wmask_B, wmask_A } = lsu_op1[3] ? {mask[7:0],mask[15:8]} : mask;
 
-wire [127:0] data_dnxt = su_op2 << {su_addr_align,3'b0};
-assign {data_dnxt_B, data_dnxt_A} = su_op1[3] ? {data_dnxt[63:0],data_dnxt[127:64]} : data_dnxt;
+wire [127:0] data_dnxt = lsu_op2 << {sAddr_align,3'b0};
+assign {data_dnxt_B, data_dnxt_A} = lsu_op1[3] ? {data_dnxt[63:0],data_dnxt[127:64]} : data_dnxt;
 
 
-wire [AW-1:0] addr_A = ({AW{load_fun}} & lu_addrA_Raw[4 +:AW])
-					|
-					({AW{store_fun}} &  su_addrA_Raw[4+:AW])
-					;
-wire [AW-1:0] addr_B = ({AW{load_fun}} & lu_addrB_Raw[4 +:AW])
-					|
-					({AW{store_fun}} &  su_addrB_Raw[4 +:AW])
-					;
+wire [AW-1:0] addr_A = lsu_addrA_Raw[4 +:AW];
+wire [AW-1:0] addr_B = lsu_addrB_Raw[4 +:AW];
 
 
 
@@ -267,25 +252,15 @@ i_dtcm_B
 	wire memory_ready = 1'b1;
 
 	initial $info("定义load优先级高于store");
-	assign lu_exeparam_ready = memory_ready;
-	assign su_exeparam_ready = memory_ready & ~lu_exeparam_vaild;
-
-
-	wire lsu_writeback_vaild_dnxt = (lu_exeparam_vaild & lu_exeparam_ready)
-									| (su_exeparam_vaild & su_exeparam_ready);
+	assign lsu_exeparam_ready = memory_ready;
 
 
 
-	wire [(5+`RB)-1 : 0] lsu_rd0_dnxt = ({(5+`RB){load_fun}} & lu_rd0_dnxt)
-										|
-										({(5+`RB){store_fun}} & su_rd0);
+	wire lsu_writeback_vaild_dnxt = (lsu_exeparam_vaild & lsu_exeparam_ready);
 
 
 
-wire [LU_DW-1:0] lu_exeparam_syn_dnxt = lu_exeparam;
-wire [LU_DW-1:0] lu_exeparam_syn_qout;
 
-gen_dffr # (.DW(LU_DW)) lu_exeparam_syn ( .dnxt(lu_exeparam_syn_dnxt), .qout(lu_exeparam_syn_qout), .CLK(CLK), .RSTn(RSTn));
 
 gen_dffr # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 // gen_dffr # (.DW(64)) lsu_res ( .dnxt(lsu_res_dnxt), .qout(lsu_res_qout), .CLK(CLK), .RSTn(RSTn));
