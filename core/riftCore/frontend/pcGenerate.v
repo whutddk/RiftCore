@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 15:58:11
+* @Last Modified time: 2020-11-13 16:02:43
 */
 
 /*
@@ -24,7 +24,6 @@
 */
 
 
-//产生的pc不是执行pc，每条指令应该对应一个pc
 
 `timescale 1 ns / 1 ps
 
@@ -96,7 +95,6 @@ module pcGenerate (
 	wire itcm_ready;
 
 
-	//分支历史表写入没有预测的分支项
 	wire [63+1:0] bht_data_pop;
 	wire [63+1:0] bht_data_push = {
 									isTakenBranch, 
@@ -107,19 +105,15 @@ module pcGenerate (
 	wire bht_pop = bru_res_vaild;
 	wire bht_push = isPredit & ~bht_full & pcGen_fetch_vaild;
 
-	//分支历史表必须保持最后一个结果显示
 	assign isMisPredict = bru_res_vaild & ( bru_takenBranch ^ bht_data_pop[64]);
 	wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
-// wire instrFifo_stall = instrFifo_full;
-wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
-wire bht_stall = (bht_full & isPredit);
+	// wire instrFifo_stall = instrFifo_full;
+	wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
+	wire bht_stall = (bht_full & isPredit);
 
-initial $info("在有分支预测且bht已满时会卡流水线，保持输入的指令不变");
-initial $info("在jalr有可能卡流水线，保持输入指令不变");
-initial $info("在指令fifo满时会卡流水线，保持输入指令不变");
-assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict;
+	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
@@ -159,12 +153,6 @@ assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredic
 
 
 
-
-
-	//在这里把地址计算出来，同时保留两者结果并根据预测算法决策，并和最终结果对比
-	//如果是JARL必需要跳，但是寄存器需要到发射之后才可以确定，因此需要在BLU中计算，预测没有意义，直接挂起取指即可
-
-
 	assign isJal = (load_instr[6:0] == 7'b1101111);
 	assign isJalr = (load_instr[6:0] == 7'b1100111);
 	assign isBranch = (load_instr[6:0] == 7'b1100011);
@@ -174,7 +162,7 @@ assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredic
 								& (load_instr[19:15] != load_instr[11:7]);
 
 
-    initial $warning("在没有压缩指令的情况下");
+    initial $warning("there is no rv64c");
 	wire is_rvc_instr = 1'b0;
 	wire [63:0] imm = ({64{isJal}} & {{44{load_instr[31]}},load_instr[19:12],load_instr[20],load_instr[30:21],1'b0})
 	|
@@ -183,27 +171,19 @@ assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredic
 	({64{isBranch}} & {{52{load_instr[31]}},load_instr[7],load_instr[30:25],load_instr[11:8],1'b0});
 
 
-	//分支预测算法,分支指令才预测，直接跳转指令和其他指令不预测
 	assign isPredit = isBranch;
 
-	//分支指令只预测向后跳则采用taken结果，无条件跳转直接采用taken结果，分支前跳和其他指令采用pc自增组
+	//static predict
 	assign isTakenBranch = ( (isBranch) & ( imm[63] == 1'b0) )
 							| (isJal | isJalr); 
 
 
-
-
-	//RAS 返回地址堆栈
 	wire [63:0] ras_addr_pop;
 	wire [63:0] ras_addr_push;
-
-
-
 
 	wire ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_vaild;
 	wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_vaild;
 
-	//计算两种分支结果
 	assign next_pc = fetch_pc_qout + ( is_rvc_instr ? 64'd2 : 64'd4 );
 	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_qout + imm) )
 						| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
@@ -213,16 +193,11 @@ assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredic
 
 
 	wire isITCM = (fetch_pc_dnxt & 64'hFFFF_FFFF_FFFF_0000) == 64'h8000_0000;
-	initial $warning("在没有cache的情况下");
+	initial $warning("no cache");
 	wire isCache = 1'b0;
 
 
-
-
-
-
-	initial $info("如果不能立即获得指令，当拍可能打多次");
-	initial $warning("在没有调试器访问写入的情况下,在不使用奇偶存储器情况下");
+	initial $warning("no debuger and no odd memory");
 	itcm i_itcm
 	(
 		.itcm_ready(itcm_ready),
@@ -241,17 +216,9 @@ assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredic
 
 
 
-
-	initial $warning("在不考虑压缩指令并强制32bit对齐的情况下");
 	assign instr_readout = load_instr;
 
 
-
-
-
-
-//分支历史表
-//分支历史表必须保持最后一个结果显示，必须可以同时pop，push
 initial $warning("假设分支最多16次,fifo满则挂机");
 
 gen_fifo # (
@@ -274,8 +241,7 @@ gen_fifo # (
 
 
 
-initial $info("使用 ring-fifo策略，压栈不会压爆，但是会空");
-initial $warning("暂时没有commit反馈，冲刷只能全部刷掉");
+initial $warning("no feedback from commit, if flush, all flush");
 gen_ringStack # (.DW(64), .AW(4)) ras(
 	.stack_pop(ras_pop), .stack_push(ras_push),
 	.stack_empty(ras_empty),

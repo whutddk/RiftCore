@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:38
+* @Last Modified time: 2020-11-13 16:05:17
 */
 
 /*
@@ -80,7 +80,7 @@ wire dontWrite = (op == 'd0) & ( rv64csr_rs | rv64csr_rc );
 
 
 
-initial $warning("暂时不产生异常");
+initial $warning("no exception at this version");
 
 wire illagle_op = 1'b0;
 

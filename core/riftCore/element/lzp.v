@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-03 10:23:12
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:24
+* @Last Modified time: 2020-11-13 16:04:06
 */
 
 /*
@@ -25,7 +25,7 @@
 
 
 `timescale 1 ns / 1 ps
-//最后一个0的位置
+//find out last 0
 
 module lzp #(
 	parameter CW = 2,
@@ -37,9 +37,9 @@ module lzp #(
 	output all0
 );
 
-//全部是0
+//all 0
 assign all0 = &(~in_i);
-//没有0，全是1
+//all 1
 assign all1 = &in_i;
 
 

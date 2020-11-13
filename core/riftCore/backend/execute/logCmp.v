@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 14:45:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 19:50:23
+* @Last Modified time: 2020-11-13 16:06:56
 */
 
 /*
@@ -73,14 +73,12 @@ assign {
 
 
 
-//逻辑运算XOR OR AND 
+
 
 
 wire [63:0] logCmp_logic_xor = op1 ^ op2;
 wire [63:0] logCmp_logic_or  = op1 | op2;
 wire [63:0] logCmp_logic_and = op1 & op2;
-
-//slti slt [u]
 
 wire [63:0] slt_sign_res = ( $signed(op1) < $signed(op2) ) ? 64'd1 : 64'd0;
 wire [63:0] slt_unsign_res = ( $unsigned(op1) < $unsigned(op2) ) ? 64'd1 : 64'd0;

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-28 17:21:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 11:42:56
+* @Last Modified time: 2020-11-13 16:06:43
 */
 
 /*
@@ -90,8 +90,7 @@ gen_dffr # (.DW(64)) jal_res ( .dnxt(jal_res_dnxt), .qout(jal_res_qout), .CLK(CL
 gen_dffr # (.DW(1)) vaild ( .dnxt(jal_exeparam_vaild), .qout(jal_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
 
 
-initial $warning("jalr 已经发射，而pcGen理论上正在等待jalr的正确结果返回才能解出下一个pc，或者pop rsa");
-initial $warning("发生前端冲刷获得jalr，需要挂起等待后端冲刷后的jalr返回信号");
+initial $warning("the jalr vaild should be blocked, if the frontend is flushed");
 
 gen_dffr # (.DW(1)) jalr_vaild ( .dnxt(jalr_vaild_dnxt), .qout(jalr_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) jalr_pc ( .dnxt(jalr_pc_dnxt&(~flush)), .qout(jalr_pc_qout), .CLK(CLK), .RSTn(RSTn));

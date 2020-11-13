@@ -35,3 +35,4 @@ core/riftCore/build/wave.iverilog
 core/riftCore/build/wave.vcd
 *.dump
 *.verilog
+*.vsdx

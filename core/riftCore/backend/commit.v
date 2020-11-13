@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:47
+* @Last Modified time: 2020-11-13 16:10:11
 */
 
 /*
@@ -43,7 +43,6 @@ module commit (
 	output reOrder_fifo_pop,
 
 	//from pc generate 
-	//此处只需要向前握手进行pop，因为一定有数据
 	input isMisPredict,
 	output commit_abort,
 
@@ -54,7 +53,7 @@ module commit (
 	output suILP_ready
 );
 
-initial $warning("暂时无法产生异常");
+initial $warning("no expection");
 	wire isSynExcept  = 1'b0;
 
 	wire [5+`RB-1:0] commit_rd0;

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:32:59
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-12 15:53:12
+* @Last Modified time: 2020-11-13 16:11:34
 */
 
 /*
@@ -51,7 +51,7 @@ module dtcm #
 	wire [DW-1:0] write_mask;
 	wire [DW-1:0] clear_mask = ~write_mask;
 
-initial $info("奇偶存储器的实现应该放在dtcm里面");
+initial $info("may rebuild with even odd memory");
 
 	generate
 		for ( genvar i = 0; i < DW/8 ; i = i + 1 ) begin

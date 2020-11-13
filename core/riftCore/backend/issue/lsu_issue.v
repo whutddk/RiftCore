@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-12 10:40:21
+* @Last Modified time: 2020-11-13 16:09:43
 */
 
 /*
@@ -90,7 +90,7 @@ module lsu_issue #
 
 
 
-	initial $info("写存储器必须保证前序指令已经commit，本指令不会被撤销，需要从commit处顺序fifo跟踪");
+	initial $info("the pervious instruction must be commit then store can execute");
 
 	assign {
 			rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,

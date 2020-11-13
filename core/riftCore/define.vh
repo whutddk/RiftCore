@@ -24,7 +24,7 @@
 */
 
 
-`define RP   4 //重命名深度
+`define RP   4 //rename depth
 `define RB $clog2(`RP) 
 
 

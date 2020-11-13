@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:44:33
+* @Last Modified time: 2020-11-13 16:11:54
 */
 
 /*
@@ -24,18 +24,6 @@
 */
 
 `timescale 1 ns / 1 ps
-
-//根据 ROB表中记录的实际寄存器使用情况，重新分配寄存器并记录回ROB
-//1
-//出现WAW,WAR，写之后写，写之后读
-// 写后写： rd与之前rd被占用
-// 写后读： rd与之前rs被占用
-//都是处理rd
-
-//2
-//rs1，rs2对之前的rd的依赖
-
-//建议8组，每组4个寄存器，总共16组，共128个物理寄存器
 
 `include "define.vh"
 
@@ -72,8 +60,6 @@ generate
 endgenerate
 	
 
-
-//指示顺序执行当前应该读哪个寄存器
 assign rs1_reName = {rs1_raw, rnAct_X_qout[rs1_raw*`RB +: `RB]};
 assign rs2_reName = {rs2_raw, rnAct_X_qout[rs2_raw*`RB +: `RB]};
 

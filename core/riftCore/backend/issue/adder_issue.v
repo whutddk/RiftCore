@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:16
+* @Last Modified time: 2020-11-13 16:07:37
 */
 
 /*
@@ -24,8 +24,7 @@
 */
 
 `timescale 1 ns / 1 ps
-//保证进入的指令只有真相关数据冒险
-//根据单元空闲情况及RAW相关性处理
+
 
 `include "define.vh"
 module adder_issue #(

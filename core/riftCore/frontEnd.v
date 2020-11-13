@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-11 10:59:06
+* @Last Modified time: 2020-11-13 15:58:42
 */
 
 /*
@@ -95,7 +95,7 @@ pcGenerate i_pcGenerate
 
 
 //T0  
-//T0包含在了C0里
+//T0 is included in C0
 
 wire [63:0] decode_pc;
 //C1
@@ -121,7 +121,7 @@ instr_fetch i_instr_pre(
 
 
 //T1
-//T1包含在C1中
+//T1 is included in C1
 
 
 //C2

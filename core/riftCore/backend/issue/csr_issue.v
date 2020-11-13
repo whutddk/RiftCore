@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:09
+* @Last Modified time: 2020-11-13 16:08:33
 */
 
 /*
@@ -56,7 +56,7 @@ module csr_issue #
 
 
 
-initial $info("操作csr必须保证前序指令已经commit，本指令不会被撤销，需要从commit处顺序fifo跟踪");
+initial $info("the pervious instruction must be commited, then csr can issue and execute");
 
 	//csr must be ready
 	wire csr_exeparam_ready = 1'b1;

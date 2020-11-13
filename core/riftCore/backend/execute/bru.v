@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:41
+* @Last Modified time: 2020-11-13 16:04:44
 */
 
 /*
@@ -88,12 +88,12 @@ wire take_ge = (bru_ge) & ($signed(op1) >= $signed(op2));
 wire take_ltu = (bru_ltu) & ($unsigned(op1) < $unsigned(op2));
 wire take_geu = (bru_geu) & ($unsigned(op1) >= $unsigned(op2));
 
-initial $info("没有ready则不更新");
+initial $info("not ready,dont update");
 wire takenBranch_dnxt = vaild_dnxt 
 							? (take_eq | take_ne | take_lt | take_ge | take_ltu | take_geu)
 							: takenBranch_qout;
 
-initial $info("pcGen 没有准备好收或者上级空");
+initial $info("pcGen not ready");
 wire vaild_dnxt = bru_pcGen_ready & bru_exeparam_vaild;
 
 

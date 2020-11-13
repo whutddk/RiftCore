@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:06
+* @Last Modified time: 2020-11-13 16:12:09
 */
 
 /*
@@ -52,10 +52,6 @@ module issue_buffer #
 
 
 
-
-
-
-//这里不用fifo，用并行buff以保证可以乱序发射
 	wire [ DW*DP - 1 : 0] issue_info_dnxt;
 	wire [$clog2(DP)-1:0] issue_push_index_pre;
 	wire [$clog2(DP)-1:0] issue_push_index = (buffer_pop & buffer_push) ? pop_index : issue_push_index_pre;

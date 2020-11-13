@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-12 16:26:49
+* @Last Modified time: 2020-11-13 16:07:23
 */
 
 /*
@@ -248,10 +248,9 @@ i_dtcm_B
 
 
 
-	initial $warning("直接握手前提是单拍出结果");
+	initial $warning("only in dccm");
 	wire memory_ready = 1'b1;
 
-	initial $info("定义load优先级高于store");
 	assign lsu_exeparam_ready = memory_ready;
 
 
