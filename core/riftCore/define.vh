@@ -32,17 +32,10 @@
 `define DECODE_INFO_DW (53+1+6+1+64+64+6+5+5+5) 
 `define REORDER_INFO_DW (64+(5+`RB)+3)
 
-`define ADDER_ISSUE_INFO_DW (8+64+64+(5+`RB)+(5+`RB)+(5+`RB))
-`define ADDER_ISSUE_INFO_DP 2
-`define ADDER_EXEPARAM_DW (2+(5+`RB)+64+64+1)
+`define ALU_ISSUE_INFO_DW (30+64+6+64+(5+`RB)+(5+`RB)+(5+`RB))
+`define ALU_ISSUE_INFO_DP 4
+`define ALU_EXEPARAM_DW (10+4+`RB+`RB+(5+`RB)+64+64+(64*`RP)+(64*`RP))
 
-`define LOGCMP_ISSUE_INFO_DW (10+64+64+(5+`RB)+(5+`RB)+(5+`RB))
-`define LOGCMP_ISSUE_INFO_DP 2
-`define LOGCMP_EXEPARAM_DW (4+(5+`RB)+64+64+1)
-
-`define SHIFT_ISSUE_INFO_DW (12+64+6+(5+`RB)+(5+`RB)+(5+`RB))
-`define SHIFT_ISSUE_INFO_DP 2
-`define SHIFT_EXEPARAM_DW (3+(5+`RB)+64+64+1)
 
 `define JAL_ISSUE_INFO_DW (2+64+64+(5+`RB)+(5+`RB)+1)
 `define JAL_ISSUE_INFO_DP 2
