@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 15:38:26
+* @Last Modified time: 2020-11-16 16:26:04
 */
 
 /*
@@ -40,11 +40,6 @@ module writeBack (
 	input [63:0] alu_res,
 	input [(5+`RB-1):0] alu_rd0,
 
-	//from jal
-	input jal_writeback_vaild,
-	input [(5+`RB-1):0] jal_rd0,
-	input [63:0] jal_res,
-
 	//from bru
 	input bru_writeback_vaild,
 	input [(5+`RB-1):0] bru_rd0,
@@ -64,8 +59,6 @@ module writeBack (
 
 // alu wb
 wire [(64*`RP*32)-1:0] alu_writeback_dnxt;
-//jal wb
-wire [(64*`RP*32)-1:0] jal_writeback_dnxt;
 //bru wb
 wire [(64*`RP*32)-1:0] bru_writeback_dnxt;
 //lsu wb
@@ -85,9 +78,6 @@ generate
 					//adder wb
 					({64{alu_writeback_vaild & (alu_rd0 == SEL)}} & alu_res)
 					|
-					//jal wb
-					({64{jal_writeback_vaild & (jal_rd0 == SEL)}} & jal_res)
-					|
 					//bru wb
 					({64{bru_writeback_vaild & (bru_rd0 == SEL)}} & bru_res)
 					|
@@ -103,7 +93,6 @@ generate
 					( 
 						 
 						{64{  ~(alu_writeback_vaild & alu_rd0 == SEL)
-							& ~(jal_writeback_vaild & jal_rd0 == SEL)
 							& ~(bru_writeback_vaild & bru_rd0 == SEL)
 							& ~(lsu_writeback_vaild & lsu_rd0 == SEL)
 							& ~(csr_writeback_vaild & csr_rd0 == SEL) }}
@@ -119,8 +108,6 @@ endgenerate
 
 	assign wbLog_writeb_set = 
 		( alu_writeback_vaild << alu_rd0 )
-		|
-		( jal_writeback_vaild << jal_rd0 )
 		| 
 		( bru_writeback_vaild << bru_rd0 )
 		| 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 10:00:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 15:50:05
+* @Last Modified time: 2020-11-16 17:01:33
 */
 
 /*
@@ -47,7 +47,6 @@ module alu_issue #(
 		output [EXE_DW-1:0] alu_exeparam_qout,
 
 		//from regFile
-		input [(64*`RP*32)-1:0] regFileX_read,
 		input [32*`RP-1 : 0] wbLog_qout,
 
 		input flush,
@@ -102,13 +101,6 @@ module alu_issue #(
 	wire [(5+`RP)*DP-1:0] alu_rs1;
 	wire [(5+`RP)*DP-1:0] alu_rs2;
 
-	wire [5*DP-1:0] raw_rd0;
-	wire [5*DP-1:0] raw_rs1;
-	wire [5*DP-1:0] raw_rs2;	
-	wire [`RB*DP-1:0] mal_rd0;
-	wire [`RB*DP-1:0] mal_rs1;
-	wire [`RB*DP-1:0] mal_rs2;
-
 	wire [DP-1:0] rs1_ready;
 	wire [DP-1:0] rs2_ready;
 
@@ -116,11 +108,6 @@ module alu_issue #(
 	wire [DP-1:0] isUsi;
 	wire [DP-1:0] isImm;
 	wire [DP-1:0] isShamt;
-
-	//32 mux 1
-	wire [64*`RP*DP-1:0] regFileS1;
-	wire [64*`RP*DP-1:0] regFileS2;
-
 
 	wire [DP-1:0] alu_fun_imm;
 	wire [DP-1:0] alu_fun_add;
@@ -138,21 +125,6 @@ module alu_issue #(
 
 
 	wire [DP-1:0] alu_isClearRAW;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 generate
 	for ( genvar i = 0; i < DP; i = i + 1 ) begin
@@ -176,12 +148,8 @@ generate
 
 				} = alu_issue_info[DW*i +: DW];
 
-		assign { raw_rd0[5*i +: 5], mal_rd0[`RB*i +: `RB] } = alu_rd0[(5+`RB)*i +: (5+`RB)];
-		assign { raw_rs1[5*i +: 5], mal_rs1[`RB*i +: `RB] } = alu_rs1[(5+`RB)*i +: (5+`RB)];
-		assign { raw_rs2[5*i +: 5], mal_rs2[`RB*i +: `RB] } = alu_rs2[(5+`RB)*i +: (5+`RB)];
-
-		assign rs1_ready[i] = wbLog_qout[alu_rs1[(5+`RB)*i +: (5+`RB)]] | (raw_rs1[5*i +: 5] == 5'd0);
-		assign rs2_ready[i] = wbLog_qout[alu_rs2[(5+`RB)*i +: (5+`RB)]] | (raw_rs2[5*i +: 5] == 5'd0);
+		assign rs1_ready[i] = wbLog_qout[alu_rs1[(5+`RB)*i +: (5+`RB)]] | (alu_rs1[(`RB+5)*i + `RB +: 5] == 5'd0);
+		assign rs2_ready[i] = wbLog_qout[alu_rs2[(5+`RB)*i +: (5+`RB)]] | (alu_rs2[(`RB+5)*i + `RB +: 5] == 5'd0);
 		
 		assign alu_isClearRAW[i] = ( alu_buffer_malloc[i] ) & 
 										(
@@ -230,9 +198,7 @@ generate
 		assign alu_fun_srl[i] = rv64i_srli[i] | rv64i_srliw[i] | rv64i_srl[i] | rv64i_srlw[i];
 		assign alu_fun_sra[i] = rv64i_srai[i] | rv64i_sraiw[i] | rv64i_sra[i] | rv64i_sraw[i];
 
-		assign regFileS1[64*`RP*i +: 64*`RP] = regFileX_read[raw_rs1[5*i +: 5]*64*`RP +: 64*`RP];
-		assign regFileS2[64*`RP*i +: 64*`RP] = regFileX_read[raw_rs2[5*i +: 5]*64*`RP +: 64*`RP];
-
+		
 		assign is32w[i] = rv64i_addiw[i]
 						| rv64i_addw[i]
 						| rv64i_subw[i]
@@ -244,7 +210,7 @@ generate
 						| rv64i_sraw[i];
 
 		assign isUsi[i] = rv64i_sltiu[i]
-							| rv64i_sltu[i];
+						| rv64i_sltu[i];
 
 		assign isImm[i] = rv64i_lui[i] | rv64i_auipc[i] 
 						| rv64i_addi[i] | rv64i_addiw[i]
@@ -301,15 +267,12 @@ endgenerate
 									isImm[index],
 									isShamt[index],
 
-									mal_rs1[`RB*index+:`RB],
-									mal_rs2[`RB*index+:`RB],
+									alu_rs1[(5+`RB)*index+: (5+`RB)],
+									alu_rs2[(5+`RB)*index+: (5+`RB)],
 									alu_rd0[(`RB+5)*index +: (`RB+5)],
 
 									exe_pc[64*index +: 64],
-									exe_imm[64*index +: 64],
-
-									regFileS1[64*`RP*index +: 64*`RP],
-									regFileS2[64*`RP*index +: 64*`RP]
+									exe_imm[64*index +: 64]
 								}
 								: alu_exeparam_qout;
 

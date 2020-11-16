@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 15:36:09
+* @Last Modified time: 2020-11-16 16:53:25
 */
 
 /*
@@ -77,10 +77,6 @@ module backEnd (
 	wire [`ALU_ISSUE_INFO_DP-1:0] alu_buffer_malloc;
 	wire [`ALU_ISSUE_INFO_DW*`ALU_ISSUE_INFO_DP-1 : 0] alu_issue_info;
 
-	wire jal_buffer_pop;
-	wire [$clog2(`JAL_ISSUE_INFO_DP)-1:0] jal_buffer_pop_index;
-	wire [`JAL_ISSUE_INFO_DP-1:0] jal_buffer_malloc;
-	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_INFO_DP-1 : 0] jal_issue_info;
 
 	wire bru_fifo_pop;
 	wire bru_fifo_push;
@@ -98,8 +94,6 @@ module backEnd (
 	//issue to execute
 	wire alu_exeparam_vaild;
 	wire [`ALU_EXEPARAM_DW-1:0] alu_exeparam;
-	wire jal_exeparam_vaild;
-	wire [`JAL_EXEPARAM_DW-1:0] jal_exeparam;
 	wire bru_exeparam_ready;
 	wire bru_exeparam_vaild;
 	wire [`BRU_EXEPARAM_DW-1:0] bru_exeparam;
@@ -115,9 +109,6 @@ module backEnd (
 	wire alu_writeback_vaild;
 	wire [63:0] alu_res;
 	wire [(5+`RB-1):0] alu_rd0;
-	wire jal_writeback_vaild;
-	wire [63:0] jal_res;
-	wire [(5+`RB-1):0] jal_rd0;
 	wire bru_writeback_vaild;
 	wire [(5+`RB-1):0] bru_rd0;
 	wire [63:0] bru_res;
@@ -143,9 +134,6 @@ module backEnd (
 	wire alu_buffer_push;
 	wire alu_buffer_full;
 	wire [`ALU_ISSUE_INFO_DW-1:0] alu_dispat_info;
-	wire jal_buffer_push;
-	wire jal_buffer_full;
-	wire [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info;
 	wire bru_dispat_push;
 	wire bru_fifo_full;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_dispat_info;
@@ -181,10 +169,6 @@ dispatch i_dispatch(
 	.alu_buffer_full(alu_buffer_full),
 	.alu_dispat_info(alu_dispat_info),
 
-	.jal_buffer_push(jal_buffer_push),
-	.jal_buffer_full(jal_buffer_full),
-	.jal_dispat_info(jal_dispat_info),
-
 	.bru_fifo_push(bru_fifo_push),
 	.bru_fifo_full(bru_fifo_full),
 	.bru_dispat_info(bru_dispat_info),
@@ -218,25 +202,6 @@ alu_issue_buffer
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)	
-);
-
-issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(`JAL_ISSUE_INFO_DP))
-jal_issue_buffer
-(
-	.dispat_info(jal_dispat_info),
-	.issue_info_qout(jal_issue_info),
-
-	.buffer_push(jal_buffer_push),
-	.buffer_pop(jal_buffer_pop),	
-	
-	.buffer_full(jal_buffer_full),
-	.buffer_malloc_qout(jal_buffer_malloc),
-	.pop_index(jal_buffer_pop_index),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-	
 );
 
 issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(`BRU_ISSUE_INFO_DP))
@@ -302,32 +267,12 @@ alu_issue i_aluIssue(
 	.alu_exeparam_vaild_qout(alu_exeparam_vaild),
 	.alu_exeparam_qout(alu_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
-
-jal_issue i_jalIssue(
-
-	.jal_buffer_pop(jal_buffer_pop),
-	.jal_buffer_pop_index(jal_buffer_pop_index),
-	.jal_buffer_malloc(jal_buffer_malloc),
-	.jal_issue_info(jal_issue_info),
-
-	.jal_exeparam_vaild_qout(jal_exeparam_vaild),
-	.jal_exeparam_qout(jal_exeparam),
-
-	.regFileX_read(regFileX_qout),
-	.wbLog_qout(wbLog_qout),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
 
 bru_issue i_bruIssue(
 	.bru_fifo_pop(bru_fifo_pop),
@@ -338,7 +283,6 @@ bru_issue i_bruIssue(
 	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
 	.bru_exeparam_qout(bru_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.flush(flush),
@@ -389,10 +333,8 @@ lsu_issue i_lsuIssue(
 );
 
 
-
-
 //C5 and T5
-alu i_adder(
+alu i_alu(
 	.alu_exeparam_vaild(alu_exeparam_vaild),
 	.alu_exeparam(alu_exeparam),
 
@@ -400,31 +342,12 @@ alu i_adder(
 	.alu_res_qout(alu_res),
 	.alu_rd0_qout(alu_rd0),
 
+	.regFileX_read(regFileX_qout),
+
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)	
 );
-
-
-jal i_jal(
-	.jal_exeparam_vaild(jal_exeparam_vaild),
-	.jal_exeparam(jal_exeparam), 
-
-	// to branch predict
-	.jalr_vaild_qout(jalr_vaild_qout),
-	.jalr_pc_qout(jalr_pc_qout),
-
-	// to writeback
-	.jal_writeback_vaild(jal_writeback_vaild),
-	.jal_res_qout(jal_res),
-	.jal_rd0_qout(jal_rd0),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-
 
 bru i_bru(
 
@@ -438,6 +361,8 @@ bru i_bru(
 	.bru_writeback_vaild(bru_writeback_vaild),
 	.bru_res_qout(bru_res),
 	.bru_rd0_qout(bru_rd0),
+
+	.regFileX_read(regFileX_qout),
 
 	.flush(flush),
 	.CLK(CLK),
@@ -491,10 +416,6 @@ writeBack i_writeBack(
 	.alu_res(alu_res),
 	.alu_rd0(alu_rd0),
 
-	.jal_writeback_vaild(jal_writeback_vaild),
-	.jal_res(jal_res),
-	.jal_rd0(jal_rd0),
-	
 	.bru_writeback_vaild(bru_writeback_vaild),
 	.bru_res(bru_res),
 	.bru_rd0(bru_rd0),

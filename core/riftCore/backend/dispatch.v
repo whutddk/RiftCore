@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 15:30:28
+* @Last Modified time: 2020-11-16 17:09:06
 */
 
 /*
@@ -49,10 +49,6 @@ module dispatch (
 	output alu_buffer_push,
 	input alu_buffer_full,
 	output [`ALU_ISSUE_INFO_DW-1:0] alu_dispat_info,
-
-	output jal_buffer_push,
-	input jal_buffer_full,
-	output [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info,
 
 	output bru_fifo_push,
 	input bru_fifo_full,
@@ -182,7 +178,6 @@ module dispatch (
 	initial $warning("un-implementation instructions will not be dispatch");
 	wire unImplementation = privil_mret | rv64i_ebreak;
 	assign reOrder_fifo_push = alu_buffer_push
-								| jal_buffer_push
 								| bru_fifo_push
 								| lsu_fifo_push
 								| csr_fifo_push
@@ -221,17 +216,14 @@ module dispatch (
 			};
 
 
-	assign jal_buffer_push = ( rv64i_jal | rv64i_jalr ) & dispat_vaild & (~jal_buffer_full);
-	assign jal_dispat_info = {
-								rv64i_jal, rv64i_jalr,
-								pc, imm, rd0_reName, rs1_reName,
-								is_rvc
-							};
 
 
-	assign bru_fifo_push = (rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
+
+	assign bru_fifo_push = ( rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
 	assign bru_dispat_info = {
-								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								is_rvc,
+								pc, imm, 
 								rd0_reName, rs1_reName, rs2_reName
 							};
 

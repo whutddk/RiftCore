@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 09:37:52
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 15:51:14
+* @Last Modified time: 2020-11-16 17:09:58
 */
 
 
@@ -40,6 +40,9 @@ module alu #(
 	output [63:0] alu_res_qout,
 	output [(5+`RB)-1:0] alu_rd0_qout,
 
+	//from regFile
+	input [(64*`RP*32)-1:0] regFileX_read,
+
 	input flush,
 	input CLK,
 	input RSTn
@@ -61,15 +64,13 @@ module alu #(
 	wire isImm;
 	wire isShamt;
 
-	wire [`RB-1:0] mal_rs1;
-	wire [`RB-1:0] mal_rs2;
+	wire [(5+`RB)-1:0] alu_rs1;
+	wire [(5+`RB)-1:0] alu_rs2;
 	wire [(5+`RB)-1:0] alu_rd0_dnxt;
 
 	wire [63:0] exe_pc;
 	wire [63:0] exe_imm;
 
-	wire [64*`RP-1:0] regFileS1;
-	wire [64*`RP-1:0] regFileS2;
 
 assign {
 		alu_fun_imm,
@@ -88,21 +89,18 @@ assign {
 		isImm,
 		isShamt,
 
-		mal_rs1,
-		mal_rs2,
+		alu_rs1,
+		alu_rs2,
 		alu_rd0_dnxt,
 
 		exe_pc,
-		exe_imm,
-
-		regFileS1,
-		regFileS2
+		exe_imm
 
 		} = alu_exeparam;
 
 
-	wire [63:0] src1 = regFileS1[ 64*mal_rs1 +: 64];
-	wire [63:0] src2 = regFileS2[ 64*mal_rs2 +: 64];
+	wire [63:0] src1 = regFileX_read[ 64*`RP*alu_rs1 +: 64];
+	wire [63:0] src2 = regFileX_read[ 64*`RP*alu_rs2 +: 64];
 
 	wire [63:0] adder_op1 = ({64{alu_fun_imm}} & exe_pc)
 							|

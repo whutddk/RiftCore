@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:45:13
+* @Last Modified time: 2020-11-16 17:09:15
 */
 
 /*
@@ -45,8 +45,6 @@ module bru_issue #
 	output bru_exeparam_vaild_qout,
 	output [EXE_DW-1:0] bru_exeparam_qout,
 
-	//from regFile
-	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
 	input flush,
@@ -55,7 +53,8 @@ module bru_issue #
 );
 
 
-
+	wire rv64i_jal;
+	wire rv64i_jalr;
 	wire rv64i_beq;
 	wire rv64i_bne;
 	wire rv64i_blt;
@@ -63,18 +62,19 @@ module bru_issue #
 	wire rv64i_bltu;
 	wire rv64i_bgeu;
 
+	wire is_rvc;
+
+	wire [63:0] bru_pc;
+	wire [63:0] bru_imm;
+
 	wire [5+`RB-1:0] bru_rd0;
 	wire [5+`RB-1:0] bru_rs1;
 	wire [5+`RB-1:0] bru_rs2;
 
 
-	wire [63:0] src1;
-	wire [63:0] src2;
-
-	wire [63:0] op1;
-	wire [63:0] op2;
-
 	assign {
+				rv64i_jal,
+				rv64i_jalr,
 				rv64i_beq,
 				rv64i_bne,
 				rv64i_blt,
@@ -82,53 +82,57 @@ module bru_issue #
 				rv64i_bltu,
 				rv64i_bgeu,
 
+				is_rvc,
+
+				bru_pc,
+				bru_imm,
+
 				bru_rd0,
 				bru_rs1,
 				bru_rs2
 			} = bru_issue_info;
 
 
-	wire temp1 = wbLog_qout[bru_rs1];
-	wire temp2 = wbLog_qout[bru_rs2];
-	wire [4:0] temp3 = bru_rs1[`RB +: 5];
-	wire [4:0] temp4 = bru_rs2[`RB +: 5];
-
 	wire rs1_ready = wbLog_qout[bru_rs1] | (bru_rs1[`RB +: 5] == 5'd0);
 	wire rs2_ready = wbLog_qout[bru_rs2] | (bru_rs2[`RB +: 5] == 5'd0);
 
-	wire bru_isClearRAW = ( ~bru_fifo_empty ) & 
-											 rs1_ready & rs2_ready;
+	wire bru_isClearRAW = ( ~bru_fifo_empty ) 
+							& (
+								( ( rv64i_beq
+									| rv64i_bne
+									| rv64i_blt
+									| rv64i_bge
+									| rv64i_bltu
+									| rv64i_bgeu
+									) & rs1_ready & rs2_ready)
+								|  rv64i_jal
+								| ( rv64i_jalr & rs1_ready )
+								);
 
+	wire [EXE_DW-1:0] bru_exeparam_dnxt = bru_exeparam_vaild_dnxt ? { 
+										rv64i_jal,
+										rv64i_jalr,
 
-	assign src1 = regFileX_read[bru_rs1*64 +: 64];
-	assign src2 = regFileX_read[bru_rs2*64 +: 64];
+										rv64i_beq,
+										rv64i_bne,
+										rv64i_blt,
+										rv64i_bge,
+										rv64i_bltu,
+										rv64i_bgeu,
 
-	assign op1 = src1;
-	assign op2 = src2;
+										is_rvc,
 
+										bru_rs1,
+										bru_rs2,
+										bru_rd0,
 
-	wire [EXE_DW-1:0] bru_exeparam_dnxt = flush ? {EXE_DW{1'b0}} : 
-									(bru_exeparam_ready ? { 
-									rv64i_beq,
-									rv64i_bne,
-									rv64i_blt,
-									rv64i_bge,
-									rv64i_bltu,
-									rv64i_bgeu,
-	
-									bru_rd0,
-									op1,
-									op2
+										bru_pc,
+										bru_imm
 									}
-									: bru_exeparam_qout);
+									: bru_exeparam_qout;
 
 	wire bru_exeparam_vaild_dnxt = flush ? 1'b0 : (bru_exeparam_ready & bru_isClearRAW);
-
 	assign bru_fifo_pop = bru_exeparam_vaild_dnxt;
-
-
-
-
 
 	gen_dffr # (.DW(EXE_DW)) bru_exeparam ( .dnxt(bru_exeparam_dnxt), .qout(bru_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(1)) bru_exeparam_vaild ( .dnxt(bru_exeparam_vaild_dnxt), .qout(bru_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
