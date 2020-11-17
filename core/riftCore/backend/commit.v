@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 16:50:04
+* @Last Modified time: 2020-11-17 17:53:14
 */
 
 /*
@@ -49,8 +49,8 @@ module commit (
 	output suILP_ready,
 
 	output [63:0] privileged_pc,
-	output privileged_vaild,
-
+	output isTrap,
+	output isXRet.
 
 	//from csrFiles
 	output [63:0] mstatus_except_in,
@@ -153,7 +153,6 @@ assign privileged_pc = ({64{isXRet}} & mepc_csr_out)
 						|
 						({64{isTrap}} & mtvec_csr_out);
 
-assign privileged_vaild = isTrap | isXRet;
 
 
 

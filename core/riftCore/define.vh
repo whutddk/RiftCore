@@ -47,7 +47,7 @@
 
 `define CSR_ISSUE_INFO_DW (6+64+12+(5+`RB)+(5+`RB))
 `define CSR_ISSUE_INFO_DP 2
-`define CSR_EXEPARAM_DW (3+(5+`RB)+64+12)
+`define CSR_EXEPARAM_DW (3+(5+`RB)+(5+`RB)+1+12)
 
 
 

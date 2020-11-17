@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 09:48:58
+* @Last Modified time: 2020-11-17 17:41:44
 */
 
 /*
@@ -35,9 +35,20 @@ module csr #
 	input csr_exeparam_vaild,
 	input [DW-1 :0] csr_exeparam,
 
+	//from csrfiles
+	output [11:0] csrexe_addr,
+	output csrexe_wen,
+	output [63:0] csrexe_data_write,
+	input [63:0] csrexe_data_read,
+
+
+
 	output csr_writeback_vaild,
 	output [63:0] csr_res_qout,
 	output [(5+`RB-1):0] csr_rd0_qout,
+
+
+	input [(64*`RP*32)-1:0] regFileX_read,
 
 	input CLK,
 	input RSTn,
@@ -51,10 +62,9 @@ module csr #
 	wire rv64csr_rc;
 
 	wire [(5+`RB)-1:0] csr_rd0_dnxt;
+	wire [(5+`RB)-1:0] csr_rs1;
+	wire is_imm;
 	wire [63:0] op;
-	wire [11:0] addr;
-
-
 
 
 	assign { 
@@ -63,90 +73,43 @@ module csr #
 			rv64csr_rc,
 
 			csr_rd0_dnxt,
-			op,
-			addr
+			csr_rs1,
+			is_imm,
+			csrexe_addr
 
 			} = csr_exeparam;
 
 
-wire dontRead = (csr_rd0_dnxt == 'd0) & rv64csr_rw;
-wire dontWrite = (op == 'd0) & ( rv64csr_rs | rv64csr_rc );
+	wire [63:0] op = ({64{~is_imm}} & regFileX_read[csr_rs1*64 +: 64])
+					|
+					({64{is_imm}} & {{(64-5){1'b0}}, csr_rs1[`RB +: 5]} );
 
 
 
-initial $warning("no exception at this version");
 
+
+wire dontRead = (csr_rd0_dnxt[`RB +: 5] == 5'd0) & rv64csr_rw;
+wire dontWrite = (op == 64'd0) & ( rv64csr_rs | rv64csr_rc );
+assign csrexe_wen = ~dontWrite;
+
+initial $warning("no exception in csr exe at this version");
 wire illagle_op = 1'b0;
 
 
 
 
 
-assign mstatus_dnxt = {64{~dontWrite & (addr == 12'h300) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mie_dnxt = {64{~dontWrite & (addr == 12'h304) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mtvec_dnxt = {64{~dontWrite & (addr == 12'h305) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mepc_dnxt = {64{~dontWrite & (addr == 12'h341) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mcause_dnxt = {64{~dontWrite & (addr == 12'h342) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mtval_dnxt = {64{~dontWrite & (addr == 12'h343) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
-
-assign mip_dnxt = {64{~dontWrite & (addr == 12'h344) & csr_exeparam_vaild}} &
-						(
-							({64{rv64csr_rw}} & op)
-							|
-							({64{rv64csr_rs}} | op)
-							|
-							({64{rv64csr_rc}} & (~op))
-						);
+assign csrexe_data_write = {64{~dontWrite & csr_exeparam_vaild}} &
+							(
+								({64{rv64csr_rw}} & op)
+								|
+								({64{rv64csr_rs}} | op)
+								|
+								({64{rv64csr_rc}} & (~op))
+							);
 
 
-
+assign csr_res_dnxt = csrexe_data_read;
 
 
 gen_dffr # (.DW((5+`RB))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));

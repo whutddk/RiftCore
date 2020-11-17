@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 16:53:25
+* @Last Modified time: 2020-11-17 17:57:54
 */
 
 /*
@@ -44,6 +44,14 @@ module backEnd (
 	output takenBranch_vaild_qout,
 
 	output isFlush,
+
+	input isExternInterrupt,
+	input isRTimerInterrupt,
+	input isSoftwvInterrupt,
+
+	output [63:0] privileged_pc,
+	output privileged_vaild,
+
 
 	input CLK,
 	input RSTn
@@ -144,7 +152,24 @@ module backEnd (
 	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
 
+	//csrexe to csrFiles
+	wire [11:0] csrexe_addr;
+	wire csrexe_wen;
+	wire [63:0] csrexe_data_write;
+	wire [63:0] csrexe_data_read;
 
+	//commit to csrFile
+	wire [63:0] mstatus_except_in;
+	wire [63:0] mtval_except_in;
+	wire [63:0] mcause_except_in;
+	wire [63:0] mepc_except_in;
+	wire [63:0] mstatus_csr_out;
+	wire [63:0] mip_csr_out;
+	wire [63:0] mie_csr_out;
+	wire [63:0] mepc_csr_out;
+	wire [63:0] mtvec_csr_out;
+	wire isTrap;
+	wire isXRet;
 
 dispatch i_dispatch(
 	.rnAct_X_dnxt(rnAct_X_dnxt),
@@ -300,7 +325,6 @@ csr_issue i_csrIssue(
 	.csr_exeparam_vaild_qout(csr_exeparam_vaild),
 	.csr_exeparam_qout(csr_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	//from commit
@@ -369,15 +393,20 @@ bru i_bru(
 	.RSTn(RSTn)
 );
 
-
-
 csr i_csr(
 	.csr_exeparam_vaild(csr_exeparam_vaild),
 	.csr_exeparam(csr_exeparam),
 
+	.csrexe_addr(csrexe_addr),
+	.csrexe_wen(csrexe_wen),
+	.csrexe_data_write(csrexe_data_write),
+	.csrexe_data_read(csrexe_data_read),
+
 	.csr_writeback_vaild(csr_writeback_vaild),
 	.csr_res_qout(csr_res),
 	.csr_rd0_qout(csr_rd0),
+
+	.regFileX_read(regFileX_qout),
 
 	.CLK(CLK),
 	.RSTn(RSTn),
@@ -451,21 +480,28 @@ commit i_commit(
 	.isAsynExcept(1'b0),
 
 	.commit_pc(commit_pc),
-	.suILP_ready(suILP_ready)
+	.suILP_ready(suILP_ready),
+
+	.privileged_pc(privileged_pc),
+	.isTrap(isTrap),
+	.isXRet(isXRet),
+
+	.mstatus_except_in(mstatus_except_in),
+	.mtval_except_in(mtval_except_in),
+	.mcause_except_in(mcause_except_in),
+	.mepc_except_in(mepc_except_in),
+
+	.mstatus_csr_out(mstatus_csr_out),
+	.mip_csr_out(mip_csr_out),
+	.mie_csr_out(mie_csr_out),
+	.mepc_csr_out(mepc_csr_out),
+	.mtvec_csr_out(mtvec_csr_out),
+
 );
 
 assign flush = commit_abort;
-// gen_dffr # (.DW(1)) beflush ( .dnxt(commit_abort), .qout(flush), .CLK(CLK), .RSTn(RSTn));
 
-
-
-
-
-
-
-
-
-
+assign privileged_vaild = isTrap | isXRet;
 
 
 
@@ -492,6 +528,35 @@ reOrder_fifo(
 );
 
 
+
+
+csrFiles i_csrFiles(
+
+	.csrexe_addr(csrexe_addr),
+	.csrexe_wen(csrexe_wen),
+	.csrexe_data_write(csrexe_data_write),
+	.csrexe_data_read(csrexe_data_read),
+
+	.isTrap(isTrap),
+	.isXRet(isXRet),
+	.mstatus_except_in(mstatus_except_in),
+	.mtval_except_in(mtval_except_in),
+	.mcause_except_in(mcause_except_in),
+	.mepc_except_in(mepc_except_in),
+
+	.mstatus_csr_out(mstatus_csr_out),
+	.mip_csr_out(mip_csr_out),
+	.mie_csr_out(mie_csr_out),
+	.mepc_csr_out(mepc_csr_out),
+	.mtvec_csr_out(mtvec_csr_out),
+
+	.isExternInterrupt(isExternInterrupt),
+	.isRTimerInterrupt(isRTimerInterrupt),
+	.isSoftwvInterrupt(isSoftwvInterrupt),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
 
 

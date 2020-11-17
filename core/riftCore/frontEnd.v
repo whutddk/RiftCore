@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 15:58:42
+* @Last Modified time: 2020-11-17 18:04:39
 */
 
 /*
@@ -33,18 +33,23 @@ module frontEnd (
 	output instrFifo_push,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
-	output isMisPredict,
+	output flush,
 	input bru_res_vaild,
 	input bru_takenBranch,
 	input jalr_vaild,
 	input [63:0] jalr_pc,
+
+	input [63:0] privileged_pc,
+	input privileged_vaild,
 
 	input CLK,
 	input RSTn
 	
 );
 
-wire flush = isMisPredict;
+wire isMisPredict;
+
+assign flush = isMisPredict | privileged_vaild;
 
 wire [63:0] fetch_pc_qout;
 wire isReset_qout;
@@ -76,7 +81,8 @@ pcGenerate i_pcGenerate
 	.bru_takenBranch(bru_takenBranch),
 
 	// from expection 	
-
+	.privileged_pc(privileged_pc),
+	.privileged_vaild(privileged_vaild),
 
 	//to fetch
 	.instr_readout(isInstrFetch),

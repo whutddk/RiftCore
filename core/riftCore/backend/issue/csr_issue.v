@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:08:33
+* @Last Modified time: 2020-11-17 17:36:41
 */
 
 /*
@@ -43,7 +43,6 @@ module csr_issue #
 	output [EXE_DW-1 :0] csr_exeparam_qout,
 
 	//from regFile
-	input [(64*`RP*32)-1:0] regFileX_read,
 	input [32*`RP-1 : 0] wbLog_qout,
 
 	//from commit
@@ -95,29 +94,26 @@ initial $info("the pervious instruction must be commited, then csr can issue and
 
 	wire rs1_ready = wbLog_qout[csr_rs1] | (csr_rs1[`RB +: 5] == 5'd0);
 
-	wire csr_isClearRAW = ( ~csr_fifo_empty ) & ( 
-													((rv64csr_rw | rv64csr_rs | rv64csr_rc ) & rs1_ready )
+	wire csr_isClearRAW = ( ~csr_fifo_empty ) & ( 	((rv64csr_rw | rv64csr_rs | rv64csr_rc ) & rs1_ready )
 													|
 													(rv64csr_rwi | rv64csr_rsi | rv64csr_rci )
 												);
 
-	wire [63:0] op = ({64{rv64csr_rw | rv64csr_rs | rv64csr_rc}} & regFileX_read[csr_rs1*64 +: 64])
-					|
-					({64{rv64csr_rwi | rv64csr_rsi | rv64csr_rci}} & {{(64-5){1'b0}}, csr_rs1[`RB +: 5]} );
-
+	wire is_imm = rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 	wire [11:0] addr = csr_imm;
 
 
-	wire [EXE_DW-1:0] csr_exeparam_dnxt = flush ? {EXE_DW{1'b0}} : 
-										( csr_exeparam_vaild_dnxt ? { 
+	wire [EXE_DW-1:0] csr_exeparam_dnxt = csr_exeparam_vaild_dnxt ? { 
 											csr_rw,
 											csr_rs,
 											csr_rc,
 								
 											csr_rd0,
-											op,
+											csr_rs1,
+
+											is_imm,
 											addr
-											} : csr_exeparam_qout);
+											} : csr_exeparam_qout;
 
 	wire csr_exeparam_vaild_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready & csr_exeparam_ready);
 

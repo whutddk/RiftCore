@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-10 17:42:24
+* @Last Modified time: 2020-11-17 18:05:56
 */
 
 
@@ -39,6 +39,10 @@
 `include "iverilog.vh"
 module riftCore (
 	
+	input isExternInterrupt,
+	input isRTimerInterrupt,
+	input isSoftwvInterrupt,
+
 	input CLK,
 	input RSTn
 	
@@ -61,6 +65,10 @@ wire [63:0] jalr_pc;
 wire istakenBranch;
 wire takenBranch_vaild;
 
+wire [63:0] privileged_pc;
+wire privileged_vaild;
+
+
 wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
 						| (~feflush & beflush & 1'b0)
 						| (feflush & ~beflush & 1'b1)
@@ -81,6 +89,9 @@ frontEnd i_frontEnd(
 
 	.jalr_vaild(jalr_vaild&(~isMisPredict_qout)),
 	.jalr_pc(jalr_pc),
+
+	.privileged_pc(privileged_pc),
+	.privileged_vaild(privileged_vaild),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -120,6 +131,13 @@ backEnd i_backEnd(
 	.takenBranch_vaild_qout(takenBranch_vaild),
 
 	.isFlush(beflush),
+
+	.isExternInterrupt(isExternInterrupt),
+	.isRTimerInterrupt(isRTimerInterrupt),
+	.isSoftwvInterrupt(isSoftwvInterrupt),
+
+	.privileged_pc(privileged_pc),
+	.privileged_vaild(privileged_vaild),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
