@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-17 09:46:11
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 10:48:16
+* @Last Modified time: 2020-11-17 14:40:02
 */
 
 
@@ -32,42 +32,36 @@
 
 
 module csrFiles (
+
+	//from csr exe
+	input [11:0] addr,
+	input [63:0] csrexe_data_write
+	output [63:0] csrexe_data_read,
+
+	//from exception
+
+	input isTrap,
+	input [63:0] mepc_except_in,
+	input [63:0] mcause_except_in,
+	input [63:0] mtval_except_in,
+
+	output [63:0] mstatus_csr_out,
+	output [63:0] mip_csr_out,
+	output [63:0] mie_csr_out,
+
+	input CLK,
+	input RSTn
 );
 
+assign mstatus_csr_out = mstatus_qout;
+assign mie_csr_out = mie_qout;
+assign mip_csr_out = mip_qout;
 
 
 
 
 
 
-
-
-wire [63:0] csr_res_dnxt = {64{(~dontRead) & csr_exeparam_vaild}} &
-						(
-							({64{addr == 12'hF11}} & {32'b0,mvendorid})
-							|
-							({64{addr == 12'hF12}} & marchid)
-							|
-							({64{addr == 12'hF13}} & mimpid)
-							|
-							({64{addr == 12'hF14}} & mhartid)
-							|
-							({64{addr == 12'h300}} & mstatus_qout)
-							|
-							({64{addr == 12'h301}} & misa)
-							|
-							({64{addr == 12'h304}} & mie_qout)
-							|
-							({64{addr == 12'h305}} & mtvec_qout)
-							|
-							({64{addr == 12'h341}} & mepc_qout)
-							|
-							({64{addr == 12'h342}} & mcause_qout)
-							|
-							({64{addr == 12'h343}} & mtval_qout)
-							|
-							({64{addr == 12'h344}} & mip_qout)
-						);
 
 
 
@@ -121,6 +115,8 @@ wire [63:0] mie_dnxt
 wire [63:0] mie_qout;
 gen_dffr # (.DW(64)) mie ( .dnxt(mie_dnxt), .qout(mie_qout), .CLK(CLK), .RSTn(RSTn) );
 
+
+
 //0x305
 wire [63:0] mtvec_dnxt;
 wire [63:0] mtvec_qout; 
@@ -144,17 +140,17 @@ wire [63:0] mscratch_qout;
 gen_dffr # (.DW(64)) mscratch ( .dnxt(mscratch_dnxt), .qout(mscratch_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x341
-wire [63:0] mepc_dnxt;
+wire [63:0] mepc_dnxt = mepc_except_in;
 wire [63:0] mepc_qout;
 gen_dffr # (.DW(64)) mepc ( .dnxt(mepc_dnxt), .qout(mepc_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x342
-wire [63:0] mcause_dnxt;
+wire [63:0] mcause_dnxt = mcause_except_in;
 wire [63:0] mcause_qout;
 gen_dffr # (.DW(64)) mcause ( .dnxt(mcause_dnxt), .qout(mcause_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x343
-wire [63:0] mtval_dnxt;
+wire [63:0] mtval_dnxt = mtval_except_in;
 wire [63:0] mtval_qout;
 gen_dffr # (.DW(64)) mtval ( .dnxt(mtval_dnxt), .qout(mtval_qout), .CLK(CLK), .RSTn(RSTn) );
 
@@ -221,6 +217,32 @@ gen_dffr # (.DW(64)) dscratch1 ( .dnxt(dscratch1_dnxt), .qout(dscratch1_qout), .
 
 
 
+
+
+assign csrexe_access_read = ({64{addr == 12'hF11}} & {32'b0,mvendorid})
+							|
+							({64{addr == 12'hF12}} & marchid)
+							|
+							({64{addr == 12'hF13}} & mimpid)
+							|
+							({64{addr == 12'hF14}} & mhartid)
+							|
+							({64{addr == 12'h300}} & mstatus_qout)
+							|
+							({64{addr == 12'h301}} & misa)
+							|
+							({64{addr == 12'h304}} & mie_qout)
+							|
+							({64{addr == 12'h305}} & mtvec_qout)
+							|
+							({64{addr == 12'h341}} & mepc_qout)
+							|
+							({64{addr == 12'h342}} & mcause_qout)
+							|
+							({64{addr == 12'h343}} & mtval_qout)
+							|
+							({64{addr == 12'h344}} & mip_qout)
+							;
 
 
 
