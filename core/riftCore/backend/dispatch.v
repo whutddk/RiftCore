@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 17:09:06
+* @Last Modified time: 2020-11-17 15:33:10
 */
 
 /*
@@ -134,8 +134,7 @@ module dispatch (
 	wire rv64i_fence;
 	wire rv64zi_fence_i;
 
-	wire rv64i_ecall;
-	wire rv64i_ebreak;
+
 	wire rv64csr_rw;
 	wire rv64csr_rs;
 	wire rv64csr_rc;
@@ -143,6 +142,8 @@ module dispatch (
 	wire rv64csr_rsi;
 	wire rv64csr_rci;
 
+	wire privil_ecall;
+	wire privil_ebreak;
 	wire privil_mret;
 
 	wire is_rvc;
@@ -161,8 +162,8 @@ module dispatch (
 				rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 				rv64i_fence, rv64zi_fence_i,
-				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-				privil_mret,
+				rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+				privil_ecall, privil_ebreak, privil_mret,
 				is_rvc,
 				pc, imm, shamt, rd0_raw, rs1_raw, rs2_raw
 			} = decode_microInstr_pop;
@@ -173,16 +174,20 @@ module dispatch (
 	wire isCsr = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 
 
-	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
+	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret};
 
 	initial $warning("un-implementation instructions will not be dispatch");
-	wire unImplementation = privil_mret | rv64i_ebreak;
+	wire unImplementation = 1'b0;
+	wire privileged = privil_ecall | privil_ebreak | privil_mret;
+
 	assign reOrder_fifo_push = alu_buffer_push
 								| bru_fifo_push
 								| lsu_fifo_push
 								| csr_fifo_push
+								| privileged
 								;
-	assign instrFifo_pop = reOrder_fifo_push  | unImplementation;
+
+	assign instrFifo_pop = reOrder_fifo_push | unImplementation;
 
 
 

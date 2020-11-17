@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-17 09:46:11
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 14:40:02
+* @Last Modified time: 2020-11-17 16:55:32
 */
 
 
@@ -38,16 +38,18 @@ module csrFiles (
 	input [63:0] csrexe_data_write
 	output [63:0] csrexe_data_read,
 
-	//from exception
-
-	input isTrap,
-	input [63:0] mepc_except_in,
-	input [63:0] mcause_except_in,
+	//from privileged
+	input privileged_vaild,
+	input [63:0] mstatus_except_in,
 	input [63:0] mtval_except_in,
+	input [63:0] mcause_except_in,
+	input [63:0] mepc_except_in,
 
 	output [63:0] mstatus_csr_out,
 	output [63:0] mip_csr_out,
 	output [63:0] mie_csr_out,
+	output [63:0] mepc_csr_out,
+	output [63:0] mtvec_csr_out,
 
 	input CLK,
 	input RSTn
@@ -56,8 +58,8 @@ module csrFiles (
 assign mstatus_csr_out = mstatus_qout;
 assign mie_csr_out = mie_qout;
 assign mip_csr_out = mip_qout;
-
-
+assign mepc_csr_out = mepc_qout;
+assign mtvec_csr_out = mtvec_qout;
 
 
 
@@ -94,6 +96,12 @@ gen_dffr # (.DW(64)) mhartid ( .dnxt(mhartid_dnxt), .qout(mhartid_qout), .CLK(CL
 wire [63:0] mstatus_dnxt;
 wire [63:0] mstatus_qout;
 gen_dffr # (.DW(64)) mstatus ( .dnxt(mstatus_dnxt), .qout(mstatus_qout), .CLK(CLK), .RSTn(RSTn) );
+
+assign mstatus_dnxt = ({64{privileged_vaild}} & mstatus_except_in)
+					|
+					({64{~privileged_vaild}} & mstatus_qout);
+
+
 
 //0x301
 wire [63:0] misa_dnxt = {2'b10,36'b0,26'b00000000000000000100000000};
@@ -140,19 +148,34 @@ wire [63:0] mscratch_qout;
 gen_dffr # (.DW(64)) mscratch ( .dnxt(mscratch_dnxt), .qout(mscratch_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x341
-wire [63:0] mepc_dnxt = mepc_except_in;
+wire [63:0] mepc_dnxt;
 wire [63:0] mepc_qout;
 gen_dffr # (.DW(64)) mepc ( .dnxt(mepc_dnxt), .qout(mepc_qout), .CLK(CLK), .RSTn(RSTn) );
 
+assign mepc_dnxt = ({64{privileged_vaild}} & mepc_except_in)
+					|
+					({64{~privileged_vaild}} & mepc_qout);
+
+
 //0x342
-wire [63:0] mcause_dnxt = mcause_except_in;
+wire [63:0] mcause_dnxt;
 wire [63:0] mcause_qout;
 gen_dffr # (.DW(64)) mcause ( .dnxt(mcause_dnxt), .qout(mcause_qout), .CLK(CLK), .RSTn(RSTn) );
 
+assign mcause_dnxt = ({64{privileged_vaild}} & mcause_except_in)
+					|
+					({64{~privileged_vaild}} & mcause_qout);
+
+
 //0x343
-wire [63:0] mtval_dnxt = mtval_except_in;
+wire [63:0] mtval_dnxt;
 wire [63:0] mtval_qout;
 gen_dffr # (.DW(64)) mtval ( .dnxt(mtval_dnxt), .qout(mtval_qout), .CLK(CLK), .RSTn(RSTn) );
+
+assign mtval_dnxt = ({64{privileged_vaild}} & mtval_except_in)
+					|
+					({64{~privileged_vaild}} & mtval_qout);
+
 
 //0x344
 wire [63:0] mip_dnxt;

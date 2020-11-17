@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-17 11:26:42
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 15:08:56
+* @Last Modified time: 2020-11-17 15:54:00
 */
 
 
@@ -32,6 +32,13 @@
 
 
 module privileged (
+
+
+	input isEcall,
+	input isEbreak,
+	input isMret
+
+
 
 
 	input isException,
