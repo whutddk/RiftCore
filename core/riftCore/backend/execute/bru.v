@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 16:56:35
+* @Last Modified time: 2020-11-17 19:50:02
 */
 
 /*
@@ -98,8 +98,8 @@ module bru #
 			bru_imm
 			} = bru_exeparam;
 
-	wire [63:0] src1 = regFileX_read[ 64*`RP*bru_rs1 +: 64];
-	wire [63:0] src2 = regFileX_read[ 64*`RP*bru_rs2 +: 64];
+	wire [63:0] src1 = regFileX_read[ 64*bru_rs1 +: 64];
+	wire [63:0] src2 = regFileX_read[ 64*bru_rs2 +: 64];
 
 
 
@@ -136,7 +136,7 @@ module bru #
 
 
 	gen_dffr # (.DW(1)) takenBranch ( .dnxt(takenBranch_dnxt), .qout(takenBranch_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) takenBranch_vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign bru_exeparam_ready = bru_pcGen_ready;
@@ -146,7 +146,8 @@ module bru #
 
 	gen_dffr # (.DW((5+`RB))) bru_rd0 ( .dnxt(bru_rd0_dnxt), .qout(bru_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) bru_res ( .dnxt( bru_res_dnxt), .qout(bru_res_qout), .CLK(CLK), .RSTn(RSTn));
-	assign bru_writeback_vaild = takenBranch_vaild_qout | jalr_vaild_qout;
+	gen_dffr # (.DW(1)) vaild ( .dnxt(bru_exeparam_vaild&(~flush)), .qout(bru_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+
 
 
 

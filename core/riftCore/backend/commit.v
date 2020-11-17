@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 17:53:14
+* @Last Modified time: 2020-11-17 18:59:10
 */
 
 /*
@@ -50,7 +50,7 @@ module commit (
 
 	output [63:0] privileged_pc,
 	output isTrap,
-	output isXRet.
+	output isXRet,
 
 	//from csrFiles
 	output [63:0] mstatus_except_in,
@@ -62,7 +62,7 @@ module commit (
 	input [63:0] mip_csr_out,
 	input [63:0] mie_csr_out,
 	input [63:0] mepc_csr_out,
-	input [63:0] mtvec_csr_out,
+	input [63:0] mtvec_csr_out
 
 );
 
@@ -141,8 +141,6 @@ endgenerate
 //                                                                                                                   gggggg                                               
 
 
-	input isExternException,
-	input isRTimerException,
 
 
 
@@ -189,7 +187,7 @@ assign mstatus_except_in[6:4] = 3'b0;
 assign mstatus_except_in[7] = (isTrap & mstatus_csr_out[3]) | (isXRet & 1'b1); //MPIE
 assign mstatus_except_in[10:8] = 3'b0;
 assign mstatus_except_in[12:11] = 2'b11; //MPP
-assign mstatus_except_in[63:13] = 'b0;'
+assign mstatus_except_in[63:13] = 51'b0;
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-12 15:55:29
+* @Last Modified time: 2020-11-17 19:22:40
 */
 
 /*
@@ -33,12 +33,20 @@ module riftCore_TB (
 
 );
 
+	reg isExternInterrupt;
+	reg isRTimerInterrupt;
+	reg isSoftwvInterrupt;
+
 	reg CLK;
 	reg RSTn;
 
 
 riftCore s_RC(
 	
+	.isExternInterrupt(isExternInterrupt),
+	.isRTimerInterrupt(isRTimerInterrupt),
+	.isSoftwvInterrupt(isSoftwvInterrupt),
+
 	.CLK(CLK),
 	.RSTn(RSTn)
 	
@@ -49,6 +57,10 @@ riftCore s_RC(
 initial begin
 	CLK = 0;
 	RSTn = 0;
+
+	isExternInterrupt = 0;
+	isRTimerInterrupt = 0;
+	isSoftwvInterrupt = 0;
 
 	#20
 
@@ -77,7 +89,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./dhrystone.riscv.verilog", mem);
+			$readmemh("./rv64ui-p-addi.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 					`ITCM.ram[i][7:0] = mem[i*4+0];

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-17 09:46:11
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 17:55:57
+* @Last Modified time: 2020-11-17 19:11:20
 */
 
 
@@ -102,9 +102,9 @@ gen_dffr # (.DW(64)) mstatus ( .dnxt(mstatus_dnxt), .qout(mstatus_qout), .CLK(CL
 
 assign mstatus_dnxt = 	({64{isTrap | isXRet}} & mstatus_except_in)
 						|
-						({64{(addr == 0x300) & wen}} & csrexe_data_write)
+						({64{(csrexe_addr == 12'h300) & csrexe_wen}} & csrexe_data_write)
 						|
-						({64{~(isTrap | isXRet) & ~((addr == 0x300) & wen)}} & mstatus_qout)
+						({64{~(isTrap | isXRet) & ~((csrexe_addr == 12'h300) & csrexe_wen)}} & mstatus_qout)
 						;
 
 
@@ -118,27 +118,27 @@ wire [63:0] medeleg_qout;
 gen_dffr # (.DW(64)) medeleg ( .dnxt(medeleg_dnxt), .qout(medeleg_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x303
-wire mideleg_dnxt = 64'd0;
-wire mideleg_qout;
+wire [63:0] mideleg_dnxt = 64'd0;
+wire [63:0] mideleg_qout;
 gen_dffr # (.DW(64)) mideleg ( .dnxt(mideleg_dnxt), .qout(mideleg_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0x304
-wire [63:0] mie_dnxt
+wire [63:0] mie_dnxt;
 wire [63:0] mie_qout;
 gen_dffr # (.DW(64)) mie ( .dnxt(mie_dnxt), .qout(mie_qout), .CLK(CLK), .RSTn(RSTn) );
 
-assign mie_dnxt = ({64{(addr == 0x304) & wen}} & csrexe_data_write)
+assign mie_dnxt = ({64{(csrexe_addr == 12'h304) & csrexe_wen}} & csrexe_data_write)
 					|
-					({64{~((addr == 0x304) & wen)}} & mie_qout)
+					({64{~((csrexe_addr == 12'h304) & csrexe_wen)}} & mie_qout);
 
 //0x305
 wire [63:0] mtvec_dnxt;
 wire [63:0] mtvec_qout; 
 gen_dffr # (.DW(64)) mtvec ( .dnxt(mtvec_dnxt), .qout(mtvec_qout), .CLK(CLK), .RSTn(RSTn) );
 
-assign mtvec_dnxt = ({64{(addr == 0x305) & wen}} & csrexe_data_write)
+assign mtvec_dnxt = ({64{(csrexe_addr == 12'h305) & csrexe_wen}} & csrexe_data_write)
 					|
-					({64{~((addr == 0x305) & wen)}} & mtvec_qout)
+					({64{~((csrexe_addr == 12'h305) & csrexe_wen)}} & mtvec_qout);
 
 //0x306
 wire [31:0] mcounteren_dnxt = 32'd0;
@@ -164,9 +164,9 @@ gen_dffr # (.DW(64)) mepc ( .dnxt(mepc_dnxt), .qout(mepc_qout), .CLK(CLK), .RSTn
 
 assign mepc_dnxt = ({64{isTrap}} & mepc_except_in)
 					|
-					({64{(addr == 0x341) & wen}} & csrexe_data_write)
+					({64{(csrexe_addr == 12'h341) & csrexe_wen}} & csrexe_data_write)
 					|
-					({64{~isTrap & ~((addr == 0x305) & wen)}} & mepc_qout);
+					({64{~isTrap & ~((csrexe_addr == 12'h305) & csrexe_wen)}} & mepc_qout);
 
 
 
@@ -177,9 +177,9 @@ gen_dffr # (.DW(64)) mcause ( .dnxt(mcause_dnxt), .qout(mcause_qout), .CLK(CLK),
 
 assign mcause_dnxt = ({64{isTrap}} & mcause_except_in)
 					|
-					({64{(addr == 0x342) & wen}} & csrexe_data_write)
+					({64{(csrexe_addr == 12'h342) & csrexe_wen}} & csrexe_data_write)
 					|
-					({64{~isTrap & ~((addr == 0x342) & wen)}} & mcause_qout);
+					({64{~isTrap & ~((csrexe_addr == 12'h342) & csrexe_wen)}} & mcause_qout);
 
 
 //0x343
@@ -189,13 +189,13 @@ gen_dffr # (.DW(64)) mtval ( .dnxt(mtval_dnxt), .qout(mtval_qout), .CLK(CLK), .R
 
 assign mtval_dnxt = ({64{isTrap}} & mtval_except_in)
 					|
-					({64{(addr == 0x343) & wen}} & csrexe_data_write)
+					({64{(csrexe_addr == 12'h343) & csrexe_wen}} & csrexe_data_write)
 					|
-					({64{~isTrap & ~((addr == 0x343) & wen)}} & mtval_qout);
+					({64{~isTrap & ~((csrexe_addr == 12'h343) & csrexe_wen)}} & mtval_qout);
 
 
 //0x344
-assign mip_qout = isExternInterrupt << 11 | isRTimerInterrupt << 7 | isSoftwvInterrupt << 3;
+wire [63:0] mip_qout = isExternInterrupt << 11 | isRTimerInterrupt << 7 | isSoftwvInterrupt << 3;
 
 
 // gen_dffr # (.DW()) mtinst ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
@@ -206,17 +206,17 @@ assign mip_qout = isExternInterrupt << 11 | isRTimerInterrupt << 7 | isSoftwvInt
 //Machine Counter/Timer
 
 //0xb00
-wire [63:0] mcycle_dnxt = 64'd0;;
+wire [63:0] mcycle_dnxt = 64'd0;
 wire [63:0] mcycle_qout;
 gen_dffr # (.DW(64)) mcycle ( .dnxt(mcycle_dnxt), .qout(mcycle_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0xb02
-wire [63:0] minstret_dnxt = 64'd0;;
+wire [63:0] minstret_dnxt = 64'd0;
 wire [63:0] minstret_qout;
 gen_dffr # (.DW(64)) minstret ( .dnxt(minstret_dnxt), .qout(minstret_qout), .CLK(CLK), .RSTn(RSTn) );
 
 //0xb03
-wire [63:0] mhpmcounter3_dnxt = 64'd0;;
+wire [63:0] mhpmcounter3_dnxt = 64'd0;
 wire [63:0] mhpmcounter3_qout;
 gen_dffr # (.DW(64)) mhpmcounter3 ( .dnxt(mhpmcounter3_dnxt), .qout(mhpmcounter3_qout), .CLK(CLK), .RSTn(RSTn) );
 
@@ -257,29 +257,29 @@ gen_dffr # (.DW(64)) dscratch1 ( .dnxt(dscratch1_dnxt), .qout(dscratch1_qout), .
 
 
 
-assign csrexe_access_read = ({64{addr == 12'hF11}} & {32'b0,mvendorid_qout})
+assign csrexe_data_read = ({64{csrexe_addr == 12'hF11}} & {32'b0,mvendorid_qout})
 							|
-							({64{addr == 12'hF12}} & marchid_qout)
+							({64{csrexe_addr == 12'hF12}} & marchid_qout)
 							|
-							({64{addr == 12'hF13}} & mimpid_qout)
+							({64{csrexe_addr == 12'hF13}} & mimpid_qout)
 							|
-							({64{addr == 12'hF14}} & mhartid_qout)
+							({64{csrexe_addr == 12'hF14}} & mhartid_qout)
 							|
-							({64{addr == 12'h300}} & mstatus_qout)
+							({64{csrexe_addr == 12'h300}} & mstatus_qout)
 							|
-							({64{addr == 12'h301}} & misa_qout)
+							({64{csrexe_addr == 12'h301}} & misa_qout)
 							|
-							({64{addr == 12'h304}} & mie_qout)
+							({64{csrexe_addr == 12'h304}} & mie_qout)
 							|
-							({64{addr == 12'h305}} & mtvec_qout)
+							({64{csrexe_addr == 12'h305}} & mtvec_qout)
 							|
-							({64{addr == 12'h341}} & mepc_qout)
+							({64{csrexe_addr == 12'h341}} & mepc_qout)
 							|
-							({64{addr == 12'h342}} & mcause_qout)
+							({64{csrexe_addr == 12'h342}} & mcause_qout)
 							|
-							({64{addr == 12'h343}} & mtval_qout)
+							({64{csrexe_addr == 12'h343}} & mtval_qout)
 							|
-							({64{addr == 12'h344}} & mip_qout)
+							({64{csrexe_addr == 12'h344}} & mip_qout)
 							;
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 17:57:54
+* @Last Modified time: 2020-11-17 19:45:43
 */
 
 /*
@@ -381,6 +381,8 @@ bru i_bru(
 
 	.takenBranch_qout(takenBranch_qout),
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
+	.jalr_vaild_qout(jalr_vaild_qout),
+	.jalr_pc_qout(jalr_pc_qout),
 
 	.bru_writeback_vaild(bru_writeback_vaild),
 	.bru_res_qout(bru_res),
@@ -477,8 +479,6 @@ commit i_commit(
 	.isMisPredict(isMisPredict),
 	.commit_abort(commit_abort),
 
-	.isAsynExcept(1'b0),
-
 	.commit_pc(commit_pc),
 	.suILP_ready(suILP_ready),
 
@@ -495,7 +495,7 @@ commit i_commit(
 	.mip_csr_out(mip_csr_out),
 	.mie_csr_out(mie_csr_out),
 	.mepc_csr_out(mepc_csr_out),
-	.mtvec_csr_out(mtvec_csr_out),
+	.mtvec_csr_out(mtvec_csr_out)
 
 );
 

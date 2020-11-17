@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 18:05:56
+* @Last Modified time: 2020-11-17 19:10:36
 */
 
 
@@ -82,7 +82,7 @@ frontEnd i_frontEnd(
 	.instrFifo_push(instrFifo_push),
 	.decode_microInstr(decode_microInstr_push),
 
-	.isMisPredict(feflush),
+	.flush(feflush),
 
 	.bru_res_vaild(takenBranch_vaild&~isMisPredict_qout),
 	.bru_takenBranch(istakenBranch),

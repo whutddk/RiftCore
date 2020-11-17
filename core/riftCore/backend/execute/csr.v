@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 17:41:44
+* @Last Modified time: 2020-11-17 18:08:07
 */
 
 /*
@@ -80,7 +80,7 @@ module csr #
 			} = csr_exeparam;
 
 
-	wire [63:0] op = ({64{~is_imm}} & regFileX_read[csr_rs1*64 +: 64])
+	assign op = ({64{~is_imm}} & regFileX_read[csr_rs1*64 +: 64])
 					|
 					({64{is_imm}} & {{(64-5){1'b0}}, csr_rs1[`RB +: 5]} );
 
@@ -109,7 +109,7 @@ assign csrexe_data_write = {64{~dontWrite & csr_exeparam_vaild}} &
 							);
 
 
-assign csr_res_dnxt = csrexe_data_read;
+wire [63:0] csr_res_dnxt = csrexe_data_read;
 
 
 gen_dffr # (.DW((5+`RB))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));

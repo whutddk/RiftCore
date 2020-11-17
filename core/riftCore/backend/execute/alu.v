@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 09:37:52
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 17:09:58
+* @Last Modified time: 2020-11-17 19:50:10
 */
 
 
@@ -99,8 +99,8 @@ assign {
 		} = alu_exeparam;
 
 
-	wire [63:0] src1 = regFileX_read[ 64*`RP*alu_rs1 +: 64];
-	wire [63:0] src2 = regFileX_read[ 64*`RP*alu_rs2 +: 64];
+	wire [63:0] src1 = regFileX_read[ 64*alu_rs1 +: 64];
+	wire [63:0] src2 = regFileX_read[ 64*alu_rs2 +: 64];
 
 	wire [63:0] adder_op1 = ({64{alu_fun_imm}} & exe_pc)
 							|

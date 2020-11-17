@@ -36,7 +36,7 @@
 `define ALU_ISSUE_INFO_DP 4
 `define ALU_EXEPARAM_DW (10+4+(5+`RB)+(5+`RB)+(5+`RB)+64+64)
 
-`define BRU_ISSUE_INFO_DW (8+64+64+(5+`RB)+(5+`RB)+(5+`RB))
+`define BRU_ISSUE_INFO_DW (8+1+64+64+(5+`RB)+(5+`RB)+(5+`RB))
 `define BRU_ISSUE_INFO_DP 2
 `define BRU_EXEPARAM_DW (8+1+(5+`RB)+(5+`RB)+(5+`RB)+64+64)
 
