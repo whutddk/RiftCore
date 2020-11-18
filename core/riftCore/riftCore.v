@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 19:10:36
+* @Last Modified time: 2020-11-18 10:03:31
 */
 
 
@@ -69,7 +69,7 @@ wire [63:0] privileged_pc;
 wire privileged_vaild;
 
 
-wire isMisPredict_dnxt = (feflush & beflush & isMisPredict_qout)
+wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
 						| (~feflush & beflush & 1'b0)
 						| (feflush & ~beflush & 1'b1)
 						| (~feflush & ~beflush & isMisPredict_qout);

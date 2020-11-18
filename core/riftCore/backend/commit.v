@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 18:59:10
+* @Last Modified time: 2020-11-18 10:26:56
 */
 
 /*
@@ -85,9 +85,10 @@ module commit (
 
 	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr, isEcall, isEbreak, isMret} = commit_fifo;
 
-	assign commit_abort = (isBranch & isMisPredict) 
-						| isXRet
-						| isTrap;
+	assign commit_abort = (~reOrder_fifo_empty) & 
+							((isBranch & isMisPredict) 
+							| isXRet
+							| isTrap);
 
 	assign rnBufU_commit_rst = wbLog_commit_rst;
 
@@ -166,7 +167,7 @@ wire isInterrupt = isExInterrupt | isTimeInterrupt | isSoftInterrupt;
 assign isException = isEcall | isEbreak;
 
 assign mcause_except_in[63] = isInterrupt;
-assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd8)
+assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd11)
 								| ({63{isEbreak}} & 63'd3)
 								| ( {63{isExInterrupt}} & 63'd11 )
 								| ( {63{isTimeInterrupt}} & 63'd7 )

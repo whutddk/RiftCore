@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 19:45:43
+* @Last Modified time: 2020-11-18 09:51:10
 */
 
 /*
@@ -501,7 +501,7 @@ commit i_commit(
 
 assign flush = commit_abort;
 
-assign privileged_vaild = isTrap | isXRet;
+assign privileged_vaild = (~reOrder_fifo_empty) & (isTrap | isXRet);
 
 
 

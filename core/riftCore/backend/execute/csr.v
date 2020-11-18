@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 18:08:07
+* @Last Modified time: 2020-11-18 10:18:16
 */
 
 /*
@@ -90,7 +90,7 @@ module csr #
 
 wire dontRead = (csr_rd0_dnxt[`RB +: 5] == 5'd0) & rv64csr_rw;
 wire dontWrite = (op == 64'd0) & ( rv64csr_rs | rv64csr_rc );
-assign csrexe_wen = ~dontWrite;
+assign csrexe_wen = ~dontWrite & csr_exeparam_vaild;
 
 initial $warning("no exception in csr exe at this version");
 wire illagle_op = 1'b0;
