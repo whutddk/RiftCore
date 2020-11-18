@@ -1,10 +1,10 @@
 /*
-* @File name: riftCore_TB
+* @File name: riftCore_CI
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 15:35:48
+* @Last Modified time: 2020-11-18 16:00:15
 */
 
 /*
@@ -29,7 +29,7 @@
 `include "define.vh"
 
 
-module riftCore_TB (
+module riftCore_CI (
 
 );
 
@@ -54,9 +54,16 @@ riftCore s_RC(
 );
 
 
+reg [255:0] testName;
+
+
+
+
 
 initial begin
-
+	if ( $value$plusargs("%s",testName[255:0]) ) begin
+		$display("%s",testName);
+	end
 
 	CLK = 0;
 	RSTn = 0;
@@ -71,7 +78,7 @@ initial begin
 
 	#80000
 			$display("Time Out !!!");
-	 $finish;
+	$stop;
 end
 
 
@@ -98,7 +105,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./rv64ui-p-addi.verilog", mem);
+			$readmemh(testName, mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 					`ITCM.ram[i][7:0] = mem[i*4+0];
@@ -161,16 +168,6 @@ end
 
 
 
-
-
-
-
-
-initial
-begin
-	$dumpfile("../build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, riftCore_TB);//tb模块名称
-end
 
 endmodule
 
