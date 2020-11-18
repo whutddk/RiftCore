@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 10:03:31
+* @Last Modified time: 2020-11-18 16:41:02
 */
 
 
@@ -78,7 +78,7 @@ wire isMisPredict_qout;
 
 frontEnd i_frontEnd(
 
-	.instrFifo_full(instrFifo_full),
+	.instrFifo_full(instrFifo_full&(~feflush)),
 	.instrFifo_push(instrFifo_push),
 	.decode_microInstr(decode_microInstr_push),
 

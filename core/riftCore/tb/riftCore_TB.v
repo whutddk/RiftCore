@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 15:35:48
+* @Last Modified time: 2020-11-18 16:29:41
 */
 
 /*
@@ -98,7 +98,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./rv64ui-p-addi.verilog", mem);
+			$readmemh("./ci/rv64ui-p-and.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 					`ITCM.ram[i][7:0] = mem[i*4+0];
