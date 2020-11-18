@@ -1,0 +1,25 @@
+language: python
+
+python:
+  - "3.8"
+
+sudo: true
+
+
+branch:
+  only:
+  - master
+  - develop
+
+
+install:
+  - sudo apt-get install iverilog
+
+before_script:
+  - cd core/riftCore/tb
+  - iverilog -W all -o ../build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
+
+script:
+  - vvp -N ../build/wave.iverilog +./ci/rv64ui-p-add.verilog  >> /dev/null"
+
+
