@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 09:37:52
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 09:35:54
+* @Last Modified time: 2020-11-18 11:04:28
 */
 
 
@@ -104,16 +104,18 @@ assign {
 
 	wire [63:0] adder_op1 = ({64{alu_fun_imm}} & exe_pc)
 							|
-							({64{alu_fun_add|alu_fun_sub}} & src1);
+							({64{alu_fun_add|alu_fun_sub}} & src1 );
 
-	wire [63:0] adder_op2 = ({64{isImm}} & exe_imm)
+	wire [63:0] adder_op2 = ({64{alu_fun_imm}} & exe_imm)
 							|
-							( {64{alu_fun_add}} & src2 )
+							( {64{alu_fun_add & ~isImm}} & src2 )
+							|
+							( {64{alu_fun_add & isImm}} & exe_imm )
 							|
 							( {64{alu_fun_sub}} & (~src2 + 64'd1) );
 
 
-	wire [63:0] adder_cal = $unsigned(adder_op1) + $unsigned(adder_op2);
+	wire [63:0] adder_cal = $unsigned( is32w ? { {32{adder_op1[31]}}, adder_op1[31:0]} : adder_op1) + $unsigned(is32w ? { {32{adder_op2[31]}}, adder_op2[31:0]} : adder_op2);
 	wire [63:0] alu_add_res = is32w ? {{32{adder_cal[31]}}, adder_cal[31:0]} : adder_cal;
 
 
