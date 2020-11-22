@@ -32,34 +32,22 @@
 `define DECODE_INFO_DW (53+1+6+1+64+64+6+5+5+5) 
 `define REORDER_INFO_DW (64+(5+`RB)+3)
 
-`define ADDER_ISSUE_INFO_DW (8+64+64+(5+`RB)+(5+`RB)+(5+`RB))
-`define ADDER_ISSUE_INFO_DP 4
-`define ADDER_EXEPARAM_DW (2+(5+`RB)+64+64+1)
+`define ALU_ISSUE_INFO_DW (30+64+6+64+(5+`RB)+(5+`RB)+(5+`RB))
+`define ALU_ISSUE_INFO_DP 4
+`define ALU_EXEPARAM_DW (10+4+(5+`RB)+(5+`RB)+(5+`RB)+64+64)
 
-`define LOGCMP_ISSUE_INFO_DW (10+64+64+(5+`RB)+(5+`RB)+(5+`RB))
-`define LOGCMP_ISSUE_INFO_DP 4
-`define LOGCMP_EXEPARAM_DW (4+(5+`RB)+64+64+1)
-
-`define SHIFT_ISSUE_INFO_DW (12+64+6+(5+`RB)+(5+`RB)+(5+`RB))
-`define SHIFT_ISSUE_INFO_DP 4
-`define SHIFT_EXEPARAM_DW (3+(5+`RB)+64+64+1)
-
-`define JAL_ISSUE_INFO_DW (2+64+64+(5+`RB)+(5+`RB)+1)
-`define JAL_ISSUE_INFO_DP 2
-`define JAL_EXEPARAM_DW (2+(5+`RB)+64+64+64+1)
-
-`define BRU_ISSUE_INFO_DW (6+(5+`RB)+(5+`RB)+(5+`RB))
+`define BRU_ISSUE_INFO_DW (8+1+64+64+(5+`RB)+(5+`RB)+(5+`RB))
 `define BRU_ISSUE_INFO_DP 2
-`define BRU_EXEPARAM_DW (6+(5+`RB)+64+64)
+`define BRU_EXEPARAM_DW (8+1+(5+`RB)+(5+`RB)+(5+`RB)+64+64)
 
 `define LSU_ISSUE_INFO_DW (13+64+(5+`RB)+(5+`RB)+(5+`RB))
-`define LSU_ISSUE_INFO_DP 4
+`define LSU_ISSUE_INFO_DP 2
 `define LSU_EXEPARAM_DW (13+(5+`RB)+64+64)
 
 
 `define CSR_ISSUE_INFO_DW (6+64+12+(5+`RB)+(5+`RB))
 `define CSR_ISSUE_INFO_DP 2
-`define CSR_EXEPARAM_DW (3+(5+`RB)+64+12)
+`define CSR_EXEPARAM_DW (3+(5+`RB)+(5+`RB)+1+12)
 
 
 

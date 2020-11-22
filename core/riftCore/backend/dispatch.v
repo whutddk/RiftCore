@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:11:04
+* @Last Modified time: 2020-11-17 15:33:10
 */
 
 /*
@@ -46,21 +46,9 @@ module dispatch (
 	input reOrder_fifo_full,
 
 	//to issue
-	output adder_buffer_push,
-	input adder_buffer_full,
-	output [`ADDER_ISSUE_INFO_DW-1:0] adder_dispat_info,
-
-	output logCmp_buffer_push,
-	input logCmp_buffer_full,
-	output [`LOGCMP_ISSUE_INFO_DW-1:0] logCmp_dispat_info,
-
-	output shift_buffer_push,
-	input shift_buffer_full,
-	output [`SHIFT_ISSUE_INFO_DW-1:0] shift_dispat_info,
-
-	output jal_buffer_push,
-	input jal_buffer_full,
-	output [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info,
+	output alu_buffer_push,
+	input alu_buffer_full,
+	output [`ALU_ISSUE_INFO_DW-1:0] alu_dispat_info,
 
 	output bru_fifo_push,
 	input bru_fifo_full,
@@ -78,15 +66,15 @@ module dispatch (
 );
 
 
-wire [4:0] rd0_raw;
-wire [4:0] rs1_raw;
-wire [4:0] rs2_raw;
+	wire [4:0] rd0_raw;
+	wire [4:0] rs1_raw;
+	wire [4:0] rs2_raw;
 
-wire [5+`RB-1:0] rs1_reName;
-wire [5+`RB-1:0] rs2_reName;
-wire [5+`RB-1:0] rd0_reName;
+	wire [5+`RB-1:0] rs1_reName;
+	wire [5+`RB-1:0] rs2_reName;
+	wire [5+`RB-1:0] rd0_reName;
 
-wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
+	wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 
 	wire rv64i_lui;
 	wire rv64i_auipc;
@@ -146,8 +134,7 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	wire rv64i_fence;
 	wire rv64zi_fence_i;
 
-	wire rv64i_ecall;
-	wire rv64i_ebreak;
+
 	wire rv64csr_rw;
 	wire rv64csr_rs;
 	wire rv64csr_rc;
@@ -155,6 +142,8 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	wire rv64csr_rsi;
 	wire rv64csr_rci;
 
+	wire privil_ecall;
+	wire privil_ebreak;
 	wire privil_mret;
 
 	wire is_rvc;
@@ -173,8 +162,8 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 				rv64i_addi, rv64i_addiw, rv64i_slti, rv64i_sltiu, rv64i_xori, rv64i_ori, rv64i_andi, rv64i_slli, rv64i_slliw, rv64i_srli, rv64i_srliw, rv64i_srai, rv64i_sraiw,
 				rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw, rv64i_sll, rv64i_sllw, rv64i_slt, rv64i_sltu, rv64i_xor, rv64i_srl, rv64i_srlw, rv64i_sra, rv64i_sraw, rv64i_or, rv64i_and,
 				rv64i_fence, rv64zi_fence_i,
-				rv64i_ecall, rv64i_ebreak, rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
-				privil_mret,
+				rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
+				privil_ecall, privil_ebreak, privil_mret,
 				is_rvc,
 				pc, imm, shamt, rd0_raw, rs1_raw, rs2_raw
 			} = decode_microInstr_pop;
@@ -185,64 +174,61 @@ wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 	wire isCsr = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 
 
-	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr};
+	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret};
 
 	initial $warning("un-implementation instructions will not be dispatch");
-	wire unImplementation = privil_mret | rv64i_ebreak;
-	assign reOrder_fifo_push = adder_buffer_push
-								| logCmp_buffer_push
-								| shift_buffer_push
-								| jal_buffer_push
+	wire unImplementation = 1'b0;
+	wire privileged = privil_ecall | privil_ebreak | privil_mret;
+
+	assign reOrder_fifo_push = alu_buffer_push
 								| bru_fifo_push
 								| lsu_fifo_push
 								| csr_fifo_push
+								| privileged
 								;
-	assign instrFifo_pop = reOrder_fifo_push  | unImplementation;
+
+	assign instrFifo_pop = reOrder_fifo_push | unImplementation;
 
 
 
-	assign adder_buffer_push = ( rv64i_lui | rv64i_auipc 
-									| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw ) & dispat_vaild & (~adder_buffer_full);
-	
-	assign adder_dispat_info = { rv64i_lui, rv64i_auipc, 
-								rv64i_addi, rv64i_addiw, rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw,
-								pc, imm, rd0_reName, rs1_reName, rs2_reName
-								};
+	assign alu_buffer_push = ( rv64i_lui | rv64i_auipc 
+								| rv64i_addi | rv64i_addiw | rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw 
+
+								| rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu |
+								| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and |
+								
+								| rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw |
+								| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw |
+								| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw	) 
+							& dispat_vaild & (~alu_buffer_full);
+
+	assign alu_dispat_info = { 	
+				rv64i_lui, rv64i_auipc,
+				rv64i_addi, rv64i_addiw, rv64i_add, rv64i_addw, rv64i_sub, rv64i_subw,
+
+				rv64i_slti, rv64i_sltiu, rv64i_slt, rv64i_sltu,
+				rv64i_xori, rv64i_ori, rv64i_andi, rv64i_xor, rv64i_or, rv64i_and,
+				
+				rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
+				rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
+				rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw, 
+				
+				pc, shamt, imm,
+
+				rd0_reName,
+				rs1_reName,
+				rs2_reName
+			};
 
 
-	assign logCmp_buffer_push = ( rv64i_slti | rv64i_sltiu | rv64i_slt | rv64i_sltu
-									| rv64i_xori | rv64i_ori | rv64i_andi | rv64i_xor | rv64i_or | rv64i_and ) & dispat_vaild & (~logCmp_buffer_full);
-
-	assign logCmp_dispat_info = { 
-								rv64i_slti, rv64i_sltiu, rv64i_slt, rv64i_sltu,
-								rv64i_xori, rv64i_ori, rv64i_andi, rv64i_xor, rv64i_or, rv64i_and,
-								pc, imm, rd0_reName, rs1_reName, rs2_reName
-								};
 
 
 
-	assign shift_buffer_push =  ( rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw
-									| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw
-									| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw ) & dispat_vaild & (~shift_buffer_full);
-
-	assign shift_dispat_info = { 
-								rv64i_slli, rv64i_slliw, rv64i_sll, rv64i_sllw,
-								rv64i_srli, rv64i_srliw, rv64i_srl, rv64i_srlw,
-								rv64i_srai, rv64i_sraiw, rv64i_sra, rv64i_sraw,
-								pc, shamt, rd0_reName, rs1_reName, rs2_reName
-								};
-
-	assign jal_buffer_push = ( rv64i_jal | rv64i_jalr ) & dispat_vaild & (~jal_buffer_full);
-	assign jal_dispat_info = {
-								rv64i_jal, rv64i_jalr,
-								pc, imm, rd0_reName, rs1_reName,
-								is_rvc
-							};
-
-
-	assign bru_fifo_push = (rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
+	assign bru_fifo_push = ( rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
 	assign bru_dispat_info = {
-								rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
+								is_rvc,
+								pc, imm, 
 								rd0_reName, rs1_reName, rs2_reName
 							};
 

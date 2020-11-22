@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:02:43
+* @Last Modified time: 2020-11-17 18:04:06
 */
 
 /*
@@ -44,6 +44,8 @@ module pcGenerate (
 	input bru_takenBranch,
 
 	// from expection 	
+	input [63:0] privileged_pc,
+	input privileged_vaild,
 
 	//to commit to flush
 	output isMisPredict,
@@ -74,11 +76,8 @@ module pcGenerate (
 	wire pcGen_fetch_vaild;
 
 
-
-	initial $warning("暂时忽略中断异常");
-	wire expection_vaild = 1'b0;
-	wire isExpection = 1'b0;
-	wire [63:0] expection_pc = 64'h0;
+	wire isExpection = privileged_vaild;
+	wire [63:0] expection_pc = privileged_pc;
 
 
 	wire isJal;
@@ -113,7 +112,7 @@ module pcGenerate (
 	wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
 	wire bht_stall = (bht_full & isPredit);
 
-	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict;
+	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict | isExpection;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
@@ -234,7 +233,7 @@ gen_fifo # (
 	.fifo_full(bht_full), 
 	.data_pop(bht_data_pop),
 
-	.flush(isMisPredict),
+	.flush(isMisPredict|isExpection),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
@@ -247,7 +246,7 @@ gen_ringStack # (.DW(64), .AW(4)) ras(
 	.stack_empty(ras_empty),
 	.data_pop(ras_addr_pop), .data_push(ras_addr_push),
 
-	.flush(isMisPredict),
+	.flush(isMisPredict|isExpection),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );

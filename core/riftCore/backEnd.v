@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-12 10:42:03
+* @Last Modified time: 2020-11-18 09:51:10
 */
 
 /*
@@ -45,6 +45,14 @@ module backEnd (
 
 	output isFlush,
 
+	input isExternInterrupt,
+	input isRTimerInterrupt,
+	input isSoftwvInterrupt,
+
+	output [63:0] privileged_pc,
+	output privileged_vaild,
+
+
 	input CLK,
 	input RSTn
 
@@ -72,25 +80,11 @@ module backEnd (
 
 
 	//dispat to issue
-	wire adder_buffer_pop;
-	wire [$clog2(`ADDER_ISSUE_INFO_DP)-1:0] adder_buffer_pop_index;
-	wire [`ADDER_ISSUE_INFO_DP-1:0] adder_buffer_malloc;
-	wire [`ADDER_ISSUE_INFO_DW*`ADDER_ISSUE_INFO_DP-1 : 0] adder_issue_info;
+	wire alu_buffer_pop;
+	wire [$clog2(`ALU_ISSUE_INFO_DP)-1:0] alu_buffer_pop_index;
+	wire [`ALU_ISSUE_INFO_DP-1:0] alu_buffer_malloc;
+	wire [`ALU_ISSUE_INFO_DW*`ALU_ISSUE_INFO_DP-1 : 0] alu_issue_info;
 
-	wire logCmp_buffer_pop;
-	wire [$clog2(`LOGCMP_ISSUE_INFO_DP)-1:0] logCmp_buffer_pop_index;
-	wire [`LOGCMP_ISSUE_INFO_DP-1:0] logCmp_buffer_malloc;
-	wire [`LOGCMP_ISSUE_INFO_DW*`LOGCMP_ISSUE_INFO_DP-1 : 0] logCmp_issue_info;
-
-	wire shift_buffer_pop;
-	wire [$clog2(`SHIFT_ISSUE_INFO_DP)-1:0] shift_buffer_pop_index;
-	wire [`SHIFT_ISSUE_INFO_DP-1:0] shift_buffer_malloc;
-	wire [`SHIFT_ISSUE_INFO_DW*`SHIFT_ISSUE_INFO_DP-1 : 0] shift_issue_info;
-
-	wire jal_buffer_pop;
-	wire [$clog2(`JAL_ISSUE_INFO_DP)-1:0] jal_buffer_pop_index;
-	wire [`JAL_ISSUE_INFO_DP-1:0] jal_buffer_malloc;
-	wire [`JAL_ISSUE_INFO_DW*`JAL_ISSUE_INFO_DP-1 : 0] jal_issue_info;
 
 	wire bru_fifo_pop;
 	wire bru_fifo_push;
@@ -106,14 +100,8 @@ module backEnd (
 	wire [`LSU_ISSUE_INFO_DW-1:0] lsu_issue_info;
 
 	//issue to execute
-	wire adder_exeparam_vaild;
-	wire [`ADDER_EXEPARAM_DW-1:0] adder_exeparam;
-	wire logCmp_exeparam_vaild;
-	wire [`LOGCMP_EXEPARAM_DW-1:0] logCmp_exeparam;
-	wire shift_exeparam_vaild;
-	wire [`SHIFT_EXEPARAM_DW-1:0] shift_exeparam;
-	wire jal_exeparam_vaild;
-	wire [`JAL_EXEPARAM_DW-1:0] jal_exeparam;
+	wire alu_exeparam_vaild;
+	wire [`ALU_EXEPARAM_DW-1:0] alu_exeparam;
 	wire bru_exeparam_ready;
 	wire bru_exeparam_vaild;
 	wire [`BRU_EXEPARAM_DW-1:0] bru_exeparam;
@@ -126,18 +114,9 @@ module backEnd (
 
 
 	//execute to writeback
-	wire adder_writeback_vaild;
-	wire [63:0] adder_res;
-	wire [(5+`RB-1):0] adder_rd0;
-	wire logCmp_writeback_vaild;
-	wire [63:0] logCmp_res;
-	wire [(5+`RB-1):0] logCmp_rd0;
-	wire shift_writeback_vaild;
-	wire [63:0] shift_res;
-	wire [(5+`RB-1):0] shift_rd0;
-	wire jal_writeback_vaild;
-	wire [63:0] jal_res;
-	wire [(5+`RB-1):0] jal_rd0;
+	wire alu_writeback_vaild;
+	wire [63:0] alu_res;
+	wire [(5+`RB-1):0] alu_rd0;
 	wire bru_writeback_vaild;
 	wire [(5+`RB-1):0] bru_rd0;
 	wire [63:0] bru_res;
@@ -160,18 +139,9 @@ module backEnd (
 	wire [`REORDER_INFO_DW-1:0] commit_info;
 
 
-	wire adder_buffer_push;
-	wire adder_buffer_full;
-	wire [`ADDER_ISSUE_INFO_DW-1:0] adder_dispat_info;
-	wire logCmp_buffer_push;
-	wire logCmp_buffer_full;
-	wire [`LOGCMP_ISSUE_INFO_DW-1:0] logCmp_dispat_info;
-	wire shift_buffer_push;
-	wire shift_buffer_full;
-	wire [`SHIFT_ISSUE_INFO_DW-1:0] shift_dispat_info;
-	wire jal_buffer_push;
-	wire jal_buffer_full;
-	wire [`JAL_ISSUE_INFO_DW-1:0] jal_dispat_info;
+	wire alu_buffer_push;
+	wire alu_buffer_full;
+	wire [`ALU_ISSUE_INFO_DW-1:0] alu_dispat_info;
 	wire bru_dispat_push;
 	wire bru_fifo_full;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_dispat_info;
@@ -182,7 +152,24 @@ module backEnd (
 	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
 
+	//csrexe to csrFiles
+	wire [11:0] csrexe_addr;
+	wire csrexe_wen;
+	wire [63:0] csrexe_data_write;
+	wire [63:0] csrexe_data_read;
 
+	//commit to csrFile
+	wire [63:0] mstatus_except_in;
+	wire [63:0] mtval_except_in;
+	wire [63:0] mcause_except_in;
+	wire [63:0] mepc_except_in;
+	wire [63:0] mstatus_csr_out;
+	wire [63:0] mip_csr_out;
+	wire [63:0] mie_csr_out;
+	wire [63:0] mepc_csr_out;
+	wire [63:0] mtvec_csr_out;
+	wire isTrap;
+	wire isXRet;
 
 dispatch i_dispatch(
 	.rnAct_X_dnxt(rnAct_X_dnxt),
@@ -203,21 +190,9 @@ dispatch i_dispatch(
 
 
 	//to issue
-	.adder_buffer_push(adder_buffer_push),
-	.adder_buffer_full(adder_buffer_full),
-	.adder_dispat_info(adder_dispat_info),
-
-	.logCmp_buffer_push(logCmp_buffer_push),
-	.logCmp_buffer_full(logCmp_buffer_full),
-	.logCmp_dispat_info(logCmp_dispat_info),
-
-	.shift_buffer_push(shift_buffer_push),
-	.shift_buffer_full(shift_buffer_full),
-	.shift_dispat_info(shift_dispat_info),
-
-	.jal_buffer_push(jal_buffer_push),
-	.jal_buffer_full(jal_buffer_full),
-	.jal_dispat_info(jal_dispat_info),
+	.alu_buffer_push(alu_buffer_push),
+	.alu_buffer_full(alu_buffer_full),
+	.alu_dispat_info(alu_dispat_info),
 
 	.bru_fifo_push(bru_fifo_push),
 	.bru_fifo_full(bru_fifo_full),
@@ -236,80 +211,22 @@ dispatch i_dispatch(
 
 
 //T3
-issue_buffer #( .DW(`ADDER_ISSUE_INFO_DW), .DP(`ADDER_ISSUE_INFO_DP))
-adder_issue_buffer
+issue_buffer #( .DW(`ALU_ISSUE_INFO_DW), .DP(`ALU_ISSUE_INFO_DP))
+alu_issue_buffer
 (
-	.dispat_info(adder_dispat_info),
-	.issue_info_qout(adder_issue_info),
+	.dispat_info(alu_dispat_info),
+	.issue_info_qout(alu_issue_info),
 
-	.buffer_push(adder_buffer_push),
-	.buffer_pop(adder_buffer_pop),	
+	.buffer_push(alu_buffer_push),
+	.buffer_pop(alu_buffer_pop),	
 
-	.buffer_full(adder_buffer_full),
-	.buffer_malloc_qout(adder_buffer_malloc),
-	.pop_index(adder_buffer_pop_index),
+	.buffer_full(alu_buffer_full),
+	.buffer_malloc_qout(alu_buffer_malloc),
+	.pop_index(alu_buffer_pop_index),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)	
-);
-
-issue_buffer #(.DW(`LOGCMP_ISSUE_INFO_DW), .DP(`LOGCMP_ISSUE_INFO_DP))
-logCmp_issue_buffer
-(
-	.dispat_info(logCmp_dispat_info),
-	.issue_info_qout(logCmp_issue_info),
-
-	.buffer_push(logCmp_buffer_push),
-	.buffer_pop(logCmp_buffer_pop),	
-	
-	.buffer_full(logCmp_buffer_full),
-	.buffer_malloc_qout(logCmp_buffer_malloc),
-	.pop_index(logCmp_buffer_pop_index),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-	
-);
-
-
-
-issue_buffer #(	.DW(`SHIFT_ISSUE_INFO_DW), .DP(`SHIFT_ISSUE_INFO_DP))
-shift_issue_buffer
-(
-	.dispat_info(shift_dispat_info),
-	.issue_info_qout(shift_issue_info),
-
-	.buffer_push(shift_buffer_push),
-	.buffer_pop(shift_buffer_pop),	
-	
-	.buffer_full(shift_buffer_full),
-	.buffer_malloc_qout(shift_buffer_malloc),
-	.pop_index(shift_buffer_pop_index),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-);
-
-issue_buffer #(.DW(`JAL_ISSUE_INFO_DW),.DP(`JAL_ISSUE_INFO_DP))
-jal_issue_buffer
-(
-	.dispat_info(jal_dispat_info),
-	.issue_info_qout(jal_issue_info),
-
-	.buffer_push(jal_buffer_push),
-	.buffer_pop(jal_buffer_pop),	
-	
-	.buffer_full(jal_buffer_full),
-	.buffer_malloc_qout(jal_buffer_malloc),
-	.pop_index(jal_buffer_pop_index),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-	
 );
 
 issue_fifo #( .DW(`BRU_ISSUE_INFO_DW), .DP(`BRU_ISSUE_INFO_DP))
@@ -366,76 +283,21 @@ csr_issue_fifo
 
 //C4 and T4
 
-adder_issue i_adderIssue(
-	.adder_buffer_pop(adder_buffer_pop),
-	.adder_buffer_pop_index(adder_buffer_pop_index),
-	.adder_buffer_malloc(adder_buffer_malloc),
-	.adder_issue_info(adder_issue_info),
+alu_issue i_aluIssue(
+	.alu_buffer_pop(alu_buffer_pop),
+	.alu_buffer_pop_index(alu_buffer_pop_index),
+	.alu_buffer_malloc(alu_buffer_malloc),
+	.alu_issue_info(alu_issue_info),
 
-	.adder_exeparam_vaild_qout(adder_exeparam_vaild),
-	.adder_exeparam_qout(adder_exeparam),
+	.alu_exeparam_vaild_qout(alu_exeparam_vaild),
+	.alu_exeparam_qout(alu_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
-
-logCmp_issue i_logCmpIssue(
-	.logCmp_buffer_pop(logCmp_buffer_pop),
-	.logCmp_buffer_pop_index(logCmp_buffer_pop_index),
-	.logCmp_buffer_malloc(logCmp_buffer_malloc),
-	.logCmp_issue_info(logCmp_issue_info),
-
-	.logCmp_exeparam_vaild_qout(logCmp_exeparam_vaild),
-	.logCmp_exeparam_qout(logCmp_exeparam),
-
-	.regFileX_read(regFileX_qout),
-	.wbLog_qout(wbLog_qout),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-shift_issue i_shiftIssue(
-	
-	.shift_buffer_pop(shift_buffer_pop),
-	.shift_buffer_pop_index(shift_buffer_pop_index),
-	.shift_buffer_malloc(shift_buffer_malloc),
-	.shift_issue_info(shift_issue_info),
-
-	.shift_exeparam_vaild_qout(shift_exeparam_vaild),
-	.shift_exeparam_qout(shift_exeparam),
-
-	.regFileX_read(regFileX_qout),
-	.wbLog_qout(wbLog_qout),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-jal_issue i_jalIssue(
-
-	.jal_buffer_pop(jal_buffer_pop),
-	.jal_buffer_pop_index(jal_buffer_pop_index),
-	.jal_buffer_malloc(jal_buffer_malloc),
-	.jal_issue_info(jal_issue_info),
-
-	.jal_exeparam_vaild_qout(jal_exeparam_vaild),
-	.jal_exeparam_qout(jal_exeparam),
-
-	.regFileX_read(regFileX_qout),
-	.wbLog_qout(wbLog_qout),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
 
 bru_issue i_bruIssue(
 	.bru_fifo_pop(bru_fifo_pop),
@@ -446,7 +308,6 @@ bru_issue i_bruIssue(
 	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
 	.bru_exeparam_qout(bru_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	.flush(flush),
@@ -464,7 +325,6 @@ csr_issue i_csrIssue(
 	.csr_exeparam_vaild_qout(csr_exeparam_vaild),
 	.csr_exeparam_qout(csr_exeparam),
 
-	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
 	//from commit
@@ -497,73 +357,21 @@ lsu_issue i_lsuIssue(
 );
 
 
-
-
 //C5 and T5
-adder i_adder(
-	.adder_exeparam_vaild(adder_exeparam_vaild),
-	.adder_exeparam(adder_exeparam),
+alu i_alu(
+	.alu_exeparam_vaild(alu_exeparam_vaild),
+	.alu_exeparam(alu_exeparam),
 
-	.adder_writeback_vaild(adder_writeback_vaild),
-	.adder_res_qout(adder_res),
-	.adder_rd0_qout(adder_rd0),
+	.alu_writeback_vaild(alu_writeback_vaild),
+	.alu_res_qout(alu_res),
+	.alu_rd0_qout(alu_rd0),
 
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-);
-
-
-
-logCmp i_logCmp(
-	.logCmp_exeparam_vaild(logCmp_exeparam_vaild),
-	.logCmp_exeparam(logCmp_exeparam),
-
-	.logCmp_writeback_vaild(logCmp_writeback_vaild),
-	.logCmp_res_qout(logCmp_res),
-	.logCmp_rd0_qout(logCmp_rd0),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)	
-
-);
-
-
-
-shift i_shift(
-	.shift_exeparam_vaild(shift_exeparam_vaild),
-	.shift_exeparam(shift_exeparam),
-
-	.shift_writeback_vaild(shift_writeback_vaild),
-	.shift_res_qout(shift_res),
-	.shift_rd0_qout(shift_rd0),
+	.regFileX_read(regFileX_qout),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)	
 );
-
-
-jal i_jal(
-	.jal_exeparam_vaild(jal_exeparam_vaild),
-	.jal_exeparam(jal_exeparam), 
-
-	// to branch predict
-	.jalr_vaild_qout(jalr_vaild_qout),
-	.jalr_pc_qout(jalr_pc_qout),
-
-	// to writeback
-	.jal_writeback_vaild(jal_writeback_vaild),
-	.jal_res_qout(jal_res),
-	.jal_rd0_qout(jal_rd0),
-
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-
 
 bru i_bru(
 
@@ -573,25 +381,34 @@ bru i_bru(
 
 	.takenBranch_qout(takenBranch_qout),
 	.takenBranch_vaild_qout(takenBranch_vaild_qout),
+	.jalr_vaild_qout(jalr_vaild_qout),
+	.jalr_pc_qout(jalr_pc_qout),
 
 	.bru_writeback_vaild(bru_writeback_vaild),
 	.bru_res_qout(bru_res),
 	.bru_rd0_qout(bru_rd0),
+
+	.regFileX_read(regFileX_qout),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
 
-
-
 csr i_csr(
 	.csr_exeparam_vaild(csr_exeparam_vaild),
 	.csr_exeparam(csr_exeparam),
 
+	.csrexe_addr(csrexe_addr),
+	.csrexe_wen(csrexe_wen),
+	.csrexe_data_write(csrexe_data_write),
+	.csrexe_data_read(csrexe_data_read),
+
 	.csr_writeback_vaild(csr_writeback_vaild),
 	.csr_res_qout(csr_res),
 	.csr_rd0_qout(csr_rd0),
+
+	.regFileX_read(regFileX_qout),
 
 	.CLK(CLK),
 	.RSTn(RSTn),
@@ -626,22 +443,10 @@ writeBack i_writeBack(
 
 	.wbLog_writeb_set(wbLog_writeb_set),
 
-	.adder_writeback_vaild(adder_writeback_vaild),
-	.adder_res(adder_res),
-	.adder_rd0(adder_rd0),
+	.alu_writeback_vaild(alu_writeback_vaild),
+	.alu_res(alu_res),
+	.alu_rd0(alu_rd0),
 
-	.logCmp_writeback_vaild(logCmp_writeback_vaild),
-	.logCmp_res(logCmp_res),
-	.logCmp_rd0(logCmp_rd0),
-
-	.shift_writeback_vaild(shift_writeback_vaild),
-	.shift_res(shift_res),
-	.shift_rd0(shift_rd0),
-
-	.jal_writeback_vaild(jal_writeback_vaild),
-	.jal_res(jal_res),
-	.jal_rd0(jal_rd0),
-	
 	.bru_writeback_vaild(bru_writeback_vaild),
 	.bru_res(bru_res),
 	.bru_rd0(bru_rd0),
@@ -674,24 +479,29 @@ commit i_commit(
 	.isMisPredict(isMisPredict),
 	.commit_abort(commit_abort),
 
-	.isAsynExcept(1'b0),
-
 	.commit_pc(commit_pc),
-	.suILP_ready(suILP_ready)
+	.suILP_ready(suILP_ready),
+
+	.privileged_pc(privileged_pc),
+	.isTrap(isTrap),
+	.isXRet(isXRet),
+
+	.mstatus_except_in(mstatus_except_in),
+	.mtval_except_in(mtval_except_in),
+	.mcause_except_in(mcause_except_in),
+	.mepc_except_in(mepc_except_in),
+
+	.mstatus_csr_out(mstatus_csr_out),
+	.mip_csr_out(mip_csr_out),
+	.mie_csr_out(mie_csr_out),
+	.mepc_csr_out(mepc_csr_out),
+	.mtvec_csr_out(mtvec_csr_out)
+
 );
 
 assign flush = commit_abort;
-// gen_dffr # (.DW(1)) beflush ( .dnxt(commit_abort), .qout(flush), .CLK(CLK), .RSTn(RSTn));
 
-
-
-
-
-
-
-
-
-
+assign privileged_vaild = (~reOrder_fifo_empty) & (isTrap | isXRet);
 
 
 
@@ -718,6 +528,35 @@ reOrder_fifo(
 );
 
 
+
+
+csrFiles i_csrFiles(
+
+	.csrexe_addr(csrexe_addr),
+	.csrexe_wen(csrexe_wen),
+	.csrexe_data_write(csrexe_data_write),
+	.csrexe_data_read(csrexe_data_read),
+
+	.isTrap(isTrap),
+	.isXRet(isXRet),
+	.mstatus_except_in(mstatus_except_in),
+	.mtval_except_in(mtval_except_in),
+	.mcause_except_in(mcause_except_in),
+	.mepc_except_in(mepc_except_in),
+
+	.mstatus_csr_out(mstatus_csr_out),
+	.mip_csr_out(mip_csr_out),
+	.mie_csr_out(mie_csr_out),
+	.mepc_csr_out(mepc_csr_out),
+	.mtvec_csr_out(mtvec_csr_out),
+
+	.isExternInterrupt(isExternInterrupt),
+	.isRTimerInterrupt(isRTimerInterrupt),
+	.isSoftwvInterrupt(isSoftwvInterrupt),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
 
 
