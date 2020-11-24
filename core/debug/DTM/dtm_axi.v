@@ -1,10 +1,10 @@
 /*
-* @File name: DTM
+* @File name: dtm_axi
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-11-24 11:33:45
+* @Date:   2020-11-24 15:28:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-24 15:15:25
+* @Last Modified time: 2020-11-24 15:30:18
 */
 
 /*
@@ -27,37 +27,18 @@
 `timescale 1 ns / 1 ps
 
 
-module DTM (
 
-
-	//from host
-	input JTAG_TCK,
-	input JTAG_TDI,
-	output JTAG_TDO,
-	input JTAG_TMS,
-	input JTAG_TRST,
-
-	//from AXI lite
-
-
-
-
-
-);
-
-	parameter integer C_M_AXI_ADDR_WIDTH	= 32,
-	parameter integer C_M_AXI_DATA_WIDTH	= 32
-
+module dtm_axi (
 	input M_AXI_ACLK,
 	input M_AXI_ARESETN,
 
-	output [C_M_AXI_ADDR_WIDTH-1 : 0] M_AXI_AWADDR,
+	output [7 : 0] M_AXI_AWADDR,
 	output [2 : 0] M_AXI_AWPROT,
 	output M_AXI_AWVALID,
 	input M_AXI_AWREADY,
 
-	output [C_M_AXI_DATA_WIDTH-1 : 0] M_AXI_WDATA,
-	output [C_M_AXI_DATA_WIDTH/8-1 : 0] M_AXI_WSTRB,
+	output [31 : 0] M_AXI_WDATA,
+	output [3 : 0] M_AXI_WSTRB,
 	output M_AXI_WVALID,
 	input M_AXI_WREADY,
 
@@ -65,41 +46,40 @@ module DTM (
 	input M_AXI_BVALID,
 	output M_AXI_BREADY,
 
-	output [C_M_AXI_ADDR_WIDTH-1 : 0] M_AXI_ARADDR,
+	output [7 : 0] M_AXI_ARADDR,
 	output [2 : 0] M_AXI_ARPROT,
 	output M_AXI_ARVALID,
 	input M_AXI_ARREADY,
 
-	input [C_M_AXI_DATA_WIDTH-1 : 0] M_AXI_RDATA,
+	input [31 : 0] M_AXI_RDATA,
 	input [1 : 0] M_AXI_RRESP,
 	input M_AXI_RVALID,
 	output M_AXI_RREADY
+	
+);
 
-	// AXI4LITE signals
-	//write address valid
+
+
+
 	reg  	axi_awvalid;
 	reg  	axi_wvalid;
 	reg  	axi_arvalid;
 	reg  	axi_rready;
 	reg  	axi_bready;
-	reg [C_M_AXI_ADDR_WIDTH-1 : 0] 	axi_awaddr;
-	reg [C_M_AXI_DATA_WIDTH-1 : 0] 	axi_wdata;
-	reg [C_M_AXI_ADDR_WIDTH-1 : 0] 	axi_araddr;
+	reg [7 : 0] 	axi_awaddr;
+	reg [31 : 0] 	axi_wdata;
+	reg [7 : 0] 	axi_araddr;
 	wire  	write_resp_error;
 	wire  	read_resp_error;
 	reg  	start_single_write;
 	reg  	start_single_read;
 
 
-	reg [C_M_AXI_DATA_WIDTH-1 : 0] 	expected_rdata;
-
-
+	reg [31 : 0] 	expected_rdata;
 
 
 	// I/O Connections assignments
-
 	assign M_AXI_AWADDR	= axi_awaddr;
-	//AXI 4 write data
 	assign M_AXI_WDATA	= axi_wdata;
 	assign M_AXI_AWPROT	= 3'b000;
 	assign M_AXI_AWVALID = axi_awvalid;
@@ -234,8 +214,10 @@ module DTM (
 
 
 
-
 endmodule
+
+
+
 
 
 
