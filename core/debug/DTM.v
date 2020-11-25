@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:33:45
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-24 17:59:16
+* @Last Modified time: 2020-11-25 15:43:38
 */
 
 /*
@@ -31,18 +31,15 @@ module DTM (
 
 
 	//from host
-	input JTAG_TCK,
-	input JTAG_TDI,
-	output JTAG_TDO,
-	input JTAG_TMS,
-	input JTAG_TRST,
+	input TCK,
+	input TDI,
+	output TDO,
+	input TMS,
+	input TRST,
 
 	//from AXI lite
 
-	input M_AXI_ACLK,
-	input M_AXI_ARESETN,
-
-	output [4:0] M_AXI_AWADDR,
+	output [7:0] M_AXI_AWADDR,
 	output [2:0] M_AXI_AWPROT,
 	output M_AXI_AWVALID,
 	input M_AXI_AWREADY,
@@ -56,7 +53,7 @@ module DTM (
 	input M_AXI_BVALID,
 	output M_AXI_BREADY,
 
-	output [4:0] M_AXI_ARADDR,
+	output [7:0] M_AXI_ARADDR,
 	output [2:0] M_AXI_ARPROT,
 	output M_AXI_ARVALID,
 	input M_AXI_ARREADY,
@@ -66,9 +63,13 @@ module DTM (
 	input M_AXI_RVALID,
 	output M_AXI_RREADY
 
+
+	input CLK,
+	input RSTn
+
 );
 
-
+$error("TCK should be regarded as io, but not clk");
 
 // TTTTTTTTTTTTTTTTTTTTTTT         AAA               PPPPPPPPPPPPPPPPP   
 // T:::::::::::::::::::::T        A:::A              P::::::::::::::::P  
@@ -161,14 +162,14 @@ assign tap_state_dnxt =
 	| ({4{tap_state_qout == UPDATE_IR}} & {4{ TMS}} & SELECT_DR_SCAN)
 	| ({4{tap_state_qout == UPDATE_IR}} & {4{~TMS}} & RUN_TEST_IDLE)
 
-gen_dffr # (.DW(4)) tap_state ( .dnxt(tap_state_dnxt), .qout(tap_state_qout), .CLK(TCK), .RSTn(TRST));
+gen_dffr # (.DW(4)) tap_state ( .dnxt(tap_state_dnxt), .qout(tap_state_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 wire [4:0] shift_IR_dnxt;
 wire [4:0] shift_IR_qout;
-gen_dffr # (.DW(5)) shift_IR ( .dnxt(shift_IR_dnxt), .qout(shift_IR_qout), .CLK(~TCK), .RSTn(TRST));
+gen_dffr # (.DW(5)) shift_IR ( .dnxt(shift_IR_dnxt), .qout(shift_IR_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign shift_IR_dnxt = 
 	  {5{tap_state_qout == SHIFT_IR}} & {TDI, shift_IR_qout[4:1]}
@@ -179,35 +180,72 @@ assign shift_IR_dnxt =
 
 wire [4:0] ir_dnxt;
 wire [4:0] ir_qout;
-gen_dffr # (.DW(5)) IR ( .dnxt(ir_dnxt), .qout(ir_qout), .CLK(TCK), .RSTn(TRST));
+gen_dffr # (.DW(5)) IR ( .dnxt(ir_dnxt), .qout(ir_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign ir_dnxt = 
 	  {5{tap_state_qout == TEST_LOGIC_RESET}} & 5'h1
-	| {5{tap_state_qout == UPDATE_IR}} & shift_IR_qout
+	| {5{tap_state_qout == UPDATE_IR}} & ( ((shift_IR_qout == 5'h1) & 5'h1)
+											| ((shift_IR_qout == 5'h10) & 5'h10)
+											| ((shift_IR_qout == 5'h10) & 5'h11)
+											| 5'h0
+										)
 	| {5{(tap_state_qout != TEST_LOGIC_RESET) & (tap_state_qout != UPDATE_IR)}} & ir_qout[4:0];
 
 
 
+wire [31:0] IDCODE_shift_dnxt;
+wire [31:0] IDCODE_shift_qout;
+gen_dffr # (.DW(32)) IDCODE_shift ( .dnxt(IDCODE_shift_dnxt), .qout(IDCODE_shift_qout), .CLK(~CLK), .RSTn(RSTn));
 
-
-wire [38:0] shift_DR_dnxt;
-wire [38:0] shift_DR_qout;
-gen_dffr # (.DW(39)) shift_DR ( .dnxt(shift_DR_dnxt), .qout(shift_DR_qout), .CLK(~TCK), .RSTn(TRST));
-
-
-assign shift_DR_dnxt = 
-	 ({39{tap_state_qout == CAPTURE_DR}} & (  ({39{shift_DR_qout == 5'h1}} & {IDCODE, 7'b0})
-	  	  										| ({39{shift_DR_qout == 5'h10}} & {dtmcs_qout, 7'b0})
-	  	  										| ({39{shift_DR_qout == 5'h11}} & dmi_qout) ) )
-	| {39{tap_state_qout == SHIFT_DR}} & {TDI, shift_DR_qout[38:1]}
-	| {39{(tap_state_qout != CAPTURE_DR) & (tap_state_qout != SHIFT_DR)}} & shift_DR_qout[4:0];
+assign IDCODE_shift_dnxt = 
+	({32{tap_state_qout == CAPTURE_DR & (ir_qout == 5'h1)}} & IDCODE)
+	| 
+	({32{(tap_state_qout == SHIFT_DR) & (ir_qout == 5'h1)}} & {TDI, IDCODE_shift_qout[31:1]})
+	|
+	({32{~(tap_state_qout == SHIFT_DR & ir_qout == 5'h1) & ~(tap_state_qout == CAPTURE_DR & ir_qout == 5'h1}} & IDCODE_shift_qout);
 
 
 
-assign TDO = ((tap_state_qout == SHIFT_DR) & shift_DR_qout[0])
+
+wire [31:0] dtmcs_shift_dnxt;
+wire [31:0] dtmcs_shift_qout;
+gen_dffr # (.DW(32)) dtmcs_shift ( .dnxt(dtmcs_shift_dnxt), .qout(dtmcs_shift_qout), .CLK(CLK), .RSTn(RSTn));
+
+assign dtmcs_shift_dnxt = 
+	({32{tap_state_qout == CAPTURE_DR & (ir_qout == 5'h10)}} & dtmcs_qout)
+	| 
+	({32{(tap_state_qout == SHIFT_DR) & (ir_qout == 5'h10)}} & {TDI, dtmcs_shift_qout[31:1]})
+	|
+	({32{~(tap_state_qout == SHIFT_DR & ir_qout == 5'h10) & ~(tap_state_qout == CAPTURE_DR & ir_qout == 5'h10}} & dtmcs_shift_qout);
+
+
+
+
+wire [41:0] dmi_shift_dnxt;
+wire [41:0] dmi_shift_qout;
+gen_dffr # (.DW(42)) dmi ( .dnxt(dmi_shift_dnxt), .qout(dmi_shift_qout), .CLK(~CLK), .RSTn(RSTn));
+
+assign dmi_shift_dnxt = 
+	({42{  tap_state_qout == CAPTURE_DR & (ir_qout == 5'h11)}} & dmi)
+	| 
+	({42{ (tap_state_qout == SHIFT_DR) & (ir_qout == 5'h11)}} & {TDI, dmi_shift_qout[41:1]})
+	|
+	({42{~(tap_state_qout == SHIFT_DR & ir_qout == 5'h11) & ~(tap_state_qout == CAPTURE_DR & ir_qout == 5'h11}} & dmi_shift_qout);
+
+
+
+assign TDO = ((tap_state_qout == SHIFT_IR) & shift_IR_qout[0])
 			|
-			((tap_state_qout == SHIFT_IR) & shift_IR_qout[0]);
-
+			( tap_state_qout == SHIFT_DR & 
+				(
+					(ir_qout == 5'h1  & IDCODE_shift_qout[0])
+					|
+					(ir_qout == 5'h10 & dtmcs_shift_qout[0])
+					|
+					(ir_qout == 5'h11 & dmi_shift_qout[0])
+				)
+			)
+			| 1'b0;
 
 
 
@@ -218,19 +256,12 @@ wire [31:0] IDCODE = 32'b0;
 
 wire [31:0] dtmcs_dnxt;
 wire [31:0] dtmcs_qout;
-gen_dffr # (.DW(32)) dtmcs ( .dnxt(dtmcs_dnxt), .qout(dtmcs_qout), .CLK(TCK), .RSTn(TRST));
+gen_dffr # (.DW(32)) dtmcs ( .dnxt(dtmcs_dnxt), .qout(dtmcs_qout), .CLK(CLK), .RSTn(RSTn));
 
-
-wire [38:0] dmi_dnxt;
-wire [38:0] dmi_qout;
-gen_dffr # (.DW(39)) dmi ( .dnxt(dmi_dnxt), .qout(dmi_qout), .CLK(TCK), .RSTn(TRST));
-
-wire BYPASS = 1'b0;
-
-
-
-
-
+assign dtmcs_dnxt = 
+	({32{tap_state_qout == UPDATE_DR & ir_qout == 5'h10}} & dtmcs_shift_qout)
+	|
+	({32{~(tap_state_qout == UPDATE_DR & ir_qout == 5'h10)}} & dtmcs_qout);
 
 
 
@@ -254,14 +285,50 @@ wire BYPASS = 1'b0;
 //  A:::::A                 A:::::A X:::::X       X:::::XI::::::::I      4::::::::4                 L::::::::::::::::::::::LI::::::::I      T:::::::::T      E::::::::::::::::::::E
 // AAAAAAA                   AAAAAAAXXXXXXX       XXXXXXXIIIIIIIIII      4444444444                 LLLLLLLLLLLLLLLLLLLLLLLLIIIIIIIIII      TTTTTTTTTTT      EEEEEEEEEEEEEEEEEEEEEE
 
+	wire [1:0] op = dmi_shift_qout[1:0];
+	reg [7:0] axi_awaddr;
+	reg [31:0] axi_wdata;
+	reg [7:0] axi_araddr;
+	reg start_single_write;
+	reg start_single_read;
+
+	reg [41:0] dmi;
+
+	wire write_resp_error;
+	wire read_resp_error;
+
+
+	always @(posedge CLK or negedge RSTn) begin
+		if(~RSTn) begin
+			dmi <= 39'b0;
+		end else begin
+			if (tap_state_qout == UPDATE_DR & ir_qout == 5'h11) begin
+				dmi <= dmi_shift_qout;
+
+				if ( op == 1 || op == 2 ) begin
+					dmi[1:0] <= 2'd3;
+				end
+			end
+
+			else begin
+				dmi <= dmi;
+				if ( M_AXI_RVALID ) begin
+					dmi[33:2] <= M_AXI_RDATA;
+					dmi[1:0] <= 2'b0;
+				end
+				if ( M_AXI_BRESP == 2'b0 && M_AXI_BVALID ) begin
+					dmi[1:0] <= 2'b0;
+				end
+				if ( read_resp_error || write_resp_error ) begin
+					dmi[1:0] <= 2'd2;
+				end
+			end
+		end
+	end
 
 
 
 
-	wire [4:0] axi_awaddr;
-	wire [31:0] axi_wdata;
-	wire [4:0] axi_araddr;
-M_AXI_RDATA
 
 
 
@@ -269,18 +336,57 @@ M_AXI_RDATA
 
 
 
-	reg  	axi_awvalid;
-	reg  	axi_wvalid;
-	reg  	axi_arvalid;
-	reg  	axi_rready;
-	reg  	axi_bready;
 
 
 
-	wire  	write_resp_error;
-	wire  	read_resp_error;
-	reg  	start_single_write;
-	reg  	start_single_read;
+
+	always @(posedge CLK or negedge RSTn) begin
+		if(~RSTn) begin
+			axi_awaddr <= 8'b0;
+			axi_araddr <= 8'b0;
+			axi_wdata <= 32'b0;
+			start_single_write <= 1'b0;
+			start_single_read <= 1'b0;
+
+		end else begin
+			if (tap_state_qout == UPDATE_DR & ir_qout == 5'h11) begin
+				axi_awaddr <= dmi_shift_qout[41:34];
+				axi_wdata <= dmi_shift_qout[33:2];
+				axi_araddr <= dmi_shift_qout[41:34];
+				start_single_write <= 1'b0;
+				start_single_read <= 1'b0;
+
+				if ( op == 2 ) begin
+					start_single_write <= 1'b1;
+				end
+
+				if ( op == 1 ) begin
+					start_single_read <= 1'b1;
+				end
+			end
+			else begin
+				axi_awaddr <= axi_awaddr;
+				axi_wdata <= axi_wdata;
+				axi_araddr <= axi_araddr;
+				start_single_write <= 1'b0;
+				start_single_read <= 1'b0;
+			end
+		end
+	end
+
+
+
+
+	reg axi_awvalid;
+	reg axi_wvalid;
+	reg axi_arvalid;
+	reg axi_rready;
+	reg axi_bready;
+
+
+
+
+
 
 
 
@@ -291,7 +397,7 @@ M_AXI_RDATA
 	assign M_AXI_AWPROT	= 3'b000;
 	assign M_AXI_AWVALID = axi_awvalid;
 	assign M_AXI_WVALID	= axi_wvalid;
-	assign M_AXI_WSTRB	= 4'b1111;
+		assign M_AXI_WSTRB	= 4'b1111;
 	assign M_AXI_BREADY	= axi_bready;
 	assign M_AXI_ARADDR	= axi_araddr;
 	assign M_AXI_ARVALID	= axi_arvalid;
@@ -301,8 +407,8 @@ M_AXI_RDATA
 
 
 
-	always @(posedge M_AXI_ACLK) begin
-		if (M_AXI_ARESETN == 0 || init_txn_pulse == 1'b1) begin
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
 			axi_awvalid <= 1'b0;
 		end
 		else begin
@@ -316,8 +422,8 @@ M_AXI_RDATA
 	end
 
 
-	always @(posedge M_AXI_ACLK) begin
-		if (M_AXI_ARESETN == 0  || init_txn_pulse == 1'b1) begin
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
 			 axi_wvalid <= 1'b0;
 		end
 		else if (start_single_write) begin
@@ -328,8 +434,8 @@ M_AXI_RDATA
 		end
 	end
 
-	always @(posedge M_AXI_ACLK) begin
-		if (M_AXI_ARESETN == 0 || init_txn_pulse == 1'b1) begin
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
 			axi_bready <= 1'b0;
 		end
 		else if (M_AXI_BVALID && ~axi_bready) begin
@@ -345,8 +451,8 @@ M_AXI_RDATA
 	assign write_resp_error = (axi_bready & M_AXI_BVALID & M_AXI_BRESP[1]);
 
 
-	always @(posedge M_AXI_ACLK) begin
-		if (M_AXI_ARESETN == 0 || init_txn_pulse == 1'b1) begin
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
 			axi_arvalid <= 1'b0;
 		end
 		else if (start_single_read) begin
@@ -357,18 +463,18 @@ M_AXI_RDATA
 		end
 	end
 
-	always @(posedge M_AXI_ACLK) begin                                                                 
-		if (M_AXI_ARESETN == 0 || init_txn_pulse == 1'b1) begin                                                             
-			axi_rready <= 1'b0;                                             
-		end                                                                                      
-		else if (M_AXI_RVALID && ~axi_rready) begin                                                             
-			axi_rready <= 1'b1;                                             
-		end                                                                                              
-		else if (axi_rready) begin                                                             
-			axi_rready <= 1'b0;                                             
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			axi_rready <= 1'b0;
+		end
+		else if (M_AXI_RVALID && ~axi_rready) begin
+			axi_rready <= 1'b1;
+		end
+		else if (axi_rready) begin
+			axi_rready <= 1'b0;
 		end
 	end
-                                                   
+
 	assign read_resp_error = (axi_rready & M_AXI_RVALID & M_AXI_RRESP[1]);
 
 
