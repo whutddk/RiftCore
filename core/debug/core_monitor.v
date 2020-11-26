@@ -1,10 +1,10 @@
 /*
-* @File name: DMI
+* @File name: core_monitor
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-11-24 11:35:08
+* @Date:   2020-11-26 19:01:43
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-25 18:58:58
+* @Last Modified time: 2020-11-26 19:01:59
 */
 
 /*
@@ -27,34 +27,15 @@
 `timescale 1 ns / 1 ps
 
 
-module DMI (
-
-	// master
-	input [4:0] M_AXI_AWADDR,
-	input [2:0] M_AXI_AWPROT,
-	input M_AXI_AWVALID,
-	output M_AXI_AWREADY,
-
-	input [31:0] M_AXI_WDATA,
-	input [3:0] M_AXI_WSTRB,
-	input M_AXI_WVALID,
-	output M_AXI_WREADY,
-
-	output [1:0] M_AXI_BRESP,
-	output M_AXI_BVALID,
-	input M_AXI_BREADY,
-
-	input [4:0] M_AXI_ARADDR,
-	input [2:0] M_AXI_ARPROT,
-	input M_AXI_ARVALID,
-	output M_AXI_ARREADY,
-
-	output [31:0] M_AXI_RDATA,
-	output [1:0] M_AXI_RRESP,
-	output M_AXI_RVALID,
-	input M_AXI_RREADY
+module core_monitor (
 
 );
 
 endmodule
+
+
+
+
+
+
 

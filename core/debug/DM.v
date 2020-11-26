@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-25 17:38:26
+* @Last Modified time: 2020-11-26 17:16:16
 */
 
 
@@ -28,9 +28,11 @@
 `timescale 1 ns / 1 ps
 
 
-module DM (
-
-
+module DM #
+	(
+		parameter MAXHART = 1
+	)
+	(
 
 	input [7:0] S_AXI_AWADDR,
 	input [2:0] S_AXI_AWPROT,
@@ -64,7 +66,8 @@ module DM (
 	output ndmresetn,
 	output dmactive,
 
-	output hartReset,
+	//core
+	output [MAXHART-1:0] hartReset,
 
 
 
@@ -251,33 +254,70 @@ module DM (
 
 
 
+// DDDDDDDDDDDDD        MMMMMMMM               MMMMMMMM
+// D::::::::::::DDD     M:::::::M             M:::::::M
+// D:::::::::::::::DD   M::::::::M           M::::::::M
+// DDD:::::DDDDD:::::D  M:::::::::M         M:::::::::M
+//   D:::::D    D:::::D M::::::::::M       M::::::::::M
+//   D:::::D     D:::::DM:::::::::::M     M:::::::::::M
+//   D:::::D     D:::::DM:::::::M::::M   M::::M:::::::M
+//   D:::::D     D:::::DM::::::M M::::M M::::M M::::::M
+//   D:::::D     D:::::DM::::::M  M::::M::::M  M::::::M
+//   D:::::D     D:::::DM::::::M   M:::::::M   M::::::M
+//   D:::::D     D:::::DM::::::M    M:::::M    M::::::M
+//   D:::::D    D:::::D M::::::M     MMMMM     M::::::M
+// DDD:::::DDDDD:::::D  M::::::M               M::::::M
+// D:::::::::::::::DD   M::::::M               M::::::M
+// D::::::::::::DDD     M::::::M               M::::::M
+// DDDDDDDDDDDDD        MMMMMMMM               MMMMMMMM
 
 
 
 
 
-	wire [9:0] hartsello_dnxt;
-	wire [9:0] hartsello_qout;
 
-	wire [9:0] hartselhi_dnxt;
-	wire [9:0] hartselhi_qout;
+	wire impebreak;
 
-	wire allunavail_dnxt;
-	wire allunavail_qout;
+	wire allhavereset;
+	wire anyhavereset;
 
-	wire anyunavail_dnxt;
-	wire anyunavail_qout;
+	wire allresumeack;
+	wire anyresumeack;
 
-	wire allhavereset_dnxt;
-	wire allhavereset_qout;
+	wire allnonexistent;
+	wure anynonexistent;
 
-	wire anyhavereset_dnxt;
-	wire anyhavereset_qout;
+	wire allunavail;
+	wire anyunavail;
 
-	wire ackhavereset_dnxt;
-	wire ackhavereset_qout;
-	
-	wire haltreq;
+	wire allrunning;
+	wire anyrunning;
+
+	wire allhalted;
+	wire anyhalted;
+
+	wire authenticated;
+	wire authbusy;
+
+	wire hasresethaltreq;
+	wire confstrptrvalid;
+
+	wire [3:0] version = 4'd2;
+
+
+assign dmstatus_dnxt = 
+	{ 9'b0, impebreak, 2'b0,
+	allhavereset, anyhavereset, allresumeack, anyresumeack, allnonexistent, anynonexistent, allunavail,
+	anyunavail, allrunning, anyrunning, allhalted, anyhalted,
+	authenticated, authbusy, hasresethaltreq, confstrptrvalid, version};
+
+
+
+
+
+
+
+
 
 
 
@@ -286,7 +326,12 @@ module DM (
 	assign ndmresetn = ~ndmreset;
 	assign dmactive = dmcontrol_qout[0];
 
-	assign hartReset = ({hartselhi_qout, hartsello_qout} == 20'h0) & dmcontrol_qout[29];
+	generate
+		for ( genvar i = 0; i < MAXHART; i = i + 1 )begin
+			assign hartReset[i] = ({hartselhi_qout, hartsello_qout} == i) & dmcontrol_qout[29];
+		end
+	endgenerate
+
 
 
 //0x04
@@ -370,14 +415,10 @@ wire [31:0] haltsum1_qout;
 gen_dffr # (.DW(32)) haltsum1 ( .dnxt(haltsum1_dnxt), .qout(haltsum1_qout), .CLK(CLK), .RSTn(RSTn));
 
 //0x14
-wire [31:0] hawindowsel_dnxt;
-wire [31:0] hawindowsel_qout;
-gen_dffr # (.DW(32)) hawindowsel ( .dnxt(hawindowsel_dnxt), .qout(hawindowsel_qout), .CLK(CLK), .RSTn(RSTn));
+wire [31:0] hawindowsel = 32'b0;
 
 //0x15
-wire [31:0] hawindow_dnxt;
-wire [31:0] hawindow_qout;
-gen_dffr # (.DW(32)) hawindowsel ( .dnxt(hawindow_dnxt), .qout(hawindow_qout), .CLK(CLK), .RSTn(RSTn));
+wire [31:0] hawindow = 32'b0;
 
 //0x16
 wire [31:0] abstractcs_dnxt;
