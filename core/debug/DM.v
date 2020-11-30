@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-26 17:16:16
+* @Last Modified time: 2020-11-30 17:43:52
 */
 
 
@@ -271,9 +271,13 @@ module DM #
 // D::::::::::::DDD     M::::::M               M::::::M
 // DDDDDDDDDDDDD        MMMMMMMM               MMMMMMMM
 
+	wire hasel = 1'b0;
 
+	wire [9:0] hartsello_dnxt = 10'd0;
+	wire [9:0] hartsello_qout;
 
-
+	wire [9:0] hartselhi_dnxt = 10'd0;
+	wire [9:0] hartselhi_qout;
 
 
 	wire impebreak;
@@ -397,6 +401,11 @@ gen_dffr # (.DW(32)) data11 ( .dnxt(data11_dnxt), .qout(data11_qout), .CLK(CLK),
 //0x10
 wire [31:0] dmcontrol_dnxt;
 wire [31:0] dmcontrol_qout;
+
+
+assign dmcontrol_dnxt[31] = 
+
+
 gen_dffr # (.DW(32)) dmcontrol ( .dnxt(dmcontrol_dnxt), .qout(dmcontrol_qout), .CLK(CLK), .RSTn(RSTn));
 
 //0x11
@@ -602,6 +611,11 @@ gen_dffr # (.DW(32)) sbdata3 ( .dnxt(sbdata3_dnxt), .qout(sbdata3_qout), .CLK(CL
 wire [31:0] haltsum0_dnxt;
 wire [31:0] haltsum0_qout;
 gen_dffr # (.DW(32)) haltsum0 ( .dnxt(haltsum0_dnxt), .qout(haltsum0_qout), .CLK(CLK), .RSTn(RSTn));
+
+//private reg
+wire [MAXHART-1:0] hartArrayMask_dnxt;
+wire [MAXHART-1:0] hartArrayMask_qout;
+gen_dffr # (.DW(MAXHART)) hartArrayMask ( .dnxt(hartArrayMask_dnxt), .qout(hartArrayMask_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -887,6 +901,97 @@ assign sbdata3_dnxt;
 
 //0x40
 assign haltsum0_dnxt;
+
+
+
+
+
+
+
+
+// RRRRRRRRRRRRRRRRR                                                                     tttt               HHHHHHHHH     HHHHHHHHH                  lllllll         tttt                       CCCCCCCCCCCCC                                            tttt                                              lllllll 
+// R::::::::::::::::R                                                                 ttt:::t               H:::::::H     H:::::::H                  l:::::l      ttt:::t                    CCC::::::::::::C                                         ttt:::t                                              l:::::l 
+// R::::::RRRRRR:::::R                                                                t:::::t               H:::::::H     H:::::::H                  l:::::l      t:::::t                  CC:::::::::::::::C                                         t:::::t                                              l:::::l 
+// RR:::::R     R:::::R                                                               t:::::t               HH::::::H     H::::::HH                  l:::::l      t:::::t                 C:::::CCCCCCCC::::C                                         t:::::t                                              l:::::l 
+//   R::::R     R:::::R    eeeeeeeeeeee        ssssssssss       eeeeeeeeeeee    ttttttt:::::ttttttt           H:::::H     H:::::H    aaaaaaaaaaaaa    l::::lttttttt:::::ttttttt          C:::::C       CCCCCC   ooooooooooo   nnnn  nnnnnnnn    ttttttt:::::ttttttt   rrrrr   rrrrrrrrr      ooooooooooo    l::::l 
+//   R::::R     R:::::R  ee::::::::::::ee    ss::::::::::s    ee::::::::::::ee  t:::::::::::::::::t           H:::::H     H:::::H    a::::::::::::a   l::::lt:::::::::::::::::t         C:::::C               oo:::::::::::oo n:::nn::::::::nn  t:::::::::::::::::t   r::::rrr:::::::::r   oo:::::::::::oo  l::::l 
+//   R::::RRRRRR:::::R  e::::::eeeee:::::eess:::::::::::::s  e::::::eeeee:::::eet:::::::::::::::::t           H::::::HHHHH::::::H    aaaaaaaaa:::::a  l::::lt:::::::::::::::::t         C:::::C              o:::::::::::::::on::::::::::::::nn t:::::::::::::::::t   r:::::::::::::::::r o:::::::::::::::o l::::l 
+//   R:::::::::::::RR  e::::::e     e:::::es::::::ssss:::::se::::::e     e:::::etttttt:::::::tttttt           H:::::::::::::::::H             a::::a  l::::ltttttt:::::::tttttt         C:::::C              o:::::ooooo:::::onn:::::::::::::::ntttttt:::::::tttttt   rr::::::rrrrr::::::ro:::::ooooo:::::o l::::l 
+//   R::::RRRRRR:::::R e:::::::eeeee::::::e s:::::s  ssssss e:::::::eeeee::::::e      t:::::t                 H:::::::::::::::::H      aaaaaaa:::::a  l::::l      t:::::t               C:::::C              o::::o     o::::o  n:::::nnnn:::::n      t:::::t          r:::::r     r:::::ro::::o     o::::o l::::l 
+//   R::::R     R:::::Re:::::::::::::::::e    s::::::s      e:::::::::::::::::e       t:::::t                 H::::::HHHHH::::::H    aa::::::::::::a  l::::l      t:::::t               C:::::C              o::::o     o::::o  n::::n    n::::n      t:::::t          r:::::r     rrrrrrro::::o     o::::o l::::l 
+//   R::::R     R:::::Re::::::eeeeeeeeeee        s::::::s   e::::::eeeeeeeeeee        t:::::t                 H:::::H     H:::::H   a::::aaaa::::::a  l::::l      t:::::t               C:::::C              o::::o     o::::o  n::::n    n::::n      t:::::t          r:::::r            o::::o     o::::o l::::l 
+//   R::::R     R:::::Re:::::::e           ssssss   s:::::s e:::::::e                 t:::::t    tttttt       H:::::H     H:::::H  a::::a    a:::::a  l::::l      t:::::t    tttttt      C:::::C       CCCCCCo::::o     o::::o  n::::n    n::::n      t:::::t    ttttttr:::::r            o::::o     o::::o l::::l 
+// RR:::::R     R:::::Re::::::::e          s:::::ssss::::::se::::::::e                t::::::tttt:::::t     HH::::::H     H::::::HHa::::a    a:::::a l::::::l     t::::::tttt:::::t       C:::::CCCCCCCC::::Co:::::ooooo:::::o  n::::n    n::::n      t::::::tttt:::::tr:::::r            o:::::ooooo:::::ol::::::l
+// R::::::R     R:::::R e::::::::eeeeeeee  s::::::::::::::s  e::::::::eeeeeeee        tt::::::::::::::t     H:::::::H     H:::::::Ha:::::aaaa::::::a l::::::l     tt::::::::::::::t        CC:::::::::::::::Co:::::::::::::::o  n::::n    n::::n      tt::::::::::::::tr:::::r            o:::::::::::::::ol::::::l
+// R::::::R     R:::::R  ee:::::::::::::e   s:::::::::::ss    ee:::::::::::::e          tt:::::::::::tt     H:::::::H     H:::::::H a::::::::::aa:::al::::::l       tt:::::::::::tt          CCC::::::::::::C oo:::::::::::oo   n::::n    n::::n        tt:::::::::::ttr:::::r             oo:::::::::::oo l::::::l
+// RRRRRRRR     RRRRRRR    eeeeeeeeeeeeee    sssssssssss        eeeeeeeeeeeeee            ttttttttttt       HHHHHHHHH     HHHHHHHHH  aaaaaaaaaa  aaaallllllll         ttttttttttt               CCCCCCCCCCCCC   ooooooooooo     nnnnnn    nnnnnn          ttttttttttt  rrrrrrr               ooooooooooo   llllllll
+ 
+
+
+
+
+
+
+
+
+
+
+wire [MAXHART-1:0] haltreq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? 
+									{MAXHART{S_AXI_WDATA [31]}} & hartSelected : haltreq_qout;
+gen_dffr # (.DW(MAXHART)) haltreq ( .dnxt(haltreq_dnxt), .qout(haltreq_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+wire [MAXHART-1:0] resumereq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA [30] & ~S_AXI_WDATA [31] ? 
+									hartSelected : {MAXHART{1'b0}};
+gen_dffr # (.DW(MAXHART)) resumereq ( .dnxt(resumereq_dnxt), .qout(resumereq_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+wire hartreset_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? S_AXI_WDATA [29] : hartreset_qout;
+wire hartreset_qout;
+gen_dffr # (.DW(1)) hartreset ( .dnxt(hartreset_dnxt), .qout(hartreset_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+wire [MAXHART-1:0] hartResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
+							{MAXHART{S_AXI_WDATA [29]}} & hartSelected : hartreset_qout;
+gen_dffr # (.DW(MAXHART)) hartResetreq ( .dnxt(hartResetreq_dnxt), .qout(hartResetreq_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+wire hasel_dnxt;
+wire hasel_qout;
+wire [9:0] hartsello_dnxt;
+wire [9:0] hartsello_qout;
+wire [9:0] hartselhi_dnxt;
+wire [9:0] hartselhi_qout;
+assign {hasel_dnxt, hartsello_dnxt, hartselhi_dnxt} = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
+													S_AXI_WDATA [26:6] : {hasel_qout, hartsello_qout, hartselhi_qout};
+
+gen_dffr # (.DW(21)) dmcontrol_26_6 ( .dnxt({hasel_dnxt, hartsello_dnxt, hartselhi_dnxt}), .qout({hasel_qout, hartsello_qout, hartselhi_qout}), .CLK(CLK), .RSTn(RSTn));
+
+
+wire [MAXHART-1:0] haltOnResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 ))
+										?
+										(
+											S_AXI_WDATA [2] 
+											? {MAXHART{1'b0}} 
+											: ( S_AXI_WDATA [3] 
+												? hartSelected 
+												: haltOnResetreq_qout )
+										)
+										:
+										haltOnResetreq_qout;
+
+gen_dffr # (.DW(MAXHART)) haltOnResettreq ( .dnxt(haltOnResetreq_dnxt), .qout(haltOnResetreq_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+wire ndmreset_dnxt;
+wire ndmreset_qout;
+
+wire dmactive_dnxt;
+wire dmactive_qout;
+
+gen_dffr # (.DW(2)) dmcontrol_1_0 ( .dnxt({ndmreset_dnxt, dmactive_dnxt}), .qout({ndmreset_qout, dmactive_qout}), .CLK(CLK), .RSTn(RSTn));
+
+
 
 
 

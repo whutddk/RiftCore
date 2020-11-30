@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:35:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-26 17:37:26
+* @Last Modified time: 2020-11-30 16:27:09
 */
 
 /*
@@ -31,7 +31,25 @@ module reset_halt_control #
 	parameter MAXHART = 1
 	
 )
-	(
+(
+
+	//to core
+
+	output [MAXHART-1:0] haltreq_qout,
+	output [MAXHART-1:0] resumereq_qout,
+	output [MAXHART-1:0] setresethaltreq_qout,
+	output [MAXHART-1:0] clrresethaltreq_qout,
+
+	input [MAXHART-1:0] reset_status,	
+	input [MAXHART-1:0] halt_status,
+
+	input [MAXHART-1:0] isDebugMode,
+
+	//form dm
+
+
+	input [31:0] dmcontrol,
+	input [MAXHART-1:0] hartArrayMask,
 
 );
 
@@ -40,30 +58,38 @@ module reset_halt_control #
 
 
 
+	wire hasel = dmcontrol[26];
+
+	wire [9:0] hartsello = dmcontrol[25:16];
+	wire [9:0] hartselhi = dmcontrol[15:6];
+
+	wire [19:0] hartsel = {hartselhi, hartsello};
+
+	wire [MAXHART-1:0] hartSelected = hasel ? hartArrayMask : hartsel[MAXHART-1:0];
 
 
 
 
 
-	wire [9:0] hartsello_dnxt = 10'd0;
-	wire [9:0] hartsello_qout;
 
-	wire [9:0] hartselhi_dnxt = 10'd0;
-	wire [9:0] hartselhi_qout;
-
-	wire hasel = 1'b0;
 
 	
 	wire haltreq;
+	wire resumereq;
 
 
 
 
+wire [MAXHART-1:0] haltreq_dnxt = haltreq ? hartSelected : haltreq_qout;
+gen_dffr # (.DW(MAXHART)) haltreq ( .dnxt(haltreq_dnxt), .qout(haltreq_qout), .CLK(CLK), .RSTn(RSTn));
+
+	wire [MAXHART-1:0] resumereq_dnxt;
 
 
+	wire [MAXHART-1:0] setresethaltreq_dnxt;
 
 
-
+	wire [MAXHART-1:0] clrresethaltreq_dnxt;
 
 
 
