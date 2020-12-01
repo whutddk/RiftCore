@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-26 19:01:43
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-27 09:46:52
+* @Last Modified time: 2020-12-01 17:58:15
 */
 
 /*
@@ -38,7 +38,31 @@ module core_monitor (
 
 
 	
+
+
+input [127:0] accessReg_arg,
+input [15:0] accessReg_addr,
+input accessReg_wen,
+output [127:0] accessReg_res,
+output accessReg_ready,
+input accessReg_vaild,
+
+
+input quickAccess_vaild,
+input [32*16-1:0] programBuffer,
+output isExpection,
+output quickAccess_ready,
+
 );
+
+
+
+
+sram programBuffer();
+
+
+
+
 
 endmodule
 

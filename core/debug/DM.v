@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-30 17:43:52
+* @Last Modified time: 2020-12-01 19:24:04
 */
 
 
@@ -399,19 +399,19 @@ wire [31:0] data11_qout;
 gen_dffr # (.DW(32)) data11 ( .dnxt(data11_dnxt), .qout(data11_qout), .CLK(CLK), .RSTn(RSTn));
 
 //0x10
-wire [31:0] dmcontrol_dnxt;
-wire [31:0] dmcontrol_qout;
+// wire [31:0] dmcontrol_dnxt;
+// wire [31:0] dmcontrol_qout;
 
 
-assign dmcontrol_dnxt[31] = 
+// assign dmcontrol_dnxt[31] = 
 
 
-gen_dffr # (.DW(32)) dmcontrol ( .dnxt(dmcontrol_dnxt), .qout(dmcontrol_qout), .CLK(CLK), .RSTn(RSTn));
+// gen_dffr # (.DW(32)) dmcontrol ( .dnxt(dmcontrol_dnxt), .qout(dmcontrol_qout), .CLK(CLK), .RSTn(RSTn));
 
 //0x11
-wire [31:0] dmstatus_dnxt;
-wire [31:0] dmstatus_qout;
-gen_dffr # (.DW(32)) dmstatus ( .dnxt(dmstatus_dnxt), .qout(dmstatus_qout), .CLK(CLK), .RSTn(RSTn));
+// wire [31:0] dmstatus_dnxt;
+// wire [31:0] dmstatus_qout;
+// gen_dffr # (.DW(32)) dmstatus ( .dnxt(dmstatus_dnxt), .qout(dmstatus_qout), .CLK(CLK), .RSTn(RSTn));
 
 //0x12
 wire [31:0] hartinfo_dnxt;
@@ -795,7 +795,7 @@ assign hawindow_dnxt;
 assign abstractcs_dnxt;
 
 //0x17
-assign command_dnxt;
+// assign command_dnxt;
 
 //0x18
 assign abstractauto_dnxt;
@@ -938,22 +938,22 @@ assign haltsum0_dnxt;
 
 wire [MAXHART-1:0] haltreq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? 
 									{MAXHART{S_AXI_WDATA [31]}} & hartSelected : haltreq_qout;
-gen_dffr # (.DW(MAXHART)) haltreq ( .dnxt(haltreq_dnxt), .qout(haltreq_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(MAXHART)) haltreq ( .dnxt(haltreq_dnxt), .qout(haltreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire [MAXHART-1:0] resumereq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA [30] & ~S_AXI_WDATA [31] ? 
 									hartSelected : {MAXHART{1'b0}};
-gen_dffr # (.DW(MAXHART)) resumereq ( .dnxt(resumereq_dnxt), .qout(resumereq_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(MAXHART)) resumereq ( .dnxt(resumereq_dnxt), .qout(resumereq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire hartreset_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? S_AXI_WDATA [29] : hartreset_qout;
 wire hartreset_qout;
-gen_dffr # (.DW(1)) hartreset ( .dnxt(hartreset_dnxt), .qout(hartreset_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) hartreset ( .dnxt(hartreset_dnxt), .qout(hartreset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire [MAXHART-1:0] hartResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
 							{MAXHART{S_AXI_WDATA [29]}} & hartSelected : hartreset_qout;
-gen_dffr # (.DW(MAXHART)) hartResetreq ( .dnxt(hartResetreq_dnxt), .qout(hartResetreq_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(MAXHART)) hartResetreq ( .dnxt(hartResetreq_dnxt), .qout(hartResetreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire hasel_dnxt;
@@ -965,7 +965,7 @@ wire [9:0] hartselhi_qout;
 assign {hasel_dnxt, hartsello_dnxt, hartselhi_dnxt} = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
 													S_AXI_WDATA [26:6] : {hasel_qout, hartsello_qout, hartselhi_qout};
 
-gen_dffr # (.DW(21)) dmcontrol_26_6 ( .dnxt({hasel_dnxt, hartsello_dnxt, hartselhi_dnxt}), .qout({hasel_qout, hartsello_qout, hartselhi_qout}), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(21)) dmcontrol_26_6 ( .dnxt({hasel_dnxt, hartsello_dnxt, hartselhi_dnxt}), .qout({hasel_qout, hartsello_qout, hartselhi_qout}), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire [MAXHART-1:0] haltOnResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 ))
@@ -973,23 +973,231 @@ wire [MAXHART-1:0] haltOnResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 ))
 										(
 											S_AXI_WDATA [2] 
 											? {MAXHART{1'b0}} 
-											: ( S_AXI_WDATA [3] 
+											: 	( 
+												S_AXI_WDATA [3] 
 												? hartSelected 
-												: haltOnResetreq_qout )
+												: haltOnResetreq_qout
+												)
 										)
 										:
 										haltOnResetreq_qout;
 
-gen_dffr # (.DW(MAXHART)) haltOnResettreq ( .dnxt(haltOnResetreq_dnxt), .qout(haltOnResetreq_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(MAXHART)) haltOnResettreq ( .dnxt(haltOnResetreq_dnxt), .qout(haltOnResetreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 wire ndmreset_dnxt;
 wire ndmreset_qout;
+gen_dffr # (.DW(1)) ndmreset ( .dnxt(ndmreset_dnxt), .qout(ndmreset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
 
 wire dmactive_dnxt;
 wire dmactive_qout;
+gen_dffr # (.DW(1)) dmactive ( .dnxt(dmactive_dnxt), .qout(dmactive_qout), .CLK(CLK), .RSTn(RSTn));
 
-gen_dffr # (.DW(2)) dmcontrol_1_0 ( .dnxt({ndmreset_dnxt, dmactive_dnxt}), .qout({ndmreset_qout, dmactive_qout}), .CLK(CLK), .RSTn(RSTn));
+
+//dmstatus 0x11
+
+wire impebreak = 1'b0;
+wire allhavereset = & (hasReset_qout | (~hartSelected)); 
+wire anyhavereset = | (hasReset_qout & hartSelected);
+wire allresumeack = & (hasResume_qout | (~hartSelected));
+wire anyresumeack = | (hasResume_qout & hartSelected);
+wire anynonexistent = hartsel > MAXHART-1;
+wire allnonexistent = anynonexistent;
+wire allunavail = & ( reset_status | (~hartSelected) )
+wire anyunavail = | (  reset_status & hartSelected);
+wire allrunning = & ( (~reset_status & ~halt_status) | (~hartSelected) );
+wire anyrunning = | ( ~reset_status & ~halt_status & hartSelected )
+wire allhalted = & ( halt_status | (~hartSelected) );
+wire anyhalted = | ( halt_status & hartSelected);
+initial $warning("Authentication has not implemented yet");
+wire authenticated = 1'b0;
+wire authbusy = 1'b0;
+wire hasresethaltreq = 1'b1;
+initial $warning("configuretion string has not implemented yet");
+wire confstrptrvalid = 1'b0;
+wire [3:0] version = 4'd2;
+
+// hartSelected
+
+
+// input [MAXHART-1:0] reset_status,
+
+//private reg
+wire [MAXHART-1:0] hasReset_dnxt = ( hasReset_qout & ~( {MAXHART{slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA[28]}} & hartSelected ) | reset_status;
+wire [MAXHART-1:0] hasReset_qout;
+gen_dffr # (.DW(MAXHART)) hasReset ( .dnxt(hasReset_dnxt), .qout(hasReset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout));
+
+// input [MAXHART-1:0] halt_status,
+//private reg
+wire [MAXHART-1:0] hasResume_dnxt = 
+					(hasResume_qout 
+						& ~( {MAXHART{(slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA[30])}} & hartSelected)
+						| ~halt_status;
+
+
+
+wire [MAXHART-1:0] hasResume_qout;
+gen_dffr # (.DW(MAXHART)) hasResume ( .dnxt(hasResume_dnxt), .qout(hasResume_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+
+
+
+
+
+
+
+
+
+//                                 bbbbbbbb                                                                                                                                                                                                                                                                          dddddddd                 
+//                AAA              b::::::b                                      tttt                                                                         tttt                       CCCCCCCCCCCCC                                                                                                               d::::::d                 
+//               A:::A             b::::::b                                   ttt:::t                                                                      ttt:::t                    CCC::::::::::::C                                                                                                               d::::::d                 
+//              A:::::A            b::::::b                                   t:::::t                                                                      t:::::t                  CC:::::::::::::::C                                                                                                               d::::::d                 
+//             A:::::::A            b:::::b                                   t:::::t                                                                      t:::::t                 C:::::CCCCCCCC::::C                                                                                                               d:::::d                  
+//            A:::::::::A           b:::::bbbbbbbbb        ssssssssss   ttttttt:::::ttttttt   rrrrr   rrrrrrrrr   aaaaaaaaaaaaa      ccccccccccccccccttttttt:::::ttttttt          C:::::C       CCCCCC   ooooooooooo      mmmmmmm    mmmmmmm     mmmmmmm    mmmmmmm     aaaaaaaaaaaaa  nnnn  nnnnnnnn        ddddddddd:::::d     ssssssssss   
+//           A:::::A:::::A          b::::::::::::::bb    ss::::::::::s  t:::::::::::::::::t   r::::rrr:::::::::r  a::::::::::::a   cc:::::::::::::::ct:::::::::::::::::t         C:::::C               oo:::::::::::oo  mm:::::::m  m:::::::mm mm:::::::m  m:::::::mm   a::::::::::::a n:::nn::::::::nn    dd::::::::::::::d   ss::::::::::s  
+//          A:::::A A:::::A         b::::::::::::::::b ss:::::::::::::s t:::::::::::::::::t   r:::::::::::::::::r aaaaaaaaa:::::a c:::::::::::::::::ct:::::::::::::::::t         C:::::C              o:::::::::::::::om::::::::::mm::::::::::m::::::::::mm::::::::::m  aaaaaaaaa:::::an::::::::::::::nn  d::::::::::::::::d ss:::::::::::::s 
+//         A:::::A   A:::::A        b:::::bbbbb:::::::bs::::::ssss:::::stttttt:::::::tttttt   rr::::::rrrrr::::::r         a::::ac:::::::cccccc:::::ctttttt:::::::tttttt         C:::::C              o:::::ooooo:::::om::::::::::::::::::::::m::::::::::::::::::::::m           a::::ann:::::::::::::::nd:::::::ddddd:::::d s::::::ssss:::::s
+//        A:::::A     A:::::A       b:::::b    b::::::b s:::::s  ssssss       t:::::t          r:::::r     r:::::r  aaaaaaa:::::ac::::::c     ccccccc      t:::::t               C:::::C              o::::o     o::::om:::::mmm::::::mmm:::::m:::::mmm::::::mmm:::::m    aaaaaaa:::::a  n:::::nnnn:::::nd::::::d    d:::::d  s:::::s  ssssss 
+//       A:::::AAAAAAAAA:::::A      b:::::b     b:::::b   s::::::s            t:::::t          r:::::r     rrrrrrraa::::::::::::ac:::::c                   t:::::t               C:::::C              o::::o     o::::om::::m   m::::m   m::::m::::m   m::::m   m::::m  aa::::::::::::a  n::::n    n::::nd:::::d     d:::::d    s::::::s      
+//      A:::::::::::::::::::::A     b:::::b     b:::::b      s::::::s         t:::::t          r:::::r           a::::aaaa::::::ac:::::c                   t:::::t               C:::::C              o::::o     o::::om::::m   m::::m   m::::m::::m   m::::m   m::::m a::::aaaa::::::a  n::::n    n::::nd:::::d     d:::::d       s::::::s   
+//     A:::::AAAAAAAAAAAAA:::::A    b:::::b     b:::::bssssss   s:::::s       t:::::t    ttttttr:::::r          a::::a    a:::::ac::::::c     ccccccc      t:::::t    tttttt      C:::::C       CCCCCCo::::o     o::::om::::m   m::::m   m::::m::::m   m::::m   m::::ma::::a    a:::::a  n::::n    n::::nd:::::d     d:::::d ssssss   s:::::s 
+//    A:::::A             A:::::A   b:::::bbbbbb::::::bs:::::ssss::::::s      t::::::tttt:::::tr:::::r          a::::a    a:::::ac:::::::cccccc:::::c      t::::::tttt:::::t       C:::::CCCCCCCC::::Co:::::ooooo:::::om::::m   m::::m   m::::m::::m   m::::m   m::::ma::::a    a:::::a  n::::n    n::::nd::::::ddddd::::::dds:::::ssss::::::s
+//   A:::::A               A:::::A  b::::::::::::::::b s::::::::::::::s       tt::::::::::::::tr:::::r          a:::::aaaa::::::a c:::::::::::::::::c      tt::::::::::::::t        CC:::::::::::::::Co:::::::::::::::om::::m   m::::m   m::::m::::m   m::::m   m::::ma:::::aaaa::::::a  n::::n    n::::n d:::::::::::::::::ds::::::::::::::s 
+//  A:::::A                 A:::::A b:::::::::::::::b   s:::::::::::ss          tt:::::::::::ttr:::::r           a::::::::::aa:::a cc:::::::::::::::c        tt:::::::::::tt          CCC::::::::::::C oo:::::::::::oo m::::m   m::::m   m::::m::::m   m::::m   m::::m a::::::::::aa:::a n::::n    n::::n  d:::::::::ddd::::d s:::::::::::ss  
+// AAAAAAA                   AAAAAAAbbbbbbbbbbbbbbbb     sssssssssss              ttttttttttt  rrrrrrr            aaaaaaaaaa  aaaa   cccccccccccccccc          ttttttttttt               CCCCCCCCCCCCC   ooooooooooo   mmmmmm   mmmmmm   mmmmmmmmmmm   mmmmmm   mmmmmm  aaaaaaaaaa  aaaa nnnnnn    nnnnnn   ddddddddd   ddddd  sssssssssss    
+
+output [127:0] accessReg_arg,
+output [15:0] accessReg_addr,
+output accessReg_wen,
+input [127:0] accessReg_res,
+input accessReg_ready,
+output accessReg_vaild,
+
+
+
+
+
+
+
+
+wire isCommand = slv_reg_wren & ( axi_awaddr == 'h17 );
+wire [31:0] command = {32{isCommand}} & S_AXI_WDATA;
+
+wire [7:0] cmdtype = command[31:24];
+
+wire [2:0] aarsize = command[22:20];
+wire aarpostincrement = 1'b0;
+wire postexec = 1'b0;
+wire transfer = command[17];
+wire write = command[16];
+wire [15:0] regno = command[15:0];
+
+wire isCommandNotReady = isCommand & cmdtype == 'd1 & anyhalted;
+
+
+wire [4:0] progbufsize = 5'd16
+
+wire busy_qout;
+wire busy_dnxt = (busy_qout | isCommand) & (~accessReg_ready) & (~quickAccess_ready);
+gen_dffr # (.DW(1)) busy ( .dnxt(busy_dnxt), .qout(busy_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+wire [2:0] cmderr_qout;
+wire [2:0] cmderr_dnxt = (slv_reg_wren & ( axi_awaddr == 'h16 ) & S_AXI_WDATA[10:8] == 3'd1 & ~busy_qout) ? 3'd0 :
+						(
+							slv_reg_wren & ( axi_awaddr == 'h16 | axi_awaddr == 'h17 | axi_awaddr == 'h18 ) & busy_qout ? 3'd1 :
+							(
+								isCommand & isCommandUnsupport ? 3'd2 : 
+								(											
+									busy_qout & isExpection ? 3'd3 :
+									(
+										isCommand & isCommandNotReady ? 3'd4 :
+										(
+											busy_qout & isBusErrot ? 3'd5 :
+											(
+												accessReg_ready ? 3'd0 : cmderr_qout
+											)
+										)
+									)
+								)
+							)
+						);
+gen_dffr # (.DW(3)) cmderr ( .dnxt(cmderr_dnxt), .qout(cmderr_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+wire [3:0] datacount = 4'd12;
+
+
+
+wire [31:0] arg0_32 = data0_qout;
+// wire [31:0] arg1_32 = data1_qout;
+// wire [31:0] arg2_32 = data2_qout;
+
+wire [63:0] arg0_64 = { data1_qout, data0_qout };
+// wire [63:0] arg1_64 = { data3_qout, data2_qout };
+// wire [63:0] arg2_64 = { data5_qout, data4_qout };
+
+wire [127:0] arg0_128 = { data3_qout, data2_qout, data1_qout, data0_qout };
+// wire [127:0] arg1_128 = { data7_qout, data6_qout, data5_qout, data4_qout };
+// wire [127:0] arg2_128 = { data11_qout, data10_qout, data9_qout, data8_qout };
+
+assign accessReg_arg = 128'b0 | ({32{aarsize == 3'd2}} & arg0_32) | ({64{aarsize == 3'd3}} & arg0_64) | ({128{aarsize == 3'd4}} & arg0_128);
+assign accessReg_addr = regno;
+assign accessReg_wen = transfer & write;
+
+wire accessReg_ren = transfer & ~write;
+assign accessReg_vaild = isCommand & cmdtype == 'd0;
+
+
+output quickAccess_vaild,
+output [32*16-1:0] programBuffer,
+input isExpection,
+input quickAccess_ready;
+
+assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
+assign programBuffer = {  }
+
+
+
+
+
+
+assign data0_dnxt = ({32{accessReg_ready & accessReg_ren}} & accessReg_res[31:0])
+					| 
+					({32{slv_reg_wren & axi_awaddr == 'h4}} & S_AXI_WDATA)
+					| 
+					({32{~(accessReg_ready & accessReg_ren) & ~(slv_reg_wren & axi_awaddr == 'h4)}} & data0_qout);
+
+assign data1_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd3 | aarsize == 3'd4)}} & accessReg_res[64:32])
+					| 
+					({32{slv_reg_wren & axi_awaddr == 'h5}} & S_AXI_WDATA)
+					| 
+					({32{~(accessReg_ready & accessReg_ren & (aarsize == 3'd3 | aarsize == 3'd4)) & ~(slv_reg_wren & axi_awaddr == 'h5)}} & data1_qout);
+
+assign data2_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd4)}} & accessReg_res[95:64])
+					| 
+					({32{slv_reg_wren & axi_awaddr == 'h6}} & S_AXI_WDATA)
+					| 
+					({32{~(accessReg_ready & accessReg_ren & aarsize == 3'd4) & ~(slv_reg_wren & axi_awaddr == 'h6)}} & data2_qout);
+
+assign data3_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd4)}} & accessReg_res[127:96])
+					| 
+					({32{slv_reg_wren & axi_awaddr == 'h7}} & S_AXI_WDATA)
+					| 
+					({32{~(accessReg_ready & accessReg_ren & aarsize == 3'd4) & ~(slv_reg_wren & axi_awaddr == 'h7)}} & data3_qout);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
