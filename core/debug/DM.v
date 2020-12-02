@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-01 19:24:04
+* @Last Modified time: 2020-12-02 09:45:49
 */
 
 
@@ -1150,6 +1150,15 @@ wire accessReg_ren = transfer & ~write;
 assign accessReg_vaild = isCommand & cmdtype == 'd0;
 
 
+
+
+
+
+
+
+
+
+
 output quickAccess_vaild,
 output [32*16-1:0] programBuffer,
 input isExpection,
@@ -1157,6 +1166,22 @@ input quickAccess_ready;
 
 assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
 assign programBuffer = {  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
