@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-02 14:51:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-03 19:57:24
+* @Last Modified time: 2020-12-04 15:25:09
 */
 
 
@@ -32,107 +32,11 @@ module inner_crossBar (
 
 	// master
 
-//DM
 
-	input [7:0] S_DM_AXI_AWID,
-	input [63:0] S_DM_AXI_AWADDR,
-	input [7:0] S_DM_AXI_AWLEN,
-	input [2:0] S_DM_AXI_AWSIZE,
-	input [1:0] S_DM_AXI_AWBURST,
-	// input S_DM_AXI_AWLOCK,
-	// input [3:0] S_DM_AXI_AWCACHE,
-	// input [2:0] S_DM_AXI_AWPROT,
-	// input [3:0] S_DM_AXI_AWQOS,
-	// input [3:0] S_DM_AXI_AWREGION,
-	input [7:0] S_DM_AXI_AWUSER,
-	input S_DM_AXI_AWVALID,
-	output S_DM_AXI_AWREADY,
 
-	input [63:0] S_DM_AXI_WDATA,
-	input [7:0] S_DM_AXI_WSTRB,
-	input S_DM_AXI_WLAST,
-	input [7:0] S_DM_AXI_WUSER,
-	input S_DM_AXI_WVALID,
-	output S_DM_AXI_WREADY,
 
-	output [7:0] S_DM_AXI_BID,
-	output [1:0] S_DM_AXI_BRESP,
-	output [7:0] S_DM_AXI_BUSER,
-	output S_DM_AXI_BVALID,
-	input S_DM_AXI_BREADY,
 
-	input [7:0] S_DM_AXI_ARID,
-	input [63:0] S_DM_AXI_ARADDR,
-	input [7:0] S_DM_AXI_ARLEN,
-	input [2:0] S_DM_AXI_ARSIZE,
-	input [1:0] S_DM_AXI_ARBURST,
-	// input S_DM_AXI_ARLOCK,
-	// input [3:0] S_DM_AXI_ARCACHE,
-	// input [2:0] S_DM_AXI_ARPROT,
-	// input [3:0] S_DM_AXI_ARQOS,
-	// input [3:0] S_DM_AXI_ARREGION,
-	input [7 0] S_DM_AXI_ARUSER,
-	input S_DM_AXI_ARVALID,
-	output S_DM_AXI_ARREADY,
 
-	output [7:0] S_DM_AXI_RID,
-	output [63:0] S_DM_AXI_RDATA,
-	output [1:0] S_DM_AXI_RRESP,
-	output S_DM_AXI_RLAST,
-	output [7:0] S_DM_AXI_RUSER,
-	output S_DM_AXI_RVALID,
-	input S_DM_AXI_RREADY,
-
-//Front Port
-
-	input [7:0] S_FR_AXI_AWID,
-	input [63:0] S_FR_AXI_AWADDR,
-	input [7:0] S_FR_AXI_AWLEN,
-	input [2:0] S_FR_AXI_AWSIZE,
-	input [1:0] S_FR_AXI_AWBURST,
-	// input S_FR_AXI_AWLOCK,
-	// input [3:0] S_FR_AXI_AWCACHE,
-	// input [2:0] S_FR_AXI_AWPROT,
-	// input [3:0] S_FR_AXI_AWQOS,
-	// input [3:0] S_FR_AXI_AWREGION,
-	input [7:0] S_FR_AXI_AWUSER,
-	input S_FR_AXI_AWVALID,
-	output S_FR_AXI_AWREADY,
-
-	input [63:0] S_FR_AXI_WDATA,
-	input [7:0] S_FR_AXI_WSTRB,
-	input S_FR_AXI_WLAST,
-	input [7:0] S_FR_AXI_WUSER,
-	input S_FR_AXI_WVALID,
-	output S_FR_AXI_WREADY,
-
-	output [7:0] S_FR_AXI_BID,
-	output [1:0] S_FR_AXI_BRESP,
-	output [7:0] S_FR_AXI_BUSER,
-	output S_FR_AXI_BVALID,
-	input S_FR_AXI_BREADY,
-
-	input [7:0] S_FR_AXI_ARID,
-	input [63:0] S_FR_AXI_ARADDR,
-	input [7:0] S_FR_AXI_ARLEN,
-	input [2:0] S_FR_AXI_ARSIZE,
-	input [1:0] S_FR_AXI_ARBURST,
-	// input S_FR_AXI_ARLOCK,
-	// input [3:0] S_FR_AXI_ARCACHE,
-	// input [2:0] S_FR_AXI_ARPROT,
-	// input [3:0] S_FR_AXI_ARQOS,
-	// input [3:0] S_FR_AXI_ARREGION,
-	input [7 0] S_FR_AXI_ARUSER,
-	input S_FR_AXI_ARVALID,
-	output S_FR_AXI_ARREADY,
-
-	output [7:0] S_FR_AXI_RID,
-	output [63:0] S_FR_AXI_RDATA,
-	output [1:0] S_FR_AXI_RRESP,
-	output S_FR_AXI_RLAST,
-	output [7:0] S_FR_AXI_RUSER,
-	output S_FR_AXI_RVALID,
-	input S_FR_AXI_RREADY,
 
 
 // IIIIIIIIII     FFFFFFFFFFFFFFFFFFFFFF     UUUUUUUU     UUUUUUUU
@@ -220,29 +124,7 @@ module inner_crossBar (
 
 //slave
 
-//program buffer
 
-	output [63:0] M_PB_AXI_AWADDR,
-	output M_PB_AXI_AWVALID,
-	input M_PB_AXI_AWREADY,
-
-	output [63:0] M_PB_AXI_WDATA,
-	output [7:0] M_PB_AXI_WSTRB,
-	output M_PB_AXI_WVALID,
-	input M_PB_AXI_WREADY,
-
-	input [1:0] M_PB_AXI_BRESP,
-	input M_PB_AXI_BVALID,
-	output M_PB_AXI_BREADY,
-
-	output [63:0] M_PB_AXI_ARADDR,
-	output M_PB_AXI_ARVALID,
-	input M_PB_AXI_ARREADY,
-
-	input [63 0] M_PB_AXI_RDATA,
-	input [1:0] M_PB_AXI_RRESP,
-	input M_PB_AXI_RVALID,
-	output M_PB_AXI_RREADY,
 
 // system bus out
 
@@ -332,61 +214,6 @@ module inner_crossBar (
 	input M_DCACHE_AXI_RVALID,
 	output M_DCACHE_AXI_RREADY
 
-	//ROM
-	output [63:0] M_ROM_AXI_ARADDR,
-	output M_ROM_AXI_ARVALID,
-	input M_ROM_AXI_ARREADY,
-
-	input [63 0] M_ROM_AXI_RDATA,
-	input [1:0] M_ROM_AXI_RRESP,
-	input M_ROM_AXI_RVALID,
-	output M_ROM_AXI_RREADY
-
-	//CLINT
-	output [63:0] M_CLINT_AXI_AWADDR,
-	output M_CLINT_AXI_AWVALID,
-	input M_CLINT_AXI_AWREADY,
-
-	output [63:0] M_CLINT_AXI_WDATA,
-	output [7:0] M_CLINT_AXI_WSTRB,
-	output M_CLINT_AXI_WVALID,
-	input M_CLINT_AXI_WREADY,
-
-	input [1:0] M_CLINT_AXI_BRESP,
-	input M_CLINT_AXI_BVALID,
-	output M_CLINT_AXI_BREADY,
-
-	output [63:0] M_CLINT_AXI_ARADDR,
-	output M_CLINT_AXI_ARVALID,
-	input M_CLINT_AXI_ARREADY,
-
-	input [63 0] M_CLINT_AXI_RDATA,
-	input [1:0] M_CLINT_AXI_RRESP,
-	input M_CLINT_AXI_RVALID,
-	output M_CLINT_AXI_RREADY
-
-	//PLIC
-	output [63:0] M_PLIC_AXI_AWADDR,
-	output M_PLIC_AXI_AWVALID,
-	input M_PLIC_AXI_AWREADY,
-
-	output [63:0] M_PLIC_AXI_WDATA,
-	output [7:0] M_PLIC_AXI_WSTRB,
-	output M_PLIC_AXI_WVALID,
-	input M_PLIC_AXI_WREADY,
-
-	input [1:0] M_PLIC_AXI_BRESP,
-	input M_PLIC_AXI_BVALID,
-	output M_PLIC_AXI_BREADY,
-
-	output [63:0] M_PLIC_AXI_ARADDR,
-	output M_PLIC_AXI_ARVALID,
-	input M_PLIC_AXI_ARREADY,
-
-	input [63 0] M_PLIC_AXI_RDATA,
-	input [1:0] M_PLIC_AXI_RRESP,
-	input M_PLIC_AXI_RVALID,
-	output M_PLIC_AXI_RREADY
 
 
 
@@ -396,13 +223,11 @@ module inner_crossBar (
 
 
 
-	input S_DM_AXI_ACLK,
-	input S_DM_AXI_ARESETN,
-	input S_FR_AXI_ACLK,
-	input S_FR_AXI_ARESETN,
 
-	input M_SYS_AXI_ACLK,
-	input M_SYS_AXI_ARESETN,
+
+
+
+
 
 
 	input CLK,
