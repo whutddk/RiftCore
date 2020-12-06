@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-02 09:45:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-04 19:55:31
+* @Last Modified time: 2020-12-06 15:58:58
 */
 
 /*
@@ -28,18 +28,11 @@
 
 
 module system_crossBar #
-	(
-		parameter ISASYN_INNER = 1,
-		parameter ISASYN_DM = 1,
-		parameter ISASYN_CACHE = 1,
-		parameter ISASYN_ROM = 1,
-		parameter ISASYN_CLINT = 1,
-		parameter ISASYN_PLIC = 1,
-		parameter ISASYN_SYS = 1,
-		parameter ISASYN_MEM = 1,
-		parameter ISASYN_PERIP = 1,
-	)
-	(
+(
+	parameter S_NUM = 3,
+	parameter M_NUM = 7
+)
+(
 
 // IIIIIIIIII                                                                            
 // I::::::::I                                                                            
@@ -182,8 +175,8 @@ module system_crossBar #
 	input [7 0] S_CACHE_AXI_ARUSER,
 	input S_CACHE_AXI_ARVALID,
 	output S_CACHE_AXI_ARREADY,
-	output [7:0] S_CACHE_AXI_RID,
 
+	output [7:0] S_CACHE_AXI_RID,
 	output [63:0] S_CACHE_AXI_RDATA,
 	output [1:0] S_CACHE_AXI_RRESP,
 	output S_CACHE_AXI_RLAST,
@@ -232,7 +225,45 @@ module system_crossBar #
 	input M_ROM_AXI_BVALID,
 	output M_ROM_AXI_BREADY,
 
+//  PPPPPPPPPPPPPPPPP  BBBBBBBBBBBBBBBBB   
+//  P::::::::::::::::P B::::::::::::::::B  
+//  P::::::PPPPPP:::::PB::::::BBBBBB:::::B 
+//  PP:::::P     P:::::BB:::::B     B:::::B
+//    P::::P     P:::::P B::::B     B:::::B
+//    P::::P     P:::::P B::::B     B:::::B
+//    P::::PPPPPP:::::P  B::::BBBBBB:::::B 
+//    P:::::::::::::PP   B:::::::::::::BB  
+//    P::::PPPPPPPPP     B::::BBBBBB:::::B 
+//    P::::P             B::::B     B:::::B
+//    P::::P             B::::B     B:::::B
+//    P::::P             B::::B     B:::::B
+//  PP::::::PP         BB:::::BBBBBB::::::B
+//  P::::::::P         B:::::::::::::::::B 
+//  P::::::::P         B::::::::::::::::B  
+//  PPPPPPPPPP         BBBBBBBBBBBBBBBBB   
 
+
+	output [63:0] M_PB_AXI_AWADDR,
+	output M_PB_AXI_AWVALID,
+	input M_PB_AXI_AWREADY,
+
+	output [63:0] M_PB_AXI_ARADDR,
+	output M_PB_AXI_ARVALID,
+	input M_PB_AXI_ARREADY,
+
+	input [63 0] M_PB_AXI_RDATA,
+	input [1:0] M_PB_AXI_RRESP,
+	input M_PB_AXI_RVALID,
+	output M_PB_AXI_RREADY
+
+	output [63:0] M_PB_AXI_WDATA,
+	output [7:0] M_PB_AXI_WSTRB,
+	output M_PB_AXI_WVALID,
+	input M_PB_AXI_WREADY,
+
+	input [1:0] M_PB_AXI_BRESP,
+	input M_PB_AXI_BVALID,
+	output M_PB_AXI_BREADY,
 
 
 
@@ -528,114 +559,598 @@ module system_crossBar #
 	input M_MEM_AXI_ARESETN,
 	input M_PERIP_AXI_ACLK,
 	input M_PERIP_AXI_ARESETN,
+
+	input CLK,
+	input RSTn
+);
+
+
+
+//    SSSSSSSSSSSSSSS                                      
+//  SS:::::::::::::::S                                     
+// S:::::SSSSSS::::::S                                     
+// S:::::S     SSSSSSS                                     
+// S:::::S      yyyyyyy           yyyyyyynnnn  nnnnnnnn    
+// S:::::S       y:::::y         y:::::y n:::nn::::::::nn  
+//  S::::SSSS     y:::::y       y:::::y  n::::::::::::::nn 
+//   SS::::::SSSSS y:::::y     y:::::y   nn:::::::::::::::n
+//     SSS::::::::SSy:::::y   y:::::y      n:::::nnnn:::::n
+//        SSSSSS::::Sy:::::y y:::::y       n::::n    n::::n
+//             S:::::Sy:::::y:::::y        n::::n    n::::n
+//             S:::::S y:::::::::y         n::::n    n::::n
+// SSSSSSS     S:::::S  y:::::::y          n::::n    n::::n
+// S::::::SSSSSS:::::S   y:::::y           n::::n    n::::n
+// S:::::::::::::::SS   y:::::y            n::::n    n::::n
+//  SSSSSSSSSSSSSSS    y:::::y             nnnnnn    nnnnnn
+//                    y:::::y                              
+//                   y:::::y                               
+//                  y:::::y                                
+//                 y:::::y                                 
+//                yyyyyyy       
+
+
+
+	wire INNER_AWVALID, DM_AWVALID, CACHE_AWVALID;
+	wire INNER_WVALID, DM_WVALID, CACHE_WVALID;
+	wire INNER_BREADY, DM_BREADY, CACHE_BREADY;
+	wire INNER_ARVALID, DM_ARVALID, CACHE_ARVALID;
+	wire INNER_RREADY, DM_RREADY, CACHE_RREADY;
+	wire INNER_ARREADY, DM_ARREADY, CACHE_ARREADY;
+	wire INNER_RVALID, DM_RVALID, CACHE_RVALID;
+	wire INNER_WREADY, DM_WREADY, CACHE_WREADY;
+	wire INNER_BVALID, DM_BVALID, CACHE_BVALID;
+	wire INNER_AWREADY, DM_AWREADY, CACHE_AWREADY;
+
+
+crossBar_syn #(.ISASYN(0)) inner_syn
+(
+
+	.S_AWVALID(S_INNER_AXI_AWVALID),
+	.S_WVALID(S_INNER_AXI_WVALID),
+	.S_BREADY(S_INNER_AXI_BREADY),
+	.S_ARVALID(S_INNER_AXI_ARVALID),
+	.S_RREADY(S_INNER_AXI_RREADY),
+	.S_AWREADY(S_INNER_AXI_AWREADY),
+	.S_ARREADY(S_INNER_AXI_ARREADY),
+	.S_RVALID(S_INNER_AXI_RVALID),
+	.S_WREADY(S_INNER_AXI_WREADY),
+	.S_BVALID(S_INNER_AXI_BVALID),
+	.S_CLK(S_INNER_AXI_ACLK),
+	.S_RSTn(S_INNER_AXI_ARESETN),
+
+	.M_AWVALID(INNER_AWVALID),
+	.M_WVALID(INNER_WVALID),
+	.M_BREADY(INNER_BREADY),
+	.M_ARVALID(INNER_ARVALID),
+	.M_RREADY(INNER_RREADY),
+	.M_ARREADY(INNER_ARREADY),
+	.M_RVALID(INNER_RVALID),
+	.M_WREADY(INNER_WREADY),
+	.M_BVALID(INNER_BVALID),
+	.M_AWREADY(INNER_AWREADY),
+	.M_CLK(CLK),
+	.M_RSTn(RSTn)
+
+);
+
+crossBar_syn #(.ISASYN(0)) DM_syn
+(
+	.S_AWVALID(S_DM_AXI_AWVALID),
+	.S_WVALID(S_DM_AXI_WVALID),
+	.S_BREADY(S_DM_AXI_BREADY),
+	.S_ARVALID(S_DM_AXI_ARVALID),
+	.S_RREADY(S_DM_AXI_RREADY),
+	.S_AWREADY(S_DM_AXI_AWREADY),
+	.S_ARREADY(S_DM_AXI_ARREADY),
+	.S_RVALID(S_DM_AXI_RVALID),
+	.S_WREADY(S_DM_AXI_WREADY),
+	.S_BVALID(S_DM_AXI_BVALID),
+	.S_CLK(S_DM_AXI_ACLK),
+	.S_RSTn(S_DM_AXI_ARESETN),
+
+	.M_AWVALID(DM_AWVALID),
+	.M_WVALID(DM_WVALID),
+	.M_BREADY(DM_BREADY),
+	.M_ARVALID(DM_ARVALID),
+	.M_RREADY(DM_RREADY),
+	.M_ARREADY(DM_ARREADY),
+	.M_RVALID(DM_RVALID),
+	.M_WREADY(DM_WREADY),
+	.M_BVALID(DM_BVALID),
+	.M_AWREADY(DM_AWREADY),
+	.M_CLK(CLK),
+	.M_RSTn(RSTn)
+);
+
+
+crossBar_syn #(.ISASYN(0)) CACHE_syn
+(
+	.S_AWVALID(S_CACHE_AXI_AWVALID),
+	.S_WVALID(S_CACHE_AXI_WVALID),
+	.S_BREADY(S_CACHE_AXI_BREADY),
+	.S_ARVALID(S_CACHE_AXI_ARVALID),
+	.S_RREADY(S_CACHE_AXI_RREADY),
+	.S_AWREADY(S_CACHE_AXI_AWREADY),
+	.S_ARREADY(S_CACHE_AXI_ARREADY),
+	.S_RVALID(S_CACHE_AXI_RVALID),
+	.S_WREADY(S_CACHE_AXI_WREADY),
+	.S_BVALID(S_CACHE_AXI_BVALID),
+	.S_CLK(S_CACHE_AXI_ACLK),
+	.S_RSTn(S_CACHE_AXI_ARESETN),
+
+	.M_AWVALID(CACHE_AWVALID),
+	.M_WVALID(CACHE_WVALID),
+	.M_BREADY(CACHE_BREADY),
+	.M_ARVALID(CACHE_ARVALID),
+	.M_RREADY(CACHE_RREADY),
+	.M_ARREADY(CACHE_ARREADY),
+	.M_RVALID(CACHE_RVALID),
+	.M_WREADY(CACHE_WREADY),
+	.M_BVALID(CACHE_BVALID),
+	.M_AWREADY(CACHE_AWREADY),
+	.M_CLK(CLK),
+	.M_RSTn(RSTn)
+);
+
+
+
+
+	wire ROM_AWVALID, PB_AWVALID, CLINT_AWVALID, PLIC_AWVALID, SYS_AWVALID, MEM_AWVALID, PERIP_AWVALID;
+	wire ROM_WVALID, PB_WVALID, CLINT_WVALID, PLIC_WVALID, SYS_WVALID, MEM_WVALID, PERIP_WVALID;
+	wire ROM_BREADY, RPBBREADY, CLINT_BREADY, PLIC_BREADY, SYS_BREADY, MEM_BREADY, PERIP_BREADY;
+	wire ROM_ARVALID, PB_ARVALID, CLINT_ARVALID, PLIC_ARVALID, SYS_ARVALID, MEM_ARVALID, PERIP_ARVALID;
+	wire ROM_RREADY, PB_RREADY, CLINT_RREADY, PLIC_RREADY, SYS_RREADY, MEM_RREADY, PERIP_RREADY;
+	wire ROM_AWREADY, PB_AWREADY, CLINT_AWREADY, PLIC_AWREADY, SYS_AWREADY, MEM_AWREADY, PERIP_AWREADY;
+	wire ROM_ARREADY, PB_ARREADY, CLINT_ARREADY, PLIC_ARREADY, SYS_ARREADY, MEM_ARREADY, PERIP_ARREADY;
+	wire ROM_RVALID, PB_RVALID, CLINT_RVALID, PLIC_RVALID, SYS_RVALID, MEM_RVALID, PERIP_RVALID;
+	wire ROM_WREADY, PB_WREADY, CLINT_WREADY, PLIC_WREADY, SYS_WREADY, MEM_WREADY, PERIP_WREADY;
+	wire ROM_BVALID, PB_BVALID, CLINT_BVALID, PLIC_BVALID, SYS_BVALID, MEM_BVALID, PERIP_BVALID;
+
+crossBar_syn #(.ISASYN(0)) ROM_syn
+(
+	.S_AWVALID(ROM_AWVALID),
+	.S_WVALID(ROM_WVALID),
+	.S_BREADY(ROM_BREADY),
+	.S_ARVALID(ROM_ARVALID),
+	.S_RREADY(ROM_RREADY),
+	.S_AWREADY(ROM_AWREADY),
+	.S_ARREADY(ROM_ARREADY),
+	.S_RVALID(ROM_RVALID),
+	.S_WREADY(ROM_WREADY),
+	.S_BVALID(ROM_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_ROM_AXI_AWVALID),
+	.M_WVALID(M_ROM_AXI_WVALID),
+	.M_BREADY(M_ROM_AXI_BREADY),
+	.M_ARVALID(M_ROM_AXI_ARVALID),
+	.M_RREADY(M_ROM_AXI_RREADY),
+	.M_ARREADY(M_ROM_AXI_ARREADY),
+	.M_RVALID(M_ROM_AXI_RVALID),
+	.M_WREADY(M_ROM_AXI_WREADY),
+	.M_BVALID(M_ROM_AXI_BVALID),
+	.M_AWREADY(M_ROM_AXI_AWREADY),
+	.M_CLK(M_ROM_AXI_ACLK),
+	.M_RSTn(M_ROM_AXI_ARESETN)
+);
+
+crossBar_syn #(.ISASYN(0)) PB_syn
+(
+	.S_AWVALID(PB_AWVALID),
+	.S_WVALID(PB_WVALID),
+	.S_BREADY(PB_BREADY),
+	.S_ARVALID(PB_ARVALID),
+	.S_RREADY(PB_RREADY),
+	.S_AWREADY(PB_AWREADY),
+	.S_ARREADY(PB_ARREADY),
+	.S_RVALID(PB_RVALID),
+	.S_WREADY(PB_WREADY),
+	.S_BVALID(PB_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_PB_AXI_AWVALID),
+	.M_WVALID(M_PB_AXI_WVALID),
+	.M_BREADY(M_PB_AXI_BREADY),
+	.M_ARVALID(M_PB_AXI_ARVALID),
+	.M_RREADY(M_PB_AXI_RREADY),
+	.M_ARREADY(M_PB_AXI_ARREADY),
+	.M_RVALID(M_PB_AXI_RVALID),
+	.M_WREADY(M_PB_AXI_WREADY),
+	.M_BVALID(M_PB_AXI_BVALID),
+	.M_AWREADY(M_PB_AXI_AWREADY),
+	.M_CLK(M_PB_AXI_ACLK),
+	.M_RSTn(M_PB_AXI_ARESETN)
+);
+
+crossBar_syn #(.ISASYN(0)) CLINT_syn
+(
+	.S_AWVALID(CLINT_AWVALID),
+	.S_WVALID(CLINT_WVALID),
+	.S_BREADY(CLINT_BREADY),
+	.S_ARVALID(CLINT_ARVALID),
+	.S_RREADY(CLINT_RREADY),
+	.S_AWREADY(CLINT_AWREADY),
+	.S_ARREADY(CLINT_ARREADY),
+	.S_RVALID(CLINT_RVALID),
+	.S_WREADY(CLINT_WREADY),
+	.S_BVALID(CLINT_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_CLINT_AXI_AWVALID),
+	.M_WVALID(M_CLINT_AXI_WVALID),
+	.M_BREADY(M_CLINT_AXI_BREADY),
+	.M_ARVALID(M_CLINT_AXI_ARVALID),
+	.M_RREADY(M_CLINT_AXI_RREADY),
+	.M_ARREADY(M_CLINT_AXI_ARREADY),
+	.M_RVALID(M_CLINT_AXI_RVALID),
+	.M_WREADY(M_CLINT_AXI_WREADY),
+	.M_BVALID(M_CLINT_AXI_BVALID),
+	.M_AWREADY(M_CLINT_AXI_AWREADY),
+	.M_CLK(M_CLINT_AXI_ACLK),
+	.M_RSTn(M_CLINT_AXI_ARESETN)
+);
+
+
+crossBar_syn #(.ISASYN(0)) PLIC_syn
+(
+	.S_AWVALID(PLIC_AWVALID),
+	.S_WVALID(PLIC_WVALID),
+	.S_BREADY(PLIC_BREADY),
+	.S_ARVALID(PLIC_ARVALID),
+	.S_RREADY(PLIC_RREADY),
+	.S_AWREADY(PLIC_AWREADY),
+	.S_ARREADY(PLIC_ARREADY),
+	.S_RVALID(PLIC_RVALID),
+	.S_WREADY(PLIC_WREADY),
+	.S_BVALID(PLIC_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_PLIC_AXI_AWVALID),
+	.M_WVALID(M_PLIC_AXI_WVALID),
+	.M_BREADY(M_PLIC_AXI_BREADY),
+	.M_ARVALID(M_PLIC_AXI_ARVALID),
+	.M_RREADY(M_PLIC_AXI_RREADY),
+	.M_ARREADY(M_PLIC_AXI_ARREADY),
+	.M_RVALID(M_PLIC_AXI_RVALID),
+	.M_WREADY(M_PLIC_AXI_WREADY),
+	.M_BVALID(M_PLIC_AXI_BVALID),
+	.M_AWREADY(M_PLIC_AXI_AWREADY),
+	.M_CLK(M_PLIC_AXI_ACLK),
+	.M_RSTn(M_PLIC_AXI_ARESETN)
+);
+
+
+crossBar_syn #(.ISASYN(0)) SYS_syn
+(
+	.S_AWVALID(SYS_AWVALID),
+	.S_WVALID(SYS_WVALID),
+	.S_BREADY(SYS_BREADY),
+	.S_ARVALID(SYS_ARVALID),
+	.S_RREADY(SYS_RREADY),
+	.S_AWREADY(SYS_AWREADY),
+	.S_ARREADY(SYS_ARREADY),
+	.S_RVALID(SYS_RVALID),
+	.S_WREADY(SYS_WREADY),
+	.S_BVALID(SYS_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_SYS_AXI_AWVALID),
+	.M_WVALID(M_SYS_AXI_WVALID),
+	.M_BREADY(M_SYS_AXI_BREADY),
+	.M_ARVALID(M_SYS_AXI_ARVALID),
+	.M_RREADY(M_SYS_AXI_RREADY),
+	.M_ARREADY(M_SYS_AXI_ARREADY),
+	.M_RVALID(M_SYS_AXI_RVALID),
+	.M_WREADY(M_SYS_AXI_WREADY),
+	.M_BVALID(M_SYS_AXI_BVALID),
+	.M_AWREADY(M_SYS_AXI_AWREADY),
+	.M_CLK(M_SYS_AXI_ACLK),
+	.M_RSTn(M_SYS_AXI_ARESETN)
+);
+
+crossBar_syn #(.ISASYN(0)) MEM_syn
+(
+	.S_AWVALID(MEM_AWVALID),
+	.S_WVALID(MEM_WVALID),
+	.S_BREADY(MEM_BREADY),
+	.S_ARVALID(MEM_ARVALID),
+	.S_RREADY(MEM_RREADY),
+	.S_AWREADY(MEM_AWREADY),
+	.S_ARREADY(MEM_ARREADY),
+	.S_RVALID(MEM_RVALID),
+	.S_WREADY(MEM_WREADY),
+	.S_BVALID(MEM_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_MEM_AXI_AWVALID),
+	.M_WVALID(M_MEM_AXI_WVALID),
+	.M_BREADY(M_MEM_AXI_BREADY),
+	.M_ARVALID(M_MEM_AXI_ARVALID),
+	.M_RREADY(M_MEM_AXI_RREADY),
+	.M_ARREADY(M_MEM_AXI_ARREADY),
+	.M_RVALID(M_MEM_AXI_RVALID),
+	.M_WREADY(M_MEM_AXI_WREADY),
+	.M_BVALID(M_MEM_AXI_BVALID),
+	.M_AWREADY(M_MEM_AXI_AWREADY),
+	.M_CLK(M_MEM_AXI_ACLK),
+	.M_RSTn(M_MEM_AXI_ARESETN)
+);
+
+crossBar_syn #(.ISASYN(0)) PERIP_syn
+(
+	.S_AWVALID(PERIP_AWVALID),
+	.S_WVALID(PERIP_WVALID),
+	.S_BREADY(PERIP_BREADY),
+	.S_ARVALID(PERIP_ARVALID),
+	.S_RREADY(PERIP_RREADY),
+	.S_AWREADY(PERIP_AWREADY),
+	.S_ARREADY(PERIP_ARREADY),
+	.S_RVALID(PERIP_RVALID),
+	.S_WREADY(PERIP_WREADY),
+	.S_BVALID(PERIP_BVALID),
+	.S_CLK(CLK),
+	.S_RSTn(RSTn),
+
+	.M_AWVALID(M_PERIP_AXI_AWVALID),
+	.M_WVALID(M_PERIP_AXI_WVALID),
+	.M_BREADY(M_PERIP_AXI_BREADY),
+	.M_ARVALID(M_PERIP_AXI_ARVALID),
+	.M_RREADY(M_PERIP_AXI_RREADY),
+	.M_ARREADY(M_PERIP_AXI_ARREADY),
+	.M_RVALID(M_PERIP_AXI_RVALID),
+	.M_WREADY(M_PERIP_AXI_WREADY),
+	.M_BVALID(M_PERIP_AXI_BVALID),
+	.M_AWREADY(M_PERIP_AXI_AWREADY),
+	.M_CLK(M_PERIP_AXI_ACLK),
+	.M_RSTn(M_PERIP_AXI_ARESETN)
 );
 
 
 
 
 
+// MMMMMMMM               MMMMMMMMUUUUUUUU     UUUUUUUUXXXXXXX       XXXXXXX
+// M:::::::M             M:::::::MU::::::U     U::::::UX:::::X       X:::::X
+// M::::::::M           M::::::::MU::::::U     U::::::UX:::::X       X:::::X
+// M:::::::::M         M:::::::::MUU:::::U     U:::::UUX::::::X     X::::::X
+// M::::::::::M       M::::::::::M U:::::U     U:::::U XXX:::::X   X:::::XXX
+// M:::::::::::M     M:::::::::::M U:::::D     D:::::U    X:::::X X:::::X   
+// M:::::::M::::M   M::::M:::::::M U:::::D     D:::::U     X:::::X:::::X    
+// M::::::M M::::M M::::M M::::::M U:::::D     D:::::U      X:::::::::X     
+// M::::::M  M::::M::::M  M::::::M U:::::D     D:::::U      X:::::::::X     
+// M::::::M   M:::::::M   M::::::M U:::::D     D:::::U     X:::::X:::::X    
+// M::::::M    M:::::M    M::::::M U:::::D     D:::::U    X:::::X X:::::X   
+// M::::::M     MMMMM     M::::::M U::::::U   U::::::U XXX:::::X   X:::::XXX
+// M::::::M               M::::::M U:::::::UUU:::::::U X::::::X     X::::::X
+// M::::::M               M::::::M  UU:::::::::::::UU  X:::::X       X:::::X
+// M::::::M               M::::::M    UU:::::::::UU    X:::::X       X:::::X
+// MMMMMMMM               MMMMMMMM      UUUUUUUUU      XXXXXXX       XXXXXXX
 
-crossBar_syn #
-(
-	parameter ISASYN = 1
-)
-(
 
-	// master Demain
-	input S_AWVALID,
-	input S_WVALID,
-	input S_BREADY,
-	input S_ARVALID,
-	input S_RREADY,
-	output S_AWREADY,
-	output S_ARREADY,
-	output S_RVALID,
-	output S_WREADY,
-	output S_BVALID,
-	input S_CLK,
-	input S_RSTn,
-
-
-	//CrossBar Demain
-	output M_AWVALID,
-	output M_WVALID,
-	output M_BREADY,
-	output M_ARVALID,
-	output M_RREADY,
-	input M_ARREADY,
-	input M_RVALID,
-	input M_WREADY,
-	input M_BVALID,
-	input M_AWREADY,
-	input M_CLK,
-	input M_RSTn
-
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-wire systemBusError = | ;
 
 //dm > cache > inner
 
 
+// ,-.----.      ,---,.  ,---,          ,---,     
+// \    /  \   ,'  .' | '  .' \       .'  .' `\   
+// ;   :    \,---.'   |/  ;    '.   ,---.'     \  
+// |   | .\ :|   |   .:  :       \  |   |  .`\  | 
+// .   : |: |:   :  |-:  |   /\   \ :   : |  '  | 
+// |   |  \ ::   |  ;/|  :  ' ;.   :|   ' '  ;  : 
+// |   : .  /|   :   .|  |  ;/  \   '   | ;  .  | 
+// ;   | |  \|   |  |-'  :  | \  \ ,|   | :  |  ' 
+// |   | ;\  '   :  ;/|  |  '  '--' '   : | /  ;  
+// :   ' | \.|   |    |  :  :       |   | '` ,/   
+// :   : :-' |   :   .|  | ,'       ;   :  .'     
+// |   |.'   |   | ,' `--''         |   ,.'       
+// `---'     `----'                 '---'
+
+
+
+	wire [7:0] ARID;
+	wire [63:0] ARADDR;
+	wire [7:0] ARLEN;
+	wire [2:0] ARSIZE;
+	wire [1:0] ARBURST;
+	wire ARLOCK;
+	wire [3:0] ARCACHE;
+	wire [2:0] ARPROT;
+	wire [3:0] ARQOS;
+	wire [7:0] ARUSER;
+	wire ARVALID;
+	wire ARREADY;
+
+	wire [7:0] RID;
+	wire [63 0] RDATA;
+	wire [1:0] RRESP;
+	wire RLAST;
+	wire [7 0] RUSER;
+	wire RVALID;
+	wire RREADY;
+
+
+
+
+wire isDM_R_ROM =  (S_DM_AXI_ARADDR[63:16] == 48'h0) & DM_ARVALID;
+wire isCACHE_R_ROM = 1'b0;
+wire isINNER_R_ROM = (S_INNER_AXI_ARADDR[63:16] == 48'h0) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_PB =  (S_DM_AXI_ARADDR[63:16] == 48'h1) & DM_ARVALID;
+wire isCACHE_R_PB = 1'b0;
+wire isINNER_R_PB = (S_INNER_AXI_ARADDR[63:16] == 48'h1) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_CLINT = ( S_DM_AXI_ARADDR[63:24] == 40'h2 ) & DM_ARVALID;
+wire isCACHE_R_CLINT = 1'b0;
+wire isINNER_R_CLINT = S_INNER_AXI_ARADDR[63:24] == 40'h2 & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_PLIC = (S_DM_AXI_ARADDR[63:24] == 40'h3) & DM_ARVALID;
+wire isCACHE_R_PLIC = 1'b0;
+wire isINNER_R_PLIC = (S_INNER_AXI_ARADDR[63:24] == 40'h3) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_PERIP = ( S_DM_AXI_ARADDR[63:28] == 36'h2 ) & DM_ARVALID;
+wire isCACHE_R_PERIP = 1'b0;
+wire isINNER_R_PERIP = (S_INNER_AXI_ARADDR[63:28] == 36'h2 ) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_SYS = (S_DM_AXI_ARADDR[63:28] == 36'h4) & DM_ARVALID;
+wire isCACHE_R_SYS = 1'b0;
+wire isINNER_R_SYS = (S_INNER_AXI_ARADDR[63:28] == 36'h4) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+wire isDM_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & DM_ARVALID;
+wire isCACHE_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~DM_ARVALID & CACHE_ARVALID;
+wire isINNER_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+
+
+
+
+
+	assign ARID = DM_ARVALID ? 8'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARID : (INNER_ARVALID ? 8'b0 : 8'b0) );
+	assign ARADDR = DM_ARVALID ? S_DW_AXI_ARADDR : ( CACHE_ARVALID ? S_CACHE_AXI_ARADDR : (INNER_ARVALID ? S_INNER_AXI_ARADDR : 64'h0) );
+	assign ARLEN = DM_ARVALID ? 8'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARLEN : (INNER_ARVALID ? 8'b0 : 8'b0) );
+	
+	assign ARBURST = DM_ARVALID ? 2'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARBURST : (INNER_ARVALID ? 2'b0 : 2'b0) );;
+
+	assign ARVALID = DM_ARVALID | CACHE_ARVALID | INNER_ARVALID;
+
+
+	assign ARREADY = ((isDM_AR_ROM | isINNER_AR_ROM) & ROM_ARREADY)
+					|
+					( (isDM_AR_PB | isINNER_AR_PB) & PB_ARREADY )
+					|
+					( (isDM_AR_CLINT | isINNER_AR_CLINT) & CLINT_ARREADY )
+					|
+					( (isDM_AR_PLIC | isINNER_AR_PLIC) & PLIC_ARREADY )
+					|
+					( (isDM_AR_PERIP | isINNER_AR_PERIP) & PERIP_ARREADY )
+					|
+					( (isDM_AR_SYS | isINNER_AR_SYS) & SYS_ARREADY )
+					|
+					( (isDM_AR_MEM | isCACHE_AR_MEM | isINNER_AR_MEM) & MEM_ARREADY );
+
+
+
+	assign RID = 
+	wire [63 0] RDATA;
+	wire [1:0] RRESP;
+	wire RLAST;
+	wire [7 0] RUSER;
+	wire RVALID;
+	wire RREADY;
+
+
+	input [7:0] M_SYS_AXI_RID,
+	input [63 0] M_SYS_AXI_RDATA,
+	input [1:0] M_SYS_AXI_RRESP,
+	input M_SYS_AXI_RLAST,
+	input [7 0] M_SYS_AXI_RUSER,
+	input M_SYS_AXI_RVALID,
+	output M_SYS_AXI_RREADY,
+
+
+
+
+
+
+
+
+
+
+
+
+wire [S_NUM*M_NUM-1:0] readMuxList_push
+wire [S_NUM*M_NUM-1:0] readMuxList_pop;
+assign = readMuxList_push = 
+						{ isDM_AR_ROM, isCACHE_AR_ROM, isINNER_AR_ROM,
+						isDM_AR_PB, isCACHE_AR_PB, isINNER_AR_PB,
+						isDM_AR_CLINT, isCACHE_AR_CLINT, isINNER_AR_CLINT,
+						isDM_AR_PLIC, isCACHE_AR_PLIC, isINNER_AR_PLIC,
+						isDM_AR_PERIP, isCACHE_AR_PERIP, isINNER_AR_PERIP,
+						isDM_AR_SYS, isCACHE_AR_SYS, isINNER_AR_SYS,
+						isDM_AR_MEM, isCACHE_AR_MEM, isINNER_AR_MEM };
+
+
+
+wire isDM_R_ROM;
+wire isCACHE_R_ROM;
+wire isINNER_R_ROM;
+wire isDM_R_PB;
+wire isCACHE_R_PB;
+wire isINNER_R_PB;
+wire isDM_R_CLINT;
+wire isCACHE_R_CLINT;
+wire isINNER_R_CLINT;
+wire isDM_R_PLIC;
+wire isCACHE_R_PLIC;
+wire isINNER_R_PLIC;
+wire isDM_R_PERIP;
+wire isCACHE_R_PERIP;
+wire isINNER_R_PERIP;
+wire isDM_R_SYS;
+wire isCACHE_R_SYS;
+wire isINNER_R_SYS;
+wire isDM_R_MEM,;
+wire sCACHE_R_MEM;
+wire isINNER_R_ME;
+
+assign 	{ isDM_R_ROM, isCACHE_R_ROM, isINNER_R_ROM,
+		isDM_R_PB, isCACHE_R_PB, isINNER_R_PB,
+		isDM_R_CLINT, isCACHE_R_CLINT, isINNER_R_CLINT,
+		isDM_R_PLIC, isCACHE_R_PLIC, isINNER_R_PLIC,
+		isDM_R_PERIP, isCACHE_R_PERIP, isINNER_R_PERIP,
+		isDM_R_SYS, isCACHE_R_SYS, isINNER_R_SYS,
+		isDM_R_MEM, isCACHE_R_MEM, isINNER_R_MEM } = readMuxList_pop;
+
+
+
+
+gen_fifo #( .DW(), .AW() ) read_req(
+
+	input fifo_pop, 
+	input fifo_push,
+	.data_push(readMuxList_push),
+
+	output fifo_empty, 
+	output fifo_full, 
+	.data_pop(readMuxList_pop),
+
+	input flush,
+	input CLK,
+	input RSTn
+);
+
+
+
+
+
+
+	// wire INNER_AWVALID, DM_AWVALID, CACHE_AWVALID;
+	// wire INNER_WVALID, DM_WVALID, CACHE_WVALID;
+	// wire INNER_BREADY, DM_BREADY, CACHE_BREADY;
+	// wire INNER_ARVALID, DM_ARVALID, CACHE_ARVALID;
+	// wire INNER_RREADY, DM_RREADY, CACHE_RREADY;
+	// wire INNER_ARREADY, DM_ARREADY, CACHE_ARREADY;
+	// wire INNER_RVALID, DM_RVALID, CACHE_RVALID;
+	// wire INNER_WREADY, DM_WREADY, CACHE_WREADY;
+	// wire INNER_BVALID, DM_BVALID, CACHE_BVALID;
+	// wire INNER_AWREADY, DM_AWREADY, CACHE_AWREADY;
+
+	// wire ROM_AWVALID, PB_AWVALID, CLINT_AWVALID, PLIC_AWVALID, SYS_AWVALID, MEM_AWVALID, PERIP_AWVALID;
+	// wire ROM_WVALID, PB_WVALID, CLINT_WVALID, PLIC_WVALID, SYS_WVALID, MEM_WVALID, PERIP_WVALID;
+	// wire ROM_BREADY, RPBBREADY, CLINT_BREADY, PLIC_BREADY, SYS_BREADY, MEM_BREADY, PERIP_BREADY;
+	// wire ROM_ARVALID, PB_ARVALID, CLINT_ARVALID, PLIC_ARVALID, SYS_ARVALID, MEM_ARVALID, PERIP_ARVALID;
+	// wire ROM_RREADY, PB_RREADY, CLINT_RREADY, PLIC_RREADY, SYS_RREADY, MEM_RREADY, PERIP_RREADY;
+	// wire ROM_AWREADY, PB_AWREADY, CLINT_AWREADY, PLIC_AWREADY, SYS_AWREADY, MEM_AWREADY, PERIP_AWREADY;
+	// wire ROM_ARREADY, PB_ARREADY, CLINT_ARREADY, PLIC_ARREADY, SYS_ARREADY, MEM_ARREADY, PERIP_ARREADY;
+	// wire ROM_RVALID, PB_RVALID, CLINT_RVALID, PLIC_RVALID, SYS_RVALID, MEM_RVALID, PERIP_RVALID;
+	// wire ROM_WREADY, PB_WREADY, CLINT_WREADY, PLIC_WREADY, SYS_WREADY, MEM_WREADY, PERIP_WREADY;
+	// wire ROM_BVALID, PB_BVALID, CLINT_BVALID, PLIC_BVALID, SYS_BVALID, MEM_BVALID, PERIP_BVALID;
+
+wire systemBusError = | ;
 
 
 
@@ -672,30 +1187,10 @@ wire systemBusError = | ;
 
 
 
-//Read
-wire isDM_Read_ROM = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_ROM = 1'b0;
-wire isINNER_Read_ROM = (~isDM_Read_ROM) & S_INNER_AXI_ARADDR[] == & S_INNER_AXI_ARVALID;
 
-wire isDM_Read_CLINT = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_CLINT = 1'b0;
-wire isINNER_Read_CLINT = (~isDM_Read_CLINT) & S_INNER_AXI_ARADDR[] == & S_INNER_AXI_ARVALID;
 
-wire isDM_Read_PLIC = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_PLIC = 1'b0;
-wire isINNER_Read_PLIC = (~isDM_Read_PLIC) & S_INNER_AXI_ARADDR[] == & S_INNER_AXI_ARVALID;
 
-wire isDM_Read_SYS = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_SYS = 1'b0;
-wire isINNER_Read_SYS = (~isDM_Read_SYS) & S_INNER_AXI_ARADDR[] == & S_INNER_AXI_ARVALID;
 
-wire isDM_Read_MEM = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_MEM = (~isDM_Read_MEM) & ( S_DM_AXI_RDATA[63:] ==  & S_CACHE_AXI_ARVALID);
-wire isINNER_Read_MEM = (~isCache_Read_MEM) & (~isDM_Read_MEM) & ( S_DM_AXI_RDATA[63:] ==  & S_INNER_AXI_ARVALID);;
-
-wire isDM_Read_PERIP = ( S_DM_AXI_RDATA[63:] ==  & S_DM_AXI_ARVALID);
-wire isCACHE_Read_PERIP = 1'b0;
-wire isINNER_Read_PERIP = (~isDM_Read_PERIP) & S_INNER_AXI_ARADDR[] == & S_INNER_AXI_ARVALID;
 
 
 
@@ -755,23 +1250,6 @@ assign S_DM_AXI_RVALID = ( isDM_Read_ROM   & M_ROM_AXI_RVALID )
 
 
 
-
-
-gen_fifo # ( .DW(), .AW() ) read_req(
-
-	input fifo_pop, 
-	input fifo_push,
-	input [DW-1:0] data_push,
-
-	output fifo_empty, 
-	output fifo_full, 
-	output [DW-1:0] data_pop,
-
-	input flush,
-	input CLK,
-	input RSTn
-);
-
 gen_fifo # ( .DW(), .AW() ) read_req(
 	input fifo_pop, 
 	input fifo_push,
@@ -816,26 +1294,7 @@ gen_fifo # ( .DW(), .AW() ) read_req(
 	wire BVALID,
 	output BREADY,
 
-	wire [7:0] ARID;
-	wire [63:0] ARADDR;
-	wire [7:0] ARLEN;
-	wire [2:0] ARSIZE;
-	wire [1:0] ARBURST;
-	wire ARLOCK;
-	wire [3:0] ARCACHE;
-	wire [2:0] ARPROT;
-	wire [3:0] ARQOS;
-	wire [7:0] ARUSER;
-	wire ARVALID;
-	wire ARREADY;
 
-	wire [7:0] RID;
-	wire [63 0] RDATA;
-	wire [1:0] RRESP;
-	wire RLAST;
-	wire [7 0] RUSER;
-	wire RVALID;
-	wire RREADY;
 
 
 

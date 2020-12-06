@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-04 19:42:02
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-04 19:54:56
+* @Last Modified time: 2020-12-06 13:18:30
 */
 
 /*
@@ -48,7 +48,7 @@ module crossBar_syn #
 	input S_RSTn,
 
 
-	//CrossBar Demain
+	//Slave Demain
 	output M_AWVALID,
 	output M_WVALID,
 	output M_BREADY,
