@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-02 09:45:29
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-06 16:02:13
+* @Last Modified time: 2020-12-07 10:45:58
 */
 
 /*
@@ -165,14 +165,12 @@ module system_crossBar #
 	input [7:0] S_CACHE_AXI_ARID,
 	input [63:0] S_CACHE_AXI_ARADDR,
 	input [7:0] S_CACHE_AXI_ARLEN,
-	input [2:0] S_CACHE_AXI_ARSIZE,
 	input [1:0] S_CACHE_AXI_ARBURST,
 	input S_CACHE_AXI_ARLOCK,
 	input [3:0] S_CACHE_AXI_ARCACHE,
 	input [2:0] S_CACHE_AXI_ARPROT,
 	input [3:0] S_CACHE_AXI_ARQOS,
 	input [3:0] S_CACHE_AXI_ARREGION,
-	input [7 0] S_CACHE_AXI_ARUSER,
 	input S_CACHE_AXI_ARVALID,
 	output S_CACHE_AXI_ARREADY,
 
@@ -180,7 +178,6 @@ module system_crossBar #
 	output [63:0] S_CACHE_AXI_RDATA,
 	output [1:0] S_CACHE_AXI_RRESP,
 	output S_CACHE_AXI_RLAST,
-	output [7:0] S_CACHE_AXI_RUSER,
 	output S_CACHE_AXI_RVALID,
 	input S_CACHE_AXI_RREADY,
 
@@ -400,13 +397,11 @@ module system_crossBar #
 	output [7:0] M_SYS_AXI_ARID,
 	output [63:0] M_SYS_AXI_ARADDR,
 	output [7:0] M_SYS_AXI_ARLEN,
-	output [2:0] M_SYS_AXI_ARSIZE,
 	output [1:0] M_SYS_AXI_ARBURST,
 	output M_SYS_AXI_ARLOCK,
 	output [3:0] M_SYS_AXI_ARCACHE,
 	output [2:0] M_SYS_AXI_ARPROT,
 	output [3:0] M_SYS_AXI_ARQOS,
-	output [7:0] M_SYS_AXI_ARUSER,
 	output M_SYS_AXI_ARVALID,
 	input M_SYS_AXI_ARREADY,
 
@@ -414,7 +409,6 @@ module system_crossBar #
 	input [63 0] M_SYS_AXI_RDATA,
 	input [1:0] M_SYS_AXI_RRESP,
 	input M_SYS_AXI_RLAST,
-	input [7 0] M_SYS_AXI_RUSER,
 	input M_SYS_AXI_RVALID,
 	output M_SYS_AXI_RREADY,
 
@@ -475,13 +469,11 @@ module system_crossBar #
 	output [7:0] M_MEM_AXI_ARID,
 	output [63:0] M_MEM_AXI_ARADDR,
 	output [7:0] M_MEM_AXI_ARLEN,
-	output [2:0] M_MEM_AXI_ARSIZE,
 	output [1:0] M_MEM_AXI_ARBURST,
 	output M_MEM_AXI_ARLOCK,
 	output [3:0] M_MEM_AXI_ARCACHE,
 	output [2:0] M_MEM_AXI_ARPROT,
 	output [3:0] M_MEM_AXI_ARQOS,
-	output [7:0] M_MEM_AXI_ARUSER,
 	output M_MEM_AXI_ARVALID,
 	input M_MEM_AXI_ARREADY,
 
@@ -489,7 +481,6 @@ module system_crossBar #
 	input [63 0] M_MEM_AXI_RDATA,
 	input [1:0] M_MEM_AXI_RRESP,
 	input M_MEM_AXI_RLAST,
-	input [7 0] M_MEM_AXI_RUSER,
 	input M_MEM_AXI_RVALID,
 	output M_MEM_AXI_RREADY,
 
@@ -533,7 +524,6 @@ module system_crossBar #
 	output M_PERIP_AXI_BREADY,
 
 	output [7:0] M_PERIP_AXI_ARADDR,
-	output [2:0] M_PERIP_AXI_ARPROT,
 	output M_PERIP_AXI_ARVALID,
 	input M_PERIP_AXI_ARREADY,
 
@@ -611,13 +601,7 @@ initial $warning("All master and slave must use syn clock with bus");
 	wire [7:0] ARID;
 	wire [63:0] ARADDR;
 	wire [7:0] ARLEN;
-	wire [2:0] ARSIZE;
 	wire [1:0] ARBURST;
-	wire ARLOCK;
-	wire [3:0] ARCACHE;
-	wire [2:0] ARPROT;
-	wire [3:0] ARQOS;
-	wire [7:0] ARUSER;
 	wire ARVALID;
 	wire ARREADY;
 
@@ -625,77 +609,343 @@ initial $warning("All master and slave must use syn clock with bus");
 	wire [63 0] RDATA;
 	wire [1:0] RRESP;
 	wire RLAST;
-	wire [7 0] RUSER;
 	wire RVALID;
 	wire RREADY;
 
 
 
 
-wire isDM_R_ROM =  (S_DM_AXI_ARADDR[63:16] == 48'h0) & DM_ARVALID;
-wire isCACHE_R_ROM = 1'b0;
-wire isINNER_R_ROM = (S_INNER_AXI_ARADDR[63:16] == 48'h0) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_ROM =  (S_DM_AXI_ARADDR[63:16] == 48'h0) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_ROM = 1'b0;
+	wire isINNER_AR_ROM = (S_INNER_AXI_ARADDR[63:16] == 48'h0) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_PB =  (S_DM_AXI_ARADDR[63:16] == 48'h1) & DM_ARVALID;
-wire isCACHE_R_PB = 1'b0;
-wire isINNER_R_PB = (S_INNER_AXI_ARADDR[63:16] == 48'h1) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_PB =  (S_DM_AXI_ARADDR[63:16] == 48'h1) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_PB = 1'b0;
+	wire isINNER_AR_PB = (S_INNER_AXI_ARADDR[63:16] == 48'h1) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_CLINT = ( S_DM_AXI_ARADDR[63:24] == 40'h2 ) & DM_ARVALID;
-wire isCACHE_R_CLINT = 1'b0;
-wire isINNER_R_CLINT = S_INNER_AXI_ARADDR[63:24] == 40'h2 & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_CLINT = ( S_DM_AXI_ARADDR[63:24] == 40'h2 ) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_CLINT = 1'b0;
+	wire isINNER_AR_CLINT = S_INNER_AXI_ARADDR[63:24] == 40'h2 & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_PLIC = (S_DM_AXI_ARADDR[63:24] == 40'h3) & DM_ARVALID;
-wire isCACHE_R_PLIC = 1'b0;
-wire isINNER_R_PLIC = (S_INNER_AXI_ARADDR[63:24] == 40'h3) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_PLIC = (S_DM_AXI_ARADDR[63:24] == 40'h3) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_PLIC = 1'b0;
+	wire isINNER_AR_PLIC = (S_INNER_AXI_ARADDR[63:24] == 40'h3) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_PERIP = ( S_DM_AXI_ARADDR[63:28] == 36'h2 ) & DM_ARVALID;
-wire isCACHE_R_PERIP = 1'b0;
-wire isINNER_R_PERIP = (S_INNER_AXI_ARADDR[63:28] == 36'h2 ) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_PERIP = ( S_DM_AXI_ARADDR[63:28] == 36'h2 ) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_PERIP = 1'b0;
+	wire isINNER_AR_PERIP = (S_INNER_AXI_ARADDR[63:28] == 36'h2 ) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_SYS = (S_DM_AXI_ARADDR[63:28] == 36'h4) & DM_ARVALID;
-wire isCACHE_R_SYS = 1'b0;
-wire isINNER_R_SYS = (S_INNER_AXI_ARADDR[63:28] == 36'h4) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
+	wire isDM_AR_SYS = (S_DM_AXI_ARADDR[63:28] == 36'h4) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_SYS = 1'b0;
+	wire isINNER_AR_SYS = (S_INNER_AXI_ARADDR[63:28] == 36'h4) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
-wire isDM_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & DM_ARVALID;
-wire isCACHE_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~DM_ARVALID & CACHE_ARVALID;
-wire isINNER_R_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~DM_ARVALID & ~CACHE_ARVALID & INNER_ARVALID;
-
-
+	wire isDM_AR_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & S_DM_AXI_ARVALID;
+	wire isCACHE_AR_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~S_DM_AXI_ARVALID & S_CACHE_AXI_ARVALID;
+	wire isINNER_AR_MEM = ( S_DM_AXI_ARADDR[63:31] == 33'h1 ) & ~S_DM_AXI_ARVALID & ~S_CACHE_AXI_ARVALID & S_INNER_AXI_ARVALID;
 
 
 
-	assign ARID = DM_ARVALID ? 8'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARID : (INNER_ARVALID ? 8'b0 : 8'b0) );
-	assign ARADDR = DM_ARVALID ? S_DW_AXI_ARADDR : ( CACHE_ARVALID ? S_CACHE_AXI_ARADDR : (INNER_ARVALID ? S_INNER_AXI_ARADDR : 64'h0) );
-	assign ARLEN = DM_ARVALID ? 8'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARLEN : (INNER_ARVALID ? 8'b0 : 8'b0) );
+
+
+	assign ARID = S_DM_AXI_ARVALID ? 8'b0 : ( S_CACHE_AXI_ARVALID ? S_CACHE_AXI_ARID : (S_INNER_AXI_ARVALID ? 8'b0 : 8'b0) );
+	assign ARADDR = S_DM_AXI_ARVALID ? S_DW_AXI_ARADDR : ( S_CACHE_AXI_ARVALID ? S_CACHE_AXI_ARADDR : (S_INNER_AXI_ARVALID ? S_INNER_AXI_ARADDR : 64'h0) );
+	assign ARLEN = S_DM_AXI_ARVALID ? 8'b0 : ( S_CACHE_AXI_ARVALID ? S_CACHE_AXI_ARLEN : (S_INNER_AXI_ARVALID ? 8'b0 : 8'b0) );
 	
-	assign ARBURST = DM_ARVALID ? 2'b0 : ( CACHE_ARVALID ? S_CACHE_AXI_ARBURST : (INNER_ARVALID ? 2'b0 : 2'b0) );;
+	assign ARBURST = S_DM_AXI_ARVALID ? 2'b0 : ( S_CACHE_AXI_ARVALID ? S_CACHE_AXI_ARBURST : (S_INNER_AXI_ARVALID ? 2'b0 : 2'b0) );;
 
-	assign ARVALID = DM_ARVALID | CACHE_ARVALID | INNER_ARVALID;
+	assign ARVALID = S_DM_AXI_ARVALID | S_CACHE_AXI_ARVALID | S_INNER_AXI_ARVALID;
 
 
-	assign ARREADY = ((isDM_AR_ROM | isINNER_AR_ROM) & ROM_ARREADY)
+	assign ARREADY = ((isDM_AR_ROM | isINNER_AR_ROM) & M_ROM_AXI_ARREADY)
 					|
-					( (isDM_AR_PB | isINNER_AR_PB) & PB_ARREADY )
+					( (isDM_AR_PB | isINNER_AR_PB) & M_PB_AXI_ARREADY )
 					|
-					( (isDM_AR_CLINT | isINNER_AR_CLINT) & CLINT_ARREADY )
+					( (isDM_AR_CLINT | isINNER_AR_CLINT) & M_CLINT_AXI_ARREADY )
 					|
-					( (isDM_AR_PLIC | isINNER_AR_PLIC) & PLIC_ARREADY )
+					( (isDM_AR_PLIC | isINNER_AR_PLIC) & M_PLIC_AXI_ARREADY )
 					|
-					( (isDM_AR_PERIP | isINNER_AR_PERIP) & PERIP_ARREADY )
+					( (isDM_AR_PERIP | isINNER_AR_PERIP) & M_PERIP_AXI_ARREADY )
 					|
-					( (isDM_AR_SYS | isINNER_AR_SYS) & SYS_ARREADY )
+					( (isDM_AR_SYS | isINNER_AR_SYS) & M_SYS_AXI_ARREADY )
 					|
-					( (isDM_AR_MEM | isCACHE_AR_MEM | isINNER_AR_MEM) & MEM_ARREADY );
+					( (isDM_AR_MEM | isCACHE_AR_MEM | isINNER_AR_MEM) & M_MEM_AXI_ARREADY );
+
+
+
+
+
+
 
 
 
 	assign RID = 
-	wire [63 0] RDATA;
-	wire [1:0] RRESP;
-	wire RLAST;
-	wire [7 0] RUSER;
-	wire RVALID;
-	wire RREADY;
+		({8{isDM_R_ROM | isCACHE_R_ROM | isINNER_R_ROM}} & 8'b0)
+		|
+		({8{isDM_R_PB | isCACHE_R_PB | isINNER_R_PB}} & 8'b0)
+		|
+		({8{isDM_R_CLINT | isCACHE_R_CLINT | isINNER_R_CLINT}} & 8'b0)
+		|
+		({8{isDM_R_PLIC | isCACHE_R_PLIC | isINNER_R_PLIC}} & 8'b0)
+		|
+		({8{isDM_R_PERIP | isCACHE_R_PERIP | isINNER_R_PERIP}} & 8'b0)
+		|
+		({8{isDM_R_SYS | isCACHE_R_SYS | isINNER_R_SYS}} & M_SYS_AXI_RID)
+		|
+		({8{isDM_R_MEM | isCACHE_R_MEM | isINNER_R_MEM}} & M_MEM_AXI_RID);
+
+	assign RDATA = 
+		({64{isDM_R_ROM | isCACHE_R_ROM | isINNER_R_ROM}} & M_ROM_AXI_RDATA)
+		|
+		({64{isDM_R_PB | isCACHE_R_PB | isINNER_R_PB}} & M_PB_AXI_RDATA)
+		|
+		({64{isDM_R_CLINT | isCACHE_R_CLINT | isINNER_R_CLINT}} & M_CLINT_AXI_RDATA)
+		|
+		({64{isDM_R_PLIC | isCACHE_R_PLIC | isINNER_R_PLIC}} & M_PLIC_AXI_RDATA)
+		|
+		({64{isDM_R_PERIP | isCACHE_R_PERIP | isINNER_R_PERIP}} & M_PERIP_AXI_RDATA)
+		|
+		({64{isDM_R_SYS | isCACHE_R_SYS | isINNER_R_SYS}} & M_SYS_AXI_RDATA)
+		|
+		({64{isDM_R_MEM | isCACHE_R_MEM | isINNER_R_MEM}} & M_MEM_AXI_RDATA);
+
+
+
+	assign RRESP = 
+		({2{isDM_R_ROM | isCACHE_R_ROM | isINNER_R_ROM}} & M_ROM_AXI_RRESP)
+		|
+		({2{isDM_R_PB | isCACHE_R_PB | isINNER_R_PB}} & M_PB_AXI_RRESP)
+		|
+		({2{isDM_R_CLINT | isCACHE_R_CLINT | isINNER_R_CLINT}} & M_CLINT_AXI_RRESP)
+		|
+		({2{isDM_R_PLIC | isCACHE_R_PLIC | isINNER_R_PLIC}} & M_PLIC_AXI_RRESP)
+		|
+		({2{isDM_R_PERIP | isCACHE_R_PERIP | isINNER_R_PERIP}} & M_PERIP_AXI_RRESP)
+		|
+		({2{isDM_R_SYS | isCACHE_R_SYS | isINNER_R_SYS}} & M_SYS_AXI_RRESP)
+		|
+		({2{isDM_R_MEM | isCACHE_R_MEM | isINNER_R_MEM}} & M_MEM_AXI_RRESP);
+
+
+
+	assign RLAST =
+		({1{isDM_R_ROM | isCACHE_R_ROM | isINNER_R_ROM}} & 1'b1)
+		|
+		({1{isDM_R_PB | isCACHE_R_PB | isINNER_R_PB}} & 1'b1)
+		|
+		({1{isDM_R_CLINT | isCACHE_R_CLINT | isINNER_R_CLINT}} & 1'b1)
+		|
+		({1{isDM_R_PLIC | isCACHE_R_PLIC | isINNER_R_PLIC}} & 1'b1)
+		|
+		({1{isDM_R_PERIP | isCACHE_R_PERIP | isINNER_R_PERIP}} & 1'b1)
+		|
+		({1{isDM_R_SYS | isCACHE_R_SYS | isINNER_R_SYS}} & M_SYS_AXI_RLAST)
+		|
+		({1{isDM_R_MEM | isCACHE_R_MEM | isINNER_R_MEM}} & M_MEM_AXI_RLAST);
+
+
+	assign RVALID = 
+		M_ROM_AXI_RVALID
+		| M_PB_AXI_RVALID
+		| M_CLINT_AXI_RVALID
+		| M_PLIC_AXI_RVALID
+		| M_PERIP_AXI_RVALID
+		| M_SYS_AXI_RVALID
+		| M_MEM_AXI_RVALID;
+
+	assign RREADY =
+		((isDM_R_ROM | isDM_R_PB | isDM_R_CLINT | isDM_R_PLIC | isDM_R_PERIP | isDM_R_SYS | isDM_R_MEM) & S_DM_AXI_RREADY)
+		|
+		((isCACHE_R_ROM | isCACHE_R_PB | isCACHE_R_CLINT | isCACHE_R_PLIC | isCACHE_R_PERIP | isCACHE_R_SYS | isCACHE_R_MEM) & S_CACHE_AXI_RREADY)
+		|
+		((isINNER_R_ROM | isINNER_R_PB | isINNER_R_CLINT | isINNER_R_PLIC | isINNER_R_PERIP | isINNER_R_SYS | isINNER_R_MEM) & S_INNER_AXI_RREADY);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// wire isDM_R_ROM;
+// wire isCACHE_R_ROM;
+// wire isINNER_R_ROM;
+// wire isDM_R_PB;
+// wire isCACHE_R_PB;
+// wire isINNER_R_PB;
+// wire isDM_R_CLINT;
+// wire isCACHE_R_CLINT;
+// wire isINNER_R_CLINT;
+// wire isDM_R_PLIC;
+// wire isCACHE_R_PLIC;
+// wire isINNER_R_PLIC;
+// wire isDM_R_PERIP;
+// wire isCACHE_R_PERIP;
+// wire isINNER_R_PERIP;
+// wire isDM_R_SYS;
+// wire isCACHE_R_SYS;
+// wire isINNER_R_SYS;
+// wire isDM_R_MEM;
+// wire sCACHE_R_MEM;
+// wire isINNER_R_MEM;
+
+
+	assign S_INNER_AXI_ARREADY =
+		(isINNER_AR_ROM | isINNER_AR_PB | isINNER_AR_CLINT | isINNER_AR_PLIC | isINNER_AR_PERIP | isINNER_AR_SYS | isINNER_AR_MEM)
+		& ARREADY;
+	assign S_INNER_AXI_RDATA = RDATA;
+	assign S_INNER_AXI_RRESP = RRESP;
+	assign S_INNER_AXI_RVALID = 
+		(isINNER_R_ROM | isINNER_R_PB | isINNER_R_CLINT | isINNER_R_PLIC | isINNER_R_PERIP | isINNER_R_SYS | isINNER_R_MEM)
+		& RVALID;
+
+
+	assign S_DM_AXI_ARREADY = 
+		(isDM_AR_ROM | isDM_AR_PB | isDM_AR_CLINT | isDM_AR_PLIC | isDM_AR_PERIP | isDM_AR_SYS | isDM_AR_MEM)
+		 & ARREADY;
+	assign S_DM_AXI_RDATA = RDATA;
+	assign S_DM_AXI_RRESP = RRESP;
+	assign S_DM_AXI_RVALID = 
+		(isDM_R_ROM | isDM_R_PB | isDM_R_CLINT | isDM_R_PLIC | isDM_R_PERIP | isDM_R_SYS | isDM_R_MEM)
+		& RVALID;
+
+
+	assign S_CACHE_AXI_ARREADY = 
+		(isCACHE_AR_ROM | isCACHE_AR_PB | isCACHE_AR_CLINT | isCACHE_AR_PLIC | isCACHE_AR_PERIP | isCACHE_AR_SYS | isCACHE_AR_MEM)
+		 & ARREADY;
+	assign S_CACHE_AXI_RID = RID;
+	assign S_CACHE_AXI_RDATA = RDATA;
+	assign S_CACHE_AXI_RRESP = RRESP;
+	assign S_CACHE_AXI_RLAST = RLAST;
+	assign S_CACHE_AXI_RVALID = 
+		(isCACHE_R_ROM | isCACHE_R_PB | isCACHE_R_CLINT | isCACHE_R_PLIC | isCACHE_R_PERIP | isCACHE_R_SYS | isCACHE_R_MEM)
+		 & RREADY;
+
+
+	assign M_ROM_AXI_ARADDR = ARADDR;
+	assign M_ROM_AXI_ARVALID =
+		(isINNER_AR_ROM | isDM_AR_ROM | isCACHE_AR_ROM)
+		& ARVALID;
+	assign M_ROM_AXI_RREADY = 
+		(isINNER_R_ROM | isDM_R_ROM | isCACHE_R_ROM)
+		& RVALID;	
+
+
+	assign M_PB_AXI_ARADDR = ARADDR;
+	assign M_PB_AXI_ARVALID =
+		(isINNER_AR_PB | isDM_AR_PB | isCACHE_AR_PB)
+		& ARVALID;
+	assign M_PB_AXI_RREADY = 
+		(isINNER_R_PB | isDM_R_PB | isCACHE_R_PB)
+		& RVALID;
+
+
+	assign M_CLINT_AXI_ARADDR = ARADDR;
+	assign M_CLINT_AXI_ARVALID =
+		(isINNER_AR_CLINT | isDM_AR_CLINT | isCACHE_AR_CLINT)
+		& ARVALID;
+	assign M_CLINT_AXI_RREADY = 
+		(isINNER_R_CLINT | isDM_R_CLINT | isCACHE_R_CLINT)
+		& RVALID;
+
+	assign M_PLIC_AXI_ARADDR = ARADDR;
+	assign M_PLIC_AXI_ARVALID =
+		(isINNER_AR_PLIC | isDM_AR_PLIC | isCACHE_AR_PLIC)
+		& ARVALID;
+	assign M_PLIC_AXI_RREADY = 
+		(isINNER_R_PLIC | isDM_R_PLIC | isCACHE_R_PLIC)
+		& RVALID;
+
+	assign M_SYS_AXI_ARID = ARID;
+	assign M_SYS_AXI_ARADDR = ARADDR;
+	assign M_SYS_AXI_ARLEN = ARLEN;
+	assign M_SYS_AXI_ARBURST = ARBURST;
+	assign M_SYS_AXI_ARVALID =
+		( isINNER_AR_SYS | isDM_AR_SYS | isCACHE_AR_SYS )
+		& ARVALID;
+	assign M_SYS_AXI_RREADY = 
+		( isINNER_R_SYS | isDM_R_SYS | isCACHE_R_SYS )
+		& RVALID;
+
+	assign M_MEM_AXI_ARID = ARID;
+	assign M_MEM_AXI_ARADDR = ARADDR;
+	assign M_MEM_AXI_ARLEN = ARLEN;
+	assign M_MEM_AXI_ARBURST = ARBURST;
+	assign M_MEM_AXI_ARVALID =
+		( isINNER_AR_MEM | isDM_AR_MEM | isCACHE_AR_MEM )
+		& ARVALID;
+	assign M_MEM_AXI_RREADY = 
+		( isINNER_R_MEM | isDM_R_MEM | isCACHE_R_MEM )
+		& RVALID;
+
+
+	assign M_PERIP_AXI_ARADDR = ARADDR;
+	assign M_PERIP_AXI_ARVALID =
+		( isINNER_AR_PERIP | isDM_AR_PERIP | isCACHE_AR_PERIP )
+		& ARVALID;
+	assign M_PERIP_AXI_RREADY = 
+		( isINNER_R_PERIP | isDM_R_PERIP | isCACHE_R_PERIP )
+		& RVALID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+wire isDM_R_ROM;
+wire isCACHE_R_ROM;
+wire isINNER_R_ROM;
+wire isDM_R_PB;
+wire isCACHE_R_PB;
+wire isINNER_R_PB;
+wire isDM_R_CLINT;
+wire isCACHE_R_CLINT;
+wire isINNER_R_CLINT;
+wire isDM_R_PLIC;
+wire isCACHE_R_PLIC;
+wire isINNER_R_PLIC;
+wire isDM_R_PERIP;
+wire isCACHE_R_PERIP;
+wire isINNER_R_PERIP;
+wire isDM_R_SYS;
+wire isCACHE_R_SYS;
+wire isINNER_R_SYS;
+wire isDM_R_MEM;
+wire sCACHE_R_MEM;
+wire isINNER_R_MEM;
+
+
+
+
+
 
 
 	input [7:0] M_SYS_AXI_RID,
@@ -750,7 +1000,7 @@ wire isCACHE_R_SYS;
 wire isINNER_R_SYS;
 wire isDM_R_MEM,;
 wire sCACHE_R_MEM;
-wire isINNER_R_ME;
+wire isINNER_R_MEM;
 
 assign 	{ isDM_R_ROM, isCACHE_R_ROM, isINNER_R_ROM,
 		isDM_R_PB, isCACHE_R_PB, isINNER_R_PB,
@@ -779,31 +1029,6 @@ gen_fifo #( .DW(), .AW() ) read_req(
 );
 
 
-
-
-
-
-	// wire INNER_AWVALID, DM_AWVALID, CACHE_AWVALID;
-	// wire INNER_WVALID, DM_WVALID, CACHE_WVALID;
-	// wire INNER_BREADY, DM_BREADY, CACHE_BREADY;
-	// wire INNER_ARVALID, DM_ARVALID, CACHE_ARVALID;
-	// wire INNER_RREADY, DM_RREADY, CACHE_RREADY;
-	// wire INNER_ARREADY, DM_ARREADY, CACHE_ARREADY;
-	// wire INNER_RVALID, DM_RVALID, CACHE_RVALID;
-	// wire INNER_WREADY, DM_WREADY, CACHE_WREADY;
-	// wire INNER_BVALID, DM_BVALID, CACHE_BVALID;
-	// wire INNER_AWREADY, DM_AWREADY, CACHE_AWREADY;
-
-	// wire ROM_AWVALID, PB_AWVALID, CLINT_AWVALID, PLIC_AWVALID, SYS_AWVALID, MEM_AWVALID, PERIP_AWVALID;
-	// wire ROM_WVALID, PB_WVALID, CLINT_WVALID, PLIC_WVALID, SYS_WVALID, MEM_WVALID, PERIP_WVALID;
-	// wire ROM_BREADY, RPBBREADY, CLINT_BREADY, PLIC_BREADY, SYS_BREADY, MEM_BREADY, PERIP_BREADY;
-	// wire ROM_ARVALID, PB_ARVALID, CLINT_ARVALID, PLIC_ARVALID, SYS_ARVALID, MEM_ARVALID, PERIP_ARVALID;
-	// wire ROM_RREADY, PB_RREADY, CLINT_RREADY, PLIC_RREADY, SYS_RREADY, MEM_RREADY, PERIP_RREADY;
-	// wire ROM_AWREADY, PB_AWREADY, CLINT_AWREADY, PLIC_AWREADY, SYS_AWREADY, MEM_AWREADY, PERIP_AWREADY;
-	// wire ROM_ARREADY, PB_ARREADY, CLINT_ARREADY, PLIC_ARREADY, SYS_ARREADY, MEM_ARREADY, PERIP_ARREADY;
-	// wire ROM_RVALID, PB_RVALID, CLINT_RVALID, PLIC_RVALID, SYS_RVALID, MEM_RVALID, PERIP_RVALID;
-	// wire ROM_WREADY, PB_WREADY, CLINT_WREADY, PLIC_WREADY, SYS_WREADY, MEM_WREADY, PERIP_WREADY;
-	// wire ROM_BVALID, PB_BVALID, CLINT_BVALID, PLIC_BVALID, SYS_BVALID, MEM_BVALID, PERIP_BVALID;
 
 wire systemBusError = | ;
 
