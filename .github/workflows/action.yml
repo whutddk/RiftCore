@@ -1,0 +1,147 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master,develop ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  clean:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      - name: cleanCommit
+        run: |
+          cd /home/runner/work/RiftCore/
+          git clone https://github.com/whutddk/RiftCore/
+          cd RiftCore/
+          git fetch --all
+          git checkout gh-pages
+          git reset --hard 4e5a
+ 
+      - name: cleanPush
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: clean
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+          
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: APT
+        run: |
+          sudo apt-get update
+          sudo apt-get install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev libusb-1.0-0-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev device-tree-compiler pkg-config libexpat-dev
+
+
+      - name: RISCV GCC
+        run: |
+          cd /home/runner/work/RiftCore
+          sudo chmod +777 /home/runner/work/RiftCore/ -R
+          mkdir /home/runner/work/RiftCore/RISCV
+          export RISCV=/home/runner/work/RiftCore/RISCV
+          wget https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14.tar.gz
+          tar -x -f riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14.tar.gz --strip-components=1 -C $RISCV
+          export PATH=$PATH:$RISCV/bin
+
+
+      - name: Iverilog
+        run: |
+          cd /home/runner/work/RiftCore
+          git clone https://github.com/steveicarus/iverilog.git
+          cd iverilog
+          git checkout v11_0
+          sh autoconf.sh
+          ./configure
+          make
+          sudo make install
+          export PATH=$PATH:/usr/local/bin
+          cd ../
+
+      - name: Compile Verilog
+        run: |
+          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
+          iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
+           
+      - name: Compile ISA
+        run: |
+          export RISCV=/home/runner/work/RiftCore/RISCV
+          export PATH=$PATH:$RISCV/bin
+          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb/ci
+          git clone https://github.com/riscv/riscv-tests.git
+          cd ./riscv-tests
+          git checkout 790640
+          git submodule update --init --recursive
+          cd isa
+          rm Makefile
+          cp ../../Makefile ./Makefile
+          make
+          cp *.verilog ../../
+          cd ../../../     
+
+      - name: test
+        run: |
+          export PATH=$PATH:/usr/local/bin
+          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
+          python CI.py
+    
+      - name: commit
+        run: |
+          cd /home/runner/work/RiftCore/
+          mkdir ./ci
+          mv /home/runner/work/RiftCore/RiftCore/core/riftCore/tb/ci/*.json /home/runner/work/RiftCore/ci/
+          cd /home/runner/work/RiftCore/RiftCore
+          git checkout -- .
+          git fetch --all
+          git checkout gh-pages
+          rm /home/runner/work/RiftCore/RiftCore/ci/*.json
+          cp /home/runner/work/RiftCore/ci/*.json /home/runner/work/RiftCore/RiftCore/ci/
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./ci
+          git commit -m "update ci result"
+ 
+      - name: push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
+
+
+
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.

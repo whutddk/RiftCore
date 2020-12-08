@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 16:00:15
+* @Last Modified time: 2020-11-23 15:23:23
 */
 
 /*
@@ -108,35 +108,67 @@ end
 			$readmemh(testName, mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
+				if ( |{mem[i*4+3], mem[i*4+2], mem[i*4+1], mem[i*4+0]} == 1'b1 ) begin
 					`ITCM.ram[i][7:0] = mem[i*4+0];
 					`ITCM.ram[i][15:8] = mem[i*4+1];
 					`ITCM.ram[i][23:16] = mem[i*4+2];
-					`ITCM.ram[i][31:24] = mem[i*4+3];
+					`ITCM.ram[i][31:24] = mem[i*4+3];			
+				end
+				else begin
+					`ITCM.ram[i][7:0] = 8'h0;
+					`ITCM.ram[i][15:8] = 8'h0;
+					`ITCM.ram[i][23:16] = 8'h0;
+					`ITCM.ram[i][31:24] = 8'h0;						
+				end
 
 					// $display("ITCM %h: %h", i*4,`ITCM.ram[i]);
 			end
 
 			for ( i = 0; i < 1000; i = i + 1 ) begin
-				`DTCMA.ram[i] = 64'b0;
-				`DTCMB.ram[i] = 64'b0;
-					// `DTCMA.ram[i][7:0] = mem[i*16+8192+0];
-					// `DTCMA.ram[i][15:8] = mem[i*16+8192+1];
-					// `DTCMA.ram[i][23:16] = mem[i*16+8192+2];
-					// `DTCMA.ram[i][31:24] = mem[i*16+8192+3];
-					// `DTCMA.ram[i][39:32] = mem[i*16+8192+4];
-					// `DTCMA.ram[i][47:40] = mem[i*16+8192+5];
-					// `DTCMA.ram[i][55:48] = mem[i*16+8192+6];
-					// `DTCMA.ram[i][63:56] = mem[i*16+8192+7];
+				// `DTCMA.ram[i] = 64'b0;
+				// `DTCMB.ram[i] = 64'b0;
+				if ( |{ mem[i*16+8192+15], mem[i*16+8192+14], mem[i*16+8192+13], mem[i*16+8192+12],
+						mem[i*16+8192+11], mem[i*16+8192+10], mem[i*16+8192+9],  mem[i*16+8192+8],
+						mem[i*16+8192+7],  mem[i*16+8192+6],  mem[i*16+8192+5],  mem[i*16+8192+4],
+						mem[i*16+8192+3],  mem[i*16+8192+2],  mem[i*16+8192+1],  mem[i*16+8192+0]} == 1'b1 ) begin
+					`DTCMA.ram[i][7:0] = mem[i*16+8192+0];
+					`DTCMA.ram[i][15:8] = mem[i*16+8192+1];
+					`DTCMA.ram[i][23:16] = mem[i*16+8192+2];
+					`DTCMA.ram[i][31:24] = mem[i*16+8192+3];
+					`DTCMA.ram[i][39:32] = mem[i*16+8192+4];
+					`DTCMA.ram[i][47:40] = mem[i*16+8192+5];
+					`DTCMA.ram[i][55:48] = mem[i*16+8192+6];
+					`DTCMA.ram[i][63:56] = mem[i*16+8192+7];
 
-					// `DTCMB.ram[i][7:0] = mem[i*16+8192+8];
-					// `DTCMB.ram[i][15:8] = mem[i*16+8192+9];
-					// `DTCMB.ram[i][23:16] = mem[i*16+8192+10];
-					// `DTCMB.ram[i][31:24] = mem[i*16+8192+11];
-					// `DTCMB.ram[i][39:32] = mem[i*16+8192+12];
-					// `DTCMB.ram[i][47:40] = mem[i*16+8192+13];
-					// `DTCMB.ram[i][55:48] = mem[i*16+8192+14];
-					// `DTCMB.ram[i][63:56] = mem[i*16+8192+15];
+					`DTCMB.ram[i][7:0] = mem[i*16+8192+8];
+					`DTCMB.ram[i][15:8] = mem[i*16+8192+9];
+					`DTCMB.ram[i][23:16] = mem[i*16+8192+10];
+					`DTCMB.ram[i][31:24] = mem[i*16+8192+11];
+					`DTCMB.ram[i][39:32] = mem[i*16+8192+12];
+					`DTCMB.ram[i][47:40] = mem[i*16+8192+13];
+					`DTCMB.ram[i][55:48] = mem[i*16+8192+14];
+					`DTCMB.ram[i][63:56] = mem[i*16+8192+15];
  
+				end
+				else begin
+					`DTCMA.ram[i][7:0] =   8'h0;
+					`DTCMA.ram[i][15:8] =  8'h0;
+					`DTCMA.ram[i][23:16] = 8'h0;
+					`DTCMA.ram[i][31:24] = 8'h0;
+					`DTCMA.ram[i][39:32] = 8'h0;
+					`DTCMA.ram[i][47:40] = 8'h0;
+					`DTCMA.ram[i][55:48] = 8'h0;
+					`DTCMA.ram[i][63:56] = 8'h0;
+					`DTCMB.ram[i][7:0] =   8'h0;
+					`DTCMB.ram[i][15:8] =  8'h0;
+					`DTCMB.ram[i][23:16] = 8'h0;
+					`DTCMB.ram[i][31:24] = 8'h0;
+					`DTCMB.ram[i][39:32] = 8'h0;
+					`DTCMB.ram[i][47:40] = 8'h0;
+					`DTCMB.ram[i][55:48] = 8'h0;
+					`DTCMB.ram[i][63:56] = 8'h0;
+				end
+
 					// $display("DTCMA %h: %h", i,`DTCMA.ram[i]);
 					// $display("DTCMB %h: %h", i,`DTCMB.ram[i]);
 

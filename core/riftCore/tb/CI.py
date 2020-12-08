@@ -2,84 +2,116 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2020-11-18 16:19:07
+# @Last Modified time: 2020-12-06 16:05:49
 
 
 import sys
 import os
 
+
+CIReturn = 0
+
 testList = [
-	"./ci/rv64ui-p-add.verilog",
-	"./ci/rv64ui-p-addiw.verilog",
-	"./ci/rv64ui-p-addw.verilog",
-	"./ci/rv64ui-p-and.verilog",
-	"./ci/rv64ui-p-andi.verilog",
-	"./ci/rv64ui-p-auipc.verilog",
-	"./ci/rv64ui-p-beq.verilog",
-	"./ci/rv64ui-p-bge.verilog",
-	"./ci/rv64ui-p-bgeu.verilog",
-	"./ci/rv64ui-p-blt.verilog",
-	"./ci/rv64ui-p-bltu.verilog",
-	"./ci/rv64ui-p-bne.verilog",
-	"./ci/rv64ui-p-jal.verilog",
-	"./ci/rv64ui-p-jalr.verilog",
-	"./ci/rv64ui-p-lb.verilog",
-	"./ci/rv64ui-p-lbu.verilog",
-	"./ci/rv64ui-p-ld.verilog",
-	"./ci/rv64ui-p-lh.verilog",
-	"./ci/rv64ui-p-lhu.verilog",
-	"./ci/rv64ui-p-lui.verilog",
-	"./ci/rv64ui-p-lw.verilog",
-	"./ci/rv64ui-p-lwu.verilog",
-	"./ci/rv64ui-p-or.verilog",
-	"./ci/rv64ui-p-ori.verilog",
-	"./ci/rv64ui-p-sb.verilog",
-	"./ci/rv64ui-p-sd.verilog",
-	"./ci/rv64ui-p-sh.verilog",
-	"./ci/rv64ui-p-sll.verilog",
-	"./ci/rv64ui-p-slli.verilog",
-	"./ci/rv64ui-p-slliw.verilog",
-	"./ci/rv64ui-p-sllw.verilog",
-	"./ci/rv64ui-p-slt.verilog",
-	"./ci/rv64ui-p-slti.verilog",
-	"./ci/rv64ui-p-sltiu.verilog",
-	"./ci/rv64ui-p-sltu.verilog",
-	"./ci/rv64ui-p-sra.verilog",
-	"./ci/rv64ui-p-srai.verilog",
-	"./ci/rv64ui-p-sraiw.verilog",
-	"./ci/rv64ui-p-sraw.verilog",
-	"./ci/rv64ui-p-srl.verilog",
-	"./ci/rv64ui-p-srli.verilog",
-	"./ci/rv64ui-p-srliw.verilog",
-	"./ci/rv64ui-p-srlw.verilog",
-	"./ci/rv64ui-p-sub.verilog",
-	"./ci/rv64ui-p-subw.verilog",
-	"./ci/rv64ui-p-sw.verilog",
-	"./ci/rv64ui-p-xor.verilog",
-	"./ci/rv64ui-p-xori.verilog"
-
-
+	"rv64ui-p-add",
+	"rv64ui-p-addiw",
+	"rv64ui-p-addw",
+	"rv64ui-p-and",
+	"rv64ui-p-andi",
+	"rv64ui-p-auipc",
+	"rv64ui-p-beq",
+	"rv64ui-p-bge",
+	"rv64ui-p-bgeu",
+	"rv64ui-p-blt",
+	"rv64ui-p-bltu",
+	"rv64ui-p-bne",
+	"rv64ui-p-jal",
+	"rv64ui-p-jalr",
+	"rv64ui-p-lb",
+	"rv64ui-p-lbu",
+	"rv64ui-p-ld",
+	"rv64ui-p-lh",
+	"rv64ui-p-lhu",
+	"rv64ui-p-lui",
+	"rv64ui-p-lw",
+	"rv64ui-p-lwu",
+	"rv64ui-p-or",
+	"rv64ui-p-ori",
+	"rv64ui-p-sb",
+	"rv64ui-p-sd",
+	"rv64ui-p-sh",
+	"rv64ui-p-sll",
+	"rv64ui-p-slli",
+	"rv64ui-p-slliw",
+	"rv64ui-p-sllw",
+	"rv64ui-p-slt",
+	"rv64ui-p-slti",
+	"rv64ui-p-sltiu",
+	"rv64ui-p-sltu",
+	"rv64ui-p-sra",
+	"rv64ui-p-srai",
+	"rv64ui-p-sraiw",
+	"rv64ui-p-sraw",
+	"rv64ui-p-srl",
+	"rv64ui-p-srli",
+	"rv64ui-p-srliw",
+	"rv64ui-p-srlw",
+	"rv64ui-p-sub",
+	"rv64ui-p-subw",
+	"rv64ui-p-sw",
+	"rv64ui-p-xor",
+	"rv64ui-p-xori",
+	"rv64mi-p-access",
+	"rv64mi-p-breakpoint",
+	"rv64mi-p-csr",
+	"rv64mi-p-ma_addr",
+	"rv64mi-p-ma_fetch",
+	"rv64mi-p-mcsr",
+	"rv64ui-p-fence_i",
+	"rv64ui-p-simple"
 			]
 
-res = os.system("iverilog.exe -W all -o ../build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_CI.v ")
+
+
+
+
+res = os.system("iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_CI.v ")
 
 if ( res == 0 ):
 	print ("compile pass!")
 else:
 	print ("compile Fail!")
+	CIReturn = -1
+	sys.exit(-1)
 
 for file in testList:
-	cmd = "vvp.exe -N ../build/wave.iverilog +"
+	cmd = "vvp -N ./build/wave.iverilog +./ci/"
 	cmd = cmd + file
-	cmd = cmd + " >> null"
+	cmd = cmd + ".verilog >> null"
 	res = os.system(cmd)
-	
+
 	if (res == 0):
+
 		print(file, "PASS!")
 	else:
+
+		CIReturn = -1
 		print(file, "FAIL!")
 
+	jsonFile = "{\n\"schemaVersion\": 1,\n\"label\": \""
+	jsonFile = jsonFile + file
+	jsonFile = jsonFile + "\",\n\"message\": \""
 
+	if ( res == -1 ):
+		jsonFile = jsonFile + "FAIL\",\n\"color\": \"red\"\n}"
+	else:
+		jsonFile = jsonFile + "PASS\",\n\"color\": \"blue\"\n}"
+	# print (jsonFile)
+
+	with open("./ci/"+file+".json","w") as f:
+		f.write(jsonFile)
+
+# if (CIReturn):
+# 	sys.exit(-1)
 
 
 

@@ -37,3 +37,8 @@ core/riftCore/build/wave.vcd
 *.verilog
 *.vsdx
 core/riftCore/tb/null
+*.iverilog
+core/riftCore/tb/ciRes.json
+core/riftCore/tb/build/wave.vcd
+core/riftCore/tb/ciRes/
+*.json

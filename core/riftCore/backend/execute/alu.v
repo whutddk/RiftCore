@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 09:37:52
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 11:04:28
+* @Last Modified time: 2020-11-19 16:30:13
 */
 
 
@@ -138,7 +138,7 @@ assign {
 
 
 	wire [63:0] shift_op1 = src1;
-	wire [5:0] shamt = isShamt ? {~is32w & exe_imm[5], exe_imm[4:0]} : {~is32w & exe_imm[5], src2[4:0]};
+	wire [5:0] shamt = isShamt ? {~is32w & exe_imm[5], exe_imm[4:0]} : {~is32w & src2[5], src2[4:0]};
 
 
 
