@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 15:24:31
+* @Last Modified time: 2020-12-08 17:21:30
 */
 
 /*
@@ -39,7 +39,7 @@ module decoder
 	output instrFifo_push
 
 );
-//RV65I + RV64ZIfencei +RV64ZICSR + isRVC+  pc + imm + shamt+rd0+rs1+rs2
+//RV64I + RV64ZIfencei +RV64ZICSR + isRVC+  pc + imm + shamt+rd0+rs1+rs2
 
 
 
