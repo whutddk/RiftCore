@@ -71,45 +71,73 @@ module decoder16
 	wire [4:0] rs2;
 	wire [63:0] imm;
 
+
+
 wire ADDI4SPN = opcode_00 & funct3_000;
-// wire FLD      = opcode_00 & funct3_001;
-wire LW       = opcode_00 & funct3_010;
+wire LW = opcode_00 & funct3_010;
 wire LD       = opcode_00 & funct3_011;
-// wire FSD      = opcode_00 & funct3_101;
 wire SW       = opcode_00 & funct3_110;
 wire SD       = opcode_00 & funct3_111;
 
-wire ADDI = opcode_01 & funct3_000;
-wire ADDIW      = opcode_01 & funct3_001;
-wire LI       = opcode_01 & funct3_010;
-wire LUI_ADDI16SP       = opcode_01 & funct3_011;
-wire MISCALU = opcode_01 & funct3_100;
-wire J      = opcode_01 & funct3_101;
+wire NOP = opcode_01 & funct3_000 & (&(~instr_16[12:2]));
+wire ADDI = opcode_01 & funct3_000 & (|instr_16[11:7]);
+wire ADDIW = opcode_01 & funct3_001 & (|instr_16[11:7]);
+
+wire LI = opcode_01 & funct3_010 & (|instr_16[11:7]);
+
+wire ADDI16SP = opcode_01 & funct3_011 & (instr_16[11:7] == 5'd2);
+wire LUI = opcode_01 & funct3_011 & (instr_16[11:7] != 5'd2 | instr_16[11:7] != 5'd0);
+
+wire SRLI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SRLI64 = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( &(~{instr_16[12,instr_16[6:2]]}) );
+wire SRAI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b01) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SRAI64 = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b01) & ( &(~{instr_16[12,instr_16[6:2]]}) );
+wire ANDI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b10);
+wire SUB = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & ~instr_16[12] & (instr_16[6:5] == 2'b00);
+wire XOR = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & ~instr_16[12] & (instr_16[6:5] == 2'b01);
+wire OR = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & ~instr_16[12] & (instr_16[6:5] == 2'b10);
+wire AND = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & ~instr_16[12] & (instr_16[6:5] == 2'b11);
+wire SUBW = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & instr_16[12] & (instr_16[6:5] == 2'b00);
+wire ADDW = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & instr_16[12] & (instr_16[6:5] == 2'b01);
+
+wire J = opcode_01 & funct3_101;
+
 wire BEQZ       = opcode_01 & funct3_110;
 wire BNEZ       = opcode_01 & funct3_111;
 
-wire SLLI = opcode_10 & funct3_000;
-// wire FLDSP      = opcode_10 & funct3_001;
-wire LWSP       = opcode_10 & funct3_010;
-wire LDSP       = opcode_10 & funct3_011;
-wire JR_MV_ADD = opcode_10 & funct3_100;
-// wire FSDSP      = opcode_10 & funct3_101;
-wire SWSP       = opcode_10 & funct3_110;
-wire SDSP       = opcode_10 & funct3_111;
+wire SLLI = opcode_10 & funct3_000 & (|instr_16[11:7]) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SLLI64 = opcode_10 & funct3_000 & (|instr_16[11:7]) & ( & (~{instr_16[12,instr_16[6:2]]}) );
 
+wire LWSP = opcode_10 & funct3_010 & (|instr_16[11:7]);
+wire LDSP = opcode_10 & funct3_011 & (|instr_16[11:7]);
+
+wire JR = opcode_10 & funct3_100 & ~instr_16[12] & (instr_16[6:2] == 0);
+wire MV = opcode_10 & funct3_100 & ~instr_16[12] & (| instr_16[6:2]);
+wire EBREAK = opcode_10 & funct3_100 & (instr_16[12:2] == 11'b10000000000);
+wire JALR = opcode_10 & funct3_100 & instr_16[12] & (|instr_16[11:7]) & (&(~instr_16[6:2]));
+wire ADD = opcode_10 & funct3_100 & instr_16[12] & (|instr_16[11:7]) & (| instr_16[6:2]);
+
+wire SWSP = opcode_10 & funct3_110;
+wire SDSP = opcode_10 & funct3_111;
 
 assign rd0 = ({5{SW | SD}} & 5'd0)
 			|
 			({5{ADDI4SPN | LW | LD}} & {2'b01,instr_16[4:2]} )
 			|
+			( {5{ADDI|ADDIW|LI|SLLI|LWSP|LDSP|}} & {instr_16[11:7]} )
+			|
+			({5{}} & {2'b01, instr_16[9:7]})
 
 
 assign rs1 = ({5{ADDI4SPN}} & 5'd2)
 			|
 			({5{LW | LD | SW | SD | MISCALU | BEQZ | BNEZ}} & {2'b01, instr_16[9:7]})
+			|
+			({5{}} & instr_16[11:7])
 
 assign rs2 = ( {5{SW | ( MISCALU & (instr_16[11:10]==2'B11) ) }} &  {2'b01,instr_16[4:2]} )
 			|
+			({5{}}& instr_16[6:2]);
 
 
 assign imm = ({64{ADDI4SPN}} & {54'b0, instr_16[10:7],instr_16[12:11],instr_16[5],instr_16[6],2'b0})
@@ -145,7 +173,9 @@ assign imm = ({64{ADDI4SPN}} & {54'b0, instr_16[10:7],instr_16[12:11],instr_16[5
 	wire rv64i_sw 		= SW;
 	wire rv64i_sd 		= SD;
 
-	wire rv64i_addi 	= ADDI4SPN & (|instr_16[12:5]);
+	wire rv64i_addi 	= (ADDI4SPN & (|instr_16[12:5]))
+						| (ADDI & (instr_16[12:2] == 11'd0))
+						| (ADDI & (|instr_16[11:7]));
 	wire rv64i_addiw 	= 
 	wire rv64i_slti 	= 
 	wire rv64i_sltiu 	= 
