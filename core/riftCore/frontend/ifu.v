@@ -1,10 +1,10 @@
 /*
-* @File name: itcm
+* @File name: ifu
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-10-29 09:46:49
+* @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 19:33:47
+* @Last Modified time: 2020-12-09 20:05:10
 */
 
 /*
@@ -23,72 +23,64 @@
    limitations under the License.
 */
 
+
+
 `timescale 1 ns / 1 ps
+
 `include "define.vh"
 
-module itcm #
-	(
-		parameter DW = 32,
-		parameter AW = 14
-	)
-	(
-	output itcm_ready,
-	input pcGen_vaild,
-	input instrFifo_full,
+
+module ifu #
+(
+	parameter DW = 32
+)
+(
+
+	output [63:0] M_IFU_ARADDR,
+	output M_IFU_ARVALID,
+
+	output M_IFU_RREADY,
+	input M_IFU_RVALID,
+	input [DW-1:0] M_IFU_RDATA,
+
+
 
 	input [63:0] fetch_pc_dnxt,
-	output [DW-1:0] instr_out,
-
-	// input [DW-1:0] instr_in,
-	// input wen,
-
-	output reg instr_vaild,
+	output reg itcm_ready,
+	input pcGen_fetch_vaild,
+	input instrFifo_full,
+	output reg [DW-1:0] instr,
+	output isInstrReadOut,
 	output reg [63:0] fetch_pc_qout,
 
 	input CLK,
 	input RSTn
-	
+
 );
-initial $warning("no debugger");
 
-	localparam DP = 2**AW;
 
-	wire [AW-1:0] addr = fetch_pc_dnxt[2 +: AW];
-
-	reg [DW-1:0] ram[0:DP-1];
-	reg [DW-1:0] instr;
+wire instr_update = ~instrFifo_full & M_IFU_RVALID;
+assign M_IFU_ARVALID = pcGen_fetch_vaild;
+assign M_IFU_RREADY = instr_update;
 
 	always @(posedge CLK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			instr <= {DW{1'b0}};
 			fetch_pc_qout <= 64'h80000000;
-			instr_vaild <= 1'b0;
+			itcm_ready <= 1'b0;
 		end
 		else begin
-			// if(wen) begin
-			// 	ram[addr] <= instr_in;
-			// end else begin
-			instr <= #1 instrFifo_full ? instr : ram[addr];
-			fetch_pc_qout <= #1 instrFifo_full ? fetch_pc_qout : fetch_pc_dnxt;
-			instr_vaild <= #1 instrFifo_full ? instr_vaild : pcGen_vaild ;
-
-			// end
+			instr <= #1 instr_update ? M_IFU_RDATA : instr;
+			fetch_pc_qout <= #1 instr_update ? fetch_pc_dnxt : fetch_pc_qout;
+			itcm_ready <= #1 instr_update ? pcGen_fetch_vaild : itcm_ready;
 		end 
 	end
-
-	assign instr_out = instr;
-	assign itcm_ready = ~instrFifo_full;
-
 
 
 
 
 
 endmodule
-
-
-
-
 
 
 

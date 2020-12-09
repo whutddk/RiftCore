@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 17:33:54
+* @Last Modified time: 2020-12-09 20:06:19
 */
 
 /*
@@ -31,7 +31,7 @@
 module decoder
 	(
 
-	input [15:0] instr,
+	input [31:0] instr,
 	input fetch_decode_vaild,
 	input [63:0] pc,
 	input is_rvc,
@@ -47,11 +47,11 @@ wire [`DECODE_INFO_DW-1:0] decode_microInstr_32;
 
 decoder16 i_decoder16
 (
-	.instr(instr),
+	.instr(instr[15:0]),
 	.pc(pc),
 	.is_rvc(is_rvc),
 
-	.decode_microInstr(decode_microInstr_16),
+	.decode_microInstr(decode_microInstr_16)
 );
 
 
@@ -62,7 +62,7 @@ decoder32 i_decoder32
 	.pc(pc),
 	.is_rvc(is_rvc),
 
-	.decode_microInstr(decode_microInstr_32),
+	.decode_microInstr(decode_microInstr_32)
 );
 
 

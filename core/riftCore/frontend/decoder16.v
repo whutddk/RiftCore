@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 17:32:54
+* @Last Modified time: 2020-12-09 20:00:49
 */
 
 /*
@@ -42,7 +42,7 @@ module decoder16
 
 
 	wire [1:0] opcode = instr_16[1:0];
-	wire [2:0] funct3 = instr_16[15:13]
+	wire [2:0] funct3 = instr_16[15:13];
 
 	wire opcode_00 = opcode == 2'b00;
 	wire opcode_01 = opcode == 2'b01;	
@@ -79,9 +79,9 @@ wire LI = opcode_01 & funct3_010 & (|instr_16[11:7]);
 wire ADDI16SP = opcode_01 & funct3_011 & (instr_16[11:7] == 5'd2);
 wire LUI = opcode_01 & funct3_011 & (instr_16[11:7] != 5'd2 | instr_16[11:7] != 5'd0);
 
-wire SRLI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SRLI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( | {instr_16[12],instr_16[6:2]} );
 // wire SRLI64 = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( &(~{instr_16[12,instr_16[6:2]]}) );
-wire SRAI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b01) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SRAI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b01) & ( | {instr_16[12],instr_16[6:2]} );
 // wire SRAI64 = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b01) & ( &(~{instr_16[12,instr_16[6:2]]}) );
 wire ANDI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b10);
 wire SUB = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b11) & ~instr_16[12] & (instr_16[6:5] == 2'b00);
@@ -96,7 +96,7 @@ wire J = opcode_01 & funct3_101;
 wire BEQZ       = opcode_01 & funct3_110;
 wire BNEZ       = opcode_01 & funct3_111;
 
-wire SLLI = opcode_10 & funct3_000 & (|instr_16[11:7]) & ( | {instr_16[12,instr_16[6:2]]} );
+wire SLLI = opcode_10 & funct3_000 & (|instr_16[11:7]) & ( | {instr_16[12],instr_16[6:2]} );
 // wire SLLI64 = opcode_10 & funct3_000 & (|instr_16[11:7]) & ( & (~{instr_16[12,instr_16[6:2]]}) );
 
 wire LWSP = opcode_10 & funct3_010 & (|instr_16[11:7]);
@@ -199,7 +199,7 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 	wire rv64i_xori 	= 1'b0;
 	wire rv64i_ori 		= 1'b0;
 	wire rv64i_andi 	= ANDI;
-	wire rv64i_slli 	= SLLI
+	wire rv64i_slli 	= SLLI;
 	wire rv64i_slliw 	= 1'b0;
 	wire rv64i_srli 	= SRLI;
 	wire rv64i_srliw 	= 1'b0;
