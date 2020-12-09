@@ -1,10 +1,10 @@
 /*
-* @File name: decoder
+* @File name: decoder32
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-08 17:21:30
+* @Last Modified time: 2020-12-09 17:32:47
 */
 
 /*
@@ -27,24 +27,15 @@
 `include "define.vh"
 
 
-module decoder 
-	(
-
+module decoder32 
+(
 	input [31:0] instr,
-	input fetch_decode_vaild,
 	input [63:0] pc,
+	input is_rvc,
 
-	input instrFifo_full,
-	output [`DECODE_INFO_DW-1:0] decode_microInstr,
-	output instrFifo_push
-
+	output [`DECODE_INFO_DW-1:0] decode_microInstr
 );
-//RV64I + RV64ZIfencei +RV64ZICSR + isRVC+  pc + imm + shamt+rd0+rs1+rs2
 
-
-
-
-	wire is_rvc = 1'b0;
 
 	wire [31:0] instr_32 = instr;
 
@@ -291,7 +282,7 @@ module decoder
 
 
 
-	assign instrFifo_push = fetch_decode_vaild & ~instrFifo_full;
+
 
 
 endmodule
