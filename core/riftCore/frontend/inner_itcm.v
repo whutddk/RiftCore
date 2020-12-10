@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:46:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 23:58:43
+* @Last Modified time: 2020-12-10 14:45:43
 */
 
 /*
@@ -28,7 +28,7 @@
 
 module inner_itcm #
 (
-	parameter DW = 32,
+	parameter DW = 64,
 	parameter AW = 14
 )
 (
@@ -47,8 +47,12 @@ module inner_itcm #
 );
 
 	localparam DP = 2**AW;
-	reg [DW-1:0] ram[0:DP-1];
-	wire [AW-1:0] addr = M_IFU_ARADDR[2 +: AW];
+
+	reg [DW/2-1:0] ramOdd[0:DP-1];
+	reg [DW/2-1:0] ramEve[0:DP-1];
+
+	wire [AW-1:0] addrOdd = M_IFU_ARADDR[3 +: AW];
+	wire [AW-1:0] addrEve = M_IFU_ARADDR[2] ? M_IFU_ARADDR[3 +: AW] + 1 : M_IFU_ARADDR[3 +: AW];
 
 always @(posedge CLK or negedge RSTn) begin
 	if( ~RSTn ) begin
@@ -56,7 +60,7 @@ always @(posedge CLK or negedge RSTn) begin
 	end
 	else begin
 		if ( M_IFU_ARVALID ) begin
-			M_IFU_RDATA <= ram[addr];
+			M_IFU_RDATA <= M_IFU_ARADDR[2] ? {ramEve[addrEve], ramOdd[addrOdd]} : {ramOdd[addrOdd], ramEve[addrEve]};
 		end
 		else begin
 			M_IFU_RDATA <= M_IFU_RDATA;

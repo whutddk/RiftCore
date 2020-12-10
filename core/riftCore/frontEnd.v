@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 20:08:41
+* @Last Modified time: 2020-12-10 14:48:16
 */
 
 /*
@@ -53,7 +53,7 @@ module frontEnd (
 	wire M_IFU_ARVALID;
 	wire M_IFU_RREADY;
 	wire M_IFU_RVALID;
-	wire [31:0] M_IFU_RDATA;
+	wire [63:0] M_IFU_RDATA;
 
 
 
@@ -173,7 +173,7 @@ decoder i_decoder
 
 
 
-inner_itcm #( .DW(32) ) i_inner_itcm
+inner_itcm #( .DW(64) ) i_inner_itcm
 (
 	.M_IFU_ARADDR(M_IFU_ARADDR),
 	.M_IFU_ARVALID(M_IFU_ARVALID),

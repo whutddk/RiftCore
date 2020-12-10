@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 10:54:23
+* @Last Modified time: 2020-12-10 15:10:07
 */
 
 /*
@@ -101,21 +101,32 @@ end
 			$readmemh("./ci/rv64ui-p-jalr.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
-				if ( | (mem[i*4+0] | mem[i*4+1] | mem[i*4+2] | mem[i*4+3]) == 1'b1 ) begin
-					`ITCM.ram[i][7:0] = mem[i*4+0];
-					`ITCM.ram[i][15:8] = mem[i*4+1];
-					`ITCM.ram[i][23:16] = mem[i*4+2];
-					`ITCM.ram[i][31:24] = mem[i*4+3];			
+				if ( | (mem[i*8+0] | mem[i*8+1] | mem[i*8+2] | mem[i*8+3]
+						| mem[i*8+4] | mem[i*8+5] | mem[i*8+6] | mem[i*8+7]) == 1'b1 ) begin
+					`ITCM.ramEve[i][7:0] = mem[i*8+0];
+					`ITCM.ramEve[i][15:8] = mem[i*8+1];
+					`ITCM.ramEve[i][23:16] = mem[i*8+2];
+					`ITCM.ramEve[i][31:24] = mem[i*8+3];	
+
+					`ITCM.ramOdd[i][7:0] = mem[i*8+4];
+					`ITCM.ramOdd[i][15:8] = mem[i*8+5];
+					`ITCM.ramOdd[i][23:16] = mem[i*8+6];
+					`ITCM.ramOdd[i][31:24] = mem[i*8+7];			
 				end
 				else begin
-					`ITCM.ram[i][7:0] = 8'h0;
-					`ITCM.ram[i][15:8] = 8'h0;
-					`ITCM.ram[i][23:16] = 8'h0;
-					`ITCM.ram[i][31:24] = 8'h0;						
+					`ITCM.ramOdd[i][7:0] = 8'h0;
+					`ITCM.ramOdd[i][15:8] = 8'h0;
+					`ITCM.ramOdd[i][23:16] = 8'h0;
+					`ITCM.ramOdd[i][31:24] = 8'h0;		
+
+					`ITCM.ramEve[i][7:0] = 8'b0;
+					`ITCM.ramEve[i][15:8] = 8'b0;
+					`ITCM.ramEve[i][23:16] = 8'b0;
+					`ITCM.ramEve[i][31:24] = 8'b0;					
 				end
 
 
-				$display("ITCM %h: %h", i*4,`ITCM.ram[i]);
+				$display("ITCM %h: %h,%h", i*4,`ITCM.ramOdd[i],`ITCM.ramEve[i]);
 			end
 
 			for ( i = 0; i < 1000; i = i + 1 ) begin

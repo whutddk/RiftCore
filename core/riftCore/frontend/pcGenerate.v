@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 09:32:37
+* @Last Modified time: 2020-12-10 14:56:13
 */
 
 /*
@@ -70,7 +70,7 @@ module pcGenerate (
 
 	output M_IFU_RREADY,
 	input M_IFU_RVALID,
-	input [31: 0] M_IFU_RDATA,
+	input [63: 0] M_IFU_RDATA,
 
 
 
@@ -103,7 +103,7 @@ module pcGenerate (
 
 	wire isCall;
 	wire isReturn;
-	wire [31:0] load_instr;
+	wire [63:0] load_instr;
 	wire [63:0] next_pc;
 	wire [63:0] take_pc;
 	wire ras_empty;
@@ -165,26 +165,50 @@ module pcGenerate (
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	//branch predict
+	assign isJal = (instr_readout[6:0] == 7'b1101111);
+	assign isJalr = (instr_readout[6:0] == 7'b1100111);
+	assign isBranch = (instr_readout[6:0] == 7'b1100011);
 
-
-
-	assign isJal = (load_instr[6:0] == 7'b1101111);
-	assign isJalr = (load_instr[6:0] == 7'b1100111);
-	assign isBranch = (load_instr[6:0] == 7'b1100011);
-
-	assign isCall = (isJalr | isJal) & ((load_instr[11:7] == 5'd1) | load_instr[11:7] == 5'd5);
-	assign isReturn = isJalr & ((load_instr[19:15] == 5'd1) | load_instr[19:15] == 5'd5)
-								& (load_instr[19:15] != load_instr[11:7]);
+	assign isCall = (isJalr | isJal) & ((instr_readout[11:7] == 5'd1) | instr_readout[11:7] == 5'd5);
+	assign isReturn = isJalr & ((instr_readout[19:15] == 5'd1) | instr_readout[19:15] == 5'd5)
+								& (instr_readout[19:15] != instr_readout[11:7]);
 
 
     initial $warning("there is no rv64c");
 	wire is_rvc_instr = 1'b0;
-	wire [63:0] imm = ({64{isJal}} & {{44{load_instr[31]}},load_instr[19:12],load_instr[20],load_instr[30:21],1'b0})
+	wire [63:0] imm = ({64{isJal}} & {{44{instr_readout[31]}},instr_readout[19:12],instr_readout[20],instr_readout[30:21],1'b0})
 	|
-	({64{isJalr}} & {{52{load_instr[31]}},load_instr[31:20]})
+	({64{isJalr}} & {{52{instr_readout[31]}},instr_readout[31:20]})
 	|
-	({64{isBranch}} & {{52{load_instr[31]}},load_instr[7],load_instr[30:25],load_instr[11:8],1'b0});
+	({64{isBranch}} & {{52{instr_readout[31]}},instr_readout[7],instr_readout[30:25],instr_readout[11:8],1'b0});
 
 
 	assign isPredit = isBranch;
@@ -210,38 +234,7 @@ module pcGenerate (
 
 
 
-
-
-
-
-	// wire isITCM = (fetch_pc_dnxt & 64'hFFFF_FFFF_FFFF_0000) == 64'h8000_0000;
-	// initial $warning("no cache");
-	// wire isCache = 1'b0;
-
-
-	// initial $warning("no debuger and no odd memory");
-	// itcm i_itcm
-	// (
-	// 	.itcm_ready(itcm_ready),
-	// 	.pcGen_vaild(pcGen_fetch_vaild),
-	// 	.instrFifo_full(instrFifo_full),
-
-	// 	.fetch_pc_dnxt(fetch_pc_dnxt),
-	// 	.instr_out(load_instr),
-
-	// 	.instr_vaild(isInstrReadOut),
-	// 	.fetch_pc_qout(fetch_pc_qout),
-
-	// 	.CLK(CLK),
-	// 	.RSTn(RSTn)		
-	// );
-
-
-
-	assign instr_readout = load_instr;
-
-
-ifu # ( .DW(32) ) i_ifu(
+ifu # ( .DW(64) ) i_ifu(
 
 	.M_IFU_ARADDR(M_IFU_ARADDR),
 	.M_IFU_ARVALID(M_IFU_ARVALID),
@@ -263,18 +256,14 @@ ifu # ( .DW(32) ) i_ifu(
 
 );
 
+wire [31:0] addr_align = load_instr[31:0];
+
+assign instr_readout = addr_align;
 
 
 
 
 
-
-
-
-
-
-
-initial $warning("假设分支最多16次,fifo满则挂机");
 
 gen_fifo # (
 	.DW(64+1),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 10:53:12
+* @Last Modified time: 2020-12-10 14:48:02
 */
 
 /*
@@ -32,7 +32,7 @@
 
 module ifu #
 (
-	parameter DW = 32
+	parameter DW = 64
 )
 (
 
