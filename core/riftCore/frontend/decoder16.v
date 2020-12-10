@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 20:00:49
+* @Last Modified time: 2020-12-10 15:43:10
 */
 
 /*
@@ -111,7 +111,7 @@ wire ADD = opcode_10 & funct3_100 & instr_16[12] & (|instr_16[11:7]) & (| instr_
 wire SWSP = opcode_10 & funct3_110;
 wire SDSP = opcode_10 & funct3_111;
 
-assign rd0 = ({5{SW | SD | NOP | BEQZ | BNEZ | JR | EBREAK | SWSP | SDSP}} & 5'd0)
+assign rd0 = ({5{SW | SD | NOP | J | BEQZ | BNEZ | JR | EBREAK | SWSP | SDSP}} & 5'd0)
 			|
 			({5{JALR}} & 5'd1)
 			|
@@ -159,7 +159,9 @@ assign imm = ({64{NOP}} & 64'd0)
 			|
 			({64{SWSP}} & {56'b0, instr_16[8:7], instr_16[12:9], 2'b0})
 			|
-			({64{SDSP}} & {55'b0, instr_16[9:7], instr_16[12:10], 3'b0});
+			({64{SDSP}} & {55'b0, instr_16[9:7], instr_16[12:10], 3'b0})
+			|
+			({64{J}} & {{52{instr_16[12]}}, instr_16[12], instr_16[8], instr_16[10:9], instr_16[6], instr_16[7], instr_16[2], instr_16[11], instr_16[5:3], 1'b0});
 
 
 
@@ -169,7 +171,7 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 
 	wire rv64i_lui 		= LUI;
 	wire rv64i_auipc 	= 1'b0;
-	wire rv64i_jal 		= 1'b0;
+	wire rv64i_jal 		= J;
 	wire rv64i_jalr 	= JR | JALR;
 
 	wire rv64i_beq 		= BEQZ;

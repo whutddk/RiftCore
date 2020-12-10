@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 14:48:16
+* @Last Modified time: 2020-12-10 15:56:10
 */
 
 /*
@@ -79,7 +79,7 @@ wire [31:0] instr;
 wire isInstrReadOut;
 
 wire fetch_decode_vaild;
-
+wire is_rvc_instr;
 //C0
 pcGenerate i_pcGenerate
 (
@@ -102,6 +102,7 @@ pcGenerate i_pcGenerate
 
 	//to fetch
 	.instr_readout(isInstrFetch),
+	.is_rvc_instr(is_rvc_instr),
 
 	//to commit to flush
 	.isMisPredict(isMisPredict),
@@ -129,6 +130,7 @@ pcGenerate i_pcGenerate
 //T0 is included in C0
 
 wire [63:0] decode_pc;
+wire is_rvc;
 //C1
 instr_fetch i_instr_pre(
 
@@ -136,6 +138,10 @@ instr_fetch i_instr_pre(
 	.instr(instr),
 	.pc_in(fetch_pc_qout),
 	.pc_out(decode_pc),
+
+	.isRVC_in(is_rvc_instr),
+	.isRVC_out(is_rvc),
+
 
 	//handshake
 	.isInstrReadOut(isInstrReadOut),
@@ -161,7 +167,7 @@ decoder i_decoder
 	.instr(instr),
 	.fetch_decode_vaild(fetch_decode_vaild),
 	.pc(decode_pc),
-	.is_rvc(1'b0),
+	.is_rvc(is_rvc),
 
 	.instrFifo_full(instrFifo_full),
 	.decode_microInstr(decode_microInstr),
