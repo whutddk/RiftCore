@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 17:05:25
+* @Last Modified time: 2020-12-10 19:27:27
 */
 
 /*
@@ -98,7 +98,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64uc-p-rvc.verilog", mem);
+			$readmemh("./ci/rv64ui-p-lw.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*8+0] | mem[i*8+1] | mem[i*8+2] | mem[i*8+3]
@@ -126,16 +126,16 @@ end
 				end
 
 
-				$display("ITCM %h: %h,%h", i*4,`ITCM.ramOdd[i],`ITCM.ramEve[i]);
+				// $display("ITCM %h: %h,%h", i*4,`ITCM.ramOdd[i],`ITCM.ramEve[i]);
 			end
 
-			for ( i = 0; i < 1000; i = i + 1 ) begin
+			for ( i = 0; i < 10000; i = i + 1 ) begin
 				// `DTCMA.ram[i] = 64'b0;
 				// `DTCMB.ram[i] = 64'b0;
-				if ( |{ mem[i*16+8192+15], mem[i*16+8192+14], mem[i*16+8192+13], mem[i*16+8192+12],
-						mem[i*16+8192+11], mem[i*16+8192+10], mem[i*16+8192+9],  mem[i*16+8192+8],
-						mem[i*16+8192+7],  mem[i*16+8192+6],  mem[i*16+8192+5],  mem[i*16+8192+4],
-						mem[i*16+8192+3],  mem[i*16+8192+2],  mem[i*16+8192+1],  mem[i*16+8192+0]} == 1'b1 ) begin
+				if ( |{ mem[i*16+15], mem[i*16+14], mem[i*16+13], mem[i*16+12],
+						mem[i*16+11], mem[i*16+10], mem[i*16+9],  mem[i*16+8],
+						mem[i*16+7],  mem[i*16+6],  mem[i*16+5],  mem[i*16+4],
+						mem[i*16+3],  mem[i*16+2],  mem[i*16+1],  mem[i*16+0]} == 1'b1 ) begin
 					`DTCMA.ram[i][7:0] = mem[i*16+0];
 					`DTCMA.ram[i][15:8] = mem[i*16+1];
 					`DTCMA.ram[i][23:16] = mem[i*16+2];
@@ -178,7 +178,6 @@ end
 				// $display("DTCMB %h: %h", i,`DTCMB.ram[i]);
 
 			end
-
 		end 
 
 
