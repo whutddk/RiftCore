@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 10:18:04
+* @Last Modified time: 2020-12-10 10:25:30
 */
 
 /*
@@ -128,6 +128,7 @@ module backEnd (
 	wire [63:0] csr_res;
 
 	wire suILP_ready;
+	wire bruILP_ready;
 //C3
 
 
@@ -299,10 +300,6 @@ alu_issue i_aluIssue(
 	.RSTn(RSTn)
 );
 
-
-wire hasBranch;
-wire hasSu;
-
 bru_issue i_bruIssue(
 	.bru_fifo_pop(bru_fifo_pop),
 	.bru_fifo_empty(bru_fifo_empty),
@@ -311,7 +308,7 @@ bru_issue i_bruIssue(
 	.bru_exeparam_ready(bru_exeparam_ready),
 	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
 	.bru_exeparam_qout(bru_exeparam),
-	.bruILP_ready(~hasBranch),
+	.bruILP_ready(bruILP_ready),
 
 	.wbLog_qout(wbLog_qout),
 
@@ -354,7 +351,7 @@ lsu_issue i_lsuIssue(
 	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
 
-	.suILP_ready(~hasSu),
+	.suILP_ready(suILP_ready),
 
 	.flush(flush),
 	.CLK(CLK),
@@ -485,6 +482,7 @@ commit i_commit(
 	.commit_abort(commit_abort),
 
 	.commit_pc(commit_pc),
+	.bruILP_ready(bruILP_ready),
 	.suILP_ready(suILP_ready),
 
 	.privileged_pc(privileged_pc),
@@ -512,11 +510,11 @@ assign privileged_vaild = (~reOrder_fifo_empty) & (isTrap | isXRet);
 
 
 
-ROB #(
+gen_fifo #(
 	.DW(`REORDER_INFO_DW),
 	.AW(4)
 )
-i_ROB(
+reOrder_fifo(
 
 	.fifo_push(reOrder_fifo_push),
 	.data_push(dispat_info),
@@ -526,11 +524,6 @@ i_ROB(
 
 	.data_pop(commit_info),
 	.fifo_pop(reOrder_fifo_pop), 
-
-	.hasBranch(hasBranch),
-	.hasSu(hasSu),
-	.hasCsr(),
-
 
 	.flush(flush),
 	.CLK(CLK),

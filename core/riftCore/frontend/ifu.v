@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 00:03:05
+* @Last Modified time: 2020-12-10 10:53:12
 */
 
 /*
@@ -85,7 +85,7 @@ assign M_IFU_RVALID_F =
 		end
 		else begin
 			// instr <= #1 instr_update ? M_IFU_RDATA : instr;
-			fetch_pc_qout <= #1 M_IFU_RVALID_F  ? fetch_pc_dnxt : fetch_pc_qout;
+			fetch_pc_qout <= #1 M_IFU_RVALID_F & ~instrFifo_full  ? fetch_pc_dnxt : fetch_pc_qout;
 			// isInstrReadOut <= #1 instr_update ? pcGen_fetch_vaild : isInstrReadOut;
 		end 
 	end
