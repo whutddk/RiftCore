@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 20:05:10
+* @Last Modified time: 2020-12-10 00:03:05
 */
 
 /*
@@ -46,10 +46,10 @@ module ifu #
 
 
 	input [63:0] fetch_pc_dnxt,
-	output reg itcm_ready,
+	// output reg itcm_ready,
 	input pcGen_fetch_vaild,
 	input instrFifo_full,
-	output reg [DW-1:0] instr,
+	output [DW-1:0] instr,
 	output isInstrReadOut,
 	output reg [63:0] fetch_pc_qout,
 
@@ -60,19 +60,33 @@ module ifu #
 
 
 wire instr_update = ~instrFifo_full & M_IFU_RVALID;
-assign M_IFU_ARVALID = pcGen_fetch_vaild;
+assign M_IFU_ARVALID = pcGen_fetch_vaild & ~instrFifo_full;
 assign M_IFU_RREADY = instr_update;
+assign M_IFU_ARADDR = fetch_pc_dnxt;
+
+
+assign isInstrReadOut = M_IFU_RVALID;
+assign instr = M_IFU_RDATA;
+
+
+
+assign M_IFU_RVALID_F = 
+	(M_IFU_ARVALID  & M_IFU_RREADY & 1'b1) //next comes and get old 
+	| (M_IFU_ARVALID  & ~M_IFU_RREADY & 1'b1) // next comes and abort old
+	| (~M_IFU_ARVALID  & M_IFU_RREADY & 1'b0) // just get old
+	| (~M_IFU_ARVALID  & ~M_IFU_RREADY & M_IFU_RVALID); // wait
+
 
 	always @(posedge CLK or negedge RSTn) begin
 		if ( ~RSTn ) begin
-			instr <= {DW{1'b0}};
+			// instr <= {DW{1'b0}};
 			fetch_pc_qout <= 64'h80000000;
-			itcm_ready <= 1'b0;
+			// isInstrReadOut <= 1'b0;
 		end
 		else begin
-			instr <= #1 instr_update ? M_IFU_RDATA : instr;
-			fetch_pc_qout <= #1 instr_update ? fetch_pc_dnxt : fetch_pc_qout;
-			itcm_ready <= #1 instr_update ? pcGen_fetch_vaild : itcm_ready;
+			// instr <= #1 instr_update ? M_IFU_RDATA : instr;
+			fetch_pc_qout <= #1 M_IFU_RVALID_F  ? fetch_pc_dnxt : fetch_pc_qout;
+			// isInstrReadOut <= #1 instr_update ? pcGen_fetch_vaild : isInstrReadOut;
 		end 
 	end
 
