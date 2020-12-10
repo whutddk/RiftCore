@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 17:09:15
+* @Last Modified time: 2020-12-10 10:17:42
 */
 
 /*
@@ -44,6 +44,7 @@ module bru_issue #
 	input bru_exeparam_ready,
 	output bru_exeparam_vaild_qout,
 	output [EXE_DW-1:0] bru_exeparam_qout,
+	input bruILP_ready,
 
 	input [32*`RP-1 : 0] wbLog_qout,
 
@@ -104,7 +105,7 @@ module bru_issue #
 									| rv64i_bge
 									| rv64i_bltu
 									| rv64i_bgeu
-									) & rs1_ready & rs2_ready)
+									) & rs1_ready & rs2_ready & bruILP_ready)
 								|  rv64i_jal
 								| ( rv64i_jalr & rs1_ready )
 								);

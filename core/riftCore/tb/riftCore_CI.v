@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-23 15:23:23
+* @Last Modified time: 2020-12-09 22:55:21
 */
 
 /*
@@ -90,7 +90,7 @@ initial begin
 end
 
 
-`define ITCM s_RC.i_frontEnd.i_pcGenerate.i_itcm
+`define ITCM s_RC.i_frontEnd.i_inner_itcm
 `define DTCMA s_RC.i_backEnd.i_lsu.i_dtcm_A
 `define DTCMB s_RC.i_backEnd.i_lsu.i_dtcm_B
 `define RGF   s_RC.i_backEnd.i_phyRegister.regFileX_qout

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-23 15:29:31
+* @Last Modified time: 2020-12-10 10:54:23
 */
 
 /*
@@ -83,7 +83,7 @@ initial begin
 end
 
 
-`define ITCM s_RC.i_frontEnd.i_pcGenerate.i_itcm
+`define ITCM s_RC.i_frontEnd.i_inner_itcm
 `define DTCMA s_RC.i_backEnd.i_lsu.i_dtcm_A
 `define DTCMB s_RC.i_backEnd.i_lsu.i_dtcm_B
 `define RGF   s_RC.i_backEnd.i_phyRegister.regFileX_qout
@@ -98,7 +98,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64mi-p-access.verilog", mem);
+			$readmemh("./ci/rv64ui-p-jalr.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*4+0] | mem[i*4+1] | mem[i*4+2] | mem[i*4+3]) == 1'b1 ) begin
@@ -115,7 +115,7 @@ end
 				end
 
 
-				// $display("ITCM %h: %h", i*4,`ITCM.ram[i]);
+				$display("ITCM %h: %h", i*4,`ITCM.ram[i]);
 			end
 
 			for ( i = 0; i < 1000; i = i + 1 ) begin

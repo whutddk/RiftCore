@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 18:04:39
+* @Last Modified time: 2020-12-09 20:08:41
 */
 
 /*
@@ -46,6 +46,22 @@ module frontEnd (
 	input RSTn
 	
 );
+
+
+
+	wire [63:0] M_IFU_ARADDR;
+	wire M_IFU_ARVALID;
+	wire M_IFU_RREADY;
+	wire M_IFU_RVALID;
+	wire [31:0] M_IFU_RDATA;
+
+
+
+
+
+
+
+
 
 wire isMisPredict;
 
@@ -93,6 +109,15 @@ pcGenerate i_pcGenerate
 	.isInstrReadOut(isInstrReadOut),
 	.instrFifo_full(instrFifo_full),
 
+	.M_IFU_ARADDR(M_IFU_ARADDR),
+	.M_IFU_ARVALID(M_IFU_ARVALID),
+
+	.M_IFU_RREADY(M_IFU_RREADY),
+	.M_IFU_RVALID(M_IFU_RVALID),
+	.M_IFU_RDATA(M_IFU_RDATA),
+
+
+
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
@@ -136,12 +161,38 @@ decoder i_decoder
 	.instr(instr),
 	.fetch_decode_vaild(fetch_decode_vaild),
 	.pc(decode_pc),
+	.is_rvc(1'b0),
 
 	.instrFifo_full(instrFifo_full),
 	.decode_microInstr(decode_microInstr),
 	.instrFifo_push(instrFifo_push)
 
 );
+
+
+
+
+
+inner_itcm #( .DW(32) ) i_inner_itcm
+(
+	.M_IFU_ARADDR(M_IFU_ARADDR),
+	.M_IFU_ARVALID(M_IFU_ARVALID),
+
+	.M_IFU_RREADY(M_IFU_RREADY),
+	.M_IFU_RVALID(M_IFU_RVALID),
+	.M_IFU_RDATA(M_IFU_RDATA),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+	
+);
+
+
+
+
+
+
+
 
 
 

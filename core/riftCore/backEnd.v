@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 09:51:10
+* @Last Modified time: 2020-12-10 10:25:30
 */
 
 /*
@@ -128,6 +128,7 @@ module backEnd (
 	wire [63:0] csr_res;
 
 	wire suILP_ready;
+	wire bruILP_ready;
 //C3
 
 
@@ -307,6 +308,7 @@ bru_issue i_bruIssue(
 	.bru_exeparam_ready(bru_exeparam_ready),
 	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
 	.bru_exeparam_qout(bru_exeparam),
+	.bruILP_ready(bruILP_ready),
 
 	.wbLog_qout(wbLog_qout),
 
@@ -480,6 +482,7 @@ commit i_commit(
 	.commit_abort(commit_abort),
 
 	.commit_pc(commit_pc),
+	.bruILP_ready(bruILP_ready),
 	.suILP_ready(suILP_ready),
 
 	.privileged_pc(privileged_pc),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 18:04:06
+* @Last Modified time: 2020-12-10 09:32:37
 */
 
 /*
@@ -59,6 +59,23 @@ module pcGenerate (
 	output isInstrReadOut,
 	input instrFifo_full,
 
+
+
+
+	//IFU inner_bus
+
+
+	output [63:0] M_IFU_ARADDR,
+	output M_IFU_ARVALID,
+
+	output M_IFU_RREADY,
+	input M_IFU_RVALID,
+	input [31: 0] M_IFU_RDATA,
+
+
+
+
+
 	input CLK,
 	input RSTn
 
@@ -91,7 +108,7 @@ module pcGenerate (
 	wire [63:0] take_pc;
 	wire ras_empty;
 
-	wire itcm_ready;
+	// wire itcm_ready;
 
 
 	wire [63+1:0] bht_data_pop;
@@ -112,7 +129,7 @@ module pcGenerate (
 	wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
 	wire bht_stall = (bht_full & isPredit);
 
-	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & itcm_ready) | isMisPredict | isExpection;
+	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & ~instrFifo_full) | isMisPredict | isExpection;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
@@ -191,31 +208,70 @@ module pcGenerate (
 
 
 
-	wire isITCM = (fetch_pc_dnxt & 64'hFFFF_FFFF_FFFF_0000) == 64'h8000_0000;
-	initial $warning("no cache");
-	wire isCache = 1'b0;
 
 
-	initial $warning("no debuger and no odd memory");
-	itcm i_itcm
-	(
-		.itcm_ready(itcm_ready),
-		.pcGen_vaild(pcGen_fetch_vaild),
-		.instrFifo_full(instrFifo_full),
 
-		.fetch_pc_dnxt(fetch_pc_dnxt),
-		.instr_out(load_instr),
 
-		.instr_vaild(isInstrReadOut),
-		.fetch_pc_qout(fetch_pc_qout),
 
-		.CLK(CLK),
-		.RSTn(RSTn)		
-	);
+
+	// wire isITCM = (fetch_pc_dnxt & 64'hFFFF_FFFF_FFFF_0000) == 64'h8000_0000;
+	// initial $warning("no cache");
+	// wire isCache = 1'b0;
+
+
+	// initial $warning("no debuger and no odd memory");
+	// itcm i_itcm
+	// (
+	// 	.itcm_ready(itcm_ready),
+	// 	.pcGen_vaild(pcGen_fetch_vaild),
+	// 	.instrFifo_full(instrFifo_full),
+
+	// 	.fetch_pc_dnxt(fetch_pc_dnxt),
+	// 	.instr_out(load_instr),
+
+	// 	.instr_vaild(isInstrReadOut),
+	// 	.fetch_pc_qout(fetch_pc_qout),
+
+	// 	.CLK(CLK),
+	// 	.RSTn(RSTn)		
+	// );
 
 
 
 	assign instr_readout = load_instr;
+
+
+ifu # ( .DW(32) ) i_ifu(
+
+	.M_IFU_ARADDR(M_IFU_ARADDR),
+	.M_IFU_ARVALID(M_IFU_ARVALID),
+
+	.M_IFU_RREADY(M_IFU_RREADY),
+	.M_IFU_RVALID(M_IFU_RVALID),
+	.M_IFU_RDATA(M_IFU_RDATA),
+
+	.fetch_pc_dnxt(fetch_pc_dnxt),
+	// .itcm_ready(itcm_ready),
+	.pcGen_fetch_vaild(pcGen_fetch_vaild),
+	.instrFifo_full(instrFifo_full),
+	.instr(load_instr),
+	.isInstrReadOut(isInstrReadOut),
+	.fetch_pc_qout(fetch_pc_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+
+);
+
+
+
+
+
+
+
+
+
+
 
 
 initial $warning("假设分支最多16次,fifo满则挂机");
