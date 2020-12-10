@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 15:43:10
+* @Last Modified time: 2020-12-10 17:43:58
 */
 
 /*
@@ -77,7 +77,7 @@ wire ADDIW = opcode_01 & funct3_001 & (|instr_16[11:7]);
 wire LI = opcode_01 & funct3_010 & (|instr_16[11:7]);
 
 wire ADDI16SP = opcode_01 & funct3_011 & (instr_16[11:7] == 5'd2);
-wire LUI = opcode_01 & funct3_011 & (instr_16[11:7] != 5'd2 | instr_16[11:7] != 5'd0);
+wire LUI = opcode_01 & funct3_011 & (instr_16[11:7] != 5'd2 & instr_16[11:7] != 5'd0);
 
 wire SRLI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( | {instr_16[12],instr_16[6:2]} );
 // wire SRLI64 = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( &(~{instr_16[12,instr_16[6:2]]}) );
@@ -132,7 +132,7 @@ assign rs1 = ( {5{NOP|LI|LUI|MV}} & 5'd0 )
 			|
 			({5{ADDI | ADDIW | SLLI | JR | JALR | ADD}} & instr_16[11:7]);
 
-assign rs2 = ( {5{SW | SUB | XOR | OR | AND | SUBW | ADDW  }} &  {2'b01,instr_16[4:2]} )
+assign rs2 = ( {5{SW | SD | SUB | XOR | OR | AND | SUBW | ADDW  }} &  {2'b01,instr_16[4:2]} )
 			|
 			({5{MV | ADD | SWSP | SDSP}}& instr_16[6:2]);
 
@@ -149,7 +149,7 @@ assign imm = ({64{NOP}} & 64'd0)
 			|
 			({64{LUI}} & {{46{instr_16[12]}},instr_16[12],instr_16[6:2],12'b0})
 			|
-			({64{ADDI16SP}} & {{54'b0, instr_16[12], instr_16[4:3], instr_16[5],instr_16[2],instr_16[6], 4'b0}})
+			({64{ADDI16SP}} & {{54{instr_16[12]}}, instr_16[12], instr_16[4:3], instr_16[5],instr_16[2],instr_16[6], 4'b0})
 			|
 			({64{BEQZ|BNEZ}} & {{55{instr_16[12]}}, instr_16[12], instr_16[6:5], instr_16[2],instr_16[11:10], instr_16[4:3], 1'b0})
 			|

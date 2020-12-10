@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 15:10:07
+* @Last Modified time: 2020-12-10 17:05:25
 */
 
 /*
@@ -98,7 +98,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64ui-p-jalr.verilog", mem);
+			$readmemh("./ci/rv64uc-p-rvc.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*8+0] | mem[i*8+1] | mem[i*8+2] | mem[i*8+3]
@@ -136,23 +136,23 @@ end
 						mem[i*16+8192+11], mem[i*16+8192+10], mem[i*16+8192+9],  mem[i*16+8192+8],
 						mem[i*16+8192+7],  mem[i*16+8192+6],  mem[i*16+8192+5],  mem[i*16+8192+4],
 						mem[i*16+8192+3],  mem[i*16+8192+2],  mem[i*16+8192+1],  mem[i*16+8192+0]} == 1'b1 ) begin
-					`DTCMA.ram[i][7:0] = mem[i*16+8192+0];
-					`DTCMA.ram[i][15:8] = mem[i*16+8192+1];
-					`DTCMA.ram[i][23:16] = mem[i*16+8192+2];
-					`DTCMA.ram[i][31:24] = mem[i*16+8192+3];
-					`DTCMA.ram[i][39:32] = mem[i*16+8192+4];
-					`DTCMA.ram[i][47:40] = mem[i*16+8192+5];
-					`DTCMA.ram[i][55:48] = mem[i*16+8192+6];
-					`DTCMA.ram[i][63:56] = mem[i*16+8192+7];
+					`DTCMA.ram[i][7:0] = mem[i*16+0];
+					`DTCMA.ram[i][15:8] = mem[i*16+1];
+					`DTCMA.ram[i][23:16] = mem[i*16+2];
+					`DTCMA.ram[i][31:24] = mem[i*16+3];
+					`DTCMA.ram[i][39:32] = mem[i*16+4];
+					`DTCMA.ram[i][47:40] = mem[i*16+5];
+					`DTCMA.ram[i][55:48] = mem[i*16+6];
+					`DTCMA.ram[i][63:56] = mem[i*16+7];
 
-					`DTCMB.ram[i][7:0] = mem[i*16+8192+8];
-					`DTCMB.ram[i][15:8] = mem[i*16+8192+9];
-					`DTCMB.ram[i][23:16] = mem[i*16+8192+10];
-					`DTCMB.ram[i][31:24] = mem[i*16+8192+11];
-					`DTCMB.ram[i][39:32] = mem[i*16+8192+12];
-					`DTCMB.ram[i][47:40] = mem[i*16+8192+13];
-					`DTCMB.ram[i][55:48] = mem[i*16+8192+14];
-					`DTCMB.ram[i][63:56] = mem[i*16+8192+15];
+					`DTCMB.ram[i][7:0] = mem[i*16+8];
+					`DTCMB.ram[i][15:8] = mem[i*16+9];
+					`DTCMB.ram[i][23:16] = mem[i*16+10];
+					`DTCMB.ram[i][31:24] = mem[i*16+11];
+					`DTCMB.ram[i][39:32] = mem[i*16+12];
+					`DTCMB.ram[i][47:40] = mem[i*16+13];
+					`DTCMB.ram[i][55:48] = mem[i*16+14];
+					`DTCMB.ram[i][63:56] = mem[i*16+15];
  
 				end
 				else begin

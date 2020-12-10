@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2020-12-10 11:03:53
+# @Last Modified time: 2020-12-10 16:23:33
 
 
 import sys
@@ -67,7 +67,8 @@ testList = [
 	"rv64mi-p-ma_fetch",
 	"rv64mi-p-mcsr",
 	"rv64ui-p-fence_i",
-	"rv64ui-p-simple"
+	"rv64ui-p-simple",
+	"rv64uc-p-rvc"
 			]
 
 

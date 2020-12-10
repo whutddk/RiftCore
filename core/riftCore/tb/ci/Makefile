@@ -50,10 +50,10 @@ vpath %.S $(src_dir)
 	sed -i 's/@00002FB8/@00002000/g' $<.verilog
 
 %.out: %
-	$(RISCV_SIM) --isa=rv64g $< 2> $@
+	$(RISCV_SIM) --isa=rv64gc $< 2> $@
 
 %.out32: %
-	$(RISCV_SIM) --isa=rv32g $< 2> $@
+	$(RISCV_SIM) --isa=rv32gc $< 2> $@
 
 define compile_template
 
@@ -84,14 +84,14 @@ $(eval $(call compile_template,rv32ud,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32si,-march=rv32g -mabi=ilp32))
 $(eval $(call compile_template,rv32mi,-march=rv32g -mabi=ilp32))
 ifeq ($(XLEN),64)
-$(eval $(call compile_template,rv64ui,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uc,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64um,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64ua,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64uf,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64ud,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64si,-march=rv64g -mabi=lp64))
-$(eval $(call compile_template,rv64mi,-march=rv64g -mabi=lp64))
+$(eval $(call compile_template,rv64ui,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64uc,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64um,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64ua,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64uf,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64ud,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64si,-march=rv64gc -mabi=lp64))
+$(eval $(call compile_template,rv64mi,-march=rv64gc -mabi=lp64))
 endif
 
 tests_verilog = $(addsuffix .verilog, $(tests))

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 16:00:49
+* @Last Modified time: 2020-12-10 17:57:02
 */
 
 /*
@@ -193,7 +193,13 @@ module pcGenerate (
 	wire isCJal =	 instr_readout[1:0] == 2'b01 & instr_readout[15:13] == 3'b101;
 
 	wire isIJalr = ~is_rvc_instr & (instr_readout[6:0] == 7'b1100111);
-	wire isCJalr =  instr_readout[1:0] == 2'b10 & instr_readout[15:13] == 3'b100;
+	wire isCJalr = (instr_readout[1:0] == 2'b10 & instr_readout[15:13] == 3'b100)
+					&
+					(
+						(~instr_readout[12] & (instr_readout[6:2] == 0)) 
+						| 
+						( instr_readout[12] & (|instr_readout[11:7]) & (&(~instr_readout[6:2])))
+					);
 
 	wire isIBranch = ~is_rvc_instr & (instr_readout[6:0] == 7'b1100011);
 	wire isCBranch =  instr_readout[1:0] == 2'b01 & instr_readout[15:14] == 2'b11;
