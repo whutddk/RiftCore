@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 22:12:43
+* @Last Modified time: 2020-12-10 09:32:37
 */
 
 /*
@@ -129,7 +129,7 @@ module pcGenerate (
 	wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
 	wire bht_stall = (bht_full & isPredit);
 
-	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall ) | isMisPredict | isExpection;
+	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & ~instrFifo_full) | isMisPredict | isExpection;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)

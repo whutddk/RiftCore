@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 22:57:53
+* @Last Modified time: 2020-12-10 09:18:57
 */
 
 /*
@@ -98,7 +98,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64ui-p-jalr.verilog", mem);
+			$readmemh("./ci/rv64ui-p-jal.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*4+0] | mem[i*4+1] | mem[i*4+2] | mem[i*4+3]) == 1'b1 ) begin
