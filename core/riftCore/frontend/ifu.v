@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 10:53:12
+* @Last Modified time: 2020-12-10 17:58:45
 */
 
 /*
@@ -32,7 +32,7 @@
 
 module ifu #
 (
-	parameter DW = 32
+	parameter DW = 64
 )
 (
 
@@ -70,7 +70,7 @@ assign instr = M_IFU_RDATA;
 
 
 
-assign M_IFU_RVALID_F = 
+wire M_IFU_RVALID_F = 
 	(M_IFU_ARVALID  & M_IFU_RREADY & 1'b1) //next comes and get old 
 	| (M_IFU_ARVALID  & ~M_IFU_RREADY & 1'b1) // next comes and abort old
 	| (~M_IFU_ARVALID  & M_IFU_RREADY & 1'b0) // just get old

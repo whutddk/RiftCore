@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:03:27
+* @Last Modified time: 2020-12-10 16:02:56
 */
 
 /*
@@ -31,6 +31,9 @@ module instr_fetch (
 	output [31:0] instr,
 	input [63:0] pc_in,
 	output [63:0] pc_out,
+
+	input isRVC_in,
+	output isRVC_out,
 	
 	//handshake
 	input isInstrReadOut,
@@ -55,8 +58,12 @@ wire [63:0] pc_qout;
 wire [63:0] pc_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? pc_in : pc_qout);
 wire isVaild = flush ? 1'b0 : (isInstrReadOut );
 
+wire isRVC_qout;
+wire isRVC_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? isRVC_in : isRVC_qout);
+
 
 assign pc_out = pc_qout;
+assign isRVC_out = isRVC_qout;
 
 assign instr = instr_fetch_qout;
 
@@ -66,6 +73,8 @@ assign fetch_decode_vaild = isVaild_qout & ~instrFifo_full;
 gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) handshake ( .dnxt(isVaild), .qout(isVaild_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) isRVC ( .dnxt(isRVC_dnxt), .qout(isRVC_qout), .CLK(CLK), .RSTn(RSTn));
+
 
 endmodule
 
