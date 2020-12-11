@@ -6,7 +6,7 @@
 
 --------------------------------------------
 
-Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which partially supports RV64I.
+Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which temporarily supports RV64IC.
 
 ![architecture](./doc/riftCore%20micro-architecture.png)
 
@@ -19,7 +19,7 @@ Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core
 
 ## status
 
-|Last Commit|![GitHub last commit](https://img.shields.io/github/last-commit/whutddk/RiftCore)|Status|![GitHub Workflow Status](https://img.shields.io/github/workflow/status/whutddk/RiftCore/CI)|Support ISA|![ISA](https://img.shields.io/badge/ISA-RV64I-yellowgreen)|
+|Last Commit|![GitHub last commit](https://img.shields.io/github/last-commit/whutddk/RiftCore)|Status|![GitHub Workflow Status](https://img.shields.io/github/workflow/status/whutddk/RiftCore/CI)|Support ISA|![ISA](https://img.shields.io/badge/ISA-RV64IC-yellowgreen)|
 | --- | --- | --- | --- | --- | --- |
 |![ISA](https://img.shields.io/badge/ISA-RV64I-yellowgreen)|
 |![rv64ui-p-add](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-add.json)|![rv64ui-p-addiw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-addiw.json)|![rv64ui-p-addw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-addw.json)|![rv64ui-p-and](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-and.json)|![rv64ui-p-andi](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-andi.json)|![rv64ui-p-auipc](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-auipc.json)|
@@ -32,6 +32,8 @@ Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core
 |![rv64ui-p-srlw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-srlw.json)|![rv64ui-p-sub](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-sub.json)|![rv64ui-p-subw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-subw.json)|![rv64ui-p-sw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-sw.json)|![rv64ui-p-xor](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-xor.json)|![rv64ui-p-xori](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-xori.json)|
 |![rv64mi-p-access](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-access.json)|![rv64mi-p-breakpoint](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-breakpoint.json)|![rv64mi-p-csr](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-csr.json)|![rv64mi-p-ma_addr](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-ma_addr.json)|![rv64mi-p-ma_fetch](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-ma_fetch.json)|![rv64mi-p-mcsr](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64mi-p-mcsr.json)|
 |![rv64ui-p-fence_i](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-fence_i.json)|![rv64ui-p-simple](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-simple.json)|
+|![ISA](https://img.shields.io/badge/ISA-RV64C-yellowgreen)|
+|![rv64uc-p-rvc](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64uc-p-rvc.json)|
 
 
 

@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2020-11-22 14:10:56
+# @Last Modified time: 2020-12-10 16:23:33
 
 
 import sys
@@ -60,7 +60,6 @@ testList = [
 	"rv64ui-p-sw",
 	"rv64ui-p-xor",
 	"rv64ui-p-xori",
-
 	"rv64mi-p-access",
 	"rv64mi-p-breakpoint",
 	"rv64mi-p-csr",
@@ -68,7 +67,8 @@ testList = [
 	"rv64mi-p-ma_fetch",
 	"rv64mi-p-mcsr",
 	"rv64ui-p-fence_i",
-	"rv64ui-p-simple"
+	"rv64ui-p-simple",
+	"rv64uc-p-rvc"
 			]
 
 
@@ -91,7 +91,6 @@ for file in testList:
 	res = os.system(cmd)
 
 	if (res == 0):
-
 		print(file, "PASS!")
 	else:
 
@@ -102,11 +101,12 @@ for file in testList:
 	jsonFile = jsonFile + file
 	jsonFile = jsonFile + "\",\n\"message\": \""
 
-	if ( CIReturn == -1 ):
-		jsonFile = jsonFile + "FAIL\",\n\"color\": \"red\"\n}"
-	else:
+	if ( res == 0 ):
 		jsonFile = jsonFile + "PASS\",\n\"color\": \"blue\"\n}"
-	print (jsonFile)
+
+	else:
+		jsonFile = jsonFile + "FAIL\",\n\"color\": \"red\"\n}"
+	# print (jsonFile)
 
 	with open("./ci/"+file+".json","w") as f:
 		f.write(jsonFile)
