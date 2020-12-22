@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-26 19:01:43
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-01 17:58:15
+* @Last Modified time: 2020-12-08 17:03:09
 */
 
 /*
@@ -49,7 +49,6 @@ input accessReg_vaild,
 
 
 input quickAccess_vaild,
-input [32*16-1:0] programBuffer,
 output isExpection,
 output quickAccess_ready,
 
@@ -58,7 +57,7 @@ output quickAccess_ready,
 
 
 
-sram programBuffer();
+
 
 
 

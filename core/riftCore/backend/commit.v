@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 10:26:56
+* @Last Modified time: 2020-12-10 10:27:15
 */
 
 /*
@@ -47,6 +47,7 @@ module commit (
 	output commit_abort,
 	output [63:0] commit_pc,
 	output suILP_ready,
+	output bruILP_ready,
 
 	output [63:0] privileged_pc,
 	output isTrap,
@@ -82,6 +83,7 @@ module commit (
 
 	wire csrILP_ready = isCsr;
 	assign suILP_ready = isSu;
+	assign bruILP_ready = isBranch;
 
 	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr, isEcall, isEbreak, isMret} = commit_fifo;
 

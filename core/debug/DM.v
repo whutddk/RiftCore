@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-02 09:45:49
+* @Last Modified time: 2020-12-08 16:50:05
 */
 
 
@@ -1165,16 +1165,21 @@ input isExpection,
 input quickAccess_ready;
 
 assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
-assign programBuffer = {  }
 
 
 
 
+// output accessMemroy_vaild;
+// output isReadAccess;
+// output isWriteAccess;
+// output write_data;
+// input read_data;
+// output AccessMemroy_addr;
+// input accessMemroy_ready
 
-
-
-
-
+// assign accessMemroy_vaild = isCommand & cmdtype == 'd2;
+// assign isReadAccess = isCommand & ~command[16];
+// assign isWriteAccess = isCommand & command[16]; 
 
 
 
