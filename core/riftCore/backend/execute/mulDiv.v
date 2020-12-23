@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-22 11:58:05
+* @Last Modified time: 2020-12-23 14:37:49
 */
 
 
@@ -72,6 +72,23 @@ module mulDiv (
 	wire signed [127:0] muls = $signed(src1) * $signed(src2);
 	wire unsigned [127:0] mulu = $unsigned(src1) * $unsigned(src2);
 	wire signed [127:0] mulsu = $signed(src1) * $unsigned(src2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
