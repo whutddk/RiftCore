@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 19:18:02
+* @Last Modified time: 2020-12-24 19:32:39
 */
 
 
@@ -211,7 +211,7 @@ module mul #(
 
 
 
-	wire [63:0] mul_res_dnxt = vaild_dnxt & 
+	wire [63:0] mul_res_dnxt = {64{vaild_dnxt}} & 
 		(
 			( {64{rv64m_mul}} & muls[63:0] )
 			| ({64{rv64m_mulh}} & muls[127:64] )
@@ -259,7 +259,7 @@ module mul #(
 	gen_dffr # (.DW((5+`RB))) mul_rd0 ( .dnxt(mul_rd0_dnxt), .qout(mul_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) mul_res ( .dnxt(mul_res_dnxt), .qout(mul_res_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(mul_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) ready ( .dnxt(ready_dnxt), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1), .rstValue(1'b1)) ready ( .dnxt(ready_dnxt), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
 
 
 
