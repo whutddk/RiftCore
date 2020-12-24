@@ -444,3 +444,4 @@ core/riftCore/tb/ci/rv64um-v-rem
 core/riftCore/tb/ci/rv64um-v-remu
 core/riftCore/tb/ci/rv64um-v-remuw
 core/riftCore/tb/ci/rv64um-v-remw
+*.vcd

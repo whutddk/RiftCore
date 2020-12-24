@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-22 10:46:21
+* @Last Modified time: 2020-12-24 11:58:17
 */
 
 /*
@@ -61,7 +61,11 @@ module dispatch (
 
 	output csr_fifo_push,
 	input csr_fifo_full,
-	output [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info
+	output [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info,
+
+	output mul_fifo_push,
+	input mul_fifo_full,
+	output [`MUL_ISSUE_INFO_DW-1:0] mul_dispat_info
 
 );
 
@@ -118,18 +122,17 @@ module dispatch (
 
 	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret};
 
-	initial $warning("un-implementation instructions will not be dispatch");
-	wire unImplementation = 1'b0;
 	wire privileged = privil_ecall | privil_ebreak | privil_mret;
 
 	assign reOrder_fifo_push = alu_buffer_push
 								| bru_fifo_push
 								| lsu_fifo_push
 								| csr_fifo_push
+								| mul_fifo_push
 								| privileged
 								;
 
-	assign instrFifo_pop = reOrder_fifo_push | unImplementation;
+	assign instrFifo_pop = reOrder_fifo_push;
 
 
 
@@ -194,6 +197,31 @@ module dispatch (
 							};
 
 	
+	assign mul_fifo_push = (rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulhu | rv64m_div | rv64m_divu | rv64m_rem | rv64m_remu | rv64m_mulw | rv64m_divw | rv64m_divuw | rv64_remw | rv64m_remuw) & dispat_vaild & (~mul_fifo_full);
+	assign mul_dispat_info = {
+								rv64m_mul,
+								rv64m_mulh,
+								rv64m_mullhsu,
+								rv64m_mulhu,
+								rv64m_div,
+								rv64m_divu,
+								rv64m_rem,
+								rv64m_remu,
+								rv64m_mulw,
+								rv64m_divw,
+								rv64m_divuw,
+								rv64_remw,
+								rv64m_remuw,
+
+								rd0_reName,
+								rs1_reName,
+								rs2_reName
+							};
+
+
+
+
+
 
 
 	wire rd0_raw_vaild = reOrder_fifo_push;

@@ -1,11 +1,12 @@
 /*
-* @File name: div_tb
+* @File name: mul
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-12-23 14:37:23
+* @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 10:24:29
+* @Last Modified time: 2020-12-24 19:18:02
 */
+
 
 
 /*
@@ -25,19 +26,75 @@
 */
 
 `timescale 1 ns / 1 ps
+`include "define.vh"
 
 
+module mul #(
+	parameter DW = `MUL_EXEPARAM_DW 
+)
+(
+	input mul_exeparam_vaild,
+	output mul_execute_ready,
+	input [DW-1:0] mul_exeparam,
 
-module div_tb (
+	output mul_writeback_vaild,
+	output [63:0] mul_res_qout,
+	output [(5+`RB)-1:0] mul_rd0_qout,
 
+	//from regFile
+	input [(64*`RP*32)-1:0] regFileX_read,
+
+	input flush,
+	input CLK,
+	input RSTn		
 );
-	reg CLK;
-	reg RSTn;
-	reg mulDiv_exeparam_vaild;
-	reg rv64m_div,rv64m_divu, rv64m_rem, rv64m_remu, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw;	
 
-	reg [63:0] src1;
-	reg [63:0] src2;
+
+
+	wire rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw;
+
+	wire [(5+`RB)-1:0] mul_rs1;
+	wire [(5+`RB)-1:0] mul_rs2;
+	wire [(5+`RB)-1:0] mul_rd0_dnxt;
+
+
+	assign {
+			rv64m_mul,
+			rv64m_mulh,
+			rv64m_mullhsu,
+			rv64m_mulhu,
+			rv64m_div,
+			rv64m_divu,
+			rv64m_rem,
+			rv64m_remu,
+			rv64m_mulw,
+			rv64m_divw,
+			rv64m_divuw,
+			rv64_remw,
+			rv64m_remuw,
+
+			mul_rd0_dnxt,
+			mul_rs1,
+			mul_rs2
+
+			} = mul_exeparam;
+
+
+	wire [63:0] src1 = regFileX_read[ 64*mul_rs1 +: 64];
+	wire [63:0] src2 = regFileX_read[ 64*mul_rs2 +: 64];
+
+	initial $warning("only can syn in FPGA in this verison");
+
+	wire mul_fun = rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulhu | rv64m_mulw;
+
+
+	wire signed [127:0] muls = $signed(src1) * $signed(src2);
+	wire unsigned [127:0] mulu = $unsigned(src1) * $unsigned(src2);
+	wire signed [127:0] mulsu = $signed(src1) * $unsigned(src2);
+
+
+
+
 
 
 
@@ -86,17 +143,17 @@ module div_tb (
 	wire [127:0] divided;
 
 	assign dividend_dnxt = 
-		(mulDiv_exeparam_vaild & div_fun) ? 
+		(mul_exeparam_vaild & div_fun) ? 
 			{64'd0, dividend_load} :
 			((div_cnt_qout == 6'd0) ? dividend_qout : divided)
 			;
 
-	assign divisor_dnxt = (mulDiv_exeparam_vaild & div_fun) ? 
+	assign divisor_dnxt = (mul_exeparam_vaild & div_fun) ? 
 						divisor_load :
 						divisor_qout;
 
 
-	assign div_cnt_dnxt = (mulDiv_exeparam_vaild & div_fun) ? 
+	assign div_cnt_dnxt = (mul_exeparam_vaild & div_fun) ? 
 							7'd64 :
 							(div_cnt_qout == 6'd0 ? div_cnt_qout : div_cnt_qout - 1);
 
@@ -142,10 +199,6 @@ module div_tb (
 		);
 		
 
-
-
-
-
 	gen_dffr # (.DW(128)) dividend ( .dnxt(dividend_dnxt), .qout(dividend_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) divisor ( .dnxt(divisor_dnxt), .qout(divisor_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(7)) div_cnt ( .dnxt(div_cnt_dnxt), .qout(div_cnt_qout), .CLK(CLK), .RSTn(RSTn));
@@ -157,105 +210,74 @@ module div_tb (
 
 
 
-initial
-begin
-	$dumpfile("../build/div_tb.vcd"); //生成的vcd文件名称
-	$dumpvars(0, div_tb);//tb模块名称
-end
+
+	wire [63:0] mul_res_dnxt = vaild_dnxt & 
+		(
+			( {64{rv64m_mul}} & muls[63:0] )
+			| ({64{rv64m_mulh}} & muls[127:64] )
+			| ({64{rv64m_mullhsu}} & mulsu[127:64] )
+			| ({64{rv64m_mulhu}} & mulu[127:64] )
+			| ({64{rv64m_div}} & quot)
+			| ({64{rv64m_divu}} & quot)
+			| ({64{rv64m_rem}} & rema)
+			| ({64{rv64m_remu}} & rema)
+			| ({64{rv64m_mulw}} & {{32{muls[31]}},muls[31:0]} )
+			| ({64{rv64m_divw}} & {{32{quot[31]}}, quot[31:0]} )
+			| ({64{rv64m_divuw}} & {32'b0, quot[31:0]} )
+			| ({64{rv64_remw}} & { {32{rema[31]}}, rema[31:0] } )
+			| ({64{rv64m_remuw}} & {32'b0, rema[31:0]})
+		);
 
 
 
-initial begin
+	wire vaild_dnxt;
 
-	CLK = 0;
-	RSTn = 0;
+	wire mul_vaild;
+	wire div_vaild;
 
-	#20
-
-	RSTn <= 1;
-
-	#8000
-			$display("Time Out !!!");
-	 $finish;
-end
-
-initial begin
-	forever begin 
-		#5 CLK <= ~CLK;
-	end
-end
-
-initial begin
-
-	mulDiv_exeparam_vaild = 0;
-	rv64m_div = 0;
-	rv64m_divu = 0;
-	rv64m_rem = 0;
-	rv64m_remu = 0;
-	rv64m_divw = 0;
-	rv64m_divuw = 0;
-	rv64_remw = 0;
-	rv64m_remuw	= 0;
-
-	src1 = 0;
-	src2 = 0;
-
-	#36
-
-	mulDiv_exeparam_vaild = 1;
-	rv64m_div = 0;
-	rv64m_divu = 1;
-	rv64m_rem = 0;
-	rv64m_remu = 0;
-	rv64m_divw = 0;
-	rv64m_divuw = 0;
-	rv64_remw = 0;
-	rv64m_remuw	= 0;
-
-	src1 = 64'hffffffffffff0000;
-	src2 = 1;
-
-# 10
-
-	mulDiv_exeparam_vaild = 0;
+	assign mul_vaild = mul_exeparam_vaild & mul_fun;
+	assign div_vaild = div_fun & 
+						(
+							(mul_exeparam_vaild & (dividend_sign | div_overflow))
+							|
+							(div_cnt_qout == 6'd0)
+						);
 
 
+	assign vaild_dnxt = (~flush) & (mul_vaild | div_vaild);
 
 
-end
+	wire ready_dnxt;
+
+	assign ready_dnxt = (mul_exeparam_vaild & 1'b0)
+						| 
+						(vaild_dnxt & 1'b1)
+						|
+						(~mul_exeparam_vaild & ~vaild_dnxt & mul_execute_ready);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	gen_dffr # (.DW((5+`RB))) mul_rd0 ( .dnxt(mul_rd0_dnxt), .qout(mul_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(64)) mul_res ( .dnxt(mul_res_dnxt), .qout(mul_res_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(mul_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) ready ( .dnxt(ready_dnxt), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
