@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2020-12-10 16:23:33
+# @Last Modified time: 2020-12-25 17:00:45
 
 
 import sys
@@ -68,7 +68,23 @@ testList = [
 	"rv64mi-p-mcsr",
 	"rv64ui-p-fence_i",
 	"rv64ui-p-simple",
-	"rv64uc-p-rvc"
+	
+	"rv64uc-p-rvc",
+
+	"rv64um-p-div",
+	"rv64um-p-divu",
+	"rv64um-p-divuw",
+	"rv64um-p-divw",
+	"rv64um-p-mul",
+	"rv64um-p-mulh",
+	"rv64um-p-mulhsu",
+	"rv64um-p-mulhu",	
+	"rv64um-p-mulw",
+	"rv64um-p-rem",
+	"rv64um-p-remu",
+	"rv64um-p-remuw",
+	"rv64um-p-remw"
+
 			]
 
 
