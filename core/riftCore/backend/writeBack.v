@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-16 16:26:04
+* @Last Modified time: 2020-12-24 11:59:38
 */
 
 /*
@@ -53,8 +53,12 @@ module writeBack (
 	//from csr
 	input csr_writeback_vaild,
 	input [(5+`RB-1):0] csr_rd0,
-	input [63:0] csr_res
+	input [63:0] csr_res,
 
+	//from mul
+	input mul_writeback_vaild,
+	input [(5+`RB-1):0] mul_rd0,
+	input [63:0] mul_res
 );
 
 // alu wb
@@ -65,7 +69,8 @@ wire [(64*`RP*32)-1:0] bru_writeback_dnxt;
 wire [(64*`RP*32)-1:0] lsu_writeback_dnxt;
 //csr wb
 wire [(64*`RP*32)-1:0] csr_writeback_dnxt;
-
+//mul wb
+wire [(64*`RP*32)-1:0] mul_writeback_dnxt;
 
 //write back
 assign regFileX_dnxt[0 +: 64*`RP] = {64*`RP{1'b0}};
@@ -86,6 +91,9 @@ generate
 					|
 					//csr wb
 					({64{csr_writeback_vaild & (csr_rd0 == SEL)}} & csr_res)
+					|
+					//mul wb
+					({64{mul_writeback_vaild & (mul_rd0 == SEL)}} & mul_res)
 				)
 				|
 				(
@@ -95,7 +103,8 @@ generate
 						{64{  ~(alu_writeback_vaild & alu_rd0 == SEL)
 							& ~(bru_writeback_vaild & bru_rd0 == SEL)
 							& ~(lsu_writeback_vaild & lsu_rd0 == SEL)
-							& ~(csr_writeback_vaild & csr_rd0 == SEL) }}
+							& ~(csr_writeback_vaild & csr_rd0 == SEL)
+							& ~(mul_writeback_vaild & mul_rd0 == SEL) }}
 					) 
 					& regFileX_qout[64*SEL +: 64]
 				);
@@ -114,6 +123,8 @@ endgenerate
 		( lsu_writeback_vaild << lsu_rd0 )
 		| 
 		( csr_writeback_vaild << csr_rd0 )
+		| 
+		( mul_writeback_vaild << mul_rd0 )
 		;
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 17:43:58
+* @Last Modified time: 2020-12-22 10:41:56
 */
 
 /*
@@ -241,6 +241,19 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 
 	wire privil_mret 	= 1'b0;
 
+	wire rv64m_mul = 1'b0;
+	wire rv64m_mulh = 1'b0;
+	wire rv64m_mullhsu = 1'b0;
+	wire rv64m_mulhu = 1'b0;
+	wire rv64m_div = 1'b0;
+	wire rv64m_divu = 1'b0;
+	wire rv64m_rem = 1'b0;
+	wire rv64m_remu = 1'b0;
+	wire rv64m_mulw = 1'b0;
+	wire rv64m_divw = 1'b0;
+	wire rv64m_divuw = 1'b0;
+	wire rv64_remw = 1'b0;
+	wire rv64m_remuw = 1'b0;
 
 
 
@@ -254,6 +267,7 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 		rv64i_fence, rv64zi_fence_i,
 		rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 		rv64i_ecall, rv64i_ebreak, privil_mret,
+		rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw,
 		is_rvc,
 		pc, imm, shamt, rd0,rs1,rs2
 		};

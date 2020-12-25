@@ -29,7 +29,7 @@
 
 
 
-`define DECODE_INFO_DW (53+1+6+1+64+64+6+5+5+5) 
+`define DECODE_INFO_DW (53+13+1+6+13+1+64+64+6+5+5+5) 
 `define REORDER_INFO_DW (64+(5+`RB)+3)
 
 `define ALU_ISSUE_INFO_DW (30+64+6+64+(5+`RB)+(5+`RB)+(5+`RB))
@@ -49,7 +49,9 @@
 `define CSR_ISSUE_INFO_DP 2
 `define CSR_EXEPARAM_DW (3+(5+`RB)+(5+`RB)+1+12)
 
-
+`define MUL_ISSUE_INFO_DW (13+(5+`RB)+(5+`RB)+(5+`RB))
+`define MUL_ISSUE_INFO_DP 2
+`define MUL_EXEPARAM_DW `MUL_ISSUE_INFO_DW
 
 
 

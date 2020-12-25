@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 17:32:47
+* @Last Modified time: 2020-12-22 10:40:38
 */
 
 /*
@@ -237,6 +237,33 @@ module decoder32
 	wire privil_mret 	= (instr_32 == 32'b0011000_00010_00000_000_00000_1110011);
 
 
+	wire rv64m_mul =  funct7_0000001 & funct3_000 & op_op;
+	wire rv64m_mulh = funct7_0000001 & funct3_001 & op_op;
+	wire rv64m_mullhsu = funct7_0000001 & funct3_010 & op_op;
+	wire rv64m_mulhu = funct7_0000001 & funct3_011 & op_op;
+	wire rv64m_div =  funct7_0000001 & funct3_100 & op_op;
+	wire rv64m_divu =  funct7_0000001 & funct3_101 & op_op;
+	wire rv64m_rem =  funct7_0000001 & funct3_110 & op_op;
+	wire rv64m_remu = funct7_0000001 & funct3_111 & op_op;
+
+	wire rv64m_mulw = funct7_0000001 & funct3_000 & op_op_32;
+	wire rv64m_divw = funct7_0000001 & funct3_100 & op_op_32;
+	wire rv64m_divuw = funct7_0000001 & funct3_101 & op_op_32;
+	wire rv64_remw = funct7_0000001 & funct3_110 & op_op_32;
+	wire rv64m_remuw = funct7_0000001 & funct3_111 & op_op_32;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	wire rType = rv64i_add | rv64i_addw | rv64i_sub | rv64i_subw | rv64i_sll | rv64i_sllw | rv64i_slt | rv64i_sltu 
@@ -275,6 +302,7 @@ module decoder32
 		rv64i_fence, rv64zi_fence_i,
 		rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 		rv64i_ecall, rv64i_ebreak, privil_mret,
+		rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw,
 		is_rvc,
 		pc, imm, shamt, rd0,rs1,rs2
 		};

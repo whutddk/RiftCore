@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 10:25:30
+* @Last Modified time: 2020-12-24 19:16:56
 */
 
 /*
@@ -84,20 +84,20 @@ module backEnd (
 	wire [$clog2(`ALU_ISSUE_INFO_DP)-1:0] alu_buffer_pop_index;
 	wire [`ALU_ISSUE_INFO_DP-1:0] alu_buffer_malloc;
 	wire [`ALU_ISSUE_INFO_DW*`ALU_ISSUE_INFO_DP-1 : 0] alu_issue_info;
-
-
 	wire bru_fifo_pop;
 	wire bru_fifo_push;
 	wire bru_fifo_empty;
 	wire [`BRU_ISSUE_INFO_DW-1:0] bru_issue_info;
-
 	wire csr_fifo_pop;
 	wire csr_fifo_empty;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_issue_info;
-
 	wire lsu_fifo_pop;
 	wire lsu_fifo_empty;
 	wire [`LSU_ISSUE_INFO_DW-1:0] lsu_issue_info;
+	wire mul_fifo_pop;
+	wire mul_fifo_empty;
+	wire [`MUL_ISSUE_INFO_DW-1:0] mul_issue_info;
+
 
 	//issue to execute
 	wire alu_exeparam_vaild;
@@ -110,7 +110,9 @@ module backEnd (
 	wire lsu_exeparam_ready;
 	wire lsu_exeparam_vaild;
 	wire [`LSU_EXEPARAM_DW-1:0] lsu_exeparam;
-
+	wire mul_exeparam_vaild;
+	wire mul_execute_ready;
+	wire [`MUL_EXEPARAM_DW-1 :0] mul_exeparam;
 
 
 	//execute to writeback
@@ -126,6 +128,9 @@ module backEnd (
 	wire csr_writeback_vaild;
 	wire [(5+`RB-1):0] csr_rd0;
 	wire [63:0] csr_res;
+	wire mul_writeback_vaild;
+	wire [(5+`RB-1):0] mul_rd0;
+	wire [63:0] mul_res;
 
 	wire suILP_ready;
 	wire bruILP_ready;
@@ -152,6 +157,9 @@ module backEnd (
 	wire csr_fifo_push;
 	wire csr_fifo_full;
 	wire [`CSR_ISSUE_INFO_DW-1:0] csr_dispat_info;
+	wire mul_fifo_push;
+	wire mul_fifo_full;
+	wire [`MUL_ISSUE_INFO_DW-1:0] mul_dispat_info;
 
 	//csrexe to csrFiles
 	wire [11:0] csrexe_addr;
@@ -206,7 +214,11 @@ dispatch i_dispatch(
 
 	.csr_fifo_push(csr_fifo_push),
 	.csr_fifo_full(csr_fifo_full),
-	.csr_dispat_info(csr_dispat_info)
+	.csr_dispat_info(csr_dispat_info),
+
+	.mul_fifo_push(mul_fifo_push),
+	.mul_fifo_full(mul_fifo_full),
+	.mul_dispat_info(mul_dispat_info)
 );
 
 
@@ -280,7 +292,23 @@ csr_issue_fifo
 	
 );
 
+issue_fifo #(.DW(`MUL_ISSUE_INFO_DW),.DP(`MUL_ISSUE_INFO_DP))
+mul_issue_fifo
+(
+	.issue_info_push(mul_dispat_info),
+	.issue_info_pop(mul_issue_info),
 
+	.issue_push(mul_fifo_push),
+	.issue_pop(mul_fifo_pop),	
+	
+	.fifo_full(mul_fifo_full),
+	.fifo_empty(mul_fifo_empty),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)	
+	
+);
 
 //C4 and T4
 
@@ -358,6 +386,24 @@ lsu_issue i_lsuIssue(
 	.RSTn(RSTn)
 );
 
+mul_issue i_mulIssue(
+	.mul_fifo_pop(mul_fifo_pop),
+	.mul_fifo_empty(mul_fifo_empty),
+	.mul_issue_info(mul_issue_info),
+
+	.mul_execute_ready(mul_execute_ready),
+	.mul_exeparam_vaild_qout(mul_exeparam_vaild),
+	.mul_exeparam_qout(mul_exeparam),
+
+	.wbLog_qout(wbLog_qout),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
+
+
+
 
 //C5 and T5
 alu i_alu(
@@ -432,7 +478,21 @@ lsu i_lsu(
 	.RSTn(RSTn)
 );
 
+mul i_mul(
+	.mul_exeparam_vaild(mul_exeparam_vaild),
+	.mul_execute_ready(mul_execute_ready),
+	.mul_exeparam(mul_exeparam),
 
+	.mul_writeback_vaild(mul_writeback_vaild),
+	.mul_res_qout(mul_res),
+	.mul_rd0_qout(mul_rd0),
+
+	.regFileX_read(regFileX_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn),
+	.flush(flush)
+);
 
 
 
@@ -459,7 +519,11 @@ writeBack i_writeBack(
 
 	.csr_writeback_vaild(csr_writeback_vaild),
 	.csr_rd0(csr_rd0),
-	.csr_res(csr_res)
+	.csr_res(csr_res),
+
+	.mul_writeback_vaild(mul_writeback_vaild),
+	.mul_rd0(mul_rd0),
+	.mul_res(mul_res)
 
 );
 
