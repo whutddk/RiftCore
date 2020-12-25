@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 19:32:39
+* @Last Modified time: 2020-12-25 16:59:59
 */
 
 
@@ -88,12 +88,14 @@ module mul #(
 	wire mul_fun = rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulhu | rv64m_mulw;
 
 
-	wire signed [127:0] muls = $signed(src1) * $signed(src2);
-	wire unsigned [127:0] mulu = $unsigned(src1) * $unsigned(src2);
-	wire signed [127:0] mulsu = $signed(src1) * $unsigned(src2);
 
+	wire mul_op1_sign = (rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulw) & ( rv64m_mulw ? src1[31] : src1[63]);
+	wire mul_op2_sign = (rv64m_mul | rv64m_mulh | rv64m_mulw) & ( rv64m_mulw ? src2[31] : src2[63]);
 
+	wire [64:0] mul_op1 = rv64m_mulw ? { {33{mul_op1_sign}}, src1[31:0] } : { mul_op1_sign, src1 };
+	wire [64:0] mul_op2 = rv64m_mulw ? { {33{mul_op2_sign}}, src2[31:0] } : { mul_op2_sign, src2 };
 
+	wire signed [127:0] muls = $signed(mul_op1) * $signed(mul_op2);
 
 
 
@@ -145,7 +147,7 @@ module mul #(
 	assign dividend_dnxt = 
 		(mul_exeparam_vaild & div_fun) ? 
 			{64'd0, dividend_load} :
-			((div_cnt_qout == 6'd0) ? dividend_qout : divided)
+			((div_cnt_qout == 7'd64) ? dividend_qout : divided)
 			;
 
 	assign divisor_dnxt = (mul_exeparam_vaild & div_fun) ? 
@@ -154,8 +156,8 @@ module mul #(
 
 
 	assign div_cnt_dnxt = (mul_exeparam_vaild & div_fun) ? 
-							7'd64 :
-							(div_cnt_qout == 6'd0 ? div_cnt_qout : div_cnt_qout - 1);
+							7'd0 :
+							(div_cnt_qout == 7'd65 ? div_cnt_qout : div_cnt_qout + 1);
 
 
 	assign dividend_shift = dividend_qout << 1;
@@ -185,7 +187,7 @@ module mul #(
 		|
 		(
 			{64{(~div_by_zero)&(~div_overflow)}} &
-				dividend_sign ? $signed(-dividend_qout[63:0]) : dividend_qout[63:0]
+				((dividend_sign^divisor_sign) ? $signed(-dividend_qout[63:0]) : dividend_qout[63:0])
 		);
 
 	wire [63:0] rema = 
@@ -195,7 +197,7 @@ module mul #(
 		|
 		(
 			{64{(~div_by_zero)&(~div_overflow)}} &
-				(dividend_sign^divisor_sign) ? $signed(-dividend_qout[127:64]): dividend_qout[127:64]
+				((dividend_sign) ? $signed(-dividend_qout[127:64]): dividend_qout[127:64])
 		);
 		
 
@@ -215,17 +217,17 @@ module mul #(
 		(
 			( {64{rv64m_mul}} & muls[63:0] )
 			| ({64{rv64m_mulh}} & muls[127:64] )
-			| ({64{rv64m_mullhsu}} & mulsu[127:64] )
-			| ({64{rv64m_mulhu}} & mulu[127:64] )
+			| ({64{rv64m_mullhsu}} & muls[127:64] )
+			| ({64{rv64m_mulhu}} & muls[127:64] )
 			| ({64{rv64m_div}} & quot)
 			| ({64{rv64m_divu}} & quot)
 			| ({64{rv64m_rem}} & rema)
 			| ({64{rv64m_remu}} & rema)
 			| ({64{rv64m_mulw}} & {{32{muls[31]}},muls[31:0]} )
 			| ({64{rv64m_divw}} & {{32{quot[31]}}, quot[31:0]} )
-			| ({64{rv64m_divuw}} & {32'b0, quot[31:0]} )
+			| ({64{rv64m_divuw}} & {{32{quot[31]}}, quot[31:0]} )
 			| ({64{rv64_remw}} & { {32{rema[31]}}, rema[31:0] } )
-			| ({64{rv64m_remuw}} & {32'b0, rema[31:0]})
+			| ({64{rv64m_remuw}} & { {32{rema[31]}}, rema[31:0]})
 		);
 
 
@@ -238,9 +240,9 @@ module mul #(
 	assign mul_vaild = mul_exeparam_vaild & mul_fun;
 	assign div_vaild = div_fun & 
 						(
-							(mul_exeparam_vaild & (dividend_sign | div_overflow))
+							(mul_exeparam_vaild & (div_by_zero | div_overflow))
 							|
-							(div_cnt_qout == 6'd0)
+							(div_cnt_qout == 7'd64 & ~mul_execute_ready)
 						);
 
 
@@ -250,7 +252,7 @@ module mul #(
 	wire ready_dnxt;
 
 	assign ready_dnxt = (mul_exeparam_vaild & 1'b0)
-						| 
+						|
 						(vaild_dnxt & 1'b1)
 						|
 						(~mul_exeparam_vaild & ~vaild_dnxt & mul_execute_ready);

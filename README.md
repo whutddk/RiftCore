@@ -6,7 +6,7 @@
 
 --------------------------------------------
 
-Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which temporarily supports RV64IC.
+Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which temporarily supports RV64IMC.
 
 ![architecture](./doc/riftCore%20micro-architecture.png)
 
@@ -34,9 +34,11 @@ Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core
 |![rv64ui-p-fence_i](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-fence_i.json)|![rv64ui-p-simple](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-simple.json)|
 |![ISA](https://img.shields.io/badge/ISA-RV64C-yellowgreen)|
 |![rv64uc-p-rvc](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64uc-p-rvc.json)|
+|![ISA](https://img.shields.io/badge/ISA-RV64M-yellowgreen)|
 
-
-
+|![rv64um-p-mul](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-mul.json)|![rv64um-p-mulh](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-mulh.json)|![rv64um-p-mulhsu](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-mulhsu.json)|![rv64um-p-mulhu](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-mulhu.json)|![rv64um-p-mulw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-mulw.json)|![rv64um-p-div](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-div.json)|
+|![rv64um-p-divu](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-divu.json)|![rv64um-p-divuw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-divuw.json)|![rv64um-p-divw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-divw.json)|![rv64um-p-rem](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-rem.json)|![rv64um-p-remu](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-remu.json)|![rv64um-p-remuw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-remuw.json)|
+|![rv64um-p-remw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-remw.json)|
 
 
 
@@ -48,6 +50,9 @@ Currently, RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core
 ## Sponsors
 
 ![BTC](https://img.shields.io/badge/BTC-124egseDMD983etDrsAzUnXvi6twpWtjLd-orange)
+![LTC](https://img.shields.io/badge/LTC-LakQ8AL2JeLGKmjanYrpq6Hq7fW4NySXYA-green)
 ![ETH](https://img.shields.io/badge/ETH-0x2f8aeb5f9dfe2936632f47363a42d7f71810c62b-lightgrey)
+![DOGE](https://img.shields.io/badge/DOGE-DJSv3BgtfPtjc3LzL5PaooAvs9xn8n4tbX-blue)
+
 
 
