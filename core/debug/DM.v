@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-28 18:07:26
+* @Last Modified time: 2020-12-29 18:16:01
 */
 
 
@@ -80,6 +80,35 @@ module DM #
 	input [63:0] accessReg_read,
 	output [63:0] accessReg_write,
 	output is32w,
+
+	//system bus access
+	output [63:0] M_DM_AXI_AWADDR,
+	output M_DM_AXI_AWVALID,
+	input M_DM_AXI_AWREADY,
+
+	output [63:0] M_DM_AXI_WDATA,
+	output [7:0] M_DM_AXI_WSTRB,
+	output M_DM_AXI_WVALID,
+	input M_DM_AXI_WREADY,
+
+	input [1:0] M_DM_AXI_BRESP,
+	input M_DM_AXI_BVALID,
+	output M_DM_AXI_BREADY,
+
+	output [63:0] M_DM_AXI_ARADDR,
+	output M_DM_AXI_ARVALID,
+	input M_DM_AXI_ARREADY,
+
+	input [63:0] M_DM_AXI_RDATA,
+	input [1:0] M_DM_AXI_RRESP,
+	input M_DM_AXI_RVALID,
+	output M_DM_AXI_RREADY
+
+
+
+
+
+
 
 	input CLK,
 	input RSTn
@@ -323,86 +352,6 @@ gen_dffr # (.DW(32)) command ( .dnxt(command_dnxt), .qout(command_qout), .CLK(CL
 
 
 
-//0x20
-wire [31:0] progbuf0_dnxt;
-wire [31:0] progbuf0_qout;
-gen_dffr # (.DW(32)) progbuf0 ( .dnxt(progbuf0_dnxt), .qout(progbuf0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x21
-wire [31:0] progbuf1_dnxt;
-wire [31:0] progbuf1_qout;
-gen_dffr # (.DW(32)) progbuf1 ( .dnxt(progbuf1_dnxt), .qout(progbuf1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x22
-wire [31:0] progbuf2_dnxt;
-wire [31:0] progbuf2_qout;
-gen_dffr # (.DW(32)) progbuf2 ( .dnxt(progbuf2_dnxt), .qout(progbuf2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x23
-wire [31:0] progbuf3_dnxt;
-wire [31:0] progbuf3_qout;
-gen_dffr # (.DW(32)) progbuf3 ( .dnxt(progbuf3_dnxt), .qout(progbuf3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x24
-wire [31:0] progbuf4_dnxt;
-wire [31:0] progbuf4_qout;
-gen_dffr # (.DW(32)) progbuf4 ( .dnxt(progbuf4_dnxt), .qout(progbuf4_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x25
-wire [31:0] progbuf5_dnxt;
-wire [31:0] progbuf5_qout;
-gen_dffr # (.DW(32)) progbuf5 ( .dnxt(progbuf5_dnxt), .qout(progbuf5_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x26
-wire [31:0] progbuf6_dnxt;
-wire [31:0] progbuf6_qout;
-gen_dffr # (.DW(32)) progbuf6 ( .dnxt(progbuf6_dnxt), .qout(progbuf6_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x27
-wire [31:0] progbuf7_dnxt;
-wire [31:0] progbuf7_qout;
-gen_dffr # (.DW(32)) progbuf7 ( .dnxt(progbuf7_dnxt), .qout(progbuf7_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x28
-wire [31:0] progbuf8_dnxt;
-wire [31:0] progbuf8_qout;
-gen_dffr # (.DW(32)) progbuf8 ( .dnxt(progbuf8_dnxt), .qout(progbuf8_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x29
-wire [31:0] progbuf9_dnxt;
-wire [31:0] progbuf9_qout;
-gen_dffr # (.DW(32)) progbuf9 ( .dnxt(progbuf9_dnxt), .qout(progbuf9_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2a
-wire [31:0] progbuf10_dnxt;
-wire [31:0] progbuf10_qout;
-gen_dffr # (.DW(32)) progbuf10 ( .dnxt(progbuf10_dnxt), .qout(progbuf10_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2b
-wire [31:0] progbuf11_dnxt;
-wire [31:0] progbuf11_qout;
-gen_dffr # (.DW(32)) progbuf11 ( .dnxt(progbuf11_dnxt), .qout(progbuf11_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2c
-wire [31:0] progbuf12_dnxt;
-wire [31:0] progbuf12_qout;
-gen_dffr # (.DW(32)) progbuf12 ( .dnxt(progbuf12_dnxt), .qout(progbuf12_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2d
-wire [31:0] progbuf13_dnxt;
-wire [31:0] progbuf13_qout;
-gen_dffr # (.DW(32)) progbuf13 ( .dnxt(progbuf13_dnxt), .qout(progbuf13_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2e
-wire [31:0] progbuf14_dnxt;
-wire [31:0] progbuf14_qout;
-gen_dffr # (.DW(32)) progbuf14 ( .dnxt(progbuf14_dnxt), .qout(progbuf14_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2f
-wire [31:0] progbuf15_dnxt;
-wire [31:0] progbuf15_qout;
-gen_dffr # (.DW(32)) progbuf15 ( .dnxt(progbuf15_dnxt), .qout(progbuf15_qout), .CLK(CLK), .RSTn(RSTn));
-
 //0x30
 wire [31:0] authdata_dnxt;
 wire [31:0] authdata_qout;
@@ -474,26 +423,8 @@ assign reg_data_out =
 	| ({32{axi_araddr == 8'h1b}} & confstrptr2_qout)
 	| ({32{axi_araddr == 8'h1c}} & confstrptr3_qout)
 
-	| ({32{axi_araddr == 8'h1d}} & nextdm)
 
-	| ({32{axi_araddr == 8'h20}} & progbuf0_qout)
-	| ({32{axi_araddr == 8'h21}} & progbuf1_qout)
-	| ({32{axi_araddr == 8'h22}} & progbuf2_qout)
-	| ({32{axi_araddr == 8'h23}} & progbuf3_qout)
-	| ({32{axi_araddr == 8'h24}} & progbuf4_qout)
-	| ({32{axi_araddr == 8'h25}} & progbuf5_qout)
-	| ({32{axi_araddr == 8'h26}} & progbuf6_qout)
-	| ({32{axi_araddr == 8'h27}} & progbuf7_qout)
-	| ({32{axi_araddr == 8'h28}} & progbuf8_qout)
-	| ({32{axi_araddr == 8'h29}} & progbuf9_qout)
-	| ({32{axi_araddr == 8'h2a}} & progbuf10_qout)
-	| ({32{axi_araddr == 8'h2b}} & progbuf11_qout)
-	| ({32{axi_araddr == 8'h2c}} & progbuf12_qout)
-	| ({32{axi_araddr == 8'h2d}} & progbuf13_qout)
-	| ({32{axi_araddr == 8'h2e}} & progbuf14_qout)
-	| ({32{axi_araddr == 8'h2f}} & progbuf15_qout)
 
-	| ({32{axi_araddr == 8'h30}} & authdata_qout)
 	| ({32{axi_araddr == 8'h34}} & haltsum2_qout)
 	| ({32{axi_araddr == 8'h35}} & haltsum3_qout)
 	| ({32{axi_araddr == 8'h37}} & sbaddress3_qout)
@@ -740,20 +671,6 @@ wire write = command[16];
 wire [15:0] regno = command[15:0];
 
 wire isAccessRegister = (cmdtype == 8'd0);
-wire isQuickAccess = (cmdtype == 8'd1);
-
-
-
-
-
-
-	output accessReg_valid,
-	input accessReg_ready,
-	output [15:0] accessReg_addr,
-	output accessReg_wen,
-	input [63:0] accessReg_read,
-	output [63:0] accessReg_write,
-	output is32w,
 
 assign accessReg_valid = command_sel & isAccessRegister & transfer;
 assign accessReg_addr = regno;
@@ -773,16 +690,16 @@ assign is32w = (command[22:20] == 2);
 
 
 
-wire isCommandNotReady = command_sel & isQuickAccess & anyhalted;
+//wire isCommandNotReady = command_sel & isQuickAccess & anyhalted;
+
+wire isCommandUnsupport = (command_sel & ~isAccessRegister) | ( command_sel & isAccessRegister & ( aarpostincrement | postexec ));
+wire isCommandException = accessReg_valid & (accessReg_addr > 16'h101f);
 
 
 
 
 
-
-
-
-
+wire abstractcs_sel = slv_reg_wren & ( axi_awaddr == 'h16 );
 
 
 
@@ -790,19 +707,22 @@ wire isCommandNotReady = command_sel & isQuickAccess & anyhalted;
 wire busy = (~accessReg_ready) & (~quickAccess_ready);
 
 wire [2:0] cmderr_qout;
-wire [2:0] cmderr_dnxt = (slv_reg_wren & ( axi_awaddr == 'h16 ) & S_AXI_WDATA[10:8] == 3'd1 & ~busy_qout) ? 3'd0 :
+wire [2:0] cmderr_dnxt = (abstractcs_sel & S_AXI_WDATA[10:8] == 3'd1 & ~busy) ? 3'd0 :
 						(
-							slv_reg_wren & ( axi_awaddr == 'h16 | axi_awaddr == 'h17 | axi_awaddr == 'h18 ) & busy_qout ? 3'd1 :
+							( slv_reg_wren & ( axi_awaddr == 8'h16 | axi_awaddr == 8'h17 ) )
+							|
+							( (slv_reg_rden | slv_reg_wren) & ( axi_awaddr == 8'h04 | axi_awaddr == 8'h05 | axi_awaddr == 8'h06 | axi_awaddr == 8'h07 | axi_awaddr == 8'h08 | axi_awaddr == 8'h09 ) ) 
+								& busy ? 3'd1 :
 							(
 								command_sel & isCommandUnsupport ? 3'd2 : 
 								(											
-									busy_qout & isExpection ? 3'd3 :
+									busy & isExpection ? 3'd3 :
 									(
-										command_sel & isCommandNotReady ? 3'd4 :
+										//command_sel & isCommandNotReady ? 3'd4 :
 										(
-											busy_qout & isBusErrot ? 3'd5 :
+											//busy & isBusErrot ? 3'd5 :
 											(
-												accessReg_ready ? 3'd0 : cmderr_qout
+												cmderr_qout
 											)
 										)
 									)
@@ -817,7 +737,7 @@ gen_dffr # (.DW(3)) cmderr ( .dnxt(cmderr_dnxt), .qout(cmderr_qout), .CLK(CLK), 
 wire abstractcs = 
 	{
 		3'b0,
-		5'd16, //progbufsize(Preset)
+		5'd0, //progbufsize(Preset)
 		11'b0,
 		busy,
 		1'b0,
@@ -832,6 +752,95 @@ wire abstractcs =
 
 
 
+//    SSSSSSSSSSSSSSS YYYYYYY       YYYYYYY   SSSSSSSSSSSSSSS      BBBBBBBBBBBBBBBBB   UUUUUUUU     UUUUUUUU   SSSSSSSSSSSSSSS                     AAA                  CCCCCCCCCCCCC      CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE   SSSSSSSSSSSSSSS   SSSSSSSSSSSSSSS 
+//  SS:::::::::::::::SY:::::Y       Y:::::Y SS:::::::::::::::S     B::::::::::::::::B  U::::::U     U::::::U SS:::::::::::::::S                   A:::A              CCC::::::::::::C   CCC::::::::::::CE::::::::::::::::::::E SS:::::::::::::::SSS:::::::::::::::S
+// S:::::SSSSSS::::::SY:::::Y       Y:::::YS:::::SSSSSS::::::S     B::::::BBBBBB:::::B U::::::U     U::::::US:::::SSSSSS::::::S                  A:::::A           CC:::::::::::::::C CC:::::::::::::::CE::::::::::::::::::::ES:::::SSSSSS::::::S:::::SSSSSS::::::S
+// S:::::S     SSSSSSSY::::::Y     Y::::::YS:::::S     SSSSSSS     BB:::::B     B:::::BUU:::::U     U:::::UUS:::::S     SSSSSSS                 A:::::::A         C:::::CCCCCCCC::::CC:::::CCCCCCCC::::CEE::::::EEEEEEEEE::::ES:::::S     SSSSSSS:::::S     SSSSSSS
+// S:::::S            YYY:::::Y   Y:::::YYYS:::::S                   B::::B     B:::::B U:::::U     U:::::U S:::::S                            A:::::::::A       C:::::C       CCCCCC:::::C       CCCCCC  E:::::E       EEEEEES:::::S           S:::::S            
+// S:::::S               Y:::::Y Y:::::Y   S:::::S                   B::::B     B:::::B U:::::D     D:::::U S:::::S                           A:::::A:::::A     C:::::C            C:::::C                E:::::E             S:::::S           S:::::S            
+//  S::::SSSS             Y:::::Y:::::Y     S::::SSSS                B::::BBBBBB:::::B  U:::::D     D:::::U  S::::SSSS                       A:::::A A:::::A    C:::::C            C:::::C                E::::::EEEEEEEEEE    S::::SSSS         S::::SSSS         
+//   SS::::::SSSSS         Y:::::::::Y       SS::::::SSSSS           B:::::::::::::BB   U:::::D     D:::::U   SS::::::SSSSS                 A:::::A   A:::::A   C:::::C            C:::::C                E:::::::::::::::E     SS::::::SSSSS     SS::::::SSSSS    
+//     SSS::::::::SS        Y:::::::Y          SSS::::::::SS         B::::BBBBBB:::::B  U:::::D     D:::::U     SSS::::::::SS              A:::::A     A:::::A  C:::::C            C:::::C                E:::::::::::::::E       SSS::::::::SS     SSS::::::::SS  
+//        SSSSSS::::S        Y:::::Y              SSSSSS::::S        B::::B     B:::::B U:::::D     D:::::U        SSSSSS::::S            A:::::AAAAAAAAA:::::A C:::::C            C:::::C                E::::::EEEEEEEEEE          SSSSSS::::S       SSSSSS::::S 
+//             S:::::S       Y:::::Y                   S:::::S       B::::B     B:::::B U:::::D     D:::::U             S:::::S          A:::::::::::::::::::::AC:::::C            C:::::C                E:::::E                         S:::::S           S:::::S
+//             S:::::S       Y:::::Y                   S:::::S       B::::B     B:::::B U::::::U   U::::::U             S:::::S         A:::::AAAAAAAAAAAAA:::::AC:::::C       CCCCCC:::::C       CCCCCC  E:::::E       EEEEEE            S:::::S           S:::::S
+// SSSSSSS     S:::::S       Y:::::Y       SSSSSSS     S:::::S     BB:::::BBBBBB::::::B U:::::::UUU:::::::U SSSSSSS     S:::::S        A:::::A             A:::::AC:::::CCCCCCCC::::CC:::::CCCCCCCC::::CEE::::::EEEEEEEE:::::ESSSSSSS     S:::::SSSSSSS     S:::::S
+// S::::::SSSSSS:::::S    YYYY:::::YYYY    S::::::SSSSSS:::::S     B:::::::::::::::::B   UU:::::::::::::UU  S::::::SSSSSS:::::S       A:::::A               A:::::ACC:::::::::::::::C CC:::::::::::::::CE::::::::::::::::::::ES::::::SSSSSS:::::S::::::SSSSSS:::::S
+// S:::::::::::::::SS     Y:::::::::::Y    S:::::::::::::::SS      B::::::::::::::::B      UU:::::::::UU    S:::::::::::::::SS       A:::::A                 A:::::A CCC::::::::::::C   CCC::::::::::::CE::::::::::::::::::::ES:::::::::::::::SSS:::::::::::::::SS 
+ // SSSSSSSSSSSSSSS       YYYYYYYYYYYYY     SSSSSSSSSSSSSSS        BBBBBBBBBBBBBBBBB         UUUUUUUUU       SSSSSSSSSSSSSSS        AAAAAAA                   AAAAAAA   CCCCCCCCCCCCC      CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE SSSSSSSSSSSSSSS   SSSSSSSSSSSSSSS   
+
+
+	wire sbaddress0_sel = slv_reg_wren & ( axi_awaddr == 8'h39 );
+	wire sbdata0_sel = slv_reg_wren & ( axi_awaddr == 8'h3c );
+
+
+	wire sbbusyerror_set;
+	wire sbbusyerror_rst;
+	wire sbbusyerror_qout;
+
+	gen_rsffr # (.DW(1)) sbbusyerror ( .set_in(sbbusyerror_set), .rst_in(sbbusyerror_rst), .qout(sbbusyerror_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)) );
+
+	
+	assign sbbusyerror_set = sbbusy & 
+								(
+									( slv_reg_wren & ( axi_awaddr == 8'h39 | axi_awaddr == 8'h3c) )
+									|
+									( slv_reg_rden & axi_araddr == 8'h3c )
+								);
+	assign sbbusyerror_rst = slv_reg_wren & ( axi_awaddr == 8'h38) & S_AXI_WDATA[22];
+
+
+
+	wire sbbusy_set;
+	wire sbbusy_rst;
+	wire sbbusy_qout;
+	gen_rsffr # (.DW(1)) sbbusy ( .set_in(sbbusy_set), .rst_in(sbbusy_rst), .qout(sbbusy_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)) );
+	assign sbbusy_set = start_single_write | start_single_read;
+	assign sbbusy_rst = write_resp | read_resp;
+
+
+	wire sbreadonaddr_dnxt;
+	wire sbreadonaddr_qout;
+	gen_dffr # (.DW(1)) sbreadonaddr ( .dnxt(sbreadonaddr_dnxt), .qout(sbreadonaddr_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+	wire [2:0] sbaccess_dnxt;
+	wire [2:0] sbaccess_qout;
+	gen_dffr # (.DW(3), .rstValue(3'd2)) sbaccess ( .dnxt(sbaccess_dnxt), .qout(sbaccess_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+	wire sbautoincrement_dnxt;
+	wire sbautoincrement_qout;
+	gen_dffr # (.DW(1)) sbautoincrement ( .dnxt(sbautoincrement_dnxt), .qout(sbautoincrement_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+	wire sbreadondate_dnxt;
+	wire sbreadondate_qout;
+	gen_dffr # (.DW(1)) sbreadondate ( .dnxt(sbreadondate_dnxt), .qout(sbreadondate_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+	wire [2:0] sberror_dnxt;
+	wire [2:0] sberror_qout;
+	gen_dffr # (.DW(3)) sberror ( .dnxt(sberror_dnxt), .qout(sberror_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+	wire [31:0] sbcs = 
+					{
+						1'b1, //sbversion
+						sbbusyerror_qout,
+						sbbusy,
+						sbreadonaddr_qout,
+						sbaccess_qout,
+						sbautoincrement_qout,
+						sbreadondate_qout,
+						sberror_qout,
+						8'd64, //sbasize(Preset)
+						1'b0, //sbaccess128(Preset)
+						1'b1, //sbaccess64(Preset)
+						1'b0, //sbaccess32(Preset)
+						1'b0, //sbaccess16(Preset)
+						1'b0, //sbaccess8(Preset)
+					}
 
 
 
@@ -841,22 +850,225 @@ wire abstractcs =
 
 
 
-assign quickAccess_vaild = command_sel & cmdtype == 'd1 & ~anyhalted;
+
+
+	output [63:0] M_DM_AXI_AWADDR,
+	output reg M_DM_AXI_AWVALID,
+	input M_DM_AXI_AWREADY,
+
+	output [63:0] M_DM_AXI_WDATA,
+	output [7:0] M_DM_AXI_WSTRB,
+	output M_DM_AXI_WVALID,
+	input M_DM_AXI_WREADY,
+
+	input [1:0] M_DM_AXI_BRESP,
+	input M_DM_AXI_BVALID,
+	output reg M_DM_AXI_BREADY,
+
+	output [63:0] M_DM_AXI_ARADDR,
+	output reg M_DM_AXI_ARVALID,
+	input M_DM_AXI_ARREADY,
+
+	input [63:0] M_DM_AXI_RDATA,
+	input [1:0] M_DM_AXI_RRESP,
+	input M_DM_AXI_RVALID,
+	output reg M_DM_AXI_RREADY
 
 
 
 
-// output accessMemroy_vaild;
-// output isReadAccess;
-// output isWriteAccess;
-// output write_data;
-// input read_data;
-// output AccessMemroy_addr;
-// input accessMemroy_ready
 
-// assign accessMemroy_vaild = command_sel & cmdtype == 'd2;
-// assign isReadAccess = command_sel & ~command[16];
-// assign isWriteAccess = command_sel & command[16]; 
+	wire sbaddress0_dnxt;
+	wire sbaddress0_qout;
+	wire sbaddress1_dnxt;
+	wire sbaddress1_qout;
+	wire sbaddress_dnxt;
+	wire sbaddress_qout;
+	gen_dffr # (.DW(64)) sbaddress ( .dnxt(sbaddress_dnxt), .qout(sbaddress_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+	assign sbaddress_dnxt = () & { sbaddress1_dnxt, sbaddress0_dnxt}
+							|
+							(write_resp_success | read_resp_success) & ( sbaddress_qout + 64'd1);
+
+	assign {sbaddress1_qout, sbaddress0_qout} = sbaddress_qout;
+
+
+	wire sbdata0_dnxt;
+	wire sbdata0_qout;
+	wire sbdata1_dnxt;
+	wire sbdata1_qout;
+	wire sbdata_dnxt;
+	wire sbdata_qout;
+
+
+	gen_dffr # (.DW(64)) sbdata ( .dnxt(sbdata_dnxt), .qout(sbdata_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+	assign sbdata_dnxt = { sbdata_dnxt, sbdata_dnxt };
+	assign {sbdata1_qout, sbdata0_qout} = sbdata_qout;
+
+
+
+
+
+	reg start_single_write;
+	reg start_single_read;
+	wire write_resp;
+	wire write_resp_error;
+	wire write_resp_success;
+	wire read_resp;
+	wire read_resp_error;
+	wire read_resp_success
+
+	assign M_DM_AXI_AWADDR = sbaddress_qout;
+	assign M_DM_AXI_ARADDR = sbaddress_qout;
+	assign M_DM_AXI_WDATA = sbdata_qout;
+
+ 
+	always @(posedge CLK or negedge RSTn) begin
+		if(~RSTn) begin
+
+			start_single_write <= 1'b0;
+			start_single_read <= 1'b0;
+
+		end 
+		else begin
+			start_single_write <= 1'b0;
+			start_single_read <= 1'b0;
+
+			if ( sbdata0_sel ) begin
+				start_single_write <= 1'b1;
+			end
+
+			if ( 
+					(~sberror_qout & ~sbbusyerror & sbreadonaddr_qout & sbaddress0_sel) 
+					| 
+					( slv_reg_rden & axi_araddr == 8'h3c & sbreadondate_qout ) 
+				) begin
+				start_single_read <= 1'b1;
+			end
+
+		end
+	end
+
+
+
+
+	assign M_AXI_AWPROT	= 3'b000;
+	assign M_AXI_WSTRB	= 4'b1111;
+	assign M_AXI_ARPROT	= 3'b001;
+
+
+
+
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			M_DM_AXI_AWVALID <= 1'b0;
+		end
+		else begin
+			if (start_single_write) begin
+				M_DM_AXI_AWVALID <= 1'b1;
+			end
+			else if (M_AXI_AWREADY && M_DM_AXI_AWVALID) begin
+				M_DM_AXI_AWVALID <= 1'b0;
+			end
+		end
+	end
+
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			 M_DM_AXI_WVALID <= 1'b0;
+		end
+		else if (start_single_write) begin
+			M_DM_AXI_WVALID <= 1'b1;
+		end
+		else if (M_AXI_WREADY && M_DM_AXI_WVALID) begin
+			M_DM_AXI_WVALID <= 1'b0;
+		end
+	end
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			M_DM_AXI_BREADY <= 1'b0;
+		end
+		else if (M_AXI_BVALID && ~M_DM_AXI_BREADY) begin
+			M_DM_AXI_BREADY <= 1'b1;
+		end
+		else if (M_DM_AXI_BREADY) begin
+			M_DM_AXI_BREADY <= 1'b0;
+		end
+		else
+		  M_DM_AXI_BREADY <= M_DM_AXI_BREADY;
+	end
+
+	assign write_resp = M_DM_AXI_BREADY & M_AXI_BVALID;
+	assign write_resp_error = (write_resp & M_AXI_BRESP[1]);
+	assign write_resp_success = (write_resp & ~M_AXI_BRESP[1]);
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			M_DM_AXI_ARVALID <= 1'b0;
+		end
+		else if (start_single_read) begin
+			M_DM_AXI_ARVALID <= 1'b1;
+		end
+		else if (M_AXI_ARREADY && M_DM_AXI_ARVALID) begin
+			M_DM_AXI_ARVALID <= 1'b0;
+		end
+	end
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn ) begin
+			M_DM_AXI_RREADY <= 1'b0;
+		end
+		else if (M_AXI_RVALID && ~M_DM_AXI_RREADY) begin
+			M_DM_AXI_RREADY <= 1'b1;
+		end
+		else if (M_DM_AXI_RREADY) begin
+			M_DM_AXI_RREADY <= 1'b0;
+		end
+	end
+
+	assign read_resp = M_DM_AXI_RREADY & M_AXI_RVALID;
+	assign read_resp_error = read_resp & M_AXI_RRESP[1];
+	assign read_resp_success = read_resp & ~M_AXI_RRESP[1];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
