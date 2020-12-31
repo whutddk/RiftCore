@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-17 19:50:02
+* @Last Modified time: 2020-12-31 15:53:18
 */
 
 /*
@@ -104,7 +104,7 @@ module bru #
 
 
 
-	wire [63:0] jalr_pc_dnxt = src1 + bru_imm;
+	wire [63:0] jalr_pc_dnxt = (src1 + bru_imm) & ~(64'b1);
 	wire jalr_vaild_dnxt = (~flush) & bru_jalr & bru_exeparam_vaild;
 
 	gen_dffr # (.DW(1)) jalr_vaild ( .dnxt(jalr_vaild_dnxt), .qout(jalr_vaild_qout), .CLK(CLK), .RSTn(RSTn));
