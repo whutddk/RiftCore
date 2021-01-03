@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 17:57:02
+* @Last Modified time: 2021-01-03 12:08:17
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,16 +36,16 @@ module pcGenerate (
 	input isReset,
 
 	//from jalr exe
-	input jalr_vaild,
+	input jalr_valid,
 	input [63:0] jalr_pc,
 	
 	//from bru
-	input bru_res_vaild,
+	input bru_res_valid,
 	input bru_takenBranch,
 
 	// from expection 	
 	input [63:0] privileged_pc,
-	input privileged_vaild,
+	input privileged_valid,
 
 	//to commit to flush
 	output isMisPredict,
@@ -90,10 +90,10 @@ module pcGenerate (
 	wire isPredit;
 
 
-	wire pcGen_fetch_vaild;
+	wire pcGen_fetch_valid;
 
 
-	wire isExpection = privileged_vaild;
+	wire isExpection = privileged_valid;
 	wire [63:0] expection_pc = privileged_pc;
 
 
@@ -118,18 +118,18 @@ module pcGenerate (
 									};
 
 	wire bht_full;
-	wire bht_pop = bru_res_vaild;
-	wire bht_push = isPredit & ~bht_full & pcGen_fetch_vaild;
+	wire bht_pop = bru_res_valid;
+	wire bht_push = isPredit & ~bht_full & pcGen_fetch_valid;
 
-	assign isMisPredict = bru_res_vaild & ( bru_takenBranch ^ bht_data_pop[64]);
+	assign isMisPredict = bru_res_valid & ( bru_takenBranch ^ bht_data_pop[64]);
 	wire [63:0] resolve_pc = bht_data_pop[63:0];
 
 
 	// wire instrFifo_stall = instrFifo_full;
-	wire jalr_stall = isJalr & ~jalr_vaild & ( ras_empty | ~isReturn );
+	wire jalr_stall = isJalr & ~jalr_valid & ( ras_empty | ~isReturn );
 	wire bht_stall = (bht_full & isPredit);
 
-	assign pcGen_fetch_vaild = (~bht_stall & ~jalr_stall & ~instrFifo_full) | isMisPredict | isExpection;
+	assign pcGen_fetch_valid = (~bht_stall & ~jalr_stall & ~instrFifo_full) | isMisPredict | isExpection;
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
@@ -251,13 +251,13 @@ module pcGenerate (
 	wire [63:0] ras_addr_pop;
 	wire [63:0] ras_addr_push;
 
-	wire ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_vaild;
-	wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_vaild;
+	wire ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_valid;
+	wire ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_valid;
 
 	assign next_pc = fetch_pc_qout + ( is_rvc_instr ? 64'd2 : 64'd4 );
 	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_qout + imm) )
 						| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
-						| ( {64{isJalr & !ras_pop & jalr_vaild}} & jalr_pc  );
+						| ( {64{isJalr & !ras_pop & jalr_valid}} & jalr_pc  );
 	assign ras_addr_push = next_pc;
 
 
@@ -275,7 +275,7 @@ ifu # ( .DW(64) ) i_ifu(
 
 	.fetch_pc_dnxt(fetch_pc_dnxt),
 	// .itcm_ready(itcm_ready),
-	.pcGen_fetch_vaild(pcGen_fetch_vaild),
+	.pcGen_fetch_valid(pcGen_fetch_valid),
 	.instrFifo_full(instrFifo_full),
 	.instr(load_instr),
 	.isInstrReadOut(isInstrReadOut),

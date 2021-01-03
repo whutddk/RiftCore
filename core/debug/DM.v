@@ -4,12 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-08 16:50:05
+* @Last Modified time: 2021-01-03 12:08:40
 */
 
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1073,7 +1073,7 @@ output [15:0] accessReg_addr,
 output accessReg_wen,
 input [127:0] accessReg_res,
 input accessReg_ready,
-output accessReg_vaild,
+output accessReg_valid,
 
 
 
@@ -1147,7 +1147,7 @@ assign accessReg_addr = regno;
 assign accessReg_wen = transfer & write;
 
 wire accessReg_ren = transfer & ~write;
-assign accessReg_vaild = isCommand & cmdtype == 'd0;
+assign accessReg_valid = isCommand & cmdtype == 'd0;
 
 
 
@@ -1159,17 +1159,17 @@ assign accessReg_vaild = isCommand & cmdtype == 'd0;
 
 
 
-output quickAccess_vaild,
+output quickAccess_valid,
 output [32*16-1:0] programBuffer,
 input isExpection,
 input quickAccess_ready;
 
-assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
+assign quickAccess_valid = isCommand & cmdtype == 'd1 & ~anyhalted;
 
 
 
 
-// output accessMemroy_vaild;
+// output accessMemroy_valid;
 // output isReadAccess;
 // output isWriteAccess;
 // output write_data;
@@ -1177,7 +1177,7 @@ assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
 // output AccessMemroy_addr;
 // input accessMemroy_ready
 
-// assign accessMemroy_vaild = isCommand & cmdtype == 'd2;
+// assign accessMemroy_valid = isCommand & cmdtype == 'd2;
 // assign isReadAccess = isCommand & ~command[16];
 // assign isWriteAccess = isCommand & command[16]; 
 

@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-20 16:41:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-31 15:53:18
+* @Last Modified time: 2021-01-03 12:08:32
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,16 +34,16 @@ module bru #
 
 	//from bru issue
 	output bru_exeparam_ready,
-	input bru_exeparam_vaild,
+	input bru_exeparam_valid,
 	input [DW-1:0] bru_exeparam, 
 
 	// to pc generate
 	output takenBranch_qout,
-	output takenBranch_vaild_qout,
-	output jalr_vaild_qout,
+	output takenBranch_valid_qout,
+	output jalr_valid_qout,
 	output [63:0] jalr_pc_qout,
 
-	output bru_writeback_vaild,
+	output bru_writeback_valid,
 	output [63:0] bru_res_qout,
 	output [(5+`RB)-1:0] bru_rd0_qout,
 
@@ -105,9 +105,9 @@ module bru #
 
 
 	wire [63:0] jalr_pc_dnxt = (src1 + bru_imm) & ~(64'b1);
-	wire jalr_vaild_dnxt = (~flush) & bru_jalr & bru_exeparam_vaild;
+	wire jalr_valid_dnxt = (~flush) & bru_jalr & bru_exeparam_valid;
 
-	gen_dffr # (.DW(1)) jalr_vaild ( .dnxt(jalr_vaild_dnxt), .qout(jalr_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) jalr_valid ( .dnxt(jalr_valid_dnxt), .qout(jalr_valid_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) jalr_pc ( .dnxt(jalr_pc_dnxt), .qout(jalr_pc_qout), .CLK(CLK), .RSTn(RSTn));
 
 	
@@ -120,7 +120,7 @@ module bru #
 	wire take_ltu = (bru_ltu) & ($unsigned(src1) < $unsigned(src2));
 	wire take_geu = (bru_geu) & ($unsigned(src1) >= $unsigned(src2));
 
-	wire vaild_dnxt = (~flush) & bru_pcGen_ready & bru_exeparam_vaild 
+	wire valid_dnxt = (~flush) & bru_pcGen_ready & bru_exeparam_valid 
 						& ( bru_eq 
 						| bru_ne
 						| bru_lt
@@ -128,7 +128,7 @@ module bru #
 						| bru_ltu
 						| bru_geu );
 
-	wire takenBranch_dnxt = vaild_dnxt 
+	wire takenBranch_dnxt = valid_dnxt 
 								? (take_eq | take_ne | take_lt | take_ge | take_ltu | take_geu)
 								: takenBranch_qout;
 
@@ -136,7 +136,7 @@ module bru #
 
 
 	gen_dffr # (.DW(1)) takenBranch ( .dnxt(takenBranch_dnxt), .qout(takenBranch_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) takenBranch_vaild ( .dnxt(vaild_dnxt), .qout(takenBranch_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) takenBranch_valid ( .dnxt(valid_dnxt), .qout(takenBranch_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign bru_exeparam_ready = bru_pcGen_ready;
@@ -146,7 +146,7 @@ module bru #
 
 	gen_dffr # (.DW((5+`RB))) bru_rd0 ( .dnxt(bru_rd0_dnxt), .qout(bru_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) bru_res ( .dnxt( bru_res_dnxt), .qout(bru_res_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) vaild ( .dnxt(bru_exeparam_vaild&(~flush)), .qout(bru_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) valid ( .dnxt(bru_exeparam_valid&(~flush)), .qout(bru_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

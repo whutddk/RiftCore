@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 17:58:45
+* @Last Modified time: 2021-01-03 12:08:20
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ module ifu #
 
 	input [63:0] fetch_pc_dnxt,
 	// output reg itcm_ready,
-	input pcGen_fetch_vaild,
+	input pcGen_fetch_valid,
 	input instrFifo_full,
 	output [DW-1:0] instr,
 	output isInstrReadOut,
@@ -60,7 +60,7 @@ module ifu #
 
 
 wire instr_update = ~instrFifo_full & M_IFU_RVALID;
-assign M_IFU_ARVALID = pcGen_fetch_vaild & ~instrFifo_full;
+assign M_IFU_ARVALID = pcGen_fetch_valid & ~instrFifo_full;
 assign M_IFU_RREADY = instr_update;
 assign M_IFU_ARADDR = fetch_pc_dnxt;
 
@@ -86,7 +86,7 @@ wire M_IFU_RVALID_F =
 		else begin
 			// instr <= #1 instr_update ? M_IFU_RDATA : instr;
 			fetch_pc_qout <= #1 M_IFU_RVALID_F & ~instrFifo_full  ? fetch_pc_dnxt : fetch_pc_qout;
-			// isInstrReadOut <= #1 instr_update ? pcGen_fetch_vaild : isInstrReadOut;
+			// isInstrReadOut <= #1 instr_update ? pcGen_fetch_valid : isInstrReadOut;
 		end 
 	end
 

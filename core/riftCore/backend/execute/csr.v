@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 14:30:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-18 10:18:16
+* @Last Modified time: 2021-01-03 12:08:31
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ module csr #
 	)
 	(
 
-	input csr_exeparam_vaild,
+	input csr_exeparam_valid,
 	input [DW-1 :0] csr_exeparam,
 
 	//from csrfiles
@@ -43,7 +43,7 @@ module csr #
 
 
 
-	output csr_writeback_vaild,
+	output csr_writeback_valid,
 	output [63:0] csr_res_qout,
 	output [(5+`RB-1):0] csr_rd0_qout,
 
@@ -90,7 +90,7 @@ module csr #
 
 wire dontRead = (csr_rd0_dnxt[`RB +: 5] == 5'd0) & rv64csr_rw;
 wire dontWrite = (op == 64'd0) & ( rv64csr_rs | rv64csr_rc );
-assign csrexe_wen = ~dontWrite & csr_exeparam_vaild;
+assign csrexe_wen = ~dontWrite & csr_exeparam_valid;
 
 initial $warning("no exception in csr exe at this version");
 wire illagle_op = 1'b0;
@@ -99,7 +99,7 @@ wire illagle_op = 1'b0;
 
 
 
-assign csrexe_data_write = {64{~dontWrite & csr_exeparam_vaild}} &
+assign csrexe_data_write = {64{~dontWrite & csr_exeparam_valid}} &
 							(
 								({64{rv64csr_rw}} & op)
 								|
@@ -114,7 +114,7 @@ wire [63:0] csr_res_dnxt = csrexe_data_read;
 
 gen_dffr # (.DW((5+`RB))) csr_rd0 ( .dnxt(csr_rd0_dnxt), .qout(csr_rd0_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
 gen_dffr # (.DW(64)) csr_res ( .dnxt(csr_res_dnxt), .qout(csr_res_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
-gen_dffr # (.DW(1)) vaild ( .dnxt(csr_exeparam_vaild), .qout(csr_writeback_vaild), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(1)) valid ( .dnxt(csr_exeparam_valid), .qout(csr_writeback_valid), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
 
 

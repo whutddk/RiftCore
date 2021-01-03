@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-19 17:29:16
+* @Last Modified time: 2021-01-03 12:08:25
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ module lsu_issue #
 		input [DW-1:0] lsu_issue_info,
 		
 		input lsu_exeparam_ready,
-		output lsu_exeparam_vaild_qout,
+		output lsu_exeparam_valid_qout,
 		output [EXE_DW-1:0] lsu_exeparam_qout,
 
 		//from regFile
@@ -127,11 +127,11 @@ module lsu_issue #
 	assign op2 = regFileX_read[lsu_rs2 * 64 +: 64];
 
 
-	wire lsu_exeparam_vaild_dnxt;
+	wire lsu_exeparam_valid_dnxt;
 	wire [EXE_DW-1:0] lsu_exeparam_dnxt = flush 
 											? {EXE_DW{1'b0}} 
 											: (
-												lsu_exeparam_vaild_dnxt 
+												lsu_exeparam_valid_dnxt 
 													? { 
 														rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
 														rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
@@ -143,12 +143,12 @@ module lsu_issue #
 													: lsu_exeparam_qout
 												);
 
-	assign lsu_exeparam_vaild_dnxt = flush ? 1'b0 : (lsu_exeparam_ready & lsu_isClearRAW );
-	assign lsu_fifo_pop = lsu_exeparam_ready & lsu_exeparam_vaild_dnxt;
+	assign lsu_exeparam_valid_dnxt = flush ? 1'b0 : (lsu_exeparam_ready & lsu_isClearRAW );
+	assign lsu_fifo_pop = lsu_exeparam_ready & lsu_exeparam_valid_dnxt;
 
 
 	gen_dffr # (.DW(EXE_DW)) lsu_exeparam ( .dnxt(lsu_exeparam_dnxt), .qout(lsu_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) lsu_exeparam_vaild ( .dnxt(lsu_exeparam_vaild_dnxt), .qout(lsu_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) lsu_exeparam_valid ( .dnxt(lsu_exeparam_valid_dnxt), .qout(lsu_exeparam_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -185,7 +185,7 @@ module lsu_issue #
 
 
 
-// assign fence_dispat = (rv64zi_fence_i | rv64i_fence) & dispat_vaild 
+// assign fence_dispat = (rv64zi_fence_i | rv64i_fence) & dispat_valid 
 // 							& ~(fencing);
 
 // 	initial $warning("暂不支持TSO,暂不区分io和memory");

@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 19:16:56
+* @Last Modified time: 2021-01-03 12:08:39
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,12 +36,12 @@ module backEnd (
 	input instrFifo_empty,
 
 	// to pcGen
-	output jalr_vaild_qout,
+	output jalr_valid_qout,
 	output [63:0] jalr_pc_qout,
 	input isMisPredict,
 
 	output takenBranch_qout,
-	output takenBranch_vaild_qout,
+	output takenBranch_valid_qout,
 
 	output isFlush,
 
@@ -50,7 +50,7 @@ module backEnd (
 	input isSoftwvInterrupt,
 
 	output [63:0] privileged_pc,
-	output privileged_vaild,
+	output privileged_valid,
 
 
 	input CLK,
@@ -100,35 +100,35 @@ module backEnd (
 
 
 	//issue to execute
-	wire alu_exeparam_vaild;
+	wire alu_exeparam_valid;
 	wire [`ALU_EXEPARAM_DW-1:0] alu_exeparam;
 	wire bru_exeparam_ready;
-	wire bru_exeparam_vaild;
+	wire bru_exeparam_valid;
 	wire [`BRU_EXEPARAM_DW-1:0] bru_exeparam;
-	wire csr_exeparam_vaild;
+	wire csr_exeparam_valid;
 	wire [`CSR_EXEPARAM_DW-1 :0] csr_exeparam;
 	wire lsu_exeparam_ready;
-	wire lsu_exeparam_vaild;
+	wire lsu_exeparam_valid;
 	wire [`LSU_EXEPARAM_DW-1:0] lsu_exeparam;
-	wire mul_exeparam_vaild;
+	wire mul_exeparam_valid;
 	wire mul_execute_ready;
 	wire [`MUL_EXEPARAM_DW-1 :0] mul_exeparam;
 
 
 	//execute to writeback
-	wire alu_writeback_vaild;
+	wire alu_writeback_valid;
 	wire [63:0] alu_res;
 	wire [(5+`RB-1):0] alu_rd0;
-	wire bru_writeback_vaild;
+	wire bru_writeback_valid;
 	wire [(5+`RB-1):0] bru_rd0;
 	wire [63:0] bru_res;
-	wire lsu_writeback_vaild;
+	wire lsu_writeback_valid;
 	wire [(5+`RB-1):0] lsu_rd0;
 	wire [63:0] lsu_res;
-	wire csr_writeback_vaild;
+	wire csr_writeback_valid;
 	wire [(5+`RB-1):0] csr_rd0;
 	wire [63:0] csr_res;
-	wire mul_writeback_vaild;
+	wire mul_writeback_valid;
 	wire [(5+`RB-1):0] mul_rd0;
 	wire [63:0] mul_res;
 
@@ -318,7 +318,7 @@ alu_issue i_aluIssue(
 	.alu_buffer_malloc(alu_buffer_malloc),
 	.alu_issue_info(alu_issue_info),
 
-	.alu_exeparam_vaild_qout(alu_exeparam_vaild),
+	.alu_exeparam_valid_qout(alu_exeparam_valid),
 	.alu_exeparam_qout(alu_exeparam),
 
 	.wbLog_qout(wbLog_qout),
@@ -334,7 +334,7 @@ bru_issue i_bruIssue(
 	.bru_issue_info(bru_issue_info),
 
 	.bru_exeparam_ready(bru_exeparam_ready),
-	.bru_exeparam_vaild_qout(bru_exeparam_vaild),
+	.bru_exeparam_valid_qout(bru_exeparam_valid),
 	.bru_exeparam_qout(bru_exeparam),
 	.bruILP_ready(bruILP_ready),
 
@@ -352,7 +352,7 @@ csr_issue i_csrIssue(
 	.csr_fifo_empty(csr_fifo_empty),
 	.csr_issue_info(csr_issue_info),
 
-	.csr_exeparam_vaild_qout(csr_exeparam_vaild),
+	.csr_exeparam_valid_qout(csr_exeparam_valid),
 	.csr_exeparam_qout(csr_exeparam),
 
 	.wbLog_qout(wbLog_qout),
@@ -373,7 +373,7 @@ lsu_issue i_lsuIssue(
 	.lsu_issue_info(lsu_issue_info),
 
 	.lsu_exeparam_ready(lsu_exeparam_ready),
-	.lsu_exeparam_vaild_qout(lsu_exeparam_vaild),
+	.lsu_exeparam_valid_qout(lsu_exeparam_valid),
 	.lsu_exeparam_qout(lsu_exeparam),
 
 	.regFileX_read(regFileX_qout),
@@ -392,7 +392,7 @@ mul_issue i_mulIssue(
 	.mul_issue_info(mul_issue_info),
 
 	.mul_execute_ready(mul_execute_ready),
-	.mul_exeparam_vaild_qout(mul_exeparam_vaild),
+	.mul_exeparam_valid_qout(mul_exeparam_valid),
 	.mul_exeparam_qout(mul_exeparam),
 
 	.wbLog_qout(wbLog_qout),
@@ -407,10 +407,10 @@ mul_issue i_mulIssue(
 
 //C5 and T5
 alu i_alu(
-	.alu_exeparam_vaild(alu_exeparam_vaild),
+	.alu_exeparam_valid(alu_exeparam_valid),
 	.alu_exeparam(alu_exeparam),
 
-	.alu_writeback_vaild(alu_writeback_vaild),
+	.alu_writeback_valid(alu_writeback_valid),
 	.alu_res_qout(alu_res),
 	.alu_rd0_qout(alu_rd0),
 
@@ -424,15 +424,15 @@ alu i_alu(
 bru i_bru(
 
 	.bru_exeparam_ready(bru_exeparam_ready),
-	.bru_exeparam_vaild(bru_exeparam_vaild),
+	.bru_exeparam_valid(bru_exeparam_valid),
 	.bru_exeparam(bru_exeparam), 
 
 	.takenBranch_qout(takenBranch_qout),
-	.takenBranch_vaild_qout(takenBranch_vaild_qout),
-	.jalr_vaild_qout(jalr_vaild_qout),
+	.takenBranch_valid_qout(takenBranch_valid_qout),
+	.jalr_valid_qout(jalr_valid_qout),
 	.jalr_pc_qout(jalr_pc_qout),
 
-	.bru_writeback_vaild(bru_writeback_vaild),
+	.bru_writeback_valid(bru_writeback_valid),
 	.bru_res_qout(bru_res),
 	.bru_rd0_qout(bru_rd0),
 
@@ -444,7 +444,7 @@ bru i_bru(
 );
 
 csr i_csr(
-	.csr_exeparam_vaild(csr_exeparam_vaild),
+	.csr_exeparam_valid(csr_exeparam_valid),
 	.csr_exeparam(csr_exeparam),
 
 	.csrexe_addr(csrexe_addr),
@@ -452,7 +452,7 @@ csr i_csr(
 	.csrexe_data_write(csrexe_data_write),
 	.csrexe_data_read(csrexe_data_read),
 
-	.csr_writeback_vaild(csr_writeback_vaild),
+	.csr_writeback_valid(csr_writeback_valid),
 	.csr_res_qout(csr_res),
 	.csr_rd0_qout(csr_rd0),
 
@@ -466,10 +466,10 @@ csr i_csr(
 lsu i_lsu(
 
 	.lsu_exeparam_ready(lsu_exeparam_ready),
-	.lsu_exeparam_vaild(lsu_exeparam_vaild),
+	.lsu_exeparam_valid(lsu_exeparam_valid),
 	.lsu_exeparam(lsu_exeparam),
 	
-	.lsu_writeback_vaild(lsu_writeback_vaild),
+	.lsu_writeback_valid(lsu_writeback_valid),
 	.lsu_res_qout(lsu_res),
 	.lsu_rd0_qout(lsu_rd0),
 
@@ -479,11 +479,11 @@ lsu i_lsu(
 );
 
 mul i_mul(
-	.mul_exeparam_vaild(mul_exeparam_vaild),
+	.mul_exeparam_valid(mul_exeparam_valid),
 	.mul_execute_ready(mul_execute_ready),
 	.mul_exeparam(mul_exeparam),
 
-	.mul_writeback_vaild(mul_writeback_vaild),
+	.mul_writeback_valid(mul_writeback_valid),
 	.mul_res_qout(mul_res),
 	.mul_rd0_qout(mul_rd0),
 
@@ -505,23 +505,23 @@ writeBack i_writeBack(
 
 	.wbLog_writeb_set(wbLog_writeb_set),
 
-	.alu_writeback_vaild(alu_writeback_vaild),
+	.alu_writeback_valid(alu_writeback_valid),
 	.alu_res(alu_res),
 	.alu_rd0(alu_rd0),
 
-	.bru_writeback_vaild(bru_writeback_vaild),
+	.bru_writeback_valid(bru_writeback_valid),
 	.bru_res(bru_res),
 	.bru_rd0(bru_rd0),
 
-	.lsu_writeback_vaild(lsu_writeback_vaild),
+	.lsu_writeback_valid(lsu_writeback_valid),
 	.lsu_rd0(lsu_rd0),
 	.lsu_res(lsu_res),
 
-	.csr_writeback_vaild(csr_writeback_vaild),
+	.csr_writeback_valid(csr_writeback_valid),
 	.csr_rd0(csr_rd0),
 	.csr_res(csr_res),
 
-	.mul_writeback_vaild(mul_writeback_vaild),
+	.mul_writeback_valid(mul_writeback_valid),
 	.mul_rd0(mul_rd0),
 	.mul_res(mul_res)
 
@@ -568,7 +568,7 @@ commit i_commit(
 
 assign flush = commit_abort;
 
-assign privileged_vaild = (~reOrder_fifo_empty) & (isTrap | isXRet);
+assign privileged_valid = (~reOrder_fifo_empty) & (isTrap | isXRet);
 
 
 

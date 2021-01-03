@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-26 19:01:43
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-08 17:03:09
+* @Last Modified time: 2021-01-03 12:08:41
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -45,10 +45,10 @@ input [15:0] accessReg_addr,
 input accessReg_wen,
 output [127:0] accessReg_res,
 output accessReg_ready,
-input accessReg_vaild,
+input accessReg_valid,
 
 
-input quickAccess_vaild,
+input quickAccess_valid,
 output isExpection,
 output quickAccess_ready,
 
