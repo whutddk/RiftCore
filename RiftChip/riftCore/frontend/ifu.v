@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 17:58:45
+* @Last Modified time: 2021-01-05 16:45:08
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,59 +36,61 @@ module ifu #
 )
 (
 
-	output [63:0] M_IFU_ARADDR,
-	output M_IFU_ARVALID,
-
-	output M_IFU_RREADY,
-	input M_IFU_RVALID,
-	input [DW-1:0] M_IFU_RDATA,
+	output ifu_mstReq_valid,
+	output [63:0] ifu_addr,
+	input [63:0] ifu_data_r,
+	input ifu_slvRsp_valid,
 
 
-
+	input pcGen_fetch_valid,
 	input [63:0] fetch_pc_dnxt,
-	// output reg itcm_ready,
-	input pcGen_fetch_vaild,
+	output [63:0] fetch_pc_qout,
+	output [63:0] fetch_instr,
+	output fetchBuff_ready,
+	output fetchBuff_valid,
 	input instrFifo_full,
-	output [DW-1:0] instr,
-	output isInstrReadOut,
-	output reg [63:0] fetch_pc_qout,
 
+
+	input flush,
 	input CLK,
 	input RSTn
 
 );
 
 
-wire instr_update = ~instrFifo_full & M_IFU_RVALID;
-assign M_IFU_ARVALID = pcGen_fetch_vaild & ~instrFifo_full;
-assign M_IFU_RREADY = instr_update;
-assign M_IFU_ARADDR = fetch_pc_dnxt;
+assign ifu_mstReq_valid = pcGen_fetch_valid;
+assign ifu_addr = fetch_pc_dnxt;
 
 
-assign isInstrReadOut = M_IFU_RVALID;
-assign instr = M_IFU_RDATA;
+wire [63:0] fetch_pc_tmp;
+
+
+gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_tmp), .en(fetchBuff_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 
-wire M_IFU_RVALID_F = 
-	(M_IFU_ARVALID  & M_IFU_RREADY & 1'b1) //next comes and get old 
-	| (M_IFU_ARVALID  & ~M_IFU_RREADY & 1'b1) // next comes and abort old
-	| (~M_IFU_ARVALID  & M_IFU_RREADY & 1'b0) // just get old
-	| (~M_IFU_ARVALID  & ~M_IFU_RREADY & M_IFU_RVALID); // wait
 
 
-	always @(posedge CLK or negedge RSTn) begin
-		if ( ~RSTn ) begin
-			// instr <= {DW{1'b0}};
-			fetch_pc_qout <= 64'h80000000;
-			// isInstrReadOut <= 1'b0;
-		end
-		else begin
-			// instr <= #1 instr_update ? M_IFU_RDATA : instr;
-			fetch_pc_qout <= #1 M_IFU_RVALID_F & ~instrFifo_full  ? fetch_pc_dnxt : fetch_pc_qout;
-			// isInstrReadOut <= #1 instr_update ? pcGen_fetch_vaild : isInstrReadOut;
-		end 
-	end
+
+
+gen_bypassfifo # ( .DW(64+64) .AW(0) ) 
+fetchBuff
+(
+	.valid_i(ifu_slvRsp_valid),
+	.data_i({fetch_pc_tmp, ifu_data_r}),
+	.ready_i(fetchBuff_ready),
+
+	.valid_o(fetchBuff_valid),
+	.data_o({fetch_pc_qout, fetch_instr}),
+	.ready_o(~instrFifo_full),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
+
+
+
 
 
 
