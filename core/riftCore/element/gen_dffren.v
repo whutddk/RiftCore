@@ -1,11 +1,12 @@
 /*
-* @File name: gen_dffr
+* @File name: gen_dffren
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-09-14 10:25:09
+* @Date:   2020-12-28 10:04:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-29 18:05:13
+* @Last Modified time: 2020-12-28 10:09:35
 */
+
 
 /*
   Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
@@ -25,7 +26,8 @@
 
 `timescale 1 ns / 1 ps
 
-module gen_dffr # (
+
+module gen_dffren # (
 	parameter DW = 32,
 	parameter rstValue = {DW{1'b0}}
 )
@@ -33,30 +35,33 @@ module gen_dffr # (
 
 	input [DW-1:0] dnxt,
 	output [DW-1:0] qout,
+	input en,
 
 	input CLK,
 	input RSTn
 );
 
-reg [DW-1:0] qout_r;
 
-always @(posedge CLK or negedge RSTn) begin
-	if ( !RSTn )
-		qout_r <= #1 rstValue;
-	else                  
-		qout_r <= #1 dnxt;
-end
 
-assign qout = qout_r;
+wire [DW-1:0] dffren_dnxt;
+wire [DW-1:0] dffren_qout;
+
+
+gen_dffr # ( .DW(DW), .rstValue(rstValue) ) dffren
+(
+	.dnxt(dffren_dnxt),
+	.qout(dffren_qout),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
+
+
+assign dffren_dnxt = en ? dnxt : dffren_qout;
+assign qout = dffren_qout;
+
 
 endmodule
-
-
-
-
-
-
-
 
 
 
