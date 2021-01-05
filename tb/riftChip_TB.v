@@ -1,10 +1,10 @@
 /*
-* @File name: riftCore_TB
+* @File name: riftChip_TB
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:07:06
+* @Last Modified time: 2021-01-05 19:18:01
 */
 
 /*
@@ -29,28 +29,19 @@
 `include "define.vh"
 
 
-module riftCore_TB (
+module riftChip_TB (
 
 );
 
-	reg isExternInterrupt;
-	reg isRTimerInterrupt;
-	reg isSoftwvInterrupt;
 
 	reg CLK;
 	reg RSTn;
 
 
-
-riftCore s_RC(
-	
-	.isExternInterrupt(isExternInterrupt),
-	.isRTimerInterrupt(isRTimerInterrupt),
-	.isSoftwvInterrupt(isSoftwvInterrupt),
+riftChip s_riftChip(
 
 	.CLK(CLK),
 	.RSTn(RSTn)
-	
 );
 
 
@@ -60,10 +51,6 @@ initial begin
 
 	CLK = 0;
 	RSTn = 0;
-
-	isExternInterrupt = 0;
-	isRTimerInterrupt = 0;
-	isSoftwvInterrupt = 0;
 
 	#20
 
@@ -83,16 +70,16 @@ initial begin
 end
 
 
-`define ITCM s_RC.i_frontEnd.i_inner_itcm
-`define DTCMA s_RC.i_backEnd.i_lsu.i_dtcm_A
-`define DTCMB s_RC.i_backEnd.i_lsu.i_dtcm_B
-`define RGF   s_RC.i_backEnd.i_phyRegister.regFileX_qout
-`define INDEX s_RC.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
+`define SRAM_ODD s_riftChip.i_memory_bus.i_sram_odd
+`define SRAM_EVE s_riftChip.i_memory_bus.i_sram_eve
+`define DTCMA s_riftChip.i_riftCore.i_backEnd.i_lsu.i_dtcm_A
+`define DTCMB s_riftChip.i_riftCore.i_backEnd.i_lsu.i_dtcm_B
+`define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
+`define INDEX s_riftChip.i_riftCore.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
 
 
 
 
-	localparam DP = 2**16;
 	localparam  ITCM_DP = 2**12;
 	integer i;
 
@@ -103,30 +90,30 @@ end
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*8+0] | mem[i*8+1] | mem[i*8+2] | mem[i*8+3]
 						| mem[i*8+4] | mem[i*8+5] | mem[i*8+6] | mem[i*8+7]) == 1'b1 ) begin
-					`ITCM.ramEve[i][7:0] = mem[i*8+0];
-					`ITCM.ramEve[i][15:8] = mem[i*8+1];
-					`ITCM.ramEve[i][23:16] = mem[i*8+2];
-					`ITCM.ramEve[i][31:24] = mem[i*8+3];	
+					`SRAM_EVE.ram[i][7:0] = mem[i*8+0];
+					`SRAM_EVE.ram[i][15:8] = mem[i*8+1];
+					`SRAM_EVE.ram[i][23:16] = mem[i*8+2];
+					`SRAM_EVE.ram[i][31:24] = mem[i*8+3];	
 
-					`ITCM.ramOdd[i][7:0] = mem[i*8+4];
-					`ITCM.ramOdd[i][15:8] = mem[i*8+5];
-					`ITCM.ramOdd[i][23:16] = mem[i*8+6];
-					`ITCM.ramOdd[i][31:24] = mem[i*8+7];			
+					`SRAM_ODD.ram[i][7:0] = mem[i*8+4];
+					`SRAM_ODD.ram[i][15:8] = mem[i*8+5];
+					`SRAM_ODD.ram[i][23:16] = mem[i*8+6];
+					`SRAM_ODD.ram[i][31:24] = mem[i*8+7];			
 				end
 				else begin
-					`ITCM.ramOdd[i][7:0] = 8'h0;
-					`ITCM.ramOdd[i][15:8] = 8'h0;
-					`ITCM.ramOdd[i][23:16] = 8'h0;
-					`ITCM.ramOdd[i][31:24] = 8'h0;		
+					`SRAM_ODD.ram[i][7:0] = 8'h0;
+					`SRAM_ODD.ram[i][15:8] = 8'h0;
+					`SRAM_ODD.ram[i][23:16] = 8'h0;
+					`SRAM_ODD.ram[i][31:24] = 8'h0;		
 
-					`ITCM.ramEve[i][7:0] = 8'b0;
-					`ITCM.ramEve[i][15:8] = 8'b0;
-					`ITCM.ramEve[i][23:16] = 8'b0;
-					`ITCM.ramEve[i][31:24] = 8'b0;					
+					`SRAM_EVE.ram[i][7:0] = 8'b0;
+					`SRAM_EVE.ram[i][15:8] = 8'b0;
+					`SRAM_EVE.ram[i][23:16] = 8'b0;
+					`SRAM_EVE.ram[i][31:24] = 8'b0;					
 				end
 
 
-				// $display("ITCM %h: %h,%h", i*4,`ITCM.ramOdd[i],`ITCM.ramEve[i]);
+				$display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
 			end
 
 			for ( i = 0; i < 10000; i = i + 1 ) begin
@@ -182,7 +169,7 @@ end
 
 
 	wire [63:0] x3 = `RGF[(3*`RP+`INDEX)*64 +: 64];
-	wire isEcall = s_RC.i_backEnd.i_commit.isEcall;
+	wire isEcall = s_riftChip.i_riftCore.i_backEnd.i_commit.isEcall;
 
 always @(negedge CLK)begin 
 	if (isEcall) begin
@@ -212,7 +199,7 @@ end
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, riftCore_TB);//tb模块名称
+	$dumpvars(0, riftChip_TB);//tb模块名称
 end
 
 endmodule

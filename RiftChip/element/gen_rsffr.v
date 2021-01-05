@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-29 18:02:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-29 18:10:54
+* @Last Modified time: 2021-01-05 19:17:21
 */
 
 /*
@@ -44,16 +44,19 @@ reg [DW-1:0] qout_r;
 
 generate
 	for ( genvar i = 0; i < DW; i = i + 1 ) begin
-		if ( !RSTn ) begin
-			qout_r[i] <= #1 rstValue[i];
-		end 
-		else begin
-			qout_r[i] <= #1 qout_r[i];
-			if ( set_in[i] ) begin
-				qout_r[i] <= #1 1'b1;
-			end
-			if ( rst_in[i] ) begin
-				qout_r[i] <= #1 1'b0;	
+
+		always @(posedge CLK or negedge RSTn) begin
+			if ( ~RSTn ) begin
+				qout_r[i] <= #1 rstValue[i];
+			end 
+			else begin
+				qout_r[i] <= #1 qout_r[i];
+				if ( set_in[i] ) begin
+					qout_r[i] <= #1 1'b1;
+				end
+				if ( rst_in[i] ) begin
+					qout_r[i] <= #1 1'b0;	
+				end
 			end
 		end
 	end

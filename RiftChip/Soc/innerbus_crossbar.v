@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-31 17:04:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 10:54:16
+* @Last Modified time: 2021-01-05 19:27:33
 */
 
 /*
@@ -121,7 +121,7 @@ module innerbus_crossbar (
 	output [7:0] mem_wstrb,
 	output mem_wen,
 
-	input mem_slvRsp_valid,
+	input mem_slvRsp_valid
 	// output mem_mstRsp_ready,
 );
 
@@ -257,6 +257,9 @@ module innerbus_crossbar (
 	assign lsu_slvRsp_valid = arbi_rsp_valid & isLSUReq_set;
 	assign ifu_slvRsp_valid = arbi_rsp_valid & isIFUReq_set;
 
+	assign dm_data_r = {64{isDMReq_set}} & arbi_data_r;
+	assign lsu_data_r = {64{isLSUReq_set}} & arbi_data_r;
+	assign ifu_data_r = {64{isIFUReq_set}} & arbi_data_r;
 
 
 	// assign clint_mstRsp_ready = arbi_mstrsp_ready & clint_mstReq_valid;

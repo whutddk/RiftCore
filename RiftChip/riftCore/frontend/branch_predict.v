@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 17:02:28
+* @Last Modified time: 2021-01-05 19:02:48
 */
 
 
@@ -37,6 +37,12 @@ module branch_predict (
 	input isCall,
 	input isReturn,
 	input [63:0] imm,
+	input is_rvc_instr,
+
+	output isMisPredict,
+	input isExpection,
+	input instrFifo_full,
+	input [63:0] expection_pc,
 
 	input jalr_valid,
 	input [63:0] jalr_pc,
@@ -46,6 +52,10 @@ module branch_predict (
 	input [63:0] fetch_pc_qout,
 	output [63:0] fetch_pc_dnxt,
 	output pcGen_fetch_valid,
+	input fetchBuff_ready,
+
+	input CLK,
+	input RSTn
 
 );
 

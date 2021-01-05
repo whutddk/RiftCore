@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:45:08
+* @Last Modified time: 2021-01-05 18:57:52
 */
 
 /*
@@ -73,7 +73,7 @@ gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt)
 
 
 
-gen_bypassfifo # ( .DW(64+64) .AW(0) ) 
+gen_bypassfifo # ( .DW(64+64), .AW(0) ) 
 fetchBuff
 (
 	.valid_i(ifu_slvRsp_valid),

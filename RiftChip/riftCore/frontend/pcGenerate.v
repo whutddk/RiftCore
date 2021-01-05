@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 17:05:58
+* @Last Modified time: 2021-01-05 19:01:54
 */
 
 /*
@@ -89,7 +89,7 @@ module pcGenerate (
 	wire [63:0] imm;
 
 	wire [63:0] fetch_instr;
-
+	wire fetchBuff_ready;
 
 
 
@@ -120,6 +120,12 @@ module pcGenerate (
 		.isCall(isCall),
 		.isReturn(isReturn),
 		.imm(imm),
+		.is_rvc_instr(is_rvc_instr),
+
+		.isMisPredict(isMisPredict),
+		.isExpection(isExpection),
+		.instrFifo_full(instrFifo_full),
+		.expection_pc(expection_pc),
 
 		.jalr_valid(jalr_valid),
 		.jalr_pc(jalr_pc),
@@ -129,6 +135,10 @@ module pcGenerate (
 		.fetch_pc_qout(fetch_pc_qout),
 		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.pcGen_fetch_valid(pcGen_fetch_valid),
+		.fetchBuff_ready(fetchBuff_ready),
+
+		.CLK(CLK),
+		.RSTn(RSTn)
 
 	);
 
@@ -144,7 +154,7 @@ module pcGenerate (
 		.ifu_data_r(ifu_data_r),
 		.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
-		.pcGen_fetch_valid(pcGen_fetch_valid)
+		.pcGen_fetch_valid(pcGen_fetch_valid),
 		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.fetch_pc_qout(fetch_pc_qout),
 		.fetch_instr(fetch_instr),

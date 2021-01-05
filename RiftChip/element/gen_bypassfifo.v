@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 14:33:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:43:52
+* @Last Modified time: 2021-01-05 19:16:22
 */
 
 
@@ -35,11 +35,11 @@ module gen_bypassfifo #
 )
 (
 	input valid_i,
-	input data_i,
+	input [DW-1:0] data_i,
 	output ready_i,
 
 	output valid_o,
-	output data_o,
+	output [DW-1:0] data_o,
 	input ready_o,
 
 	input flush,
@@ -54,20 +54,20 @@ wire [DW-1:0] data_pop;
 
 
 
-gen_fifo # ( .DW(DW), .AW(AW) ) fifo_bypass (
+wire isLoad_set;
+wire isLoad_rst;
+wire isLoad_qout;
 
-	.fifo_pop(ready_o & ~fifo_empty), 
-	.fifo_push(valid_i & ~ready_o & ~fifo_full),
-	.data_push(data_i),
+assign isLoad_set = valid_i & ~ready_o & ~fifo_full;
+assign isLoad_rst = ~isLoad_set & (ready_o & ~fifo_empty);
+assign fifo_empty = ~isLoad_qout;
+assign fifo_full = isLoad_qout;
+gen_dffren # ( .DW(DW)) fifo_bypass ( .dnxt(data_i), .qout(data_pop), .en(isLoad_set), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1) ) isLoad ( .set_in(isLoad_set), .rst_in(isLoad_rst), .qout(isLoad_qout), .CLK(CLK), .RSTn(RSTn));
 
-	.fifo_empty(fifo_empty), 
-	.fifo_full(fifo_full), 
-	.data_pop(data_pop),
 
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
+
+
 
 assign data_o = fifo_empty ? data_i : data_pop;
 assign ready_i = ~fifo_full;

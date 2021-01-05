@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:36
+* @Last Modified time: 2021-01-05 17:40:33
 */
 
 
@@ -42,6 +42,11 @@ module riftCore (
 	input isExternInterrupt,
 	input isRTimerInterrupt,
 	input isSoftwvInterrupt,
+
+	output ifu_mstReq_valid,
+	output [63:0] ifu_addr,
+	input [63:0] ifu_data_r,
+	input ifu_slvRsp_valid,
 
 	input CLK,
 	input RSTn
@@ -92,6 +97,11 @@ frontEnd i_frontEnd(
 
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
+
+	.ifu_mstReq_valid(ifu_mstReq_valid),
+	.ifu_addr(ifu_addr),
+	.ifu_data_r(ifu_data_r),
+	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)

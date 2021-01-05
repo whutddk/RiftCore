@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:38
+* @Last Modified time: 2021-01-05 17:39:48
 */
 
 /*
@@ -42,19 +42,16 @@ module frontEnd (
 	input [63:0] privileged_pc,
 	input privileged_valid,
 
+	output ifu_mstReq_valid,
+	output [63:0] ifu_addr,
+	input [63:0] ifu_data_r,
+	input ifu_slvRsp_valid,
+
+
 	input CLK,
 	input RSTn
 	
 );
-
-
-
-	wire [63:0] M_IFU_ARADDR;
-	wire M_IFU_ARVALID;
-	wire M_IFU_RREADY;
-	wire M_IFU_RVALID;
-	wire [63:0] M_IFU_RDATA;
-
 
 
 
@@ -110,12 +107,10 @@ pcGenerate i_pcGenerate
 	.isInstrReadOut(isInstrReadOut),
 	.instrFifo_full(instrFifo_full),
 
-	.M_IFU_ARADDR(M_IFU_ARADDR),
-	.M_IFU_ARVALID(M_IFU_ARVALID),
-
-	.M_IFU_RREADY(M_IFU_RREADY),
-	.M_IFU_RVALID(M_IFU_RVALID),
-	.M_IFU_RDATA(M_IFU_RDATA),
+	.ifu_mstReq_valid(ifu_mstReq_valid),
+	.ifu_addr(ifu_addr),
+	.ifu_data_r(ifu_data_r),
+	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
 
 
@@ -174,25 +169,6 @@ decoder i_decoder
 	.instrFifo_push(instrFifo_push)
 
 );
-
-
-
-
-
-inner_itcm #( .DW(64) ) i_inner_itcm
-(
-	.M_IFU_ARADDR(M_IFU_ARADDR),
-	.M_IFU_ARVALID(M_IFU_ARVALID),
-
-	.M_IFU_RREADY(M_IFU_RREADY),
-	.M_IFU_RVALID(M_IFU_RVALID),
-	.M_IFU_RDATA(M_IFU_RDATA),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-	
-);
-
 
 
 

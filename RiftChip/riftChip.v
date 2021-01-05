@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:43:17
+* @Last Modified time: 2021-01-05 18:03:16
 */
 
 
@@ -44,7 +44,10 @@ module riftChip (
 	wire mem_slvRsp_valid;
 
 
-
+	wire ifu_mstReq_valid;
+	wire [63:0] ifu_addr;
+	wire [63:0] ifu_data_r;
+	wire ifu_slvRsp_valid;
 
 
 
@@ -52,9 +55,14 @@ module riftChip (
 
 riftCore i_riftCore(
 	
-	.isExternInterrupt,
-	.isRTimerInterrupt,
-	.isSoftwvInterrupt,
+	.isExternInterrupt(1'b0),
+	.isRTimerInterrupt(1'b0),
+	.isSoftwvInterrupt(1'b0),
+
+	.ifu_mstReq_valid(ifu_mstReq_valid),
+	.ifu_addr(ifu_addr),
+	.ifu_data_r(ifu_data_r),
+	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -75,24 +83,24 @@ innerbus_crossbar i_Xbar(
 	.dm_wen(1'b0),
 	.dm_slvRsp_valid(),
 
-	input lsu_mstReq_valid,
-	input [63:0] lsu_addr,
-	input [63:0] lsu_data_w,
-	output [63:0] lsu_data_r,
-	input [7:0] lsu_wstrb,
-	input lsu_wen,
-	output lsu_slvRsp_valid,
+	.lsu_mstReq_valid(1'b0),
+	.lsu_addr(64'b0),
+	.lsu_data_w(64'b0),
+	.lsu_data_r(),
+	.lsu_wstrb(8'b0),
+	.lsu_wen(1'b0),
+	.lsu_slvRsp_valid(),
 
-	input ifu_mstReq_valid,
-	input [63:0] ifu_addr,
+	.ifu_mstReq_valid(ifu_mstReq_valid),
+	.ifu_addr(ifu_addr),
 	.ifu_data_w(64'b0),
-	output [63:0] ifu_data_r,
+	.ifu_data_r(ifu_data_r),
 	.ifu_wstrb(8'b0),
 	.ifu_wen(1'b0),
-	output ifu_slvRsp_valid,
+	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
 
-	//CLINT
+
 	.clint_mstReq_valid(),
 	.clint_addr(),
 	.clint_data_w(),
@@ -101,7 +109,6 @@ innerbus_crossbar i_Xbar(
 	.clint_wen(),
 	.clint_slvRsp_valid(1'b1),
 
-	//PLIC
 	.plic_mstReq_valid(),
 	.plic_addr(),
 	.plic_data_w(),
@@ -110,7 +117,6 @@ innerbus_crossbar i_Xbar(
 	.plic_wen(),
 	.plic_slvRsp_valid(1'b1),
 
-	//system bus
 	.sysbus_mstReq_valid(),
 	.sysbus_addr(),
 	.sysbus_data_w(),
@@ -133,7 +139,7 @@ innerbus_crossbar i_Xbar(
 	.mem_data_r(mem_data_r),
 	.mem_wstrb(mem_wstrb),
 	.mem_wen(mem_wen),
-	.mem_slvRsp_valid(mem_slvRsp_valid),
+	.mem_slvRsp_valid(mem_slvRsp_valid)
 
 );
 
