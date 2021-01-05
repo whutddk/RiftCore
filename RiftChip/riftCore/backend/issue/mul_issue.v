@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:48:27
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:45:18
+* @Last Modified time: 2021-01-03 12:08:24
 */
 
 
@@ -42,7 +42,7 @@ module mul_issue #(
 
 	//from execute
 	input mul_execute_ready,
-	output mul_exeparam_vaild_qout,
+	output mul_exeparam_valid_qout,
 	output [EXE_DW-1:0] mul_exeparam_qout,
 
 	//from regFile
@@ -105,15 +105,15 @@ module mul_issue #(
 							);
 
 	wire [EXE_DW-1:0] mul_exeparam_dnxt = 
-		mul_exeparam_vaild_dnxt ? 
+		mul_exeparam_valid_dnxt ? 
 			mul_issue_info : 
 			mul_exeparam_qout;
 
-	wire mul_exeparam_vaild_dnxt = flush ? 1'b0 : (mul_execute_ready & mul_isClearRAW);
-	assign mul_fifo_pop = mul_exeparam_vaild_dnxt;
+	wire mul_exeparam_valid_dnxt = flush ? 1'b0 : (mul_execute_ready & mul_isClearRAW);
+	assign mul_fifo_pop = mul_exeparam_valid_dnxt;
 
 	gen_dffr # (.DW(EXE_DW)) mul_exeparam ( .dnxt(mul_exeparam_dnxt), .qout(mul_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) mul_exeparam_vaild ( .dnxt(mul_exeparam_vaild_dnxt), .qout(mul_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) mul_exeparam_valid ( .dnxt(mul_exeparam_valid_dnxt), .qout(mul_exeparam_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

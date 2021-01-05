@@ -1,10 +1,10 @@
 /*
-* @File name: itcm
+* @File name: axi_itcm
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 09:46:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 19:33:47
+* @Last Modified time: 2021-01-03 12:08:24
 */
 
 /*
@@ -33,7 +33,7 @@ module itcm #
 	)
 	(
 	output itcm_ready,
-	input pcGen_vaild,
+	input pcGen_valid,
 	input instrFifo_full,
 
 	input [63:0] fetch_pc_dnxt,
@@ -42,7 +42,7 @@ module itcm #
 	// input [DW-1:0] instr_in,
 	// input wen,
 
-	output reg instr_vaild,
+	output reg instr_valid,
 	output reg [63:0] fetch_pc_qout,
 
 	input CLK,
@@ -62,7 +62,7 @@ initial $warning("no debugger");
 		if ( ~RSTn ) begin
 			instr <= {DW{1'b0}};
 			fetch_pc_qout <= 64'h80000000;
-			instr_vaild <= 1'b0;
+			instr_valid <= 1'b0;
 		end
 		else begin
 			// if(wen) begin
@@ -70,7 +70,7 @@ initial $warning("no debugger");
 			// end else begin
 			instr <= #1 instrFifo_full ? instr : ram[addr];
 			fetch_pc_qout <= #1 instrFifo_full ? fetch_pc_qout : fetch_pc_dnxt;
-			instr_vaild <= #1 instrFifo_full ? instr_vaild : pcGen_vaild ;
+			instr_valid <= #1 instrFifo_full ? instr_valid : pcGen_valid ;
 
 			// end
 		end 

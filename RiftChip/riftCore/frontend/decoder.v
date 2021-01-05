@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:45:15
+* @Last Modified time: 2021-01-03 12:08:22
 */
 
 /*
@@ -32,7 +32,7 @@ module decoder
 	(
 
 	input [31:0] instr,
-	input fetch_decode_vaild,
+	input fetch_decode_valid,
 	input [63:0] pc,
 	input is_rvc,
 
@@ -68,7 +68,7 @@ decoder32 i_decoder32
 
 	assign decode_microInstr = is_rvc ? decode_microInstr_16 : decode_microInstr_32;
 
-	assign instrFifo_push = fetch_decode_vaild & ~instrFifo_full;
+	assign instrFifo_push = fetch_decode_valid & ~instrFifo_full;
 
 
 

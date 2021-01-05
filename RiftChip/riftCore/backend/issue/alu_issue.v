@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 10:00:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:46:16
+* @Last Modified time: 2021-01-03 12:08:28
 */
 
 /*
@@ -43,7 +43,7 @@ module alu_issue #(
 
 		//from execute
 		// input alu_execute_ready,
-		output alu_exeparam_vaild_qout,
+		output alu_exeparam_valid_qout,
 		output [EXE_DW-1:0] alu_exeparam_qout,
 
 		//from regFile
@@ -234,7 +234,7 @@ endgenerate
 
 	wire alu_all_RAW;
 	wire [$clog2(DP)-1:0] index;
-	wire alu_exeparam_vaild_dnxt;
+	wire alu_exeparam_valid_dnxt;
 	wire [EXE_DW-1:0] alu_exeparam_dnxt;
 
 	lzp #(
@@ -248,8 +248,8 @@ endgenerate
 	assign alu_buffer_pop_index = index;
 
 
-	assign alu_exeparam_vaild_dnxt = flush ? 1'b0 : (alu_exeparam_ready & ~alu_all_RAW);
-	assign alu_exeparam_dnxt = alu_exeparam_vaild_dnxt 
+	assign alu_exeparam_valid_dnxt = flush ? 1'b0 : (alu_exeparam_ready & ~alu_all_RAW);
+	assign alu_exeparam_dnxt = alu_exeparam_valid_dnxt 
 								? { 
 									alu_fun_imm[index],
 									alu_fun_add[index],
@@ -279,12 +279,12 @@ endgenerate
 
 
 
-	assign alu_buffer_pop = alu_exeparam_vaild_dnxt;
+	assign alu_buffer_pop = alu_exeparam_valid_dnxt;
 
 //T4
 
 gen_dffr # (.DW(EXE_DW)) alu_exeparam ( .dnxt(alu_exeparam_dnxt), .qout(alu_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) alu_exeparam_vaild ( .dnxt(alu_exeparam_vaild_dnxt), .qout(alu_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) alu_exeparam_valid ( .dnxt(alu_exeparam_valid_dnxt), .qout(alu_exeparam_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

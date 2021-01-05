@@ -4,7 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:47
 * @Last Modified by:   Ruige Lee
+<<<<<<< HEAD:RiftChip/riftCore/backend/issue/csr_issue.v
 * @Last Modified time: 2021-01-05 16:45:28
+=======
+* @Last Modified time: 2021-01-03 12:08:27
+>>>>>>> master:core/riftCore/backend/issue/csr_issue.v
 */
 
 /*
@@ -39,7 +43,7 @@ module csr_issue #
 	input csr_fifo_empty,
 	input [DW-1:0] csr_issue_info,
 
-	output csr_exeparam_vaild_qout,
+	output csr_exeparam_valid_qout,
 	output [EXE_DW-1 :0] csr_exeparam_qout,
 
 	//from regFile
@@ -103,7 +107,7 @@ initial $info("the pervious instruction must be commited, then csr can issue and
 	wire [11:0] addr = csr_imm;
 
 
-	wire [EXE_DW-1:0] csr_exeparam_dnxt = csr_exeparam_vaild_dnxt ? { 
+	wire [EXE_DW-1:0] csr_exeparam_dnxt = csr_exeparam_valid_dnxt ? { 
 											csr_rw,
 											csr_rs,
 											csr_rc,
@@ -115,13 +119,13 @@ initial $info("the pervious instruction must be commited, then csr can issue and
 											addr
 											} : csr_exeparam_qout;
 
-	wire csr_exeparam_vaild_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready & csr_exeparam_ready);
+	wire csr_exeparam_valid_dnxt = flush ? 1'b0 : (csr_isClearRAW & csrILP_ready & csr_exeparam_ready);
 
-	assign csr_fifo_pop = csr_exeparam_vaild_dnxt;
+	assign csr_fifo_pop = csr_exeparam_valid_dnxt;
 
 
 	gen_dffr # (.DW(EXE_DW)) csr_exeparam ( .dnxt(csr_exeparam_dnxt), .qout(csr_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) csr_exeparam_vaild ( .dnxt(csr_exeparam_vaild_dnxt), .qout(csr_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) csr_exeparam_valid ( .dnxt(csr_exeparam_valid_dnxt), .qout(csr_exeparam_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

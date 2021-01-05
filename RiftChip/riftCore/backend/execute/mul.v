@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:46:43
+* @Last Modified time: 2021-01-03 12:08:29
 */
 
 
@@ -33,11 +33,11 @@ module mul #(
 	parameter DW = `MUL_EXEPARAM_DW 
 )
 (
-	input mul_exeparam_vaild,
+	input mul_exeparam_valid,
 	output mul_execute_ready,
 	input [DW-1:0] mul_exeparam,
 
-	output mul_writeback_vaild,
+	output mul_writeback_valid,
 	output [63:0] mul_res_qout,
 	output [(5+`RB)-1:0] mul_rd0_qout,
 
@@ -145,17 +145,17 @@ module mul #(
 	wire [127:0] divided;
 
 	assign dividend_dnxt = 
-		(mul_exeparam_vaild & div_fun) ? 
+		(mul_exeparam_valid & div_fun) ? 
 			{64'd0, dividend_load} :
 			((div_cnt_qout == 7'd64) ? dividend_qout : divided)
 			;
 
-	assign divisor_dnxt = (mul_exeparam_vaild & div_fun) ? 
+	assign divisor_dnxt = (mul_exeparam_valid & div_fun) ? 
 						divisor_load :
 						divisor_qout;
 
 
-	assign div_cnt_dnxt = (mul_exeparam_vaild & div_fun) ? 
+	assign div_cnt_dnxt = (mul_exeparam_valid & div_fun) ? 
 							7'd0 :
 							(div_cnt_qout == 7'd65 ? div_cnt_qout : div_cnt_qout + 1);
 
@@ -213,7 +213,7 @@ module mul #(
 
 
 
-	wire [63:0] mul_res_dnxt = {64{vaild_dnxt}} & 
+	wire [63:0] mul_res_dnxt = {64{valid_dnxt}} & 
 		(
 			( {64{rv64m_mul}} & muls[63:0] )
 			| ({64{rv64m_mulh}} & muls[127:64] )
@@ -232,35 +232,35 @@ module mul #(
 
 
 
-	wire vaild_dnxt;
+	wire valid_dnxt;
 
-	wire mul_vaild;
-	wire div_vaild;
+	wire mul_valid;
+	wire div_valid;
 
-	assign mul_vaild = mul_exeparam_vaild & mul_fun;
-	assign div_vaild = div_fun & 
+	assign mul_valid = mul_exeparam_valid & mul_fun;
+	assign div_valid = div_fun & 
 						(
-							(mul_exeparam_vaild & (div_by_zero | div_overflow))
+							(mul_exeparam_valid & (div_by_zero | div_overflow))
 							|
 							(div_cnt_qout == 7'd64 & ~mul_execute_ready)
 						);
 
 
-	assign vaild_dnxt = (~flush) & (mul_vaild | div_vaild);
+	assign valid_dnxt = (~flush) & (mul_valid | div_valid);
 
 
 	wire ready_dnxt;
 
-	assign ready_dnxt = (mul_exeparam_vaild & 1'b0)
+	assign ready_dnxt = (mul_exeparam_valid & 1'b0)
 						|
-						(vaild_dnxt & 1'b1)
+						(valid_dnxt & 1'b1)
 						|
-						(~mul_exeparam_vaild & ~vaild_dnxt & mul_execute_ready);
+						(~mul_exeparam_valid & ~valid_dnxt & mul_execute_ready);
 
 
 	gen_dffr # (.DW((5+`RB))) mul_rd0 ( .dnxt(mul_rd0_dnxt), .qout(mul_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) mul_res ( .dnxt(mul_res_dnxt), .qout(mul_res_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) vaild ( .dnxt(vaild_dnxt), .qout(mul_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) valid ( .dnxt(valid_dnxt), .qout(mul_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(1), .rstValue(1'b1)) ready ( .dnxt(ready_dnxt), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
 
 

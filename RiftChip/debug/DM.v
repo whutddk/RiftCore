@@ -4,12 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:34:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:43:38
+* @Last Modified time: 2020-12-30 16:52:34
 */
 
 
 /*
-  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,40 +34,82 @@ module DM #
 	)
 	(
 
-	input [7:0] S_AXI_AWADDR,
-	input [2:0] S_AXI_AWPROT,
-	input S_AXI_AWVALID,
-	output S_AXI_AWREADY,
 
-	input [31:0] S_AXI_WDATA,  
-	input [3:0] S_AXI_WSTRB,
-	input S_AXI_WVALID,
-	output S_AXI_WREADY,
+	input [7:0] S_DM_AXI_AWADDR,
+	input [2:0] S_DM_AXI_AWPROT,
+	input S_DM_AXI_AWVALID,
+	output S_DM_AXI_AWREADY,
 
-	output [1:0] S_AXI_BRESP,
-	output S_AXI_BVALID,
-	input S_AXI_BREADY,
+	input [31:0] S_DM_AXI_WDATA,  
+	input [3:0] S_DM_AXI_WSTRB,
+	input S_DM_AXI_WVALID,
+	output S_DM_AXI_WREADY,
 
-	input [7:0] S_AXI_ARADDR,
-	input [2:0] S_AXI_ARPROT,
-	input S_AXI_ARVALID,
-	output S_AXI_ARREADY,
+	output [1:0] S_DM_AXI_BRESP,
+	output S_DM_AXI_BVALID,
+	input S_DM_AXI_BREADY,
 
-	output [31:0] S_AXI_RDATA,
-	output [1:0] S_AXI_RRESP,
-	output S_AXI_RVALID,
-	input S_AXI_RREADY
+	input [7:0] S_DM_AXI_ARADDR,
+	input [2:0] S_DM_AXI_ARPROT,
+	input S_DM_AXI_ARVALID,
+	output S_DM_AXI_ARREADY,
+
+	output [31:0] S_DM_AXI_RDATA,
+	output [1:0] S_DM_AXI_RRESP,
+	output S_DM_AXI_RVALID,
+	input S_DM_AXI_RREADY
 
 
 
 	//core region
-
 	output ndmreset,
 	output ndmresetn,
 	output dmactive,
 
-	//core
-	output [MAXHART-1:0] hartReset,
+	//core monitor
+	output [MAXHART-1:0] hart_resetReq,
+	output [MAXHART-1:0] hart_haltReq,
+	output [MAXHART-1:0] hart_haltOnReset,
+	output [MAXHART-1:0] hart_resumeReq,
+	input  [MAXHART-1:0] hart_isInReset,
+	input  [MAXHART-1:0] hart_isInHalt,
+
+	output accessReg_valid,
+	input accessReg_ready,
+	output [15:0] accessReg_addr,
+	output accessReg_wen,
+	input [63:0] accessReg_read,
+	output [63:0] accessReg_write,
+	output is32w,
+
+	//system bus access
+	output [63:0] M_SYSBUS_AXI_AWADDR,
+	output M_SYSBUS_AXI_AWVALID,
+	input M_SYSBUS_AXI_AWREADY,
+	output [2:0] M_SYSBUS_AXI_AWPROT,
+
+	output [63:0] M_SYSBUS_AXI_WDATA,
+	output [7:0] M_SYSBUS_AXI_WSTRB,
+	output M_SYSBUS_AXI_WVALID,
+	input M_SYSBUS_AXI_WREADY,
+	output [3:0] M_SYSBUS_AXI_WSTRB,
+
+	input [1:0] M_SYSBUS_AXI_BRESP,
+	input M_SYSBUS_AXI_BVALID,
+	output M_SYSBUS_AXI_BREADY,
+
+	output [63:0] M_SYSBUS_AXI_ARADDR,
+	output M_SYSBUS_AXI_ARVALID,
+	input M_SYSBUS_AXI_ARREADY,
+	output [2:0] M_SYSBUS_AXI_ARPROT,
+
+	input [63:0] M_SYSBUS_AXI_RDATA,
+	input [1:0] M_SYSBUS_AXI_RRESP,
+	input M_SYSBUS_AXI_RVALID,
+	output M_SYSBUS_AXI_RREADY,
+
+
+
 
 
 
@@ -99,10 +141,6 @@ module DM #
 
 
 
-
-
-
-
 	// AXI4LITE signals
 	reg [7:0] axi_awaddr;
 	reg axi_awready;
@@ -121,14 +159,14 @@ module DM #
 	wire [31:0] reg_data_out;
 	reg	 aw_en;
 
-	assign S_AXI_AWREADY = axi_awready;
-	assign S_AXI_WREADY	= axi_wready;
-	assign S_AXI_BRESP = axi_bresp;
-	assign S_AXI_BVALID	= axi_bvalid;
-	assign S_AXI_ARREADY = axi_arready;
-	assign S_AXI_RDATA = axi_rdata;
-	assign S_AXI_RRESP = axi_rresp;
-	assign S_AXI_RVALID	= axi_rvalid;
+	assign S_DM_AXI_AWREADY = axi_awready;
+	assign S_DM_AXI_WREADY	= axi_wready;
+	assign S_DM_AXI_BRESP = axi_bresp;
+	assign S_DM_AXI_BVALID	= axi_bvalid;
+	assign S_DM_AXI_ARREADY = axi_arready;
+	assign S_DM_AXI_RDATA = axi_rdata;
+	assign S_DM_AXI_RRESP = axi_rresp;
+	assign S_DM_AXI_RVALID	= axi_rvalid;
 
 	always @(posedge CLK or negedge RSTn) begin
 		if ( ~RSTn | ~dmactive) begin
@@ -136,11 +174,11 @@ module DM #
 			aw_en <= 1'b1;
 		end 
 		else begin    
-			if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en) begin
+			if (~axi_awready && S_DM_AXI_AWVALID && S_DM_AXI_WVALID && aw_en) begin
 				axi_awready <= 1'b1;
 				aw_en <= 1'b0;
 			end
-			else if (S_AXI_BREADY && axi_bvalid) begin
+			else if (S_DM_AXI_BREADY && axi_bvalid) begin
 				aw_en <= 1'b1;
 				axi_awready <= 1'b0;
 			end
@@ -156,8 +194,8 @@ module DM #
 		  axi_awaddr <= 0;
 		end 
 		else begin
-			if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en) begin
-				axi_awaddr <= S_AXI_AWADDR;
+			if (~axi_awready && S_DM_AXI_AWVALID && S_DM_AXI_WVALID && aw_en) begin
+				axi_awaddr <= S_DM_AXI_AWADDR;
 			end
 		end 
 	end       
@@ -167,7 +205,7 @@ module DM #
 			axi_wready <= 1'b0;
 		end 
 		else begin    
-			if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en ) begin
+			if (~axi_wready && S_DM_AXI_WVALID && S_DM_AXI_AWVALID && aw_en ) begin
 				axi_wready <= 1'b1;
 			end
 			else begin
@@ -176,7 +214,7 @@ module DM #
 		end 
 	end       
 
-	assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
+	assign slv_reg_wren = axi_wready && S_DM_AXI_WVALID && axi_awready && S_DM_AXI_AWVALID;
 
 
 
@@ -193,12 +231,12 @@ module DM #
 			axi_bresp <= 2'b0;
 		end 
 		else begin
-			if (axi_awready && S_AXI_AWVALID && ~axi_bvalid && axi_wready && S_AXI_WVALID) begin
+			if (axi_awready && S_DM_AXI_AWVALID && ~axi_bvalid && axi_wready && S_DM_AXI_WVALID) begin
 				axi_bvalid <= 1'b1;
 				axi_bresp  <= 2'b0;
 			end
 			else begin
-				if (S_AXI_BREADY && axi_bvalid) begin
+				if (S_DM_AXI_BREADY && axi_bvalid) begin
 					axi_bvalid <= 1'b0; 
 				end  
 			end
@@ -211,9 +249,9 @@ module DM #
 			axi_araddr  <= 32'b0;
 		end 
 		else begin    
-			if (~axi_arready && S_AXI_ARVALID) begin
+			if (~axi_arready && S_DM_AXI_ARVALID) begin
 				axi_arready <= 1'b1;
-				axi_araddr  <= S_AXI_ARADDR;
+				axi_araddr  <= S_DM_AXI_ARADDR;
 			end
 			else begin
 				axi_arready <= 1'b0;
@@ -227,17 +265,17 @@ module DM #
 			axi_rresp  <= 0;
 		end 
 		else begin    
-			if (axi_arready && S_AXI_ARVALID && ~axi_rvalid) begin
+			if (axi_arready && S_DM_AXI_ARVALID && ~axi_rvalid) begin
 				axi_rvalid <= 1'b1;
 				axi_rresp  <= 2'b0;
 			end   
-			else if (axi_rvalid && S_AXI_RREADY) begin
+			else if (axi_rvalid && S_DM_AXI_RREADY) begin
 				axi_rvalid <= 1'b0;
 			end                
 		end
 	end    
 
-	assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
+	assign slv_reg_rden = axi_arready & S_DM_AXI_ARVALID & ~axi_rvalid;
 
 
 
@@ -271,356 +309,58 @@ module DM #
 // D::::::::::::DDD     M::::::M               M::::::M
 // DDDDDDDDDDDDD        MMMMMMMM               MMMMMMMM
 
-	wire hasel = 1'b0;
-
-	wire [9:0] hartsello_dnxt = 10'd0;
-	wire [9:0] hartsello_qout;
-
-	wire [9:0] hartselhi_dnxt = 10'd0;
-	wire [9:0] hartselhi_qout;
 
 
-	wire impebreak;
-
-	wire allhavereset;
-	wire anyhavereset;
-
-	wire allresumeack;
-	wire anyresumeack;
-
-	wire allnonexistent;
-	wure anynonexistent;
-
-	wire allunavail;
-	wire anyunavail;
-
-	wire allrunning;
-	wire anyrunning;
-
-	wire allhalted;
-	wire anyhalted;
-
-	wire authenticated;
-	wire authbusy;
-
-	wire hasresethaltreq;
-	wire confstrptrvalid;
-
-	wire [3:0] version = 4'd2;
-
-
-assign dmstatus_dnxt = 
-	{ 9'b0, impebreak, 2'b0,
-	allhavereset, anyhavereset, allresumeack, anyresumeack, allnonexistent, anynonexistent, allunavail,
-	anyunavail, allrunning, anyrunning, allhalted, anyhalted,
-	authenticated, authbusy, hasresethaltreq, confstrptrvalid, version};
-
-
-
-
-
-
-
-
-
-
-
-
-	assign ndmreset = dmcontrol_qout[1];
-	assign ndmresetn = ~ndmreset;
-	assign dmactive = dmcontrol_qout[0];
-
-	generate
-		for ( genvar i = 0; i < MAXHART; i = i + 1 )begin
-			assign hartReset[i] = ({hartselhi_qout, hartsello_qout} == i) & dmcontrol_qout[29];
-		end
-	endgenerate
-
-
-
-//0x04
+wire data0_wsel;
 wire [31:0] data0_dnxt;
 wire [31:0] data0_qout;
-gen_dffr # (.DW(32)) data0 ( .dnxt(data0_dnxt), .qout(data0_qout), .CLK(CLK), .RSTn(RSTn));
 
-//0x05
+assign data0_wsel = slv_reg_wren & axi_awaddr == 8'h4;
+assign data0_dnxt = ({32{accessReg_ready & transfer & ~write}} & accessReg_read[31:0])
+					|
+					({32{data0_wsel}} & S_DM_AXI_WDATA);
+gen_dffr # (.DW(32)) data0_dffr ( .dnxt(data0_dnxt), .qout(data0_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+
+wire data1_wsel;
 wire [31:0] data1_dnxt;
 wire [31:0] data1_qout;
-gen_dffr # (.DW(32)) data1 ( .dnxt(data1_dnxt), .qout(data1_qout), .CLK(CLK), .RSTn(RSTn));
+assign data1_wsel = slv_reg_wren & axi_awaddr == 8'h5;
+assign data1_dnxt = ({32{accessReg_ready & transfer & ~write & aarsize == 3'd3}} & accessReg_read[63:32])
+					|
+					({32{data0_wsel}} & S_DM_AXI_WDATA);
+gen_dffr # (.DW(32)) data1_dffr ( .dnxt(data1_dnxt), .qout(data1_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-//0x06
+wire data2_wsel;
 wire [31:0] data2_dnxt;
 wire [31:0] data2_qout;
-gen_dffr # (.DW(32)) data2 ( .dnxt(data2_dnxt), .qout(data2_qout), .CLK(CLK), .RSTn(RSTn));
+assign data2_wsel = slv_reg_wren & axi_awaddr == 8'h6;
+assign data2_dnxt = {32{data0_wsel}} & S_DM_AXI_WDATA;
+gen_dffr # (.DW(32)) data2_dffr ( .dnxt(data2_dnxt), .qout(data2_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-//0x07
+wire data3_wsel;
 wire [31:0] data3_dnxt;
 wire [31:0] data3_qout;
-gen_dffr # (.DW(32)) data3 ( .dnxt(data3_dnxt), .qout(data3_qout), .CLK(CLK), .RSTn(RSTn));
+assign data3_wsel = slv_reg_wren & axi_awaddr == 8'h7;
+assign data3_dnxt = {32{data0_wsel}} & S_DM_AXI_WDATA;
+gen_dffr # (.DW(32)) data3_dffr ( .dnxt(data3_dnxt), .qout(data3_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-//0x08
+wire data4_wsel;
 wire [31:0] data4_dnxt;
 wire [31:0] data4_qout;
-gen_dffr # (.DW(32)) data4 ( .dnxt(data4_dnxt), .qout(data4_qout), .CLK(CLK), .RSTn(RSTn));
+assign data4_wsel = slv_reg_wren & axi_awaddr == 8'h8;
+assign data4_dnxt = {32{data0_wsel}} & S_DM_AXI_WDATA;
+gen_dffr # (.DW(32)) data4_dffr ( .dnxt(data4_dnxt), .qout(data4_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-//0x09
+
+wire data5_wsel;
 wire [31:0] data5_dnxt;
 wire [31:0] data5_qout;
-gen_dffr # (.DW(32)) data5 ( .dnxt(data5_dnxt), .qout(data5_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0a
-wire [31:0] data6_dnxt;
-wire [31:0] data6_qout;
-gen_dffr # (.DW(32)) data6 ( .dnxt(data6_dnxt), .qout(data6_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0b
-wire [31:0] data7_dnxt;
-wire [31:0] data7_qout;
-gen_dffr # (.DW(32)) data7 ( .dnxt(data7_dnxt), .qout(data7_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0c
-wire [31:0] data8_dnxt;
-wire [31:0] data8_qout;
-gen_dffr # (.DW(32)) data8 ( .dnxt(data8_dnxt), .qout(data8_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0d
-wire [31:0] data9_dnxt;
-wire [31:0] data9_qout;
-gen_dffr # (.DW(32)) data9 ( .dnxt(data9_dnxt), .qout(data9_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0e
-wire [31:0] data10_dnxt;
-wire [31:0] data10_qout;
-gen_dffr # (.DW(32)) data10 ( .dnxt(data10_dnxt), .qout(data10_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x0f
-wire [31:0] data11_dnxt;
-wire [31:0] data11_qout;
-gen_dffr # (.DW(32)) data11 ( .dnxt(data11_dnxt), .qout(data11_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x10
-// wire [31:0] dmcontrol_dnxt;
-// wire [31:0] dmcontrol_qout;
+assign data5_wsel = slv_reg_wren & axi_awaddr == 8'h9;
+assign data5_dnxt = {32{data0_wsel}} & S_DM_AXI_WDATA;
+gen_dffr # (.DW(32)) data5_dffr ( .dnxt(data5_dnxt), .qout(data5_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
 
-// assign dmcontrol_dnxt[31] = 
-
-
-// gen_dffr # (.DW(32)) dmcontrol ( .dnxt(dmcontrol_dnxt), .qout(dmcontrol_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x11
-// wire [31:0] dmstatus_dnxt;
-// wire [31:0] dmstatus_qout;
-// gen_dffr # (.DW(32)) dmstatus ( .dnxt(dmstatus_dnxt), .qout(dmstatus_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x12
-wire [31:0] hartinfo_dnxt;
-wire [31:0] hartinfo_qout;
-gen_dffr # (.DW(32)) hartinfo ( .dnxt(hartinfo_dnxt), .qout(hartinfo_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x13
-wire [31:0] haltsum1_dnxt;
-wire [31:0] haltsum1_qout;
-gen_dffr # (.DW(32)) haltsum1 ( .dnxt(haltsum1_dnxt), .qout(haltsum1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x14
-wire [31:0] hawindowsel = 32'b0;
-
-//0x15
-wire [31:0] hawindow = 32'b0;
-
-//0x16
-wire [31:0] abstractcs_dnxt;
-wire [31:0] abstractcs_qout;
-gen_dffr # (.DW(32)) abstractcs ( .dnxt(abstractcs_dnxt), .qout(abstractcs_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x17
-wire [31:0] command_dnxt;
-wire [31:0] command_qout;
-gen_dffr # (.DW(32)) command ( .dnxt(command_dnxt), .qout(command_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x18
-wire [31:0] abstractauto_dnxt;
-wire [31:0] abstractauto_qout;
-gen_dffr # (.DW(32)) abstractauto ( .dnxt(abstractauto_dnxt), .qout(abstractauto_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x19
-wire [31:0] confstrptr0_dnxt;
-wire [31:0] confstrptr0_qout;
-gen_dffr # (.DW(32)) confstrptr0 ( .dnxt(confstrptr0_dnxt), .qout(confstrptr0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x1a
-wire [31:0] confstrptr1_dnxt;
-wire [31:0] confstrptr1_qout;
-gen_dffr # (.DW(32)) confstrptr1 ( .dnxt(confstrptr1_dnxt), .qout(confstrptr1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x1b
-wire [31:0] confstrptr2_dnxt;
-wire [31:0] confstrptr2_qout;
-gen_dffr # (.DW(32)) confstrptr2 ( .dnxt(confstrptr2_dnxt), .qout(confstrptr2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x1c
-wire [31:0] confstrptr3_dnxt;
-wire [31:0] confstrptr3_qout;
-gen_dffr # (.DW(32)) confstrptr3 ( .dnxt(confstrptr3_dnxt), .qout(confstrptr3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x1d
-wire [31:0] nextdm = 32'h0;
-
-//0x20
-wire [31:0] progbuf0_dnxt;
-wire [31:0] progbuf0_qout;
-gen_dffr # (.DW(32)) progbuf0 ( .dnxt(progbuf0_dnxt), .qout(progbuf0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x21
-wire [31:0] progbuf1_dnxt;
-wire [31:0] progbuf1_qout;
-gen_dffr # (.DW(32)) progbuf1 ( .dnxt(progbuf1_dnxt), .qout(progbuf1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x22
-wire [31:0] progbuf2_dnxt;
-wire [31:0] progbuf2_qout;
-gen_dffr # (.DW(32)) progbuf2 ( .dnxt(progbuf2_dnxt), .qout(progbuf2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x23
-wire [31:0] progbuf3_dnxt;
-wire [31:0] progbuf3_qout;
-gen_dffr # (.DW(32)) progbuf3 ( .dnxt(progbuf3_dnxt), .qout(progbuf3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x24
-wire [31:0] progbuf4_dnxt;
-wire [31:0] progbuf4_qout;
-gen_dffr # (.DW(32)) progbuf4 ( .dnxt(progbuf4_dnxt), .qout(progbuf4_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x25
-wire [31:0] progbuf5_dnxt;
-wire [31:0] progbuf5_qout;
-gen_dffr # (.DW(32)) progbuf5 ( .dnxt(progbuf5_dnxt), .qout(progbuf5_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x26
-wire [31:0] progbuf6_dnxt;
-wire [31:0] progbuf6_qout;
-gen_dffr # (.DW(32)) progbuf6 ( .dnxt(progbuf6_dnxt), .qout(progbuf6_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x27
-wire [31:0] progbuf7_dnxt;
-wire [31:0] progbuf7_qout;
-gen_dffr # (.DW(32)) progbuf7 ( .dnxt(progbuf7_dnxt), .qout(progbuf7_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x28
-wire [31:0] progbuf8_dnxt;
-wire [31:0] progbuf8_qout;
-gen_dffr # (.DW(32)) progbuf8 ( .dnxt(progbuf8_dnxt), .qout(progbuf8_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x29
-wire [31:0] progbuf9_dnxt;
-wire [31:0] progbuf9_qout;
-gen_dffr # (.DW(32)) progbuf9 ( .dnxt(progbuf9_dnxt), .qout(progbuf9_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2a
-wire [31:0] progbuf10_dnxt;
-wire [31:0] progbuf10_qout;
-gen_dffr # (.DW(32)) progbuf10 ( .dnxt(progbuf10_dnxt), .qout(progbuf10_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2b
-wire [31:0] progbuf11_dnxt;
-wire [31:0] progbuf11_qout;
-gen_dffr # (.DW(32)) progbuf11 ( .dnxt(progbuf11_dnxt), .qout(progbuf11_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2c
-wire [31:0] progbuf12_dnxt;
-wire [31:0] progbuf12_qout;
-gen_dffr # (.DW(32)) progbuf12 ( .dnxt(progbuf12_dnxt), .qout(progbuf12_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2d
-wire [31:0] progbuf13_dnxt;
-wire [31:0] progbuf13_qout;
-gen_dffr # (.DW(32)) progbuf13 ( .dnxt(progbuf13_dnxt), .qout(progbuf13_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2e
-wire [31:0] progbuf14_dnxt;
-wire [31:0] progbuf14_qout;
-gen_dffr # (.DW(32)) progbuf14 ( .dnxt(progbuf14_dnxt), .qout(progbuf14_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x2f
-wire [31:0] progbuf15_dnxt;
-wire [31:0] progbuf15_qout;
-gen_dffr # (.DW(32)) progbuf15 ( .dnxt(progbuf15_dnxt), .qout(progbuf15_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x30
-wire [31:0] authdata_dnxt;
-wire [31:0] authdata_qout;
-gen_dffr # (.DW(32)) authdata ( .dnxt(authdata_dnxt), .qout(authdata_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x34
-wire [31:0] haltsum2_dnxt;
-wire [31:0] haltsum2_qout;
-gen_dffr # (.DW(32)) haltsum2 ( .dnxt(haltsum2_dnxt), .qout(haltsum2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x35
-wire [31:0] haltsum3_dnxt;
-wire [31:0] haltsum3_qout;
-gen_dffr # (.DW(32)) haltsum3 ( .dnxt(haltsum3_dnxt), .qout(haltsum3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x37
-wire [31:0] sbaddress3_dnxt;
-wire [31:0] sbaddress3_qout;
-gen_dffr # (.DW(32)) sbaddress3 ( .dnxt(sbaddress3_dnxt), .qout(sbaddress3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x38
-wire [31:0] sbcs_dnxt;
-wire [31:0] sbcs_qout;
-gen_dffr # (.DW(32)) sbcs ( .dnxt(sbcs_dnxt), .qout(sbcs_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x39
-wire [31:0] sbaddress0_dnxt;
-wire [31:0] sbaddress0_qout;
-gen_dffr # (.DW(32)) sbaddress0 ( .dnxt(sbaddress0_dnxt), .qout(sbaddress0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3a
-wire [31:0] sbaddress1_dnxt;
-wire [31:0] sbaddress1_qout;
-gen_dffr # (.DW(32)) sbaddress1 ( .dnxt(sbaddress1_dnxt), .qout(sbaddress1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3b
-wire [31:0] sbaddress2_dnxt;
-wire [31:0] sbaddress2_qout;
-gen_dffr # (.DW(32)) sbaddress2 ( .dnxt(sbaddress2_dnxt), .qout(sbaddress2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3c
-wire [31:0] sbdata0_dnxt;
-wire [31:0] sbdata0_qout;
-gen_dffr # (.DW(32)) sbdata0 ( .dnxt(sbdata0_dnxt), .qout(sbdata0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3d
-wire [31:0] sbdata1_dnxt;
-wire [31:0] sbdata1_qout;
-gen_dffr # (.DW(32)) sbdata1 ( .dnxt(sbdata1_dnxt), .qout(sbdata1_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3e
-wire [31:0] sbdata2_dnxt;
-wire [31:0] sbdata2_qout;
-gen_dffr # (.DW(32)) sbdata2 ( .dnxt(sbdata2_dnxt), .qout(sbdata2_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x3f
-wire [31:0] sbdata3_dnxt;
-wire [31:0] sbdata3_qout;
-gen_dffr # (.DW(32)) sbdata3 ( .dnxt(sbdata3_dnxt), .qout(sbdata3_qout), .CLK(CLK), .RSTn(RSTn));
-
-//0x40
-wire [31:0] haltsum0_dnxt;
-wire [31:0] haltsum0_qout;
-gen_dffr # (.DW(32)) haltsum0 ( .dnxt(haltsum0_dnxt), .qout(haltsum0_qout), .CLK(CLK), .RSTn(RSTn));
-
-//private reg
-wire [MAXHART-1:0] hartArrayMask_dnxt;
-wire [MAXHART-1:0] hartArrayMask_qout;
-gen_dffr # (.DW(MAXHART)) hartArrayMask ( .dnxt(hartArrayMask_dnxt), .qout(hartArrayMask_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-
+wire [31:0] haltsum0;
 
 
 assign reg_data_out =
@@ -630,280 +370,29 @@ assign reg_data_out =
 	| ({32{axi_araddr == 8'h7}} & data3_qout)
 	| ({32{axi_araddr == 8'h8}} & data4_qout)
 	| ({32{axi_araddr == 8'h9}} & data5_qout)
-	| ({32{axi_araddr == 8'ha}} & data6_qout)
-	| ({32{axi_araddr == 8'hb}} & data7_qout)
-	| ({32{axi_araddr == 8'hc}} & data8_qout)
-	| ({32{axi_araddr == 8'hd}} & data9_qout)
-	| ({32{axi_araddr == 8'he}} & data10_qout)
-	| ({32{axi_araddr == 8'hf}} & data11_qout)
 
-	| ({32{axi_araddr == 8'h10}} & dmcontrol_qout)
-	| ({32{axi_araddr == 8'h11}} & dmstatus_qout)
-	| ({32{axi_araddr == 8'h12}} & hartinfo_qout)
-	| ({32{axi_araddr == 8'h13}} & haltsum1_qout)
-	| ({32{axi_araddr == 8'h14}} & hawindowsel_qout)
-	| ({32{axi_araddr == 8'h15}} & hawindow_qout)
-	| ({32{axi_araddr == 8'h16}} & abstractcs_qout)
-	// | ({32{axi_araddr == 8'h17}} & command_qout)
-	| ({32{axi_araddr == 8'h18}} & abstractauto_qout)
 
-	| ({32{axi_araddr == 8'h19}} & confstrptr0_qout)
-	| ({32{axi_araddr == 8'h1a}} & confstrptr1_qout)
-	| ({32{axi_araddr == 8'h1b}} & confstrptr2_qout)
-	| ({32{axi_araddr == 8'h1c}} & confstrptr3_qout)
+	| ({32{axi_araddr == 8'h10}} & dmcontrol)
+	| ({32{axi_araddr == 8'h11}} & dmstatus)
 
-	| ({32{axi_araddr == 8'h1d}} & nextdm)
+	| ({32{axi_araddr == 8'h16}} & abstractcs)
 
-	| ({32{axi_araddr == 8'h20}} & progbuf0_qout)
-	| ({32{axi_araddr == 8'h21}} & progbuf1_qout)
-	| ({32{axi_araddr == 8'h22}} & progbuf2_qout)
-	| ({32{axi_araddr == 8'h23}} & progbuf3_qout)
-	| ({32{axi_araddr == 8'h24}} & progbuf4_qout)
-	| ({32{axi_araddr == 8'h25}} & progbuf5_qout)
-	| ({32{axi_araddr == 8'h26}} & progbuf6_qout)
-	| ({32{axi_araddr == 8'h27}} & progbuf7_qout)
-	| ({32{axi_araddr == 8'h28}} & progbuf8_qout)
-	| ({32{axi_araddr == 8'h29}} & progbuf9_qout)
-	| ({32{axi_araddr == 8'h2a}} & progbuf10_qout)
-	| ({32{axi_araddr == 8'h2b}} & progbuf11_qout)
-	| ({32{axi_araddr == 8'h2c}} & progbuf12_qout)
-	| ({32{axi_araddr == 8'h2d}} & progbuf13_qout)
-	| ({32{axi_araddr == 8'h2e}} & progbuf14_qout)
-	| ({32{axi_araddr == 8'h2f}} & progbuf15_qout)
 
-	| ({32{axi_araddr == 8'h30}} & authdata_qout)
-	| ({32{axi_araddr == 8'h34}} & haltsum2_qout)
-	| ({32{axi_araddr == 8'h35}} & haltsum3_qout)
-	| ({32{axi_araddr == 8'h37}} & sbaddress3_qout)
-	| ({32{axi_araddr == 8'h38}} & sbcs_qout)
+	| ({32{axi_araddr == 8'h38}} & sbcs)
 
 	| ({32{axi_araddr == 8'h39}} & sbaddress0_qout)
 	| ({32{axi_araddr == 8'h3a}} & sbaddress1_qout)
-	| ({32{axi_araddr == 8'h3b}} & sbaddress2_qout)
+
 
 	| ({32{axi_araddr == 8'h3c}} & sbdata0_qout)
 	| ({32{axi_araddr == 8'h3d}} & sbdata1_qout)
-	| ({32{axi_araddr == 8'h3e}} & sbdata2_qout)
-	| ({32{axi_araddr == 8'h3f}} & sbdata3_qout)
 
-	| ({32{axi_araddr == 8'h40}} & haltsum0_qout)
-	| 32'b0
 
-	;
+	| ({32{axi_araddr == 8'h40}} & haltsum0)
+	| 32'b0;
 
 
-
-
-
-
-	// always @(posedge or negedge RSTn) begin
-	// 	if (~RSTn) begin
-	// 	  slv_reg0 <= 0;
-	// 	  slv_reg1 <= 0;
-	// 	  slv_reg2 <= 0;
-	// 	  slv_reg3 <= 0;
-	// 	end 
-	// 	else begin
-	// 		if (slv_reg_wren) begin
-	// 			case ( axi_awaddr )
-	// 				2'h0: begin
-	// 					slv_reg0 <= S_AXI_WDATA;
-	// 				end  
-	// 				2'h1: begin
-	// 					slv_reg1 <= S_AXI_WDATA;
-	// 				end  
-	// 			  	2'h2: begin
-	// 					slv_reg2 <= S_AXI_WDATA;
-	// 				end  
-	// 				2'h3: begin
-	// 					slv_reg3 <= S_AXI_WDATA;
-	// 				end
-
-	// 				8'h1d: begin
-	// 				end
-
-	// 			  	default : begin
-	// 					slv_reg0 <= slv_reg0;
-	// 					slv_reg1 <= slv_reg1;
-	// 					slv_reg2 <= slv_reg2;
-	// 					slv_reg3 <= slv_reg3;
-	// 				end
-	// 			endcase
-	// 		end
-	//   	end
-	// end  
-
-
-
-//0x04
-assign data0_dnxt = 
-	dmactive ? 32'b0 :
-				(slv_reg_wren & axi_awaddr == 8'h4) ? S_AXI_WDATA :;
-
-//0x05
-assign data1_dnxt;
-
-//0x06
-assign data2_dnxt;
-
-//0x07
-assign data3_dnxt;
-
-//0x08
-assign data4_dnxt;
-
-//0x09
-assign data5_dnxt;
-
-//0x0a
-assign data6_dnxt;
-
-//0x0b
-assign data7_dnxt;
-
-//0x0c
-assign data8_dnxt;
-
-//0x0d
-assign data9_dnxt;
-
-//0x0e
-assign data10_dnxt;
-
-//0x0f
-assign data11_dnxt;
-
-//0x10
-assign dmcontrol_dnxt;
-
-//0x11
-assign dmstatus_dnxt;
-
-//0x12
-assign hartinfo_dnxt;
-
-//0x13
-assign haltsum1_dnxt;
-
-//0x14
-assign hawindowsel_dnxt;
-
-//0x15
-assign hawindow_dnxt;
-
-//0x16
-assign abstractcs_dnxt;
-
-//0x17
-// assign command_dnxt;
-
-//0x18
-assign abstractauto_dnxt;
-
-//0x19
-assign confstrptr0_dnxt;
-
-//0x1a
-assign confstrptr1_dnxt;
-
-//0x1b
-assign confstrptr2_dnxt;
-
-//0x1c
-assign confstrptr3_dnxt;
-
-//0x1d
-assign nextdm = 32'h0;
-
-//0x20
-assign progbuf0_dnxt;
-
-//0x21
-assign progbuf1_dnxt;
-
-//0x22
-assign progbuf2_dnxt;
-
-//0x23
-assign progbuf3_dnxt;
-
-//0x24
-assign progbuf4_dnxt;
-
-//0x25
-assign progbuf5_dnxt;
-
-//0x26
-assign progbuf6_dnxt;
-
-//0x27
-assign progbuf7_dnxt;
-
-//0x28
-assign progbuf8_dnxt;
-
-//0x29
-assign progbuf9_dnxt;
-
-//0x2a
-assign progbuf10_dnxt;
-
-//0x2b
-assign progbuf11_dnxt;
-
-//0x2c
-assign progbuf12_dnxt;
-
-//0x2d
-assign progbuf13_dnxt;
-
-//0x2e
-assign progbuf14_dnxt;
-
-//0x2f
-assign progbuf15_dnxt;
-
-//0x30
-assign authdata_dnxt;
-
-//0x34
-assign haltsum2_dnxt;
-
-//0x35
-assign haltsum3_dnxt;
-
-//0x37
-assign sbaddress3_dnxt;
-
-//0x38
-assign sbcs_dnxt;
-
-//0x39
-assign sbaddress0_dnxt;
-
-//0x3a
-assign sbaddress1_dnxt;
-
-//0x3b
-assign sbaddress2_dnxt;
-
-//0x3c
-assign sbdata0_dnxt;
-
-//0x3d
-assign sbdata1_dnxt;
-
-//0x3e
-assign sbdata2_dnxt;
-
-//0x3f
-assign sbdata3_dnxt;
-
-//0x40
-assign haltsum0_dnxt;
-
-
-
+	assign haltsum0 = 32'b0 | hart_isInHalt;
 
 
 
@@ -927,118 +416,113 @@ assign haltsum0_dnxt;
 // RRRRRRRR     RRRRRRR    eeeeeeeeeeeeee    sssssssssss        eeeeeeeeeeeeee            ttttttttttt       HHHHHHHHH     HHHHHHHHH  aaaaaaaaaa  aaaallllllll         ttttttttttt               CCCCCCCCCCCCC   ooooooooooo     nnnnnn    nnnnnn          ttttttttttt  rrrrrrr               ooooooooooo   llllllll
  
 
+wire [MAXHART-1:0] hartSelected;
+
+
+wire dmcontrol_wsel = slv_reg_wren & ( axi_awaddr == 'h10 );
 
 
 
 
 
 
+gen_dffren # (.DW(1)) haltreq_dffren ( .dnxt(S_DM_AXI_WDATA [31]), .qout(haltreq), .en(dmcontrol_wsel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+assign hart_haltReq = {MAXHART{haltreq}} & hartSelected;
+
+
+gen_dffren # (.DW(1)) resumereq_dffren( .dnxt(S_DM_AXI_WDATA[30] & ~S_DM_AXI_WDATA[31]), .qout(resumereq), .en(dmcontrol_wsel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+assign hart_resume = {MAXHART{resumereq}} & hartSelected;
+
+wire hartreset;
+gen_dffren # (.DW(1)) hartreset_dffren ( .dnxt(S_DM_AXI_WDATA [29]), .qout(hartreset), .en(dmcontrol_wsel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+assign hart_resetReq = {MAXHART{hartreset}} & hartSelected;
+
+
+wire [19:0] hartsel;
+gen_dffren # (.DW(20)) hartsel_dffren ( .dnxt(S_DM_AXI_WDATA [25:6]), .qout(hartsel), .en(dmcontrol_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+assign hartSelected = {hartsel[9:0], hartsel[19:10]};
+
+wire haltOnResetreq_dnxt = S_DM_AXI_WDATA[2] ? 
+											1'b0 :
+											( 
+												S_DM_AXI_WDATA[3] ? 1'b1 : haltOnResetreq
+											);
+
+gen_dffren # (.DW(1)) haltOnResettreq_dffren ( .dnxt(haltOnResetreq_dnxt), .qout(haltOnResetreq), .en(dmcontrol_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+wire hart_haltOnReset = {MAXHART{haltOnResetreq}} & hartSelected;
 
 
 
-wire [MAXHART-1:0] haltreq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? 
-									{MAXHART{S_AXI_WDATA [31]}} & hartSelected : haltreq_qout;
-gen_dffr # (.DW(MAXHART)) haltreq ( .dnxt(haltreq_dnxt), .qout(haltreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+gen_dffren # (.DW(1)) ndmreset_dffr ( .dnxt(S_DM_AXI_WDATA[1]), .qout(ndmreset), .en(dmcontrol_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+assign ndmresetn = ~ndmreset;
 
 
-wire [MAXHART-1:0] resumereq_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA [30] & ~S_AXI_WDATA [31] ? 
-									hartSelected : {MAXHART{1'b0}};
-gen_dffr # (.DW(MAXHART)) resumereq ( .dnxt(resumereq_dnxt), .qout(resumereq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+gen_dffren # (.DW(1)) dmactive_dffr ( .dnxt(S_DM_AXI_WDATA[0]), .qout(dmactive), .en(dmcontrol_sel), .CLK(CLK), .RSTn(RSTn));
 
 
-wire hartreset_dnxt = slv_reg_wren & ( axi_awaddr == 'h10 ) ? S_AXI_WDATA [29] : hartreset_qout;
-wire hartreset_qout;
-gen_dffr # (.DW(1)) hartreset ( .dnxt(hartreset_dnxt), .qout(hartreset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+assign dmcontrol = 
+	{
+		1'b0, //haltreq(Write Only)
+		1'b0, //resumereq(Write 1 Only)
+		hartreset_qout,
+		1'b0, //ackhavereset (Write 1 Only)
+		1'b0, //[27]N/A
+		1'b0, //hasel(Multi-hart seleting is not supported)
+		hartsel,
+		2'b0, //[5:4] N/A
+		1'b0, //setresethaltreq (Write 1 Only)
+		1'b0, //clrresethaltreq (Write 1 Only)
+		ndmreset,
+		dmactive
+	}
 
 
-wire [MAXHART-1:0] hartResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
-							{MAXHART{S_AXI_WDATA [29]}} & hartSelected : hartreset_qout;
-gen_dffr # (.DW(MAXHART)) hartResetreq ( .dnxt(hartResetreq_dnxt), .qout(hartResetreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+//private reg
+wire [MAXHART-1:0] hasReset_dnxt = 
+						( hasReset_qout | hart_isInReset ) & ~( {MAXHART{dmcontrol_sel & S_DM_AXI_WDATA[28]}} & hartSelected ) ;
+wire [MAXHART-1:0] hasReset_qout;
+gen_dffr # (.DW(MAXHART)) hasReset_dffr ( .dnxt(hasReset_dnxt), .qout(hasReset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+
+//private reg
+wire [MAXHART-1:0] hasResume_dnxt = 
+						hasResume_qout  & ( {MAXHART{dmcontrol_sel & S_DM_AXI_WDATA[30]}} & hartSelected );
+wire [MAXHART-1:0] hasResume_qout;
+gen_dffr # (.DW(MAXHART)) hasResume_dffr ( .dnxt(hasResume_dnxt), .qout(hasResume_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
 
-wire hasel_dnxt;
-wire hasel_qout;
-wire [9:0] hartsello_dnxt;
-wire [9:0] hartsello_qout;
-wire [9:0] hartselhi_dnxt;
-wire [9:0] hartselhi_qout;
-assign {hasel_dnxt, hartsello_dnxt, hartselhi_dnxt} = (slv_reg_wren & ( axi_awaddr == 'h10 )) ? 
-													S_AXI_WDATA [26:6] : {hasel_qout, hartsello_qout, hartselhi_qout};
-
-gen_dffr # (.DW(21)) dmcontrol_26_6 ( .dnxt({hasel_dnxt, hartsello_dnxt, hartselhi_dnxt}), .qout({hasel_qout, hartsello_qout, hartselhi_qout}), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
-wire [MAXHART-1:0] haltOnResetreq_dnxt = (slv_reg_wren & ( axi_awaddr == 'h10 ))
-										?
-										(
-											S_AXI_WDATA [2] 
-											? {MAXHART{1'b0}} 
-											: 	( 
-												S_AXI_WDATA [3] 
-												? hartSelected 
-												: haltOnResetreq_qout
-												)
-										)
-										:
-										haltOnResetreq_qout;
-
-gen_dffr # (.DW(MAXHART)) haltOnResettreq ( .dnxt(haltOnResetreq_dnxt), .qout(haltOnResetreq_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
-
-
-wire ndmreset_dnxt;
-wire ndmreset_qout;
-gen_dffr # (.DW(1)) ndmreset ( .dnxt(ndmreset_dnxt), .qout(ndmreset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
-
-
-wire dmactive_dnxt;
-wire dmactive_qout;
-gen_dffr # (.DW(1)) dmactive ( .dnxt(dmactive_dnxt), .qout(dmactive_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-//dmstatus 0x11
-
-wire impebreak = 1'b0;
 wire allhavereset = & (hasReset_qout | (~hartSelected)); 
 wire anyhavereset = | (hasReset_qout & hartSelected);
 wire allresumeack = & (hasResume_qout | (~hartSelected));
 wire anyresumeack = | (hasResume_qout & hartSelected);
 wire anynonexistent = hartsel > MAXHART-1;
 wire allnonexistent = anynonexistent;
-wire allunavail = & ( reset_status | (~hartSelected) )
-wire anyunavail = | (  reset_status & hartSelected);
-wire allrunning = & ( (~reset_status & ~halt_status) | (~hartSelected) );
-wire anyrunning = | ( ~reset_status & ~halt_status & hartSelected )
-wire allhalted = & ( halt_status | (~hartSelected) );
-wire anyhalted = | ( halt_status & hartSelected);
-initial $warning("Authentication has not implemented yet");
-wire authenticated = 1'b0;
-wire authbusy = 1'b0;
-wire hasresethaltreq = 1'b1;
-initial $warning("configuretion string has not implemented yet");
-wire confstrptrvalid = 1'b0;
-wire [3:0] version = 4'd2;
-
-// hartSelected
+wire allunavail = & ( hart_isInReset | (~hartSelected) );
+wire anyunavail = | (  hart_isInReset & hartSelected);
+wire allrunning = & ( (~hart_isInReset & ~hart_isInHalt) | (~hartSelected) );
+wire anyrunning = | ( ~hart_isInReset & ~hart_isInHalt & hartSelected );
+wire allhalted = & ( hart_isInHalt | (~hartSelected) );
+wire anyhalted = | ( hart_isInHalt & hartSelected );
 
 
-// input [MAXHART-1:0] reset_status,
-
-//private reg
-wire [MAXHART-1:0] hasReset_dnxt = ( hasReset_qout & ~( {MAXHART{slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA[28]}} & hartSelected ) | reset_status;
-wire [MAXHART-1:0] hasReset_qout;
-gen_dffr # (.DW(MAXHART)) hasReset ( .dnxt(hasReset_dnxt), .qout(hasReset_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout));
-
-// input [MAXHART-1:0] halt_status,
-//private reg
-wire [MAXHART-1:0] hasResume_dnxt = 
-					(hasResume_qout 
-						& ~( {MAXHART{(slv_reg_wren & ( axi_awaddr == 'h10 ) & S_AXI_WDATA[30])}} & hartSelected)
-						| ~halt_status;
+assign dmstatus = 
+	{ 9'b0,
+	1'b0, //impebreak(preset)
+	2'b0,
+	allhavereset, anyhavereset, allresumeack, anyresumeack, allnonexistent, anynonexistent,
+	allunavail, anyunavail, allrunning, anyrunning, allhalted, anyhalted,
+	1'b1, //authenticated(preset)
+	1'b0, //authbusy
+	1'b1, //hasresethaltreq(preset)
+	1'b0, //confstrptrvalid(preset)
+	4'd2 //version
+	};
 
 
 
-wire [MAXHART-1:0] hasResume_qout;
-gen_dffr # (.DW(MAXHART)) hasResume ( .dnxt(hasResume_dnxt), .qout(hasResume_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
 
 
 
@@ -1068,86 +552,97 @@ gen_dffr # (.DW(MAXHART)) hasResume ( .dnxt(hasResume_dnxt), .qout(hasResume_qou
 //  A:::::A                 A:::::A b:::::::::::::::b   s:::::::::::ss          tt:::::::::::ttr:::::r           a::::::::::aa:::a cc:::::::::::::::c        tt:::::::::::tt          CCC::::::::::::C oo:::::::::::oo m::::m   m::::m   m::::m::::m   m::::m   m::::m a::::::::::aa:::a n::::n    n::::n  d:::::::::ddd::::d s:::::::::::ss  
 // AAAAAAA                   AAAAAAAbbbbbbbbbbbbbbbb     sssssssssss              ttttttttttt  rrrrrrr            aaaaaaaaaa  aaaa   cccccccccccccccc          ttttttttttt               CCCCCCCCCCCCC   ooooooooooo   mmmmmm   mmmmmm   mmmmmmmmmmm   mmmmmm   mmmmmm  aaaaaaaaaa  aaaa nnnnnn    nnnnnn   ddddddddd   ddddd  sssssssssss    
 
-output [127:0] accessReg_arg,
-output [15:0] accessReg_addr,
-output accessReg_wen,
-input [127:0] accessReg_res,
-input accessReg_ready,
-output accessReg_vaild,
 
 
 
+wire command_wsel = slv_reg_wren & ( axi_awaddr == 'h17 );
+wire [31:0] command = S_DM_AXI_WDATA;
 
 
-
-
-
-wire isCommand = slv_reg_wren & ( axi_awaddr == 'h17 );
-wire [31:0] command = {32{isCommand}} & S_AXI_WDATA;
 
 wire [7:0] cmdtype = command[31:24];
-
 wire [2:0] aarsize = command[22:20];
-wire aarpostincrement = 1'b0;
-wire postexec = 1'b0;
+wire aarpostincrement = command[19];
+wire postexec = command[18];
 wire transfer = command[17];
 wire write = command[16];
 wire [15:0] regno = command[15:0];
 
-wire isCommandNotReady = isCommand & cmdtype == 'd1 & anyhalted;
+wire isAccessRegister = (cmdtype == 8'd0);
+
+assign accessReg_valid = command_wsel & isAccessRegister & transfer;
+assign accessReg_addr = regno;
+assign accessReg_wen = write;
+assign accessReg_write = {data1_qout, data0_qout};
+assign is32w = (command[22:20] == 2);
 
 
-wire [4:0] progbufsize = 5'd16
 
-wire busy_qout;
-wire busy_dnxt = (busy_qout | isCommand) & (~accessReg_ready) & (~quickAccess_ready);
-gen_dffr # (.DW(1)) busy ( .dnxt(busy_dnxt), .qout(busy_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
+
+
+
+
+
+
+
+
+
+
+//wire isCommandNotReady = command_sel & isQuickAccess & anyhalted;
+
+wire isCommandUnsupport = (command_wsel & ~isAccessRegister) | ( command_wsel & isAccessRegister & ( aarpostincrement | postexec ));
+wire isCommandException = accessReg_valid & (accessReg_addr > 16'h101f);
+
+
+
+
+
+wire abstractcs_wsel = slv_reg_wren & ( axi_awaddr == 'h16 );
+
+
+
+
+wire busy = (accessReg_valid);
 
 wire [2:0] cmderr_qout;
-wire [2:0] cmderr_dnxt = (slv_reg_wren & ( axi_awaddr == 'h16 ) & S_AXI_WDATA[10:8] == 3'd1 & ~busy_qout) ? 3'd0 :
+wire [2:0] cmderr_dnxt = (abstractcs_wsel & S_DM_AXI_WDATA[10:8] == 3'd1 & ~busy) ? 3'd0 :
 						(
-							slv_reg_wren & ( axi_awaddr == 'h16 | axi_awaddr == 'h17 | axi_awaddr == 'h18 ) & busy_qout ? 3'd1 :
+							( slv_reg_wren & ( axi_awaddr == 8'h16 | axi_awaddr == 8'h17 ) )
+							|
+							( (slv_reg_rden | slv_reg_wren) & ( axi_awaddr == 8'h04 | axi_awaddr == 8'h05 | axi_awaddr == 8'h06 | axi_awaddr == 8'h07 | axi_awaddr == 8'h08 | axi_awaddr == 8'h09 ) ) 
+								& busy ? 3'd1 :
 							(
-								isCommand & isCommandUnsupport ? 3'd2 : 
+								command_wsel & isCommandUnsupport ? 3'd2 : 
 								(											
-									busy_qout & isExpection ? 3'd3 :
+									busy & isExpection ? 3'd3 :
 									(
-										isCommand & isCommandNotReady ? 3'd4 :
+										//command_sel & isCommandNotReady ? 3'd4 :
 										(
-											busy_qout & isBusErrot ? 3'd5 :
+											//busy & isBusErrot ? 3'd5 :
 											(
-												accessReg_ready ? 3'd0 : cmderr_qout
+												cmderr_qout
 											)
 										)
 									)
 								)
 							)
 						);
-gen_dffr # (.DW(3)) cmderr ( .dnxt(cmderr_dnxt), .qout(cmderr_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive_qout)));
-
-
-wire [3:0] datacount = 4'd12;
+gen_dffr # (.DW(3)) cmderr ( .dnxt(cmderr_dnxt), .qout(cmderr_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
 
 
-wire [31:0] arg0_32 = data0_qout;
-// wire [31:0] arg1_32 = data1_qout;
-// wire [31:0] arg2_32 = data2_qout;
 
-wire [63:0] arg0_64 = { data1_qout, data0_qout };
-// wire [63:0] arg1_64 = { data3_qout, data2_qout };
-// wire [63:0] arg2_64 = { data5_qout, data4_qout };
-
-wire [127:0] arg0_128 = { data3_qout, data2_qout, data1_qout, data0_qout };
-// wire [127:0] arg1_128 = { data7_qout, data6_qout, data5_qout, data4_qout };
-// wire [127:0] arg2_128 = { data11_qout, data10_qout, data9_qout, data8_qout };
-
-assign accessReg_arg = 128'b0 | ({32{aarsize == 3'd2}} & arg0_32) | ({64{aarsize == 3'd3}} & arg0_64) | ({128{aarsize == 3'd4}} & arg0_128);
-assign accessReg_addr = regno;
-assign accessReg_wen = transfer & write;
-
-wire accessReg_ren = transfer & ~write;
-assign accessReg_vaild = isCommand & cmdtype == 'd0;
+wire abstractcs = 
+	{
+		3'b0,
+		5'd0, //progbufsize(Preset)
+		11'b0,
+		busy,
+		1'b0,
+		cmderr,
+		4'b0,
+		4'd6 //datacount(Preset)
+	}
 
 
 
@@ -1155,31 +650,105 @@ assign accessReg_vaild = isCommand & cmdtype == 'd0;
 
 
 
+//    SSSSSSSSSSSSSSS YYYYYYY       YYYYYYY   SSSSSSSSSSSSSSS      BBBBBBBBBBBBBBBBB   UUUUUUUU     UUUUUUUU   SSSSSSSSSSSSSSS                     AAA                  CCCCCCCCCCCCC      CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE   SSSSSSSSSSSSSSS   SSSSSSSSSSSSSSS 
+//  SS:::::::::::::::SY:::::Y       Y:::::Y SS:::::::::::::::S     B::::::::::::::::B  U::::::U     U::::::U SS:::::::::::::::S                   A:::A              CCC::::::::::::C   CCC::::::::::::CE::::::::::::::::::::E SS:::::::::::::::SSS:::::::::::::::S
+// S:::::SSSSSS::::::SY:::::Y       Y:::::YS:::::SSSSSS::::::S     B::::::BBBBBB:::::B U::::::U     U::::::US:::::SSSSSS::::::S                  A:::::A           CC:::::::::::::::C CC:::::::::::::::CE::::::::::::::::::::ES:::::SSSSSS::::::S:::::SSSSSS::::::S
+// S:::::S     SSSSSSSY::::::Y     Y::::::YS:::::S     SSSSSSS     BB:::::B     B:::::BUU:::::U     U:::::UUS:::::S     SSSSSSS                 A:::::::A         C:::::CCCCCCCC::::CC:::::CCCCCCCC::::CEE::::::EEEEEEEEE::::ES:::::S     SSSSSSS:::::S     SSSSSSS
+// S:::::S            YYY:::::Y   Y:::::YYYS:::::S                   B::::B     B:::::B U:::::U     U:::::U S:::::S                            A:::::::::A       C:::::C       CCCCCC:::::C       CCCCCC  E:::::E       EEEEEES:::::S           S:::::S            
+// S:::::S               Y:::::Y Y:::::Y   S:::::S                   B::::B     B:::::B U:::::D     D:::::U S:::::S                           A:::::A:::::A     C:::::C            C:::::C                E:::::E             S:::::S           S:::::S            
+//  S::::SSSS             Y:::::Y:::::Y     S::::SSSS                B::::BBBBBB:::::B  U:::::D     D:::::U  S::::SSSS                       A:::::A A:::::A    C:::::C            C:::::C                E::::::EEEEEEEEEE    S::::SSSS         S::::SSSS         
+//   SS::::::SSSSS         Y:::::::::Y       SS::::::SSSSS           B:::::::::::::BB   U:::::D     D:::::U   SS::::::SSSSS                 A:::::A   A:::::A   C:::::C            C:::::C                E:::::::::::::::E     SS::::::SSSSS     SS::::::SSSSS    
+//     SSS::::::::SS        Y:::::::Y          SSS::::::::SS         B::::BBBBBB:::::B  U:::::D     D:::::U     SSS::::::::SS              A:::::A     A:::::A  C:::::C            C:::::C                E:::::::::::::::E       SSS::::::::SS     SSS::::::::SS  
+//        SSSSSS::::S        Y:::::Y              SSSSSS::::S        B::::B     B:::::B U:::::D     D:::::U        SSSSSS::::S            A:::::AAAAAAAAA:::::A C:::::C            C:::::C                E::::::EEEEEEEEEE          SSSSSS::::S       SSSSSS::::S 
+//             S:::::S       Y:::::Y                   S:::::S       B::::B     B:::::B U:::::D     D:::::U             S:::::S          A:::::::::::::::::::::AC:::::C            C:::::C                E:::::E                         S:::::S           S:::::S
+//             S:::::S       Y:::::Y                   S:::::S       B::::B     B:::::B U::::::U   U::::::U             S:::::S         A:::::AAAAAAAAAAAAA:::::AC:::::C       CCCCCC:::::C       CCCCCC  E:::::E       EEEEEE            S:::::S           S:::::S
+// SSSSSSS     S:::::S       Y:::::Y       SSSSSSS     S:::::S     BB:::::BBBBBB::::::B U:::::::UUU:::::::U SSSSSSS     S:::::S        A:::::A             A:::::AC:::::CCCCCCCC::::CC:::::CCCCCCCC::::CEE::::::EEEEEEEE:::::ESSSSSSS     S:::::SSSSSSS     S:::::S
+// S::::::SSSSSS:::::S    YYYY:::::YYYY    S::::::SSSSSS:::::S     B:::::::::::::::::B   UU:::::::::::::UU  S::::::SSSSSS:::::S       A:::::A               A:::::ACC:::::::::::::::C CC:::::::::::::::CE::::::::::::::::::::ES::::::SSSSSS:::::S::::::SSSSSS:::::S
+// S:::::::::::::::SS     Y:::::::::::Y    S:::::::::::::::SS      B::::::::::::::::B      UU:::::::::UU    S:::::::::::::::SS       A:::::A                 A:::::A CCC::::::::::::C   CCC::::::::::::CE::::::::::::::::::::ES:::::::::::::::SSS:::::::::::::::SS 
+ // SSSSSSSSSSSSSSS       YYYYYYYYYYYYY     SSSSSSSSSSSSSSS        BBBBBBBBBBBBBBBBB         UUUUUUUUU       SSSSSSSSSSSSSSS        AAAAAAA                   AAAAAAA   CCCCCCCCCCCCC      CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE SSSSSSSSSSSSSSS   SSSSSSSSSSSSSSS   
+
+ 	wire sbcs_wsel = slv_reg_wren & ( axi_awaddr == 8'h38);
+	wire sbaddress0_wsel = slv_reg_wren & ( axi_awaddr == 8'h39 );
+	wire sbdata0_wsel = slv_reg_wren & ( axi_awaddr == 8'h3c );
+	wire sbdata0_rsel = slv_reg_rden & ( axi_araddr == 8'h3c );
+
+	wire sbbusyerror_set;
+	wire sbbusyerror_rst;
+	wire sbbusyerror_qout;
+
+	gen_rsffr # (.DW(1)) sbbusyerror_rsffr ( .set_in(sbbusyerror_set), .rst_in(sbbusyerror_rst), .qout(sbbusyerror_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)) );
+
+	
+	assign sbbusyerror_set = sbbusy & 
+								(
+									( sbaddress0_wsel | sbdata0_wsel )
+									|
+									( sbdata0_rsel )
+								);
+	assign sbbusyerror_rst = sbcs_wsel & S_DM_AXI_WDATA[22];
+
+
+
+	wire sbbusy_set;
+	wire sbbusy_rst;
+	wire sbbusy_qout;
+	gen_rsffr # (.DW(1)) sbbusy ( .set_in(sbbusy_set), .rst_in(sbbusy_rst), .qout(sbbusy_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)) );
+	assign sbbusy_set = (start_single_write | start_single_read) & ~sberror_qout;
+	assign sbbusy_rst = write_resp | read_resp;
+
+
+	wire sbreadonaddr_dnxt = S_DM_AXI_WDATA[20];
+	wire sbreadonaddr_qout;
+	gen_dffren # (.DW(1)) sbreadonaddr_dffren ( .dnxt(sbreadonaddr_dnxt), .qout(sbreadonaddr_qout), .en(sbcs_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+
+
+	wire [2:0] sbaccess_dnxt = S_DM_AXI_WDATA[19:17];
+	wire [2:0] sbaccess_qout;
+	gen_dffren # (.DW(3), .rstValue(3'd2)) sbaccess_dffren ( .dnxt(sbaccess_dnxt), .qout(sbaccess_qout), .en(sbcs_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+
+
+	wire sbautoincrement_dnxt = S_DM_AXI_WDATA[16];
+	wire sbautoincrement_qout;
+	gen_dffren # (.DW(1)) sbautoincrement_dffren ( .dnxt(sbautoincrement_dnxt), .qout(sbautoincrement_qout), .en(sbcs_sel), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+
+
+	wire sbreadondate_dnxt = S_DM_AXI_WDATA[15];
+	wire sbreadondate_qout;
+	gen_dffren # (.DW(1)) sbreadondate_dffren ( .dnxt(sbreadondate_dnxt), .qout(sbreadondate_qout), .CLK(CLK), .en(sbcs_sel), .RSTn(RSTn & (~dmactive)));
+
+
+	wire [2:0] sberror_set;
+	wire [2:0] sberror_rst;
+	wire [2:0] sberror_qout;
+	gen_rsffr # (.DW(3)) sberror_rsffr ( .set_in(sberror_set), .rst_in(sberror_rst), .qout(sberror_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)) );
+	assign sberror_set = {3{sbcs_sel}} &
+							(
+								{3{( start_single_write_dnxt | start_single_read_dnxt) & sbaccess_qout != 3'd3}} & 3'd4
+							)
+	assign sberror_rst = {3{sbcs_sel}} & S_DM_AXI_WDATA[14:12];
+
+
+	wire [31:0] sbcs = 
+					{
+						1'b1, //sbversion
+						sbbusyerror_qout,
+						sbbusy,
+						sbreadonaddr_qout,
+						sbaccess_qout,
+						sbautoincrement_qout,
+						sbreadondate_qout,
+						sberror_qout,
+						8'd64, //sbasize(Preset)
+						1'b0, //sbaccess128(Preset)
+						1'b1, //sbaccess64(Preset)
+						1'b0, //sbaccess32(Preset)
+						1'b0, //sbaccess16(Preset)
+						1'b0, //sbaccess8(Preset)
+					}
 
 
 
 
-output quickAccess_vaild,
-output [32*16-1:0] programBuffer,
-input isExpection,
-input quickAccess_ready;
-
-assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
-
-
-
-
-// output accessMemroy_vaild;
-// output isReadAccess;
-// output isWriteAccess;
-// output write_data;
-// input read_data;
-// output AccessMemroy_addr;
-// input accessMemroy_ready
-
-// assign accessMemroy_vaild = isCommand & cmdtype == 'd2;
-// assign isReadAccess = isCommand & ~command[16];
-// assign isWriteAccess = isCommand & command[16]; 
 
 
 
@@ -1193,39 +762,141 @@ assign quickAccess_vaild = isCommand & cmdtype == 'd1 & ~anyhalted;
 
 
 
-assign data0_dnxt = ({32{accessReg_ready & accessReg_ren}} & accessReg_res[31:0])
-					| 
-					({32{slv_reg_wren & axi_awaddr == 'h4}} & S_AXI_WDATA)
-					| 
-					({32{~(accessReg_ready & accessReg_ren) & ~(slv_reg_wren & axi_awaddr == 'h4)}} & data0_qout);
+	wire sbaddress0_dnxt;
+	wire sbaddress0_qout;
+	wire sbaddress1_dnxt;
+	wire sbaddress1_qout;
+	wire sbaddress_dnxt;
+	wire sbaddress_qout;
+	gen_dffr # (.DW(64)) sbaddress_dffr ( .dnxt(sbaddress_dnxt), .qout(sbaddress_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-assign data1_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd3 | aarsize == 3'd4)}} & accessReg_res[64:32])
-					| 
-					({32{slv_reg_wren & axi_awaddr == 'h5}} & S_AXI_WDATA)
-					| 
-					({32{~(accessReg_ready & accessReg_ren & (aarsize == 3'd3 | aarsize == 3'd4)) & ~(slv_reg_wren & axi_awaddr == 'h5)}} & data1_qout);
+	assign sbaddress_dnxt = () & { sbaddress1_dnxt, sbaddress0_dnxt}
+							|
+							{64{(write_resp_success | read_resp_success) & abstractauto_qout}} & ( sbaddress_qout + 64'b1000);
 
-assign data2_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd4)}} & accessReg_res[95:64])
-					| 
-					({32{slv_reg_wren & axi_awaddr == 'h6}} & S_AXI_WDATA)
-					| 
-					({32{~(accessReg_ready & accessReg_ren & aarsize == 3'd4) & ~(slv_reg_wren & axi_awaddr == 'h6)}} & data2_qout);
-
-assign data3_dnxt = ({32{accessReg_ready & accessReg_ren & (aarsize == 3'd4)}} & accessReg_res[127:96])
-					| 
-					({32{slv_reg_wren & axi_awaddr == 'h7}} & S_AXI_WDATA)
-					| 
-					({32{~(accessReg_ready & accessReg_ren & aarsize == 3'd4) & ~(slv_reg_wren & axi_awaddr == 'h7)}} & data3_qout);
+	assign {sbaddress1_qout, sbaddress0_qout} = sbaddress_qout;
 
 
+	wire sbdata0_dnxt;
+	wire sbdata0_qout;
+	wire sbdata1_dnxt;
+	wire sbdata1_qout;
+	wire sbdata_dnxt;
+	wire sbdata_qout;
 
 
+	gen_dffr # (.DW(64)) sbdata_dffr ( .dnxt(sbdata_dnxt), .qout(sbdata_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
 
-
+	assign sbdata_dnxt = { sbdata_dnxt, sbdata_dnxt };
+	assign {sbdata1_qout, sbdata0_qout} = sbdata_qout;
 
 
 
 
+
+	wire start_single_write_dnxt;
+	wire start_single_read_dnxt;
+	wire start_single_write_qout;
+	wire start_single_read_qout;
+	gen_dffr # (.DW(1)) start_single_write_dffr ( .dnxt(start_single_write_dnxt), .qout(start_single_write_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+	gen_dffr # (.DW(1)) start_single_read_dffr ( .dnxt(start_single_read_dnxt), .qout(start_single_read_qout), .CLK(CLK), .RSTn(RSTn & (~dmactive)));
+	assign start_single_write_dnxt = ~sbbusyerror & sbdata0_sel;
+	assign start_single_read_dnxt = ( ~sbbusyerror & sbreadonaddr_qout & sbaddress0_sel) 
+									| 
+									( ~sbbusyerror & sbreadondate_qout & slv_reg_rden & axi_araddr == 8'h3c ) ;
+
+
+	wire write_resp;
+	wire write_resp_error;
+	wire write_resp_success;
+	wire read_resp;
+	wire read_resp_error;
+	wire read_resp_success;
+
+	assign M_SYSBUS_AXI_AWADDR = sbaddress_qout;
+	assign M_SYSBUS_AXI_ARADDR = sbaddress_qout;
+	assign M_SYSBUS_AXI_WDATA = sbdata_qout;
+
+ 
+
+
+	assign M_SYSBUS_AXI_AWPROT	= 3'b000;
+	assign M_SYSBUS_AXI_WSTRB	= 4'b1111;
+	assign M_SYSBUS_AXI_ARPROT	= 3'b001;
+
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn | ~dmactive ) begin
+			M_SYSBUS_AXI_AWVALID <= 1'b0;
+		end
+		else begin
+			if (start_single_write & ~sberror_qout) begin
+				M_SYSBUS_AXI_AWVALID <= 1'b1;
+			end
+			else if (M_AXI_AWREADY && M_SYSBUS_AXI_AWVALID) begin
+				M_SYSBUS_AXI_AWVALID <= 1'b0;
+			end
+		end
+	end
+
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn | ~dmactive) begin
+			 M_SYSBUS_AXI_WVALID <= 1'b0;
+		end
+		else if (start_single_write & ~sberror_qout) begin
+			M_SYSBUS_AXI_WVALID <= 1'b1;
+		end
+		else if (M_AXI_WREADY && M_SYSBUS_AXI_WVALID) begin
+			M_SYSBUS_AXI_WVALID <= 1'b0;
+		end
+	end
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn | ~dmactive) begin
+			M_SYSBUS_AXI_BREADY <= 1'b0;
+		end
+		else if (M_AXI_BVALID && ~M_SYSBUS_AXI_BREADY) begin
+			M_SYSBUS_AXI_BREADY <= 1'b1;
+		end
+		else if (M_SYSBUS_AXI_BREADY) begin
+			M_SYSBUS_AXI_BREADY <= 1'b0;
+		end
+		else
+		  M_SYSBUS_AXI_BREADY <= M_SYSBUS_AXI_BREADY;
+	end
+
+	assign write_resp = M_SYSBUS_AXI_BREADY & M_AXI_BVALID;
+	assign write_resp_error = (write_resp & M_AXI_BRESP[1]);
+	assign write_resp_success = (write_resp & ~M_AXI_BRESP[1]);
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn | ~dmactive) begin
+			M_SYSBUS_AXI_ARVALID <= 1'b0;
+		end
+		else if (start_single_read & ~sberror_qout) begin
+			M_SYSBUS_AXI_ARVALID <= 1'b1;
+		end
+		else if (M_AXI_ARREADY && M_SYSBUS_AXI_ARVALID) begin
+			M_SYSBUS_AXI_ARVALID <= 1'b0;
+		end
+	end
+
+	always @(posedge CLK or negedge RSTn) begin
+		if ( ~RSTn | ~dmactive) begin
+			M_SYSBUS_AXI_RREADY <= 1'b0;
+		end
+		else if (M_AXI_RVALID && ~M_SYSBUS_AXI_RREADY) begin
+			M_SYSBUS_AXI_RREADY <= 1'b1;
+		end
+		else if (M_SYSBUS_AXI_RREADY) begin
+			M_SYSBUS_AXI_RREADY <= 1'b0;
+		end
+	end
+
+	assign read_resp = M_SYSBUS_AXI_RREADY & M_AXI_RVALID;
+	assign read_resp_error = read_resp & M_AXI_RRESP[1];
+	assign read_resp_success = read_resp & ~M_AXI_RRESP[1];
 
 
 

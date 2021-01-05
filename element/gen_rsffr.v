@@ -1,18 +1,14 @@
 /*
-* @File name: gen_dffr
+* @File name: gen_rsffr
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-09-14 10:25:09
+* @Date:   2020-12-29 18:02:54
 * @Last Modified by:   Ruige Lee
-<<<<<<< HEAD:RiftChip/element/gen_dffr.v
-* @Last Modified time: 2020-12-29 18:05:13
-=======
-* @Last Modified time: 2021-01-03 12:05:52
->>>>>>> master:core/riftCore/element/gen_dffr.v
+* @Last Modified time: 2020-12-29 18:10:54
 */
 
 /*
-  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,13 +25,15 @@
 
 `timescale 1 ns / 1 ps
 
-module gen_dffr # (
-	parameter DW = 32,
+module gen_rsffr # (
+	parameter DW = 1,
 	parameter rstValue = {DW{1'b0}}
 )
 (
 
-	input [DW-1:0] dnxt,
+	input [DW-1:0] set_in,
+	input [DW-1:0] rst_in,
+
 	output [DW-1:0] qout,
 
 	input CLK,
@@ -44,18 +42,26 @@ module gen_dffr # (
 
 reg [DW-1:0] qout_r;
 
-always @(posedge CLK or negedge RSTn) begin
-	if ( !RSTn )
-		qout_r <= #1 rstValue;
-	else                  
-		qout_r <= #1 dnxt;
-end
+generate
+	for ( genvar i = 0; i < DW; i = i + 1 ) begin
+		if ( !RSTn ) begin
+			qout_r[i] <= #1 rstValue[i];
+		end 
+		else begin
+			qout_r[i] <= #1 qout_r[i];
+			if ( set_in[i] ) begin
+				qout_r[i] <= #1 1'b1;
+			end
+			if ( rst_in[i] ) begin
+				qout_r[i] <= #1 1'b0;	
+			end
+		end
+	end
+endgenerate
 
 assign qout = qout_r;
 
 endmodule
-
-
 
 
 

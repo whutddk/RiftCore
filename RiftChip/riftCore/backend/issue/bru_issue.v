@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:50:36
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:46:15
+* @Last Modified time: 2021-01-03 12:08:28
 */
 
 /*
@@ -42,7 +42,7 @@ module bru_issue #
 	//from execute
 
 	input bru_exeparam_ready,
-	output bru_exeparam_vaild_qout,
+	output bru_exeparam_valid_qout,
 	output [EXE_DW-1:0] bru_exeparam_qout,
 	input bruILP_ready,
 
@@ -110,7 +110,7 @@ module bru_issue #
 								| ( rv64i_jalr & rs1_ready )
 								);
 
-	wire [EXE_DW-1:0] bru_exeparam_dnxt = bru_exeparam_vaild_dnxt ? { 
+	wire [EXE_DW-1:0] bru_exeparam_dnxt = bru_exeparam_valid_dnxt ? { 
 										rv64i_jal,
 										rv64i_jalr,
 
@@ -132,11 +132,11 @@ module bru_issue #
 									}
 									: bru_exeparam_qout;
 
-	wire bru_exeparam_vaild_dnxt = flush ? 1'b0 : (bru_exeparam_ready & bru_isClearRAW);
-	assign bru_fifo_pop = bru_exeparam_vaild_dnxt;
+	wire bru_exeparam_valid_dnxt = flush ? 1'b0 : (bru_exeparam_ready & bru_isClearRAW);
+	assign bru_fifo_pop = bru_exeparam_valid_dnxt;
 
 	gen_dffr # (.DW(EXE_DW)) bru_exeparam ( .dnxt(bru_exeparam_dnxt), .qout(bru_exeparam_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) bru_exeparam_vaild ( .dnxt(bru_exeparam_vaild_dnxt), .qout(bru_exeparam_vaild_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) bru_exeparam_valid ( .dnxt(bru_exeparam_valid_dnxt), .qout(bru_exeparam_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

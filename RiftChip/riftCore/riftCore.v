@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:46:33
+* @Last Modified time: 2021-01-03 12:08:36
 */
 
 
@@ -59,14 +59,14 @@ wire beflush;
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_pop;
 wire instrFifo_pop;
 wire instrFifo_empty;
-wire jalr_vaild;
+wire jalr_valid;
 wire [63:0] jalr_pc;
 
 wire istakenBranch;
-wire takenBranch_vaild;
+wire takenBranch_valid;
 
 wire [63:0] privileged_pc;
-wire privileged_vaild;
+wire privileged_valid;
 
 
 wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
@@ -84,14 +84,14 @@ frontEnd i_frontEnd(
 
 	.flush(feflush),
 
-	.bru_res_vaild(takenBranch_vaild&~isMisPredict_qout),
+	.bru_res_valid(takenBranch_valid&~isMisPredict_qout),
 	.bru_takenBranch(istakenBranch),
 
-	.jalr_vaild(jalr_vaild&(~isMisPredict_qout)),
+	.jalr_valid(jalr_valid&(~isMisPredict_qout)),
 	.jalr_pc(jalr_pc),
 
 	.privileged_pc(privileged_pc),
-	.privileged_vaild(privileged_vaild),
+	.privileged_valid(privileged_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -123,12 +123,12 @@ backEnd i_backEnd(
 	.instrFifo_empty(instrFifo_empty | isMisPredict_qout),
 
 	// to pcGen
-	.jalr_vaild_qout(jalr_vaild),
+	.jalr_valid_qout(jalr_valid),
 	.jalr_pc_qout(jalr_pc),
 	.isMisPredict(isMisPredict_qout),
 
 	.takenBranch_qout(istakenBranch),
-	.takenBranch_vaild_qout(takenBranch_vaild),
+	.takenBranch_valid_qout(takenBranch_valid),
 
 	.isFlush(beflush),
 
@@ -137,7 +137,7 @@ backEnd i_backEnd(
 	.isSoftwvInterrupt(isSoftwvInterrupt),
 
 	.privileged_pc(privileged_pc),
-	.privileged_vaild(privileged_vaild),
+	.privileged_valid(privileged_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)

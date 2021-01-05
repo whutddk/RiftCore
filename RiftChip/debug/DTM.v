@@ -4,7 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:33:45
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:44:36
+<<<<<<< HEAD:RiftChip/debug/DTM.v
+* @Last Modified time: 2020-12-30 16:56:31
+=======
+* @Last Modified time: 2021-01-03 12:04:25
+>>>>>>> master:core/debug/DTM.v
 */
 
 /*
@@ -37,40 +41,37 @@ module DTM (
 	input TMS,
 	input TRST,
 
+
 	//from AXI lite
 
-	output [7:0] M_AXI_AWADDR,
-	output [2:0] M_AXI_AWPROT,
-	output M_AXI_AWVALID,
-	input M_AXI_AWREADY,
+	output [7:0] M_DTM_AXI_AWADDR,
+	output [2:0] M_DTM_AXI_AWPROT,
+	output M_DTM_AXI_AWVALID,
+	input M_DTM_AXI_AWREADY,
 
-	output [31:0] M_AXI_WDATA,
-	output [3:0] M_AXI_WSTRB,
-	output M_AXI_WVALID,
-	input M_AXI_WREADY,
+	output [31:0] M_DTM_AXI_WDATA,
+	output [3:0] M_DTM_AXI_WSTRB,
+	output M_DTM_AXI_WVALID,
+	input M_DTM_AXI_WREADY,
 
-	input [1:0] M_AXI_BRESP,
-	input M_AXI_BVALID,
-	output M_AXI_BREADY,
+	input [1:0] M_DTM_AXI_BRESP,
+	input M_DTM_AXI_BVALID,
+	output M_DTM_AXI_BREADY,
 
-	output [7:0] M_AXI_ARADDR,
-	output [2:0] M_AXI_ARPROT,
-	output M_AXI_ARVALID,
-	input M_AXI_ARREADY,
+	output [7:0] M_DTM_AXI_ARADDR,
+	output [2:0] M_DTM_AXI_ARPROT,
+	output M_DTM_AXI_ARVALID,
+	input M_DTM_AXI_ARREADY,
 
-	input [31:0] M_AXI_RDATA,
-	input [1:0] M_AXI_RRESP,
-	input M_AXI_RVALID,
-	output M_AXI_RREADY
+	input [31:0] M_DTM_AXI_RDATA,
+	input [1:0] M_DTM_AXI_RRESP,
+	input M_DTM_AXI_RVALID,
+	output M_DTM_AXI_RREADY
 
-
-	input CLK,
-	input RSTn
 
 );
 
-$error("TCK should be regarded as io, but not clk");
-
+wire RSTn = ~TRST;
 // TTTTTTTTTTTTTTTTTTTTTTT         AAA               PPPPPPPPPPPPPPPPP   
 // T:::::::::::::::::::::T        A:::A              P::::::::::::::::P  
 // T:::::::::::::::::::::T       A:::::A             P::::::PPPPPP:::::P 
@@ -162,14 +163,14 @@ assign tap_state_dnxt =
 	| ({4{tap_state_qout == UPDATE_IR}} & {4{ TMS}} & SELECT_DR_SCAN)
 	| ({4{tap_state_qout == UPDATE_IR}} & {4{~TMS}} & RUN_TEST_IDLE)
 
-gen_dffr # (.DW(4)) tap_state ( .dnxt(tap_state_dnxt), .qout(tap_state_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(4)) tap_state ( .dnxt(tap_state_dnxt), .qout(tap_state_qout), .CLK(TCK), .RSTn(RSTn));
 
 
 
 
 wire [4:0] shift_IR_dnxt;
 wire [4:0] shift_IR_qout;
-gen_dffr # (.DW(5)) shift_IR ( .dnxt(shift_IR_dnxt), .qout(shift_IR_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(5)) shift_IR ( .dnxt(shift_IR_dnxt), .qout(shift_IR_qout), .CLK(TCK), .RSTn(RSTn));
 
 assign shift_IR_dnxt = 
 	  {5{tap_state_qout == SHIFT_IR}} & {TDI, shift_IR_qout[4:1]}
@@ -180,7 +181,7 @@ assign shift_IR_dnxt =
 
 wire [4:0] ir_dnxt;
 wire [4:0] ir_qout;
-gen_dffr # (.DW(5)) IR ( .dnxt(ir_dnxt), .qout(ir_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(5)) IR ( .dnxt(ir_dnxt), .qout(ir_qout), .CLK(TCK), .RSTn(RSTn));
 
 assign ir_dnxt = 
 	  {5{tap_state_qout == TEST_LOGIC_RESET}} & 5'h1
@@ -195,7 +196,7 @@ assign ir_dnxt =
 
 wire [31:0] IDCODE_shift_dnxt;
 wire [31:0] IDCODE_shift_qout;
-gen_dffr # (.DW(32)) IDCODE_shift ( .dnxt(IDCODE_shift_dnxt), .qout(IDCODE_shift_qout), .CLK(~CLK), .RSTn(RSTn));
+gen_dffr # (.DW(32)) IDCODE_shift ( .dnxt(IDCODE_shift_dnxt), .qout(IDCODE_shift_qout), .CLK(~TCK), .RSTn(RSTn));
 
 assign IDCODE_shift_dnxt = 
 	({32{tap_state_qout == CAPTURE_DR & (ir_qout == 5'h1)}} & IDCODE)
@@ -209,7 +210,7 @@ assign IDCODE_shift_dnxt =
 
 wire [31:0] dtmcs_shift_dnxt;
 wire [31:0] dtmcs_shift_qout;
-gen_dffr # (.DW(32)) dtmcs_shift ( .dnxt(dtmcs_shift_dnxt), .qout(dtmcs_shift_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(32)) dtmcs_shift ( .dnxt(dtmcs_shift_dnxt), .qout(dtmcs_shift_qout), .CLK(TCK), .RSTn(RSTn));
 
 assign dtmcs_shift_dnxt = 
 	({32{tap_state_qout == CAPTURE_DR & (ir_qout == 5'h10)}} & dtmcs_qout)
@@ -223,7 +224,7 @@ assign dtmcs_shift_dnxt =
 
 wire [41:0] dmi_shift_dnxt;
 wire [41:0] dmi_shift_qout;
-gen_dffr # (.DW(42)) dmi ( .dnxt(dmi_shift_dnxt), .qout(dmi_shift_qout), .CLK(~CLK), .RSTn(RSTn));
+gen_dffr # (.DW(42)) dmi ( .dnxt(dmi_shift_dnxt), .qout(dmi_shift_qout), .CLK(~TCK), .RSTn(RSTn));
 
 assign dmi_shift_dnxt = 
 	({42{  tap_state_qout == CAPTURE_DR & (ir_qout == 5'h11)}} & dmi)
@@ -256,7 +257,7 @@ wire [31:0] IDCODE = 32'b0;
 
 wire [31:0] dtmcs_dnxt;
 wire [31:0] dtmcs_qout;
-gen_dffr # (.DW(32)) dtmcs ( .dnxt(dtmcs_dnxt), .qout(dtmcs_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(32)) dtmcs ( .dnxt(dtmcs_dnxt), .qout(dtmcs_qout), .CLK(TCK), .RSTn(RSTn));
 
 assign dtmcs_dnxt = 
 	({32{tap_state_qout == UPDATE_DR & ir_qout == 5'h10}} & dtmcs_shift_qout)
@@ -298,7 +299,7 @@ assign dtmcs_dnxt =
 	wire read_resp_error;
 
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if(~RSTn) begin
 			dmi <= 39'b0;
 		end else begin
@@ -312,11 +313,11 @@ assign dtmcs_dnxt =
 
 			else begin
 				dmi <= dmi;
-				if ( M_AXI_RVALID ) begin
-					dmi[33:2] <= M_AXI_RDATA;
+				if ( M_DTM_AXI_RVALID ) begin
+					dmi[33:2] <= M_DTM_AXI_RDATA;
 					dmi[1:0] <= 2'b0;
 				end
-				if ( M_AXI_BRESP == 2'b0 && M_AXI_BVALID ) begin
+				if ( M_DTM_AXI_BRESP == 2'b0 && M_DTM_AXI_BVALID ) begin
 					dmi[1:0] <= 2'b0;
 				end
 				if ( read_resp_error || write_resp_error ) begin
@@ -340,7 +341,7 @@ assign dtmcs_dnxt =
 
 
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if(~RSTn) begin
 			axi_awaddr <= 8'b0;
 			axi_araddr <= 8'b0;
@@ -392,22 +393,22 @@ assign dtmcs_dnxt =
 
 
 	// I/O Connections assignments
-	assign M_AXI_AWADDR	= axi_awaddr;
-	assign M_AXI_WDATA	= axi_wdata;
-	assign M_AXI_AWPROT	= 3'b000;
-	assign M_AXI_AWVALID = axi_awvalid;
-	assign M_AXI_WVALID	= axi_wvalid;
-		assign M_AXI_WSTRB	= 4'b1111;
-	assign M_AXI_BREADY	= axi_bready;
-	assign M_AXI_ARADDR	= axi_araddr;
-	assign M_AXI_ARVALID	= axi_arvalid;
-	assign M_AXI_ARPROT	= 3'b001;
-	assign M_AXI_RREADY	= axi_rready;
+	assign M_DTM_AXI_AWADDR	= axi_awaddr;
+	assign M_DTM_AXI_WDATA	= axi_wdata;
+	assign M_DTM_AXI_AWPROT	= 3'b000;
+	assign M_DTM_AXI_AWVALID = axi_awvalid;
+	assign M_DTM_AXI_WVALID	= axi_wvalid;
+		assign M_DTM_AXI_WSTRB	= 4'b1111;
+	assign M_DTM_AXI_BREADY	= axi_bready;
+	assign M_DTM_AXI_ARADDR	= axi_araddr;
+	assign M_DTM_AXI_ARVALID	= axi_arvalid;
+	assign M_DTM_AXI_ARPROT	= 3'b001;
+	assign M_DTM_AXI_RREADY	= axi_rready;
 
 
 
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			axi_awvalid <= 1'b0;
 		end
@@ -415,30 +416,30 @@ assign dtmcs_dnxt =
 			if (start_single_write) begin
 				axi_awvalid <= 1'b1;
 			end
-			else if (M_AXI_AWREADY && axi_awvalid) begin
+			else if (M_DTM_AXI_AWREADY && axi_awvalid) begin
 				axi_awvalid <= 1'b0;
 			end
 		end
 	end
 
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			 axi_wvalid <= 1'b0;
 		end
 		else if (start_single_write) begin
 			axi_wvalid <= 1'b1;
 		end
-		else if (M_AXI_WREADY && axi_wvalid) begin
+		else if (M_DTM_AXI_WREADY && axi_wvalid) begin
 			axi_wvalid <= 1'b0;
 		end
 	end
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			axi_bready <= 1'b0;
 		end
-		else if (M_AXI_BVALID && ~axi_bready) begin
+		else if (M_DTM_AXI_BVALID && ~axi_bready) begin
 			axi_bready <= 1'b1;
 		end
 		else if (axi_bready) begin
@@ -448,26 +449,26 @@ assign dtmcs_dnxt =
 		  axi_bready <= axi_bready;
 	end
 
-	assign write_resp_error = (axi_bready & M_AXI_BVALID & M_AXI_BRESP[1]);
+	assign write_resp_error = (axi_bready & M_DTM_AXI_BVALID & M_DTM_AXI_BRESP[1]);
 
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			axi_arvalid <= 1'b0;
 		end
 		else if (start_single_read) begin
 			axi_arvalid <= 1'b1;
 		end
-		else if (M_AXI_ARREADY && axi_arvalid) begin
+		else if (M_DTM_AXI_ARREADY && axi_arvalid) begin
 			axi_arvalid <= 1'b0;
 		end
 	end
 
-	always @(posedge CLK or negedge RSTn) begin
+	always @(posedge TCK or negedge RSTn) begin
 		if ( ~RSTn ) begin
 			axi_rready <= 1'b0;
 		end
-		else if (M_AXI_RVALID && ~axi_rready) begin
+		else if (M_DTM_AXI_RVALID && ~axi_rready) begin
 			axi_rready <= 1'b1;
 		end
 		else if (axi_rready) begin
@@ -475,7 +476,7 @@ assign dtmcs_dnxt =
 		end
 	end
 
-	assign read_resp_error = (axi_rready & M_AXI_RVALID & M_AXI_RRESP[1]);
+	assign read_resp_error = (axi_rready & M_DTM_AXI_RVALID & M_DTM_AXI_RRESP[1]);
 
 
 
