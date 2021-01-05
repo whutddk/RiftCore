@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 11:59:38
+* @Last Modified time: 2021-01-03 12:08:34
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,27 +36,27 @@ module writeBack (
 
 
 	//from adder
-	input alu_writeback_vaild,
+	input alu_writeback_valid,
 	input [63:0] alu_res,
 	input [(5+`RB-1):0] alu_rd0,
 
 	//from bru
-	input bru_writeback_vaild,
+	input bru_writeback_valid,
 	input [(5+`RB-1):0] bru_rd0,
 	input [63:0] bru_res,
 
 	//from lsu
-	input lsu_writeback_vaild,
+	input lsu_writeback_valid,
 	input [(5+`RB-1):0] lsu_rd0,
 	input [63:0] lsu_res,
 
 	//from csr
-	input csr_writeback_vaild,
+	input csr_writeback_valid,
 	input [(5+`RB-1):0] csr_rd0,
 	input [63:0] csr_res,
 
 	//from mul
-	input mul_writeback_vaild,
+	input mul_writeback_valid,
 	input [(5+`RB-1):0] mul_rd0,
 	input [63:0] mul_res
 );
@@ -81,30 +81,30 @@ generate
 			assign regFileX_dnxt[64*SEL +: 64] =  
 				(
 					//adder wb
-					({64{alu_writeback_vaild & (alu_rd0 == SEL)}} & alu_res)
+					({64{alu_writeback_valid & (alu_rd0 == SEL)}} & alu_res)
 					|
 					//bru wb
-					({64{bru_writeback_vaild & (bru_rd0 == SEL)}} & bru_res)
+					({64{bru_writeback_valid & (bru_rd0 == SEL)}} & bru_res)
 					|
 					//lsu wb
-					({64{lsu_writeback_vaild & (lsu_rd0 == SEL)}} & lsu_res)
+					({64{lsu_writeback_valid & (lsu_rd0 == SEL)}} & lsu_res)
 					|
 					//csr wb
-					({64{csr_writeback_vaild & (csr_rd0 == SEL)}} & csr_res)
+					({64{csr_writeback_valid & (csr_rd0 == SEL)}} & csr_res)
 					|
 					//mul wb
-					({64{mul_writeback_vaild & (mul_rd0 == SEL)}} & mul_res)
+					({64{mul_writeback_valid & (mul_rd0 == SEL)}} & mul_res)
 				)
 				|
 				(
 					//nobody wb
 					( 
 						 
-						{64{  ~(alu_writeback_vaild & alu_rd0 == SEL)
-							& ~(bru_writeback_vaild & bru_rd0 == SEL)
-							& ~(lsu_writeback_vaild & lsu_rd0 == SEL)
-							& ~(csr_writeback_vaild & csr_rd0 == SEL)
-							& ~(mul_writeback_vaild & mul_rd0 == SEL) }}
+						{64{  ~(alu_writeback_valid & alu_rd0 == SEL)
+							& ~(bru_writeback_valid & bru_rd0 == SEL)
+							& ~(lsu_writeback_valid & lsu_rd0 == SEL)
+							& ~(csr_writeback_valid & csr_rd0 == SEL)
+							& ~(mul_writeback_valid & mul_rd0 == SEL) }}
 					) 
 					& regFileX_qout[64*SEL +: 64]
 				);
@@ -116,15 +116,15 @@ endgenerate
 
 
 	assign wbLog_writeb_set = 
-		( alu_writeback_vaild << alu_rd0 )
+		( alu_writeback_valid << alu_rd0 )
 		| 
-		( bru_writeback_vaild << bru_rd0 )
+		( bru_writeback_valid << bru_rd0 )
 		| 
-		( lsu_writeback_vaild << lsu_rd0 )
+		( lsu_writeback_valid << lsu_rd0 )
 		| 
-		( csr_writeback_vaild << csr_rd0 )
+		( csr_writeback_valid << csr_rd0 )
 		| 
-		( mul_writeback_vaild << mul_rd0 )
+		( mul_writeback_valid << mul_rd0 )
 		;
 
 

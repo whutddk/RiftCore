@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-09 20:06:19
+* @Last Modified time: 2021-01-03 12:08:22
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ module decoder
 	(
 
 	input [31:0] instr,
-	input fetch_decode_vaild,
+	input fetch_decode_valid,
 	input [63:0] pc,
 	input is_rvc,
 
@@ -68,7 +68,7 @@ decoder32 i_decoder32
 
 	assign decode_microInstr = is_rvc ? decode_microInstr_16 : decode_microInstr_32;
 
-	assign instrFifo_push = fetch_decode_vaild & ~instrFifo_full;
+	assign instrFifo_push = fetch_decode_valid & ~instrFifo_full;
 
 
 

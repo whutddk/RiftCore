@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:11:54
+* @Last Modified time: 2021-01-03 12:08:35
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ module rename (
 	input [4:0] rs2_raw,
 	output [5+`RB-1:0] rs2_reName,
 	
-	input rd0_raw_vaild,
+	input rd0_raw_valid,
 	input [4:0] rd0_raw,
 	output [5+`RB-1:0] rd0_reName,
 	output rd0_runOut
@@ -55,7 +55,7 @@ assign rd0_reName = {rd0_raw, rd0_malloc};
 
 generate
 	for ( genvar i = 0;  i < 32; i = i + 1 )begin
-		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_vaild & ~rd0_runOut ) ? rd0_malloc : rnAct_X_qout[`RB*i +: `RB];
+		assign rnAct_X_dnxt[`RB*i +: `RB] = ( (rd0_raw == i) & rd0_raw_valid & ~rd0_runOut ) ? rd0_malloc : rnAct_X_qout[`RB*i +: `RB];
 	end
 endgenerate
 	
@@ -78,7 +78,7 @@ lzp #(
 
 
 
-assign rnBufU_rename_set = (rd0_raw_vaild & ~rd0_runOut)
+assign rnBufU_rename_set = (rd0_raw_valid & ~rd0_runOut)
 								? {32*`RP{1'b0}} | (1'b1 << rd0_reName)
 								: {32*`RP{1'b0}};
 

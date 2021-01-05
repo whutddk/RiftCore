@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 19:28:31
+* @Last Modified time: 2021-01-03 12:08:30
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ module lsu #
 
 	//can only execute in order right now
 	output lsu_exeparam_ready,
-	input lsu_exeparam_vaild,
+	input lsu_exeparam_valid,
 	input [DW-1:0] lsu_exeparam,
 	
-	output lsu_writeback_vaild,
+	output lsu_writeback_valid,
 	output [63:0] lsu_res_qout,
 	output [(5+`RB-1):0] lsu_rd0_qout,
 
@@ -255,7 +255,7 @@ i_dtcm_B
 
 
 
-	wire lsu_writeback_vaild_dnxt = (lsu_exeparam_vaild & lsu_exeparam_ready);
+	wire lsu_writeback_valid_dnxt = (lsu_exeparam_valid & lsu_exeparam_ready);
 
 
 
@@ -263,7 +263,7 @@ i_dtcm_B
 
 gen_dffr # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 // gen_dffr # (.DW(64)) lsu_res ( .dnxt(lsu_res_dnxt), .qout(lsu_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) lsu_vaild ( .dnxt(lsu_writeback_vaild_dnxt&(~flush)), .qout(lsu_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) lsu_valid ( .dnxt(lsu_writeback_valid_dnxt&(~flush)), .qout(lsu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

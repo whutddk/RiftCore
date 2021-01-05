@@ -4,11 +4,15 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-24 11:33:45
 * @Last Modified by:   Ruige Lee
+<<<<<<< HEAD:RiftChip/debug/DTM.v
 * @Last Modified time: 2020-12-30 16:56:31
+=======
+* @Last Modified time: 2021-01-03 12:04:25
+>>>>>>> master:core/debug/DTM.v
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

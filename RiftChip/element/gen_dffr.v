@@ -4,11 +4,15 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-14 10:25:09
 * @Last Modified by:   Ruige Lee
+<<<<<<< HEAD:RiftChip/element/gen_dffr.v
 * @Last Modified time: 2020-12-29 18:05:13
+=======
+* @Last Modified time: 2021-01-03 12:05:52
+>>>>>>> master:core/riftCore/element/gen_dffr.v
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

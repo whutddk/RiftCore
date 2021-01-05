@@ -4,12 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-23 14:37:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 10:24:29
+* @Last Modified time: 2021-01-03 12:08:10
 */
 
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ module div_tb (
 );
 	reg CLK;
 	reg RSTn;
-	reg mulDiv_exeparam_vaild;
+	reg mulDiv_exeparam_valid;
 	reg rv64m_div,rv64m_divu, rv64m_rem, rv64m_remu, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw;	
 
 	reg [63:0] src1;
@@ -86,17 +86,17 @@ module div_tb (
 	wire [127:0] divided;
 
 	assign dividend_dnxt = 
-		(mulDiv_exeparam_vaild & div_fun) ? 
+		(mulDiv_exeparam_valid & div_fun) ? 
 			{64'd0, dividend_load} :
 			((div_cnt_qout == 6'd0) ? dividend_qout : divided)
 			;
 
-	assign divisor_dnxt = (mulDiv_exeparam_vaild & div_fun) ? 
+	assign divisor_dnxt = (mulDiv_exeparam_valid & div_fun) ? 
 						divisor_load :
 						divisor_qout;
 
 
-	assign div_cnt_dnxt = (mulDiv_exeparam_vaild & div_fun) ? 
+	assign div_cnt_dnxt = (mulDiv_exeparam_valid & div_fun) ? 
 							7'd64 :
 							(div_cnt_qout == 6'd0 ? div_cnt_qout : div_cnt_qout - 1);
 
@@ -187,7 +187,7 @@ end
 
 initial begin
 
-	mulDiv_exeparam_vaild = 0;
+	mulDiv_exeparam_valid = 0;
 	rv64m_div = 0;
 	rv64m_divu = 0;
 	rv64m_rem = 0;
@@ -202,7 +202,7 @@ initial begin
 
 	#36
 
-	mulDiv_exeparam_vaild = 1;
+	mulDiv_exeparam_valid = 1;
 	rv64m_div = 0;
 	rv64m_divu = 1;
 	rv64m_rem = 0;
@@ -217,7 +217,7 @@ initial begin
 
 # 10
 
-	mulDiv_exeparam_vaild = 0;
+	mulDiv_exeparam_valid = 0;
 
 
 

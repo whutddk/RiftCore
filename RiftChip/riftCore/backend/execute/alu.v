@@ -4,12 +4,12 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 09:37:52
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-19 16:30:13
+* @Last Modified time: 2021-01-03 12:08:33
 */
 
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@ module alu #(
 	)
 	(
 
-	input alu_exeparam_vaild,
+	input alu_exeparam_valid,
 	input [DW-1:0] alu_exeparam,
 
-	output alu_writeback_vaild,
+	output alu_writeback_valid,
 	output [63:0] alu_res_qout,
 	output [(5+`RB)-1:0] alu_rd0_qout,
 
@@ -172,7 +172,7 @@ assign {
 
 gen_dffr # (.DW((5+`RB))) alu_rd0 ( .dnxt(alu_rd0_dnxt), .qout(alu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64)) alu_res ( .dnxt(alu_res_dnxt), .qout(alu_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) vaild ( .dnxt(alu_exeparam_vaild&(~flush)), .qout(alu_writeback_vaild), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) valid ( .dnxt(alu_exeparam_valid&(~flush)), .qout(alu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

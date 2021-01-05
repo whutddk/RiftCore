@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 18:04:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-11-13 16:12:09
+* @Last Modified time: 2021-01-03 12:08:26
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -55,9 +55,9 @@ module issue_buffer #
 	wire [ DW*DP - 1 : 0] issue_info_dnxt;
 	wire [$clog2(DP)-1:0] issue_push_index_pre;
 	wire [$clog2(DP)-1:0] issue_push_index = (buffer_pop & buffer_push) ? pop_index : issue_push_index_pre;
-	wire [DP-1:0] buffer_vaild_dnxt;
-	wire [DP-1:0] buffer_vaild_qout;
-	assign buffer_malloc_qout = buffer_vaild_qout;
+	wire [DP-1:0] buffer_valid_dnxt;
+	wire [DP-1:0] buffer_valid_qout;
+	assign buffer_malloc_qout = buffer_valid_qout;
 
 	generate
 		for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
@@ -74,21 +74,21 @@ module issue_buffer #
 
 
 
-	gen_dffr #(.DW(DP)) buffer_vaild ( .dnxt(buffer_vaild_dnxt), .qout(buffer_vaild_qout), .CLK(CLK), .RSTn(RSTn) );
+	gen_dffr #(.DW(DP)) buffer_valid ( .dnxt(buffer_valid_dnxt), .qout(buffer_valid_qout), .CLK(CLK), .RSTn(RSTn) );
 
-	assign buffer_vaild_dnxt = flush ? {DP{1'b0}} : (( 
+	assign buffer_valid_dnxt = flush ? {DP{1'b0}} : (( 
 														{DP{(buffer_pop & buffer_push) | (~buffer_pop & ~buffer_push)}}
-														& buffer_vaild_qout
+														& buffer_valid_qout
 													)
 													| 
 													( 
 														{DP{(buffer_push & ~buffer_pop) }}
-														& (buffer_vaild_qout | (1'b1 << issue_push_index_pre))
+														& (buffer_valid_qout | (1'b1 << issue_push_index_pre))
 													) 
 													| 
 													( 
 														{DP{(~buffer_push & buffer_pop)}}
-														& (buffer_vaild_qout & ~(1'b1 << pop_index))
+														& (buffer_valid_qout & ~(1'b1 << pop_index))
 													));
 
 	
@@ -96,7 +96,7 @@ module issue_buffer #
 	lzp #(
 		.CW($clog2(DP))
 	) empty_buffer(
-		.in_i(buffer_vaild_qout),
+		.in_i(buffer_valid_qout),
 		.pos_o(issue_push_index_pre),
 		.all0(),
 		.all1(buffer_full)

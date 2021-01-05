@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-24 11:58:17
+* @Last Modified time: 2021-01-03 12:08:35
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ module dispatch (
 	wire [5+`RB-1:0] rs2_reName;
 	wire [5+`RB-1:0] rd0_reName;
 
-	wire dispat_vaild = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
+	wire dispat_valid = (~instrFifo_empty) & (~rd0_runOut) & (~reOrder_fifo_full);
 
 	wire rv64i_lui, rv64i_auipc;
 	wire rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu;
@@ -145,7 +145,7 @@ module dispatch (
 								| rv64i_slli | rv64i_slliw | rv64i_sll | rv64i_sllw |
 								| rv64i_srli | rv64i_srliw | rv64i_srl | rv64i_srlw |
 								| rv64i_srai | rv64i_sraiw | rv64i_sra | rv64i_sraw	) 
-							& dispat_vaild & (~alu_buffer_full);
+							& dispat_valid & (~alu_buffer_full);
 
 	assign alu_dispat_info = { 	
 				rv64i_lui, rv64i_auipc,
@@ -169,7 +169,7 @@ module dispatch (
 
 
 
-	assign bru_fifo_push = ( rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_vaild & (~bru_fifo_full);
+	assign bru_fifo_push = ( rv64i_jal | rv64i_jalr | rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu) & dispat_valid & (~bru_fifo_full);
 	assign bru_dispat_info = {
 								rv64i_jal, rv64i_jalr, rv64i_beq, rv64i_bne, rv64i_blt, rv64i_bge, rv64i_bltu, rv64i_bgeu,
 								is_rvc,
@@ -177,7 +177,7 @@ module dispatch (
 								rd0_reName, rs1_reName, rs2_reName
 							};
 
-	assign csr_fifo_push = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & dispat_vaild & (~csr_fifo_full);
+	assign csr_fifo_push = ( rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci ) & dispat_valid & (~csr_fifo_full);
 	assign csr_dispat_info = {
 								rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 								pc, imm[11:0], rd0_reName, rs1_reName
@@ -185,7 +185,7 @@ module dispatch (
 
 
 
-	assign lsu_fifo_push = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd | rv64zi_fence_i | rv64i_fence) & dispat_vaild & (~lsu_fifo_full);
+	assign lsu_fifo_push = ( rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu | rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd | rv64zi_fence_i | rv64i_fence) & dispat_valid & (~lsu_fifo_full);
 	assign lsu_dispat_info = {
 								rv64i_lb, rv64i_lh, rv64i_lw, rv64i_ld, rv64i_lbu, rv64i_lhu, rv64i_lwu,
 								rv64i_sb, rv64i_sh, rv64i_sw, rv64i_sd,
@@ -197,7 +197,7 @@ module dispatch (
 							};
 
 	
-	assign mul_fifo_push = (rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulhu | rv64m_div | rv64m_divu | rv64m_rem | rv64m_remu | rv64m_mulw | rv64m_divw | rv64m_divuw | rv64_remw | rv64m_remuw) & dispat_vaild & (~mul_fifo_full);
+	assign mul_fifo_push = (rv64m_mul | rv64m_mulh | rv64m_mullhsu | rv64m_mulhu | rv64m_div | rv64m_divu | rv64m_rem | rv64m_remu | rv64m_mulw | rv64m_divw | rv64m_divuw | rv64_remw | rv64m_remuw) & dispat_valid & (~mul_fifo_full);
 	assign mul_dispat_info = {
 								rv64m_mul,
 								rv64m_mulh,
@@ -224,7 +224,7 @@ module dispatch (
 
 
 
-	wire rd0_raw_vaild = reOrder_fifo_push;
+	wire rd0_raw_valid = reOrder_fifo_push;
 
 
 
@@ -242,7 +242,7 @@ rename i_rename(
 	.rs2_raw(rs2_raw),
 	.rs2_reName(rs2_reName),
 	
-	.rd0_raw_vaild(rd0_raw_vaild),
+	.rd0_raw_valid(rd0_raw_valid),
 	.rd0_raw(rd0_raw),
 	.rd0_reName(rd0_reName),
 	.rd0_runOut(rd0_runOut)

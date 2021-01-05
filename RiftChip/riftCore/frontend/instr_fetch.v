@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 16:02:56
+* @Last Modified time: 2021-01-03 12:08:19
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ module instr_fetch (
 	
 	//handshake
 	input isInstrReadOut,
-	output fetch_decode_vaild,
+	output fetch_decode_valid,
 	input instrFifo_full,
 
 	input flush,
@@ -68,7 +68,7 @@ assign isRVC_out = isRVC_qout;
 assign instr = instr_fetch_qout;
 
 wire isVaild_qout;
-assign fetch_decode_vaild = isVaild_qout & ~instrFifo_full;
+assign fetch_decode_valid = isVaild_qout & ~instrFifo_full;
 
 gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn));

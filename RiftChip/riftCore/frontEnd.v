@@ -4,11 +4,11 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2020-12-10 15:56:10
+* @Last Modified time: 2021-01-03 12:08:38
 */
 
 /*
-  Copyright (c) 2020 - 2020 Ruige Lee <wut.ruigeli@gmail.com>
+  Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -34,13 +34,13 @@ module frontEnd (
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
 	output flush,
-	input bru_res_vaild,
+	input bru_res_valid,
 	input bru_takenBranch,
-	input jalr_vaild,
+	input jalr_valid,
 	input [63:0] jalr_pc,
 
 	input [63:0] privileged_pc,
-	input privileged_vaild,
+	input privileged_valid,
 
 	input CLK,
 	input RSTn
@@ -65,7 +65,7 @@ module frontEnd (
 
 wire isMisPredict;
 
-assign flush = isMisPredict | privileged_vaild;
+assign flush = isMisPredict | privileged_valid;
 
 wire [63:0] fetch_pc_qout;
 wire isReset_qout;
@@ -78,7 +78,7 @@ wire [31:0] isInstrFetch;
 wire [31:0] instr;
 wire isInstrReadOut;
 
-wire fetch_decode_vaild;
+wire fetch_decode_valid;
 wire is_rvc_instr;
 //C0
 pcGenerate i_pcGenerate
@@ -89,16 +89,16 @@ pcGenerate i_pcGenerate
 	.isReset(~isReset_qout),
 
 	//from jalr exe
-	.jalr_vaild(jalr_vaild),
+	.jalr_valid(jalr_valid),
 	.jalr_pc(jalr_pc),
 	
 	//from bru
-	.bru_res_vaild(bru_res_vaild),
+	.bru_res_valid(bru_res_valid),
 	.bru_takenBranch(bru_takenBranch),
 
 	// from expection 	
 	.privileged_pc(privileged_pc),
-	.privileged_vaild(privileged_vaild),
+	.privileged_valid(privileged_valid),
 
 	//to fetch
 	.instr_readout(isInstrFetch),
@@ -145,7 +145,7 @@ instr_fetch i_instr_pre(
 
 	//handshake
 	.isInstrReadOut(isInstrReadOut),
-	.fetch_decode_vaild(fetch_decode_vaild),
+	.fetch_decode_valid(fetch_decode_valid),
 	.instrFifo_full(instrFifo_full),
 
 	.flush(flush),
@@ -165,7 +165,7 @@ instr_fetch i_instr_pre(
 decoder i_decoder
 (
 	.instr(instr),
-	.fetch_decode_vaild(fetch_decode_vaild),
+	.fetch_decode_valid(fetch_decode_valid),
 	.pc(decode_pc),
 	.is_rvc(is_rvc),
 
