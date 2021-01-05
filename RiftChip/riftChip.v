@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-04 17:32:24
+* @Last Modified time: 2021-01-05 11:10:32
 */
 
 
@@ -30,8 +30,23 @@
 
 module riftChip (
 
-
+	input CLK,
+	input RSTn
 );
+
+
+	wire mem_mstReq_valid;
+	wire [63:0] mem_addr;
+	wire [63:0] mem_data_w;
+	wire [63:0] mem_data_r;
+	wire [7:0] mem_wstrb;
+	wire mem_wen;
+	wire mem_slvRsp_valid;
+
+
+
+
+
 
 
 
@@ -41,8 +56,8 @@ riftCore i_riftCore(
 	.isRTimerInterrupt,
 	.isSoftwvInterrupt,
 
-	.CLK,
-	.RSTn
+	.CLK(CLK),
+	.RSTn(RSTn)
 	
 );
 
@@ -59,7 +74,6 @@ innerbus_crossbar i_Xbar(
 	.dm_wstrb(8'b0),
 	.dm_wen(1'b0),
 	.dm_slvRsp_valid(),
-	.dm_mstRsp_ready(1'b1),
 
 	input lsu_mstReq_valid,
 	input [63:0] lsu_addr,
@@ -68,16 +82,14 @@ innerbus_crossbar i_Xbar(
 	input [7:0] lsu_wstrb,
 	input lsu_wen,
 	output lsu_slvRsp_valid,
-	input lsu_mstRsp_ready,
 
 	input ifu_mstReq_valid,
 	input [63:0] ifu_addr,
-	input [63:0] ifu_data_w,
+	.ifu_data_w(64'b0),
 	output [63:0] ifu_data_r,
-	input [7:0] ifu_wstrb,
-	input ifu_wen,
+	.ifu_wstrb(8'b0),
+	.ifu_wen(1'b0),
 	output ifu_slvRsp_valid,
-	input ifu_mstRsp_ready,
 
 
 	//CLINT
@@ -88,7 +100,6 @@ innerbus_crossbar i_Xbar(
 	.clint_wstrb(),
 	.clint_wen(),
 	.clint_slvRsp_valid(1'b1),
-	.clint_mstRsp_ready(),
 
 	//PLIC
 	.plic_mstReq_valid(),
@@ -97,10 +108,7 @@ innerbus_crossbar i_Xbar(
 	.plic_data_r(64'b0),
 	.plic_wstrb(),
 	.plic_wen(),
-
 	.plic_slvRsp_valid(1'b1),
-	.plic_mstRsp_ready(),
-
 
 	//system bus
 	.sysbus_mstReq_valid(),
@@ -110,38 +118,43 @@ innerbus_crossbar i_Xbar(
 	.sysbus_wstrb(),
 	.sysbus_wen(),
 	.sysbus_slvRsp_valid(1'b1),
-	.sysbus_mstRsp_ready(),
 
-	//peripherals bus
 	.perip_mstReq_valid(),
 	.perip_addr(),
 	.perip_data_w(),
 	.perip_data_r(64'b0),
 	.perip_wstrb(),
 	.perip_wen(),
-
 	.perip_slvRsp_valid(1'b1),
-	.perip_mstRsp_ready(),
 
-	//mem bus
-	output mem_mstReq_valid,
-	output [63:0] mem_addr,
-	output [63:0] mem_data_w,
-	input [63:0] mem_data_r,
-	output [7:0] mem_wstrb,
-	output mem_wen,
+	.mem_mstReq_valid(mem_mstReq_valid),
+	.mem_addr(mem_addr),
+	.mem_data_w(mem_data_w),
+	.mem_data_r(mem_data_r),
+	.mem_wstrb(mem_wstrb),
+	.mem_wen(mem_wen),
+	.mem_slvRsp_valid(mem_slvRsp_valid),
 
-	input mem_slvRsp_valid,
-	output mem_mstRsp_ready,
 );
 
 
+memory_bus i_memory_bus
+(
 
+  .mem_mstReq_valid(mem_mstReq_valid),
+  .mem_addr(mem_addr),
+  .mem_data_w(mem_data_w),
+  .mem_data_r(mem_data_r),
+  .mem_wstrb(mem_wstrb),
+  .mem_wen(mem_wen),
+  .mem_slvRsp_valid(mem_slvRsp_valid),
+
+  .CLK(CLK),
+  .RSTn(RSTn)
+);
 
 
 endmodule
-
-
 
 
 

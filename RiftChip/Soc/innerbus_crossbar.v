@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-31 17:04:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-04 14:31:00
+* @Last Modified time: 2021-01-05 10:54:16
 */
 
 /*
@@ -39,7 +39,7 @@ module innerbus_crossbar (
 	input dm_wen,
 
 	output dm_slvRsp_valid,
-	input dm_mstRsp_ready,
+	// input dm_mstRsp_ready,
 
 	//LSU
 	input lsu_mstReq_valid,
@@ -50,7 +50,7 @@ module innerbus_crossbar (
 	input lsu_wen,
 
 	output lsu_slvRsp_valid,
-	input lsu_mstRsp_ready,
+	// input lsu_mstRsp_ready,
 
 	//IFU
 	input ifu_mstReq_valid,
@@ -61,7 +61,7 @@ module innerbus_crossbar (
 	input ifu_wen,
 
 	output ifu_slvRsp_valid,
-	input ifu_mstRsp_ready,
+	// input ifu_mstRsp_ready,
 
 
 
@@ -77,7 +77,7 @@ module innerbus_crossbar (
 	output clint_wen,
 
 	input clint_slvRsp_valid,
-	output clint_mstRsp_ready,
+	// output clint_mstRsp_ready,
 
 	//PLIC
 	output plic_mstReq_valid,
@@ -88,7 +88,7 @@ module innerbus_crossbar (
 	output plic_wen,
 
 	input plic_slvRsp_valid,
-	output plic_mstRsp_ready,
+	// output plic_mstRsp_ready,
 
 
 	//system bus
@@ -100,7 +100,7 @@ module innerbus_crossbar (
 	output sysbus_wen,
 
 	input sysbus_slvRsp_valid,
-	output sysbus_mstRsp_ready,
+	// output sysbus_mstRsp_ready,
 
 	//peripherals bus
 	output perip_mstReq_valid,
@@ -111,7 +111,7 @@ module innerbus_crossbar (
 	output perip_wen,
 
 	input perip_slvRsp_valid,
-	output perip_mstRsp_ready,
+	// output perip_mstRsp_ready,
 
 	//mem bus
 	output mem_mstReq_valid,
@@ -122,7 +122,7 @@ module innerbus_crossbar (
 	output mem_wen,
 
 	input mem_slvRsp_valid,
-	output mem_mstRsp_ready,
+	// output mem_mstRsp_ready,
 );
 
 
@@ -214,12 +214,12 @@ module innerbus_crossbar (
 
 
 	wire arbi_rsp_valid = clint_slvRsp_valid | plic_slvRsp_valid | sysbus_slvRsp_valid | perip_slvRsp_valid | mem_slvRsp_valid;
-	wire arbi_mstrsp_ready = 
-				(isDMReq_set & dm_mstRsp_ready)
-				|
-				(isIFUReq_set & ifu_mstRsp_ready)
-				|
-				(isLSUReq_set & lsu_mstRsp_ready);
+	// wire arbi_mstrsp_ready = 
+	// 			(isDMReq_set & dm_mstRsp_ready)
+	// 			|
+	// 			(isIFUReq_set & ifu_mstRsp_ready)
+	// 			|
+	// 			(isLSUReq_set & lsu_mstRsp_ready);
 
 
 
@@ -259,11 +259,11 @@ module innerbus_crossbar (
 
 
 
-	assign clint_mstRsp_ready = arbi_mstrsp_ready & clint_mstReq_valid;
-	assign plic_mstRsp_ready = arbi_mstrsp_ready & plic_mstReq_valid;
-	assign sysbus_mstRsp_ready = arbi_mstrsp_ready & sysbus_mstReq_valid;
-	assign perip_mstRsp_ready = arbi_mstrsp_ready & perip_mstReq_valid;
-	assign mem_mstRsp_ready = arbi_mstrsp_ready & mem_mstReq_valid;
+	// assign clint_mstRsp_ready = arbi_mstrsp_ready & clint_mstReq_valid;
+	// assign plic_mstRsp_ready = arbi_mstrsp_ready & plic_mstReq_valid;
+	// assign sysbus_mstRsp_ready = arbi_mstrsp_ready & sysbus_mstReq_valid;
+	// assign perip_mstRsp_ready = arbi_mstrsp_ready & perip_mstReq_valid;
+	// assign mem_mstRsp_ready = arbi_mstrsp_ready & mem_mstReq_valid;
 
 
 
