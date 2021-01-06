@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:09:08
+* @Last Modified time: 2021-01-06 18:10:56
 */
 
 /*
@@ -58,12 +58,14 @@ module ifu #
 assign ifu_mstReq_valid = pcGen_fetch_valid;
 assign ifu_addr = fetch_pc_dnxt;
 
-gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .en(ifu_slvRsp_valid&(pcGen_pre_ready)), .CLK(CLK), .RSTn(RSTn));
+wire [63:0] pending_addr;
+gen_dffren # ( .DW(64), .rstValue(64'h80000000)) pending_addr_dffren ( .dnxt(ifu_addr), .qout(pending_addr), .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(pending_addr), .qout(fetch_pc_qout), .en(ifu_slvRsp_valid&(pcGen_pre_ready)), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(fetch_instr), .en(ifu_slvRsp_valid&(pcGen_pre_ready)), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # ( .DW(1)) fetch_valid ( .dnxt(ifu_slvRsp_valid), .qout(fetchBuff_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 
-assign fetch_instr = ifu_data_r;
-assign fetchBuff_valid = ifu_slvRsp_valid;
 
 
 

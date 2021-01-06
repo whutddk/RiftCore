@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:02:03
+* @Last Modified time: 2021-01-06 17:49:38
 */
 
 /*
@@ -123,6 +123,7 @@ module pcGenerate (
 		.isMisPredict(isMisPredict),
 		.isExpection(isExpection),
 		.pcGen_pre_ready(pcGen_pre_ready),
+		.fetchBuff_valid(pcGen_pre_valid),
 		.expection_pc(expection_pc),
 
 		.jalr_valid(jalr_valid),

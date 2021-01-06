@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:08:43
+* @Last Modified time: 2021-01-06 18:06:22
 */
 
 
@@ -42,6 +42,7 @@ module branch_predict (
 	output isMisPredict,
 	input isExpection,
 	input pcGen_pre_ready,
+	input fetchBuff_valid,
 	input [63:0] expection_pc,
 
 	input jalr_valid,
@@ -103,8 +104,8 @@ module branch_predict (
 	assign pcGen_fetch_valid = (~bht_stall & ~jalr_stall & pcGen_pre_ready) | isMisPredict | isExpection;
 
 
-
-
+wire replay;
+gen_dffr #(.DW(1)) pc_repaly (.dnxt(~pcGen_pre_ready), .qout(replay), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
@@ -119,7 +120,7 @@ module branch_predict (
 																		{64{~isMisPredict}} &
 																		(
 																			(
-																				{64{~bht_stall & ~jalr_stall & pcGen_pre_ready}} &
+																				{64{~bht_stall & ~jalr_stall & pcGen_pre_ready & ~replay & fetchBuff_valid}} &
 																				(
 																					({64{isTakenBranch}} & take_pc )
 																					|
@@ -128,7 +129,7 @@ module branch_predict (
 																			)
 																			| 
 																			(
-																				{64{bht_stall | jalr_stall | ~pcGen_pre_ready}} &
+																				{64{bht_stall | jalr_stall | ~pcGen_pre_ready | replay | ~fetchBuff_valid}} &
 																				fetch_pc_qout
 																			)
 																		)
