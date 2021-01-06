@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:37:00
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:44:26
+* @Last Modified time: 2021-01-06 09:49:24
 */
 
 
@@ -79,7 +79,6 @@ module gen_sram #
 
 			if (wen) begin
 				ram[addr] <= #1 ((ram[addr] & data_wstrb_bitn) | (data_w & data_wstrb_bit));
-				data_r_reg <= #1 data_r_reg;
 			end
 
 		end 

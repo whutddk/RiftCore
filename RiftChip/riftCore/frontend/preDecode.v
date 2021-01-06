@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:23:28
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 16:44:41
+* @Last Modified time: 2021-01-06 09:46:57
 */
 
 
@@ -93,7 +93,7 @@ module preDecode (
 	assign isCall = isICall | isCCall;
 	assign isReturn = isIReturn | isCReturn;
 
-	wire [63:0] imm = is_rvc_instr ? Cimm : Iimm;
+	assign imm = is_rvc_instr ? Cimm : Iimm;
 
 
 

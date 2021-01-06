@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 18:03:16
+* @Last Modified time: 2021-01-06 09:52:23
 */
 
 
@@ -70,94 +70,94 @@ riftCore i_riftCore(
 );
 
 
-
-
-
-innerbus_crossbar i_Xbar(
-
-	.dm_mstReq_valid(1'b0),
-	.dm_addr(64'b0),
-	.dm_data_w(64'b0),
-	.dm_data_r(),
-	.dm_wstrb(8'b0),
-	.dm_wen(1'b0),
-	.dm_slvRsp_valid(),
-
-	.lsu_mstReq_valid(1'b0),
-	.lsu_addr(64'b0),
-	.lsu_data_w(64'b0),
-	.lsu_data_r(),
-	.lsu_wstrb(8'b0),
-	.lsu_wen(1'b0),
-	.lsu_slvRsp_valid(),
-
-	.ifu_mstReq_valid(ifu_mstReq_valid),
-	.ifu_addr(ifu_addr),
-	.ifu_data_w(64'b0),
-	.ifu_data_r(ifu_data_r),
-	.ifu_wstrb(8'b0),
-	.ifu_wen(1'b0),
-	.ifu_slvRsp_valid(ifu_slvRsp_valid),
-
-
-
-	.clint_mstReq_valid(),
-	.clint_addr(),
-	.clint_data_w(),
-	.clint_data_r(64'b0),
-	.clint_wstrb(),
-	.clint_wen(),
-	.clint_slvRsp_valid(1'b1),
-
-	.plic_mstReq_valid(),
-	.plic_addr(),
-	.plic_data_w(),
-	.plic_data_r(64'b0),
-	.plic_wstrb(),
-	.plic_wen(),
-	.plic_slvRsp_valid(1'b1),
-
-	.sysbus_mstReq_valid(),
-	.sysbus_addr(),
-	.sysbus_data_w(),
-	.sysbus_data_r(64'b0),
-	.sysbus_wstrb(),
-	.sysbus_wen(),
-	.sysbus_slvRsp_valid(1'b1),
-
-	.perip_mstReq_valid(),
-	.perip_addr(),
-	.perip_data_w(),
-	.perip_data_r(64'b0),
-	.perip_wstrb(),
-	.perip_wen(),
-	.perip_slvRsp_valid(1'b1),
-
-	.mem_mstReq_valid(mem_mstReq_valid),
-	.mem_addr(mem_addr),
-	.mem_data_w(mem_data_w),
-	.mem_data_r(mem_data_r),
-	.mem_wstrb(mem_wstrb),
-	.mem_wen(mem_wen),
-	.mem_slvRsp_valid(mem_slvRsp_valid)
-
-);
-
-
 memory_bus i_memory_bus
 (
 
-  .mem_mstReq_valid(mem_mstReq_valid),
-  .mem_addr(mem_addr),
-  .mem_data_w(mem_data_w),
-  .mem_data_r(mem_data_r),
-  .mem_wstrb(mem_wstrb),
-  .mem_wen(mem_wen),
-  .mem_slvRsp_valid(mem_slvRsp_valid),
+  .mem_mstReq_valid(ifu_mstReq_valid),
+  .mem_addr(ifu_addr),
+  .mem_data_w(64'b0),
+  .mem_data_r(ifu_data_r),
+  .mem_wstrb(8'b0),
+  .mem_wen(1'b0),
+  .mem_slvRsp_valid(ifu_slvRsp_valid),
 
   .CLK(CLK),
   .RSTn(RSTn)
 );
+
+
+// innerbus_crossbar i_Xbar(
+
+// 	.dm_mstReq_valid(1'b0),
+// 	.dm_addr(64'b0),
+// 	.dm_data_w(64'b0),
+// 	.dm_data_r(),
+// 	.dm_wstrb(8'b0),
+// 	.dm_wen(1'b0),
+// 	.dm_slvRsp_valid(),
+
+// 	.lsu_mstReq_valid(1'b0),
+// 	.lsu_addr(64'b0),
+// 	.lsu_data_w(64'b0),
+// 	.lsu_data_r(),
+// 	.lsu_wstrb(8'b0),
+// 	.lsu_wen(1'b0),
+// 	.lsu_slvRsp_valid(),
+
+// 	.ifu_mstReq_valid(ifu_mstReq_valid),
+// 	.ifu_addr(ifu_addr),
+// 	.ifu_data_w(64'b0),
+// 	.ifu_data_r(ifu_data_r),
+// 	.ifu_wstrb(8'b0),
+// 	.ifu_wen(1'b0),
+// 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
+
+
+
+// 	.clint_mstReq_valid(),
+// 	.clint_addr(),
+// 	.clint_data_w(),
+// 	.clint_data_r(64'b0),
+// 	.clint_wstrb(),
+// 	.clint_wen(),
+// 	.clint_slvRsp_valid(1'b1),
+
+// 	.plic_mstReq_valid(),
+// 	.plic_addr(),
+// 	.plic_data_w(),
+// 	.plic_data_r(64'b0),
+// 	.plic_wstrb(),
+// 	.plic_wen(),
+// 	.plic_slvRsp_valid(1'b1),
+
+// 	.sysbus_mstReq_valid(),
+// 	.sysbus_addr(),
+// 	.sysbus_data_w(),
+// 	.sysbus_data_r(64'b0),
+// 	.sysbus_wstrb(),
+// 	.sysbus_wen(),
+// 	.sysbus_slvRsp_valid(1'b1),
+
+// 	.perip_mstReq_valid(),
+// 	.perip_addr(),
+// 	.perip_data_w(),
+// 	.perip_data_r(64'b0),
+// 	.perip_wstrb(),
+// 	.perip_wen(),
+// 	.perip_slvRsp_valid(1'b1),
+
+// 	.mem_mstReq_valid(mem_mstReq_valid),
+// 	.mem_addr(mem_addr),
+// 	.mem_data_w(mem_data_w),
+// 	.mem_data_r(mem_data_r),
+// 	.mem_wstrb(mem_wstrb),
+// 	.mem_wen(mem_wen),
+// 	.mem_slvRsp_valid(mem_slvRsp_valid)
+
+// );
+
+
+
 
 
 endmodule
