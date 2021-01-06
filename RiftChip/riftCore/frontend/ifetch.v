@@ -1,10 +1,10 @@
 /*
-* @File name: ifu
+* @File name: ifetch
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 18:10:56
+* @Last Modified time: 2021-01-06 19:44:01
 */
 
 /*
@@ -30,7 +30,7 @@
 `include "define.vh"
 
 
-module ifu #
+module ifetch #
 (
 	parameter DW = 64
 )
@@ -41,28 +41,32 @@ module ifu #
 	input [63:0] ifu_data_r,
 	input ifu_slvRsp_valid,
 
+	//from pcGen
+	input [63:0] fetch_addr_qout,
+	input fetch_addr_valid,
 
-	input pcGen_fetch_valid,
-	input [63:0] fetch_pc_dnxt,
-	output [63:0] fetch_pc_qout,
+
+	//to instr queue
+	output [63:0] fetch_pc,
 	output [63:0] fetch_instr,
-	output fetchBuff_valid,
-	input pcGen_pre_ready,
+	output fetch_valid,
 
+	input flush,
 	input CLK,
 	input RSTn
 
 );
 
 
-assign ifu_mstReq_valid = pcGen_fetch_valid;
-assign ifu_addr = fetch_pc_dnxt;
+assign ifu_mstReq_valid = fetch_addr_valid;
+assign ifu_addr = fetch_addr_qout;
 
 wire [63:0] pending_addr;
+
 gen_dffren # ( .DW(64), .rstValue(64'h80000000)) pending_addr_dffren ( .dnxt(ifu_addr), .qout(pending_addr), .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(pending_addr), .qout(fetch_pc_qout), .en(ifu_slvRsp_valid&(pcGen_pre_ready)), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(64)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(fetch_instr), .en(ifu_slvRsp_valid&(pcGen_pre_ready)), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # ( .DW(1)) fetch_valid ( .dnxt(ifu_slvRsp_valid), .qout(fetchBuff_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(pending_addr), .qout(fetch_pc), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(fetch_instr), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # ( .DW(1)) fetch_valid_dffren ( .dnxt(ifu_slvRsp_valid & ~flush), .qout(fetch_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

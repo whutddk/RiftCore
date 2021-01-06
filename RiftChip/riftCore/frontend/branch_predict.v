@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 18:06:22
+* @Last Modified time: 2021-01-06 19:34:52
 */
 
 
@@ -37,12 +37,10 @@ module branch_predict (
 	input isCall,
 	input isReturn,
 	input [63:0] imm,
-	input is_rvc_instr,
+	input isRVC,
 
 	output isMisPredict,
 	input isExpection,
-	input pcGen_pre_ready,
-	input fetchBuff_valid,
 	input [63:0] expection_pc,
 
 	input jalr_valid,
@@ -50,9 +48,10 @@ module branch_predict (
 	input bru_res_valid,
 	input bru_takenBranch,
 
-	input [63:0] fetch_pc_qout,
-	output [63:0] fetch_pc_dnxt,
-	output pcGen_fetch_valid,
+	input fetch_pc_valid,
+	input [63:0] fetch_pc,
+	output [63:0] fetch_addr_qout,
+	output fetch_addr_valid,
 
 	input CLK,
 	input RSTn
@@ -84,6 +83,7 @@ module branch_predict (
 	wire ras_empty;
 
 
+	wire fetch_addr_valid_dnxt;
 
 
 	assign bht_data_push = 
@@ -94,48 +94,44 @@ module branch_predict (
 
 
 	assign bht_pop = bru_res_valid;
-	assign bht_push = isBranch & ~bht_full & pcGen_fetch_valid;
+	assign bht_push = isBranch & ~bht_full & fetch_addr_valid_dnxt;
 
 	assign isMisPredict = bru_res_valid & ( bru_takenBranch ^ bht_data_pop[64]);
 	assign resolve_pc = bht_data_pop[63:0];
 
 	assign jalr_stall = isJalr & ~jalr_valid & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
-	assign pcGen_fetch_valid = (~bht_stall & ~jalr_stall & pcGen_pre_ready) | isMisPredict | isExpection;
+	assign fetch_addr_valid_dnxt = (~bht_stall & ~jalr_stall & fetch_pc_valid) | isMisPredict | isExpection;
 
 
-wire replay;
-gen_dffr #(.DW(1)) pc_repaly (.dnxt(~pcGen_pre_ready), .qout(replay), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign fetch_pc_dnxt = 	( {64{isReset}} & 64'h8000_0000)
-							|
-							({64{~isReset}} & (( {64{isExpection}} & expection_pc )
-															| 
-															( ( {64{~isExpection}} ) & 
-																(	
-																	( {64{isMisPredict}} & resolve_pc)
-																	|
-																	(
-																		{64{~isMisPredict}} &
-																		(
-																			(
-																				{64{~bht_stall & ~jalr_stall & pcGen_pre_ready & ~replay & fetchBuff_valid}} &
-																				(
-																					({64{isTakenBranch}} & take_pc )
-																					|
-																					({64{~isTakenBranch}} & next_pc)
-																				)
-																			)
-																			| 
-																			(
-																				{64{bht_stall | jalr_stall | ~pcGen_pre_ready | replay | ~fetchBuff_valid}} &
-																				fetch_pc_qout
-																			)
-																		)
-																	)
-																)
-															)));
+	assign fetch_addr_dnxt = 
+		isReset ? 64'h8000_0000 :
+				( 
+					isExpection ? expection_pc : 
+						(
+							isMisPredict ? resolve_pc :
+								(
+									(~bht_stall & ~jalr_stall & fetch_pc_valid ) ? 
+										(
+											isTakenBranch ? take_pc : next_pc
+										)
+										:
+										(
+											fetch_pc
+										)
+								)
+						)
+				);
+
+
+
+
+	gen_dffren # (.DW(64), .rstValue(64'h8000_0000)) fetch_addr_dffren (.dnxt(fetch_addr_dnxt), .qout(fetch_addr_qout), .en(fetch_pc_valid), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) fetch_addr_valid_dffr (.dnxt(fetch_addr_valid_dnxt), .qout(fetch_addr_valid), .CLK(CLK), .RSTn(RSTn));
+
+
 
 	//static predict
 	assign isTakenBranch = ( (isBranch) & ( imm[63] == 1'b0) )
@@ -146,12 +142,12 @@ gen_dffr #(.DW(1)) pc_repaly (.dnxt(~pcGen_pre_ready), .qout(replay), .CLK(CLK),
 
 
 
-	assign ras_push = isCall & ( isJal | isJalr ) & pcGen_fetch_valid;
-	assign ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & pcGen_fetch_valid;
+	assign ras_push = isCall & ( isJal | isJalr ) & fetch_addr_valid_dnxt;
+	assign ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & fetch_addr_valid_dnxt;
 
-	assign next_pc = fetch_pc_qout + ( is_rvc_instr ? 64'd2 : 64'd4 );
-	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc_qout + imm) )
-						| ( {64{isJalr &  ras_pop}} & ras_addr_pop ) 
+	assign next_pc = fetch_pc + ( isRVC ? 64'd2 : 64'd4 );
+	assign take_pc = ( {64{isJal | isBranch}} & (fetch_pc + imm) )
+						| ( {64{isJalr & ras_pop}} & ras_addr_pop ) 
 						| ( {64{isJalr & !ras_pop & jalr_valid}} & jalr_pc  );
 	assign ras_addr_push = next_pc;
 

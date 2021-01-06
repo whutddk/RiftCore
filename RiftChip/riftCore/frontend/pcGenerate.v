@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 17:49:38
+* @Last Modified time: 2021-01-06 19:35:50
 */
 
 /*
@@ -50,21 +50,14 @@ module pcGenerate (
 	//to commit to flush
 	output isMisPredict,
 
-	//to fetch
-	output [63:0] fetch_pc_qout,
-	output [31:0] instr_readout,
-	output is_rvc_instr,
+	//from instr_queue,
+	input fetch_pc_valid,
+	input [63:0] fetch_pc,
+	input [69:0] preDecode_info,
 
-	output pcGen_pre_valid,
-	input pcGen_pre_ready,
-
-
-
-	output ifu_mstReq_valid,
-	output [63:0] ifu_addr,
-	input [63:0] ifu_data_r,
-	input ifu_slvRsp_valid,
-
+	//to ifetch
+	output [63:0] fetch_addr_qout,
+	output fetch_addr_valid,
 
 
 	input CLK,
@@ -72,41 +65,21 @@ module pcGenerate (
 
 );
 
-	wire [63:0] fetch_pc_dnxt;
 
-	wire pcGen_fetch_valid;
 
 	wire isExpection = privileged_valid;
 	wire [63:0] expection_pc = privileged_pc;
 
 
-	wire isJal;
-	wire isJalr;
-	wire isBranch;
-	wire isCall;
-	wire isReturn;
+	wire isJal, isJalr, isBranch, isCall, isReturn,isRVC;
 	wire [63:0] imm;
 
-	wire [63:0] fetch_instr;
+	assign { isJal, isJalr, isBranch, isCall, isReturn, isRVC, imm } = preDecode_info;
 
 
 
 
 
-
-
-	//branch predict
-	preDecode i_preDecode(
-		.isJal(isJal),
-		.isJalr(isJalr),
-		.isBranch(isBranch),
-		.isCall(isCall),
-		.isReturn(isReturn),
-		.imm(imm),
-
-		.instr_readout(instr_readout),
-		.is_rvc_instr(is_rvc_instr)
-	);
 
 
 	branch_predict i_branch_predict(
@@ -118,12 +91,10 @@ module pcGenerate (
 		.isCall(isCall),
 		.isReturn(isReturn),
 		.imm(imm),
-		.is_rvc_instr(is_rvc_instr),
+		.isRVC(isRVC),
 
 		.isMisPredict(isMisPredict),
 		.isExpection(isExpection),
-		.pcGen_pre_ready(pcGen_pre_ready),
-		.fetchBuff_valid(pcGen_pre_valid),
 		.expection_pc(expection_pc),
 
 		.jalr_valid(jalr_valid),
@@ -131,6 +102,11 @@ module pcGenerate (
 		.bru_res_valid(bru_res_valid),
 		.bru_takenBranch(bru_takenBranch),
 
+		.fetch_pc_valid(fetch_pc_valid),
+		.fetch_pc(fetch_pc),
+		.fetch_addr_qout(fetch_addr_qout),
+		.fetch_addr_valid(fetch_addr_valid),
+
 		.fetch_pc_qout(fetch_pc_qout),
 		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.pcGen_fetch_valid(pcGen_fetch_valid),
@@ -146,28 +122,6 @@ module pcGenerate (
 
 
 
-	ifu i_ifu(
-
-		.ifu_mstReq_valid(ifu_mstReq_valid),
-		.ifu_addr(ifu_addr),
-		.ifu_data_r(ifu_data_r),
-		.ifu_slvRsp_valid(ifu_slvRsp_valid),
-
-		.pcGen_fetch_valid(pcGen_fetch_valid),
-		.fetch_pc_dnxt(fetch_pc_dnxt),
-		.fetch_pc_qout(fetch_pc_qout),
-		.fetch_instr(fetch_instr),
-		.fetchBuff_valid(pcGen_pre_valid),
-		.pcGen_pre_ready(pcGen_pre_ready),
-
-		.CLK(CLK),
-		.RSTn(RSTn)
-
-	);
-
-	wire [31:0] addr_align = fetch_pc_qout[1] ? fetch_instr[47:16] : fetch_instr[31:0];
-	assign is_rvc_instr = (addr_align[1:0] != 2'b11);
-	assign instr_readout = addr_align;
 
 
 
