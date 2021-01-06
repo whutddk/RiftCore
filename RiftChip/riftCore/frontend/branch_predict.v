@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 19:02:48
+* @Last Modified time: 2021-01-06 11:39:10
 */
 
 
@@ -126,7 +126,7 @@ module branch_predict (
 																				{64{~isTakenBranch}} & next_pc
 																			)
 																			| 
-																			{64{bht_stall | jalr_stall}} &
+																			{64{bht_stall | jalr_stall | instrFifo_full}} &
 																			(
 																				fetch_pc_qout
 																			)

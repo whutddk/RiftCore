@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:19
+* @Last Modified time: 2021-01-06 12:05:07
 */
 
 /*
@@ -53,22 +53,33 @@ initial $warning("this stage left for future used");
 
 
 wire [31:0] instr_fetch_qout;
-wire [31:0] instr_fetch_dnxt = flush ? 32'b0 : ((isInstrReadOut & ~instrFifo_full) ? instr_readout : instr_fetch_qout);
+wire [31:0] instr_fetch_dnxt;
 wire [63:0] pc_qout;
-wire [63:0] pc_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? pc_in : pc_qout);
-wire isVaild = flush ? 1'b0 : (isInstrReadOut );
+wire [63:0] pc_dnxt;
+wire isVaild;
 
 wire isRVC_qout;
-wire isRVC_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? isRVC_in : isRVC_qout);
+wire isRVC_dnxt;
+wire isVaild_qout;
+
+
+
 
 
 assign pc_out = pc_qout;
 assign isRVC_out = isRVC_qout;
-
 assign instr = instr_fetch_qout;
 
-wire isVaild_qout;
+
+
+
 assign fetch_decode_valid = isVaild_qout & ~instrFifo_full;
+
+assign pc_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? pc_in : pc_qout);
+assign instr_fetch_dnxt = flush ? 32'b0 : ((isInstrReadOut & ~instrFifo_full) ? instr_readout : instr_fetch_qout);
+assign isVaild = flush ? 1'b0 : ( (isInstrReadOut & ~instrFifo_full) ? isInstrReadOut : isVaild_qout );
+assign isRVC_dnxt = flush ? 64'b0 : ((isInstrReadOut & ~instrFifo_full) ? isRVC_in : isRVC_qout);
+
 
 gen_dffr # (.DW(64)) pc ( .dnxt(pc_dnxt), .qout(pc_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(32)) instr_fetch ( .dnxt(instr_fetch_dnxt), .qout(instr_fetch_qout), .CLK(CLK), .RSTn(RSTn));
