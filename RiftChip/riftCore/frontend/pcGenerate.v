@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 19:01:54
+* @Last Modified time: 2021-01-06 16:02:03
 */
 
 /*
@@ -55,9 +55,8 @@ module pcGenerate (
 	output [31:0] instr_readout,
 	output is_rvc_instr,
 
-	//hadnshake
-	output isInstrReadOut,
-	input instrFifo_full,
+	output pcGen_pre_valid,
+	input pcGen_pre_ready,
 
 
 
@@ -89,7 +88,6 @@ module pcGenerate (
 	wire [63:0] imm;
 
 	wire [63:0] fetch_instr;
-	wire fetchBuff_ready;
 
 
 
@@ -124,7 +122,7 @@ module pcGenerate (
 
 		.isMisPredict(isMisPredict),
 		.isExpection(isExpection),
-		.instrFifo_full(instrFifo_full),
+		.pcGen_pre_ready(pcGen_pre_ready),
 		.expection_pc(expection_pc),
 
 		.jalr_valid(jalr_valid),
@@ -135,7 +133,7 @@ module pcGenerate (
 		.fetch_pc_qout(fetch_pc_qout),
 		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.pcGen_fetch_valid(pcGen_fetch_valid),
-		.fetchBuff_ready(fetchBuff_ready),
+
 
 		.CLK(CLK),
 		.RSTn(RSTn)
@@ -158,12 +156,9 @@ module pcGenerate (
 		.fetch_pc_dnxt(fetch_pc_dnxt),
 		.fetch_pc_qout(fetch_pc_qout),
 		.fetch_instr(fetch_instr),
-		.fetchBuff_ready(fetchBuff_ready),
-		.fetchBuff_valid(isInstrReadOut),
-		.instrFifo_full(instrFifo_full),
+		.fetchBuff_valid(pcGen_pre_valid),
+		.pcGen_pre_ready(pcGen_pre_ready),
 
-
-		.flush(isMisPredict|isExpection),
 		.CLK(CLK),
 		.RSTn(RSTn)
 

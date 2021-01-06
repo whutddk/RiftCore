@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 11:39:10
+* @Last Modified time: 2021-01-06 16:08:43
 */
 
 
@@ -41,7 +41,7 @@ module branch_predict (
 
 	output isMisPredict,
 	input isExpection,
-	input instrFifo_full,
+	input pcGen_pre_ready,
 	input [63:0] expection_pc,
 
 	input jalr_valid,
@@ -52,7 +52,6 @@ module branch_predict (
 	input [63:0] fetch_pc_qout,
 	output [63:0] fetch_pc_dnxt,
 	output pcGen_fetch_valid,
-	input fetchBuff_ready,
 
 	input CLK,
 	input RSTn
@@ -101,7 +100,7 @@ module branch_predict (
 
 	assign jalr_stall = isJalr & ~jalr_valid & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
-	assign pcGen_fetch_valid = (~bht_stall & ~jalr_stall & ~instrFifo_full & fetchBuff_ready) | isMisPredict | isExpection;
+	assign pcGen_fetch_valid = (~bht_stall & ~jalr_stall & pcGen_pre_ready) | isMisPredict | isExpection;
 
 
 
@@ -119,15 +118,17 @@ module branch_predict (
 																	(
 																		{64{~isMisPredict}} &
 																		(
-																			{64{~bht_stall}} &
 																			(
-																				{64{isTakenBranch}} & take_pc 
-																				|
-																				{64{~isTakenBranch}} & next_pc
+																				{64{~bht_stall & ~jalr_stall & pcGen_pre_ready}} &
+																				(
+																					({64{isTakenBranch}} & take_pc )
+																					|
+																					({64{~isTakenBranch}} & next_pc)
+																				)
 																			)
 																			| 
-																			{64{bht_stall | jalr_stall | instrFifo_full}} &
 																			(
+																				{64{bht_stall | jalr_stall | ~pcGen_pre_ready}} &
 																				fetch_pc_qout
 																			)
 																		)

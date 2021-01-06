@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:22
+* @Last Modified time: 2021-01-06 16:02:19
 */
 
 /*
@@ -30,9 +30,11 @@
 
 module decoder
 	(
+	input fetch_decode_valid,
+	output fetch_decoder_ready,
 
 	input [31:0] instr,
-	input fetch_decode_valid,
+
 	input [63:0] pc,
 	input is_rvc,
 
@@ -41,6 +43,9 @@ module decoder
 	output instrFifo_push
 
 );
+
+	assign fetch_decoder_ready = ~instrFifo_full;
+
 
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_16;
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_32;

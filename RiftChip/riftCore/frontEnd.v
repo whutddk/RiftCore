@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 17:39:48
+* @Last Modified time: 2021-01-06 16:01:00
 */
 
 /*
@@ -73,9 +73,11 @@ gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn
 
 wire [31:0] isInstrFetch;
 wire [31:0] instr;
-wire isInstrReadOut;
+wire pcGen_pre_valid;
+wire pcGen_pre_ready;
 
 wire fetch_decode_valid;
+wire fetch_decoder_ready;
 wire is_rvc_instr;
 //C0
 pcGenerate i_pcGenerate
@@ -104,15 +106,13 @@ pcGenerate i_pcGenerate
 	//to commit to flush
 	.isMisPredict(isMisPredict),
 
-	.isInstrReadOut(isInstrReadOut),
-	.instrFifo_full(instrFifo_full),
+	.pcGen_pre_valid(pcGen_pre_valid),
+	.pcGen_pre_ready(pcGen_pre_ready),
 
 	.ifu_mstReq_valid(ifu_mstReq_valid),
 	.ifu_addr(ifu_addr),
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
-
-
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -129,19 +129,19 @@ wire is_rvc;
 //C1
 instr_fetch i_instr_pre(
 
-	.instr_readout(isInstrFetch),
-	.instr(instr),
-	.pc_in(fetch_pc_qout),
-	.pc_out(decode_pc),
+	.pcGen_pre_valid(pcGen_pre_valid),
+	.pcGen_pre_ready(pcGen_pre_ready),
+
+	.pcGen_instr(isInstrFetch),
+	.decoder_instr(instr),
+	.pcGen_pc(fetch_pc_qout),
+	.decoder_pc(decode_pc),
 
 	.isRVC_in(is_rvc_instr),
 	.isRVC_out(is_rvc),
-
-
-	//handshake
-	.isInstrReadOut(isInstrReadOut),
-	.fetch_decode_valid(fetch_decode_valid),
-	.instrFifo_full(instrFifo_full),
+	
+	.fetch_decoder_valid(fetch_decode_valid),
+	.fetch_decoder_ready(fetch_decoder_ready),
 
 	.flush(flush),
 	.CLK(CLK),
@@ -161,6 +161,7 @@ decoder i_decoder
 (
 	.instr(instr),
 	.fetch_decode_valid(fetch_decode_valid),
+	.fetch_decoder_ready(fetch_decoder_ready),
 	.pc(decode_pc),
 	.is_rvc(is_rvc),
 
