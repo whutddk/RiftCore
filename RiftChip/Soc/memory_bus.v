@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 09:52:40
+* @Last Modified time: 2021-01-06 10:09:25
 */
 
 /*
@@ -71,30 +71,31 @@ wire [3:0] sram_wstrb_eve;
 wire sram_wen_odd;
 wire sram_wen_eve;
 
-wire sram_reAlign;
-
+wire sram_reAlign_dnxt;
+wire sram_reAlign_qout;
 
 assign isSRAM_dnxt = (mem_addr | 64'h0FFF_FFFF) == 64'H8FFF_FFFF;
 assign isAXI_dnxt  = (mem_addr | 64'h0FFF_FFFF) == 64'H9FFF_FFFF;
+assign sram_reAlign_dnxt = mem_addr[2];
 
 
 gen_dffren # (.DW(1)) isSRAM_dffren ( .dnxt(isSRAM_dnxt), .qout(isSRAM_qout), .en(mem_mstReq_valid), .CLK(CLK), .RSTn(RSTn) );
 gen_dffren # (.DW(1)) isAXI_dffren ( .dnxt(isAXI_dnxt), .qout(isAXI_qout), .en(mem_mstReq_valid), .CLK(CLK), .RSTn(RSTn) );
-gen_dffren # (.DW(1)) sram_reAlign_dffren ( .dnxt(mem_addr[2]), .qout(sram_reAlign), .en(mem_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # (.DW(1)) sram_reAlign_dffren ( .dnxt(sram_reAlign_dnxt), .qout(sram_reAlign_qout), .en(mem_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 assign mem_data_r = ({64{isSRAM_qout}} & sram_data_r);
-assign sram_data_r = (~sram_reAlign) ? {sram_data_odd_r, sram_data_eve_r} : {sram_data_eve_r, sram_data_odd_r};
+assign sram_data_r = (~sram_reAlign_qout) ? {sram_data_odd_r, sram_data_eve_r} : {sram_data_eve_r, sram_data_odd_r};
 
-assign sram_data_odd_w = (~sram_reAlign) ? mem_data_w[63:32] : mem_data_w[31:0];
-assign sram_data_eve_w = (~sram_reAlign) ? mem_data_w[31:0] : mem_data_w[63:32];
+assign sram_data_odd_w = (~sram_reAlign_dnxt) ? mem_data_w[63:32] : mem_data_w[31:0];
+assign sram_data_eve_w = (~sram_reAlign_dnxt) ? mem_data_w[31:0] : mem_data_w[63:32];
 
-assign sram_wstrb_odd = (~sram_reAlign) ? mem_wstrb[7:4] : mem_wstrb[3:0];
-assign sram_wstrb_eve = (~sram_reAlign) ? mem_wstrb[3:0] : mem_wstrb[7:4];
+assign sram_wstrb_odd = (~sram_reAlign_dnxt) ? mem_wstrb[7:4] : mem_wstrb[3:0];
+assign sram_wstrb_eve = (~sram_reAlign_dnxt) ? mem_wstrb[3:0] : mem_wstrb[7:4];
 
 assign sram_addr = isSRAM_dnxt ? mem_addr : 64'b0;
 assign sram_addr_odd = sram_addr[3 +: SRAM_AW];
-assign sram_addr_eve = ( ~sram_reAlign ) ? sram_addr[3 +: SRAM_AW] : sram_addr[3 +: SRAM_AW] + 'd1;
+assign sram_addr_eve = ( ~sram_reAlign_dnxt ) ? sram_addr[3 +: SRAM_AW] : sram_addr[3 +: SRAM_AW] + 'd1;
 
 assign sram_wen_odd = isSRAM_dnxt & mem_wen;
 assign sram_wen_eve = isSRAM_dnxt & mem_wen;
