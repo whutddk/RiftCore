@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 17:14:03
+* @Last Modified time: 2021-01-07 17:39:45
 */
 
 
@@ -100,9 +100,26 @@ module branch_predict (
 	assign isMisPredict = bru_res_valid & ( bru_takenBranch ^ bht_data_pop[64]);
 	assign resolve_pc = bht_data_pop[63:0];
 
-	assign jalr_stall = isJalr & ~jalr_valid & ( ras_empty | ~isReturn );
+	assign jalr_stall = isJalr & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
-	assign fetch_addr_valid_dnxt = (~bht_stall & ~jalr_stall & (fetch_pc_valid | jalr_valid) & pcGen_fetch_ready) | isMisPredict | isExpection | isReset;
+	assign fetch_addr_valid_dnxt = 
+				isMisPredict | isExpection | isReset | 
+				(
+					pcGen_fetch_ready & ( 
+											(
+												fetch_pc_valid & (~bht_stall & ~jalr_stall)
+											)
+											|
+											(
+												(bht_stall & bru_res_valid) | (jalr_stall & jalr_valid)
+											)
+										 )
+				)
+
+
+
+
+	(~bht_stall & ~jalr_stall & (fetch_pc_valid | jalr_valid) & ) ;
 
 
 
@@ -114,7 +131,17 @@ module branch_predict (
 						(
 							isMisPredict ? resolve_pc :
 								(
-									(~bht_stall & ~jalr_stall & (fetch_pc_valid| jalr_valid) & pcGen_fetch_ready ) ? 
+									(
+											pcGen_fetch_ready & ( 
+											(
+												fetch_pc_valid & (~bht_stall & ~jalr_stall)
+											)
+											|
+											(
+												(bht_stall & bru_res_valid) | (jalr_stall & jalr_valid)
+											)
+																)
+									) ? 
 										(
 											isTakenBranch ? take_pc : next_pc
 										)
