@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 19:34:52
+* @Last Modified time: 2021-01-07 11:44:31
 */
 
 
@@ -84,6 +84,7 @@ module branch_predict (
 
 
 	wire fetch_addr_valid_dnxt;
+	wire [63:0] fetch_addr_dnxt;
 
 
 	assign bht_data_push = 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 17:59:45
+* @Last Modified time: 2021-01-07 11:50:55
 */
 
 /*
@@ -113,7 +113,7 @@ end
 				end
 
 
-				$display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
+				// $display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
 			end
 
 			for ( i = 0; i < 10000; i = i + 1 ) begin

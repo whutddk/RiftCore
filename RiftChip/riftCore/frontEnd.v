@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:01:00
+* @Last Modified time: 2021-01-07 11:42:54
 */
 
 /*
@@ -61,31 +61,35 @@ module frontEnd (
 
 
 wire isMisPredict;
+wire isReset;
+
+wire [63:0] fetch_pc;
+wire fetch_pc_valid;
+wire [63:0] fetch_pc_queue;
+wire [69:0] preDecode_info;
+
+wire [63:0] fetch_addr_qout;
+wire fetch_addr_valid;
+
+wire [63:0] fetch_instr;
+wire fetch_valid;
+
+wire queue_decode_valid;
+wire queue_decode_ready;
+
+wire [31:0] queue_decode_instr;
+wire [63:0] queue_decode_pc;
+wire queue_decode_isRVC;
+
+
 
 assign flush = isMisPredict | privileged_valid;
 
-wire [63:0] fetch_pc_qout;
-wire isReset_qout;
 
 
-// gen_dffr # (.DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
-
-wire [31:0] isInstrFetch;
-wire [31:0] instr;
-wire pcGen_pre_valid;
-wire pcGen_pre_ready;
-
-wire fetch_decode_valid;
-wire fetch_decoder_ready;
-wire is_rvc_instr;
-//C0
 pcGenerate i_pcGenerate
 (
-	//feedback
-	// .fetch_pc_dnxt(fetch_pc_dnxt),
-	.fetch_pc_qout(fetch_pc_qout),
-	.isReset(~isReset_qout),
+	.isReset(~isReset),
 
 	//from jalr exe
 	.jalr_valid(jalr_valid),
@@ -99,20 +103,17 @@ pcGenerate i_pcGenerate
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
 
-	//to fetch
-	.instr_readout(isInstrFetch),
-	.is_rvc_instr(is_rvc_instr),
-
 	//to commit to flush
 	.isMisPredict(isMisPredict),
 
-	.pcGen_pre_valid(pcGen_pre_valid),
-	.pcGen_pre_ready(pcGen_pre_ready),
+	//from instr_queue,
+	.fetch_pc_valid(fetch_pc_valid),
+	.fetch_pc_queue(fetch_pc_queue),
+	.preDecode_info(preDecode_info),
 
-	.ifu_mstReq_valid(ifu_mstReq_valid),
-	.ifu_addr(ifu_addr),
-	.ifu_data_r(ifu_data_r),
-	.ifu_slvRsp_valid(ifu_slvRsp_valid),
+	//to ifetch
+	.fetch_addr_qout(fetch_addr_qout),
+	.fetch_addr_valid(fetch_addr_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -121,49 +122,67 @@ pcGenerate i_pcGenerate
 
 
 
-//T0  
-//T0 is included in C0
 
-wire [63:0] decode_pc;
-wire is_rvc;
-//C1
-instr_fetch i_instr_pre(
+ifetch i_ifetch
+(
+	.ifu_mstReq_valid,
+	.ifu_addr,
+	.ifu_data_r,
+	.ifu_slvRsp_valid,
 
-	.pcGen_pre_valid(pcGen_pre_valid),
-	.pcGen_pre_ready(pcGen_pre_ready),
+	.fetch_addr_qout(fetch_addr_qout),
+	.fetch_addr_valid(fetch_addr_valid),
 
-	.pcGen_instr(isInstrFetch),
-	.decoder_instr(instr),
-	.pcGen_pc(fetch_pc_qout),
-	.decoder_pc(decode_pc),
-
-	.isRVC_in(is_rvc_instr),
-	.isRVC_out(is_rvc),
-	
-	.fetch_decoder_valid(fetch_decode_valid),
-	.fetch_decoder_ready(fetch_decoder_ready),
+	.fetch_pc(fetch_pc),
+	.fetch_instr(fetch_instr),
+	.fetch_valid(fetch_valid),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
-	
+
 );
 
 
 
 
-//T1
-//T1 is included in C1
+instr_queue i_instr_queue(
+
+	.fetch_pc(fetch_pc),
+	.fetch_instr(fetch_instr),
+	.fetch_valid(fetch_valid),
+
+	.fetch_pc_valid(fetch_pc_valid),
+	.fetch_pc_queue(fetch_pc_queue),
+	.preDecode_info(preDecode_info),
+
+	.queue_decode_valid(queue_decode_valid),
+	.queue_decode_ready(queue_decode_ready),
+
+	.queue_decode_instr(queue_decode_instr),
+	.queue_decode_pc(queue_decode_pc),
+	.queue_decode_isRVC(queue_decode_isRVC),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
 
-//C2
+
+
+
+
+
 decoder i_decoder
 (
-	.instr(instr),
-	.fetch_decode_valid(fetch_decode_valid),
-	.fetch_decoder_ready(fetch_decoder_ready),
-	.pc(decode_pc),
-	.is_rvc(is_rvc),
+	.queue_decode_valid(queue_decode_valid),
+	.queue_decode_ready(queue_decode_ready),
+
+	.queue_decode_instr(queue_decode_instr),
+	.queue_decode_pc(queue_decode_pc),
+	.queue_decode_isRVC(queue_decode_isRVC),
+
 
 	.instrFifo_full(instrFifo_full),
 	.decode_microInstr(decode_microInstr),
@@ -171,6 +190,8 @@ decoder i_decoder
 
 );
 
+
+gen_dffr # (.DW(1)) isReset_dffr ( .dnxt(1'b1), .qout(isReset), .CLK(CLK), .RSTn(RSTn));
 
 
 

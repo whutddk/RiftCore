@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 19:44:01
+* @Last Modified time: 2021-01-07 10:54:18
 */
 
 /*
@@ -38,17 +38,17 @@ module ifetch #
 
 	output ifu_mstReq_valid,
 	output [63:0] ifu_addr,
-	input [63:0] ifu_data_r,
+	input [DW-1:0] ifu_data_r,
 	input ifu_slvRsp_valid,
 
 	//from pcGen
-	input [63:0] fetch_addr_qout,
+	input [DW-1:0] fetch_addr_qout,
 	input fetch_addr_valid,
 
 
 	//to instr queue
 	output [63:0] fetch_pc,
-	output [63:0] fetch_instr,
+	output [DW-1:0] fetch_instr,
 	output fetch_valid,
 
 	input flush,

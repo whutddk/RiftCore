@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 19:35:50
+* @Last Modified time: 2021-01-07 11:43:42
 */
 
 /*
@@ -31,8 +31,6 @@
 
 module pcGenerate (
 
-
-
 	input isReset,
 
 	//from jalr exe
@@ -52,7 +50,7 @@ module pcGenerate (
 
 	//from instr_queue,
 	input fetch_pc_valid,
-	input [63:0] fetch_pc,
+	input [63:0] fetch_pc_queue,
 	input [69:0] preDecode_info,
 
 	//to ifetch
@@ -103,14 +101,9 @@ module pcGenerate (
 		.bru_takenBranch(bru_takenBranch),
 
 		.fetch_pc_valid(fetch_pc_valid),
-		.fetch_pc(fetch_pc),
+		.fetch_pc(fetch_pc_queue),
 		.fetch_addr_qout(fetch_addr_qout),
 		.fetch_addr_valid(fetch_addr_valid),
-
-		.fetch_pc_qout(fetch_pc_qout),
-		.fetch_pc_dnxt(fetch_pc_dnxt),
-		.pcGen_fetch_valid(pcGen_fetch_valid),
-
 
 		.CLK(CLK),
 		.RSTn(RSTn)

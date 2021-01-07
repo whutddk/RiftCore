@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:02:19
+* @Last Modified time: 2021-01-07 11:29:51
 */
 
 /*
@@ -29,14 +29,13 @@
 
 
 module decoder
-	(
-	input fetch_decode_valid,
-	output fetch_decoder_ready,
+(
+	input queue_decode_valid,
+	output queue_decode_ready,
 
-	input [31:0] instr,
-
-	input [63:0] pc,
-	input is_rvc,
+	input [31:0] queue_decode_instr,
+	input [63:0] queue_decode_pc,
+	input queue_decode_isRVC,
 
 	input instrFifo_full,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
@@ -44,7 +43,7 @@ module decoder
 
 );
 
-	assign fetch_decoder_ready = ~instrFifo_full;
+	assign queue_decode_ready = ~instrFifo_full;
 
 
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_16;
@@ -52,9 +51,9 @@ wire [`DECODE_INFO_DW-1:0] decode_microInstr_32;
 
 decoder16 i_decoder16
 (
-	.instr(instr[15:0]),
-	.pc(pc),
-	.is_rvc(is_rvc),
+	.instr(queue_decode_instr[15:0]),
+	.pc(queue_decode_pc),
+	.is_rvc(queue_decode_isRVC),
 
 	.decode_microInstr(decode_microInstr_16)
 );
@@ -63,17 +62,17 @@ decoder16 i_decoder16
 
 decoder32 i_decoder32
 (
-	.instr(instr),
-	.pc(pc),
-	.is_rvc(is_rvc),
+	.instr(queue_decode_instr),
+	.pc(queue_decode_pc),
+	.is_rvc(queue_decode_isRVC),
 
 	.decode_microInstr(decode_microInstr_32)
 );
 
 
-	assign decode_microInstr = is_rvc ? decode_microInstr_16 : decode_microInstr_32;
+	assign decode_microInstr = queue_decode_isRVC ? decode_microInstr_16 : decode_microInstr_32;
 
-	assign instrFifo_push = fetch_decode_valid & ~instrFifo_full;
+	assign instrFifo_push = queue_decode_valid & ~instrFifo_full;
 
 
 
