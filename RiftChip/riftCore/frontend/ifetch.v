@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 10:54:18
+* @Last Modified time: 2021-01-07 15:56:12
 */
 
 /*
@@ -44,9 +44,11 @@ module ifetch #
 	//from pcGen
 	input [DW-1:0] fetch_addr_qout,
 	input fetch_addr_valid,
+	output pcGen_fetch_ready,
 
 
 	//to instr queue
+	input fetch_queue_ready,
 	output [63:0] fetch_pc,
 	output [DW-1:0] fetch_instr,
 	output fetch_valid,
@@ -62,11 +64,53 @@ assign ifu_mstReq_valid = fetch_addr_valid;
 assign ifu_addr = fetch_addr_qout;
 
 wire [63:0] pending_addr;
-
 gen_dffren # ( .DW(64), .rstValue(64'h80000000)) pending_addr_dffren ( .dnxt(ifu_addr), .qout(pending_addr), .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(pending_addr), .qout(fetch_pc), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(64)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(fetch_instr), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # ( .DW(1)) fetch_valid_dffren ( .dnxt(ifu_slvRsp_valid & ~flush), .qout(fetch_valid), .CLK(CLK), .RSTn(RSTn));
+
+
+	wire bpfifo_valid_i;
+	wire bpfifo_ready_i;
+	wire bpfifo_valid_o;
+	wire bpfifo_ready_o;
+	wire [127:0] bpfifo_data_o;
+
+	wire [63:0] bypass_instr;
+	wire [63:0] bypass_pc;
+
+	assign bpfifo_valid_i = ifu_slvRsp_valid;
+	assign bpfifo_ready_o = fetch_queue_ready;
+	assign pcGen_fetch_ready = bpfifo_ready_i;
+
+	gen_bypassfifo # 
+	(
+		.DW(64+64)
+	)
+	bypassfifo
+	(
+		.valid_i(bpfifo_valid_i), //ifu read out
+		.data_i({pending_addr, ifu_data_r}),
+		.ready_i(bpfifo_ready_i), //the fifo is empty  (output)
+
+		.valid_o(bpfifo_valid_o), //the bypass data is valid (output)
+		.data_o(bpfifo_data_o),
+		.ready_o(bpfifo_ready_o), //instr_queue handshake
+
+		.flush(flush),
+		.CLK(CLK),
+		.RSTn(RSTn)
+	);
+
+
+
+
+
+
+
+
+
+
+gen_dffr # ( .DW(64), .rstValue(64'h80000000)) fetch_pc_dffren ( .dnxt(bpfifo_data_o[127:64]), .qout(fetch_pc), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # ( .DW(64)) fetch_instr_dffr ( .dnxt(bpfifo_data_o[63:0]), .qout(fetch_instr), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # ( .DW(1)) fetch_valid_dffr ( .dnxt(bpfifo_valid_o & ~flush), .qout(fetch_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

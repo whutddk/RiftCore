@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 11:43:42
+* @Last Modified time: 2021-01-07 15:58:04
 */
 
 /*
@@ -56,6 +56,7 @@ module pcGenerate (
 	//to ifetch
 	output [63:0] fetch_addr_qout,
 	output fetch_addr_valid,
+	input pcGen_fetch_ready,
 
 
 	input CLK,
@@ -104,6 +105,7 @@ module pcGenerate (
 		.fetch_pc(fetch_pc_queue),
 		.fetch_addr_qout(fetch_addr_qout),
 		.fetch_addr_valid(fetch_addr_valid),
+		.pcGen_fetch_ready(pcGen_fetch_ready),
 
 		.CLK(CLK),
 		.RSTn(RSTn)

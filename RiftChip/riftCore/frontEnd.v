@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 11:42:54
+* @Last Modified time: 2021-01-07 15:57:00
 */
 
 /*
@@ -70,9 +70,11 @@ wire [69:0] preDecode_info;
 
 wire [63:0] fetch_addr_qout;
 wire fetch_addr_valid;
+wire pcGen_fetch_ready;
 
 wire [63:0] fetch_instr;
 wire fetch_valid;
+wire fetch_queue_ready;
 
 wire queue_decode_valid;
 wire queue_decode_ready;
@@ -114,6 +116,7 @@ pcGenerate i_pcGenerate
 	//to ifetch
 	.fetch_addr_qout(fetch_addr_qout),
 	.fetch_addr_valid(fetch_addr_valid),
+	.pcGen_fetch_ready(pcGen_fetch_ready),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -132,7 +135,9 @@ ifetch i_ifetch
 
 	.fetch_addr_qout(fetch_addr_qout),
 	.fetch_addr_valid(fetch_addr_valid),
+	.pcGen_fetch_ready(pcGen_fetch_ready),
 
+	.fetch_queue_ready(fetch_queue_ready),
 	.fetch_pc(fetch_pc),
 	.fetch_instr(fetch_instr),
 	.fetch_valid(fetch_valid),
@@ -151,6 +156,7 @@ instr_queue i_instr_queue(
 	.fetch_pc(fetch_pc),
 	.fetch_instr(fetch_instr),
 	.fetch_valid(fetch_valid),
+	.fetch_queue_ready(fetch_queue_ready),
 
 	.fetch_pc_valid(fetch_pc_valid),
 	.fetch_pc_queue(fetch_pc_queue),
