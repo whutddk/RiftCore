@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 16:26:36
+* @Last Modified time: 2021-01-07 17:14:03
 */
 
 
@@ -102,7 +102,7 @@ module branch_predict (
 
 	assign jalr_stall = isJalr & ~jalr_valid & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
-	assign fetch_addr_valid_dnxt = (~bht_stall & ~jalr_stall & fetch_pc_valid & pcGen_fetch_ready) | isMisPredict | isExpection | isReset;
+	assign fetch_addr_valid_dnxt = (~bht_stall & ~jalr_stall & (fetch_pc_valid | jalr_valid) & pcGen_fetch_ready) | isMisPredict | isExpection | isReset;
 
 
 
@@ -114,7 +114,7 @@ module branch_predict (
 						(
 							isMisPredict ? resolve_pc :
 								(
-									(~bht_stall & ~jalr_stall & fetch_pc_valid & pcGen_fetch_ready ) ? 
+									(~bht_stall & ~jalr_stall & (fetch_pc_valid| jalr_valid) & pcGen_fetch_ready ) ? 
 										(
 											isTakenBranch ? take_pc : next_pc
 										)
