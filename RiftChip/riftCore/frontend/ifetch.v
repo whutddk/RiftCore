@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 15:56:12
+* @Last Modified time: 2021-01-07 16:38:57
 */
 
 /*
@@ -60,7 +60,7 @@ module ifetch #
 );
 
 
-assign ifu_mstReq_valid = fetch_addr_valid;
+assign ifu_mstReq_valid = fetch_addr_valid & fetch_queue_ready & ~flush;
 assign ifu_addr = fetch_addr_qout;
 
 wire [63:0] pending_addr;
