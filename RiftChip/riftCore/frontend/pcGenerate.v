@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 15:58:04
+* @Last Modified time: 2021-01-08 18:07:20
 */
 
 /*
@@ -81,36 +81,7 @@ module pcGenerate (
 
 
 
-	branch_predict i_branch_predict(
-		.isReset(isReset),
 
-		.isJal(isJal),
-		.isJalr(isJalr),
-		.isBranch(isBranch),
-		.isCall(isCall),
-		.isReturn(isReturn),
-		.imm(imm),
-		.isRVC(isRVC),
-
-		.isMisPredict(isMisPredict),
-		.isExpection(isExpection),
-		.expection_pc(expection_pc),
-
-		.jalr_valid(jalr_valid),
-		.jalr_pc(jalr_pc),
-		.bru_res_valid(bru_res_valid),
-		.bru_takenBranch(bru_takenBranch),
-
-		.fetch_pc_valid(fetch_pc_valid),
-		.fetch_pc(fetch_pc_queue),
-		.fetch_addr_qout(fetch_addr_qout),
-		.fetch_addr_valid(fetch_addr_valid),
-		.pcGen_fetch_ready(pcGen_fetch_ready),
-
-		.CLK(CLK),
-		.RSTn(RSTn)
-
-	);
 
 
 
