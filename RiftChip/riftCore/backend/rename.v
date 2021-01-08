@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:29:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 11:47:09
+* @Last Modified time: 2021-01-03 12:08:35
 */
 
 /*
@@ -66,8 +66,6 @@ assign rs2_reName = {rs2_raw, rnAct_X_qout[rs2_raw*`RB +: `RB]};
 
 
 wire [`RP-1:0] regX_used = rnBufU_qout[ `RP*rd0_raw +: `RP ];
-wire isrd0_runOut;
-
 
 lzp #(
 	.CW(`RB)
@@ -75,13 +73,12 @@ lzp #(
 	.in_i(regX_used),
 	.pos_o(rd0_malloc),
 	.all0(),
-	.all1(isrd0_runOut)
+	.all1(rd0_runOut)
 );
 
 
-assign rd0_runOut = rd0_raw_valid & isrd0_runOut;
 
-assign rnBufU_rename_set = (rd0_raw_valid & ~isrd0_runOut)
+assign rnBufU_rename_set = (rd0_raw_valid & ~rd0_runOut)
 								? {32*`RP{1'b0}} | (1'b1 << rd0_reName)
 								: {32*`RP{1'b0}};
 
