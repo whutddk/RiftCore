@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 17:40:33
+* @Last Modified time: 2021-01-08 11:04:24
 */
 
 
@@ -109,7 +109,7 @@ frontEnd i_frontEnd(
 );
 
 
-gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
+gen_fifo # (.DW(`DECODE_INFO_DW),.AW(1)) 
 	instr_fifo (
 		.fifo_pop(instrFifo_pop),
 		.fifo_push(instrFifo_push),

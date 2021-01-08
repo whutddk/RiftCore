@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:35
+* @Last Modified time: 2021-01-08 11:46:53
 */
 
 /*
@@ -129,7 +129,7 @@ module dispatch (
 								| lsu_fifo_push
 								| csr_fifo_push
 								| mul_fifo_push
-								| privileged
+								| (privileged & dispat_valid)
 								;
 
 	assign instrFifo_pop = reOrder_fifo_push;

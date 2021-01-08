@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 17:39:45
+* @Last Modified time: 2021-01-08 10:19:52
 */
 
 
@@ -82,6 +82,10 @@ module branch_predict (
 	wire ras_push;
 	wire ras_pop;
 	wire ras_empty;
+	wire jalr_empty;
+	wire jalr_last;
+	wire jalr_front;
+
 
 	wire fetch_addr_valid_dnxt;
 	wire [63:0] fetch_addr_dnxt;
@@ -111,15 +115,10 @@ module branch_predict (
 											)
 											|
 											(
-												(bht_stall & bru_res_valid) | (jalr_stall & jalr_valid)
+												(bht_stall & bru_res_valid) | (jalr_stall & jalr_last)
 											)
 										 )
-				)
-
-
-
-
-	(~bht_stall & ~jalr_stall & (fetch_pc_valid | jalr_valid) & ) ;
+				);
 
 
 
@@ -138,7 +137,7 @@ module branch_predict (
 											)
 											|
 											(
-												(bht_stall & bru_res_valid) | (jalr_stall & jalr_valid)
+												(bht_stall & bru_res_valid) | (jalr_stall & jalr_last)
 											)
 																)
 									) ? 
@@ -196,6 +195,10 @@ module branch_predict (
 
 
 
+	assign jalr_last = jalr_valid & jalr_empty;
+	assign jalr_front = jalr_valid & ~jalr_empty;
+
+
 	gen_ringStack # (.DW(64), .AW(4)) ras(
 		.stack_pop(ras_pop), .stack_push(ras_push),
 		.stack_empty(ras_empty),
@@ -206,7 +209,15 @@ module branch_predict (
 		.RSTn(RSTn)
 	);
 
-
+	gen_fifo # ( .DW(1), .AW(4) ) ras_cnt(
+		.fifo_pop(jalr_front), .fifo_push(ras_pop),
+		.data_push(1'b0), .data_pop(),
+		.fifo_empty(jalr_empty), .fifo_full(), 
+		
+		.flush(isMisPredict|isExpection),
+		.CLK(CLK),
+		.RSTn(RSTn)
+	);
 
 
 
