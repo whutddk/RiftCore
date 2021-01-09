@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-08 19:22:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 20:14:18
+* @Last Modified time: 2021-01-09 13:26:05
 */
 
 
@@ -45,8 +45,8 @@ module gen_asymmetricFIFO # (
 	output fifo_empty, 
 	output fifo_full,
 
-	input [DW*AW-1:0] data_w,
-	output [DW*AW-1:0] data_r,
+	input [DW*WP-1:0] data_w,
+	output [DW*RP-1:0] data_r,
 
 
 	input flush,
@@ -55,6 +55,47 @@ module gen_asymmetricFIFO # (
 );
 
 	localpara DP = 2**AW;
+	localpara FN = (WP > RP) ? WP : RP;
+
+	generate
+		for ( genvar i = 0; i < FN; i = i + 1 ) begin
+
+			gen_fifo # (
+				.DW(DW),
+				.AW(AW)
+			) bank(
+
+				input fifo_pop, 
+				input fifo_push,
+				input [DW-1:0] data_push,
+
+				output fifo_empty, 
+				output fifo_full, 
+				output [DW-1:0] data_pop,
+
+				input flush,
+				input CLK,
+				input RSTn
+			);
+
+
+
+
+
+
+		end
+	endgenerate
+
+
+
+
+
+
+
+
+
+
+
 
 
 	wire [AW+1-1:0] read_addr_dnxt, read_addr_qout;
@@ -73,6 +114,19 @@ module gen_asymmetricFIFO # (
 
 	assign fifo_empty = | fifo_empty_all;
 	assign fifo_full = | fifo_full_all;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	generate
 		for ( genvar i = 0 ; i < WP; i = i + 1 ) begin

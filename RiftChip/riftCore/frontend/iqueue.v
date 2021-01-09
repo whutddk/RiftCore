@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 20:14:23
+* @Last Modified time: 2021-01-09 14:05:13
 */
 
 /*
@@ -50,6 +50,10 @@ module iqueue (
 
 
 wire [127:0] instr_load;
+wire [15:0] iq_instr_mask_load;
+
+
+
 wire [31:0] pc_load;
 
 
@@ -60,8 +64,42 @@ wire [31:0] pc_load;
 
 
 assign instr_load = 
-{if_iq_instr}
-iq_instr_buf_qout 
+			({128{iq_instr_mask_qout == 16'b0}} & {64'b0, (if_iq_valid ? if_iq_instr : 64'b0)})
+			|
+			({128{iq_instr_mask_qout == 16'b1}} & {48'b0, (if_iq_valid ? if_iq_instr : 64'b0), iq_instr_buf_qout[15:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b11}} & {32'b0, (if_iq_valid ? if_iq_instr : 64'b0), iq_instr_buf_qout[31:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b111}} & {16'b0, (if_iq_valid ? if_iq_instr : 64'b0), iq_instr_buf_qout[47:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b1111}} & { (if_iq_valid ? if_iq_instr : 64'b0), iq_instr_buf_qout[63:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b11111}} & { 48'b0, iq_instr_buf_qout[79:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b111111}} & { 32'b0, iq_instr_buf_qout[95:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b1111111}} & { 16'b0, iq_instr_buf_qout[111:0]})
+			|
+			({128{iq_instr_mask_qout == 16'b11111111}} &  iq_instr_buf_qout[127:0]);
+
+assign pc_load = (iq_instr_mask_qout == 16'b0 & if_iq_valid) ? if_iq_pc : iq_pc_buf_qout;
+
+
+assign iq_instr_mask_load = ~if_iq_valid ? iq_instr_mask_qout :
+	(
+		({16{iq_instr_mask_qout == 16'b0}}    & 16'b1111)
+		|
+		({16{iq_instr_mask_qout == 16'b1}}    & 16'b11111)
+		|
+		({16{iq_instr_mask_qout == 16'b11}}   & 16'b111111)
+		|
+		({16{iq_instr_mask_qout == 16'b111}}  & 16'b1111111)
+		|
+		({16{iq_instr_mask_qout == 16'b1111}} & 16'b11111111)
+	);
+
+
+
 
 
 
@@ -180,12 +218,33 @@ gen_dffr # (.DW(1))   iq_pcgen_valid_dffr ( .dnxt(iq_pcgen_valid_dnxt), .qout(iq
 
 wire [127:0] iq_instr_buf_dnxt;
 wire [127:0] iq_instr_buf_qout;
+wire [31:0] iq_pc_buf_dnxt;
+wire [31:0] iq_pc_buf_qout;
 wire [7:0] iq_instr_mask_dnxt;
 wire [7:0] iq_instr_mask_qout;
 
 
 gen_dffr # (.DW(128)) iq_instr_buf_dffr ( .dnxt(iq_instr_buf_dnxt),   .qout(iq_instr_buf_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(32))  iq_pc_buf_dffr    ( .dnxt(iq_pc_buf_dnxt),      .qout(iq_pc_buf_qout),    .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+always @(posedge CLK) begin
+	if (iq_instr_mask_qout > 16'b1111 & if_iq_valid) begin
+		$display("Assert Fail at iq, buf not enough big when fetch comes");
+		$finish;
+	end
+end
+
+
 
 
 endmodule
