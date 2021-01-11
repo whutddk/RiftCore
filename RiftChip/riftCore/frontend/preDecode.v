@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:23:28
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-07 10:50:39
+* @Last Modified time: 2021-01-11 10:33:17
 */
 
 
@@ -32,19 +32,21 @@
 
 
 module preDecode (
+	input [127:0] instr_load,
+
 	output isJal,
 	output isJalr,
 	output isBranch,
 	output isCall,
 	output isReturn,
-	output [63:0] imm,
-
-	input [31:0] instr,
-	input isRVC
+	output isRVC,
+	output [63:0] imm
 );
 
 
+	wire [31:0] instr = instr_load[31:0];
 
+	assign isRVC = (instr[1:0] != 2'b11);
 
 	wire isIJal = ~isRVC & (instr[6:0] == 7'b1101111);			
 	wire isCJal =	 instr[1:0] == 2'b01 & instr[15:13] == 3'b101;
@@ -71,8 +73,6 @@ module preDecode (
 							& ((instr[11:7] == 5'd1) | (instr[11:7] == 5'd5));
 
 
-
-
 	wire [63:0] Iimm = 
 		({64{isIJal}} & {{44{instr[31]}},instr[19:12],instr[20],instr[30:21],1'b0})
 		|
@@ -94,24 +94,6 @@ module preDecode (
 	assign isReturn = isIReturn | isCReturn;
 
 	assign imm = isRVC ? Cimm : Iimm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 endmodule
