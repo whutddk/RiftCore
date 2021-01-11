@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 14:40:55
+* @Last Modified time: 2021-01-11 19:28:10
 */
 
 /*
@@ -38,10 +38,18 @@ module iqueue (
 	output branch_pc_valid,
 	output [63:0] branch_pc,
 
+	//from bru
+	input jalr_valid,
+	input [63:0] jalr_pc,
+	input bru_res_valid,
+	input bru_takenBranch,
+
 	//to decoder
 	output iq_id_valid,
 	output [32+64+1-1:0] iq_id_info,
 	input iq_id_ready,
+
+	output isMisPredict,
 
 	input flush,
 	input CLK,
@@ -50,9 +58,9 @@ module iqueue (
 
 
 	wire [127:0] instr_load;
-	wire [15:0] iq_instr_mask_load;
+	wire [7:0] iq_instr_mask_load;
 
-	wire [31:0] pc_load;
+	wire [63:0] pc_load;
 
 	wire [63:0] align_instr;
 	wire [3:0] align_instr_mask;
@@ -61,6 +69,19 @@ module iqueue (
 
 	wire iq_stall;
 	wire bp_stall;
+
+	wire [32+64+1-1:0] iq_id_info_dnxt;
+	wire [32+64+1-1:0] iq_id_info_qout;
+	wire iq_id_valid_dnxt;
+	wire iq_id_valid_qout;
+	wire [127:0] iq_instr_buf_dnxt;
+	wire [127:0] iq_instr_buf_qout;
+	wire [63:0] iq_pc_buf_dnxt;
+	wire [63:0] iq_pc_buf_qout;
+	wire [7:0] iq_instr_mask_dnxt;
+	wire [7:0] iq_instr_mask_qout;
+
+
 
 
 	iAlign i_align(
@@ -131,10 +152,13 @@ module iqueue (
 	wire isJal, isJalr, isBranch, isCall, isReturn, isRVC;
 	wire [63:0] imm;
 
+
 	//branch predict
 	preDecode i_preDecode(
-		.instr(instr_load),
+		.instr_load(instr_load),
+		.iq_instr_mask_load(iq_instr_mask_load),
 
+		.instr_buf_empty(instr_buf_empty),
 		.isJal(isJal),
 		.isJalr(isJalr),
 		.isBranch(isBranch),
@@ -143,10 +167,6 @@ module iqueue (
 		.isRVC(isRVC),
 		.imm(imm)
 	);
-
-	assign instr_buf_empty = ((iq_instr_mask_load[1:0] != 2'b11) & ~isRVC)
-							|
-							((iq_instr_mask_load[0] != 1'b1) & isRVC);
 
 	branch_predict i_branch_predict(
 
@@ -159,17 +179,18 @@ module iqueue (
 		.isRVC(isRVC),
 		.pc_load(pc_load),
 
+
 		.jalr_valid(jalr_valid),
 		.jalr_pc(jalr_pc),
 		.bru_res_valid(bru_res_valid),
 		.bru_takenBranch(bru_takenBranch),
 
-
 		.branch_pc_valid(branch_pc_valid),
 		.branch_pc(branch_pc),
 		.isMisPredict(isMisPredict),
 
-		.stall(bp_stall),
+		.bp_stall(bp_stall),
+		.iq_id_ready(iq_id_ready),
 
 		.flush(flush),
 		.CLK(CLK),
@@ -187,7 +208,31 @@ assign iq_stall = bp_stall | ~iq_id_ready | instr_buf_empty;
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
-assign iq_instr_mask_dnxt = (~iq_stall) ? iq_instr_mask_shift : iq_instr_mask_load;
+assign iq_instr_mask_dnxt = (~iq_stall) ? (branch_pc_valid ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
+assign iq_id_valid_dnxt =  (~iq_stall) ;
+gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_valid_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
 
 
@@ -195,54 +240,11 @@ assign iq_instr_mask_dnxt = (~iq_stall) ? iq_instr_mask_shift : iq_instr_mask_lo
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-wire [32+64+1-1:0] iq_id_info_dnxt;
-wire [32+64+1-1:0] iq_id_info_qout;
-wire iq_id_valid_dnxt;
-wire iq_id_valid_qout;
-
-assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
-assign iq_id_valid_dnxt =  (~iq_stall) ;
-gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_valid_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-
-// wire [70+64-1:0] iq_pcgen_info_dnxt;
-// wire [70+64-1:0] iq_pcgen_info_qout;
-// wire iq_pcgen_valid_dnxt;
-// wire iq_pcgen_valid_qout;
-
-// gen_dffr # (.DW(134)) iq_pcgen_info_dffr  ( .dnxt(iq_pcgen_info_dnxt),  .qout(iq_pcgen_info_qout),  .CLK(CLK), .RSTn(RSTn));
-// gen_dffr # (.DW(1))   iq_pcgen_valid_dffr ( .dnxt(iq_pcgen_valid_dnxt), .qout(iq_pcgen_valid_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-wire [127:0] iq_instr_buf_dnxt;
-wire [127:0] iq_instr_buf_qout;
-wire [31:0] iq_pc_buf_dnxt;
-wire [31:0] iq_pc_buf_qout;
-wire [7:0] iq_instr_mask_dnxt;
-wire [7:0] iq_instr_mask_qout;
 
 
 gen_dffr # (.DW(128)) iq_instr_buf_dffr ( .dnxt(iq_instr_buf_dnxt),   .qout(iq_instr_buf_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(32))  iq_pc_buf_dffr    ( .dnxt(iq_pc_buf_dnxt),      .qout(iq_pc_buf_qout),    .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(64))  iq_pc_buf_dffr    ( .dnxt(iq_pc_buf_dnxt),      .qout(iq_pc_buf_qout),    .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
 
 

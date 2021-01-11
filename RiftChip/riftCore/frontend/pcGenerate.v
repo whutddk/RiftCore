@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 18:07:20
+* @Last Modified time: 2021-01-11 19:09:32
 */
 
 /*
@@ -31,61 +31,42 @@
 
 module pcGenerate (
 
-	input isReset,
-
-	//from jalr exe
-	input jalr_valid,
-	input [63:0] jalr_pc,
-	
-	//from bru
-	input bru_res_valid,
-	input bru_takenBranch,
-
 	// from expection 	
 	input [63:0] privileged_pc,
 	input privileged_valid,
 
-	//to commit to flush
-	output isMisPredict,
-
 	//from instr_queue,
-	input fetch_pc_valid,
-	input [63:0] fetch_pc_queue,
-	input [69:0] preDecode_info,
+	input branch_pc_valid,
+	input [63:0] branch_pc,
 
 	//to ifetch
 	output [63:0] fetch_addr_qout,
-	output fetch_addr_valid,
 	input pcGen_fetch_ready,
 
-
+	input flush,
 	input CLK,
 	input RSTn
 
 );
 
 
-
-	wire isExpection = privileged_valid;
-	wire [63:0] expection_pc = privileged_pc;
-
-
-	wire isJal, isJalr, isBranch, isCall, isReturn,isRVC;
-	wire [63:0] imm;
-
-	assign { isJal, isJalr, isBranch, isCall, isReturn, isRVC, imm } = preDecode_info;
+	wire [63:0] fetch_addr_dnxt;
 
 
 
 
 
 
+	assign fetch_addr_dnxt = 
+				privileged_valid ? privileged_pc : 
+					(branch_pc_valid ?  branch_pc :  (fetch_addr_qout + 64'd8));
 
 
 
 
 
 
+	gen_dffren # (.DW(64), .rstValue(64'h8000_0000)) fetch_addr_en ( .dnxt(fetch_addr_dnxt), .qout(fetch_addr_qout), .en(pcGen_fetch_ready|flush), .CLK(CLK), .RSTn(RSTn));
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 11:04:24
+* @Last Modified time: 2021-01-11 19:30:12
 */
 
 
@@ -73,21 +73,28 @@ wire takenBranch_valid;
 wire [63:0] privileged_pc;
 wire privileged_valid;
 
+// wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
+// 						| (~feflush & beflush & 1'b0)
+// 						| (feflush & ~beflush & 1'b1)
+// 						| (~feflush & ~beflush & isMisPredict_qout);
 
-wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
-						| (~feflush & beflush & 1'b0)
-						| (feflush & ~beflush & 1'b1)
-						| (~feflush & ~beflush & isMisPredict_qout);
+wire isMisPredict_set;
+wire isMisPredict_rst;
 wire isMisPredict_qout;
+
+assign isMisPredict_set = beflush;
+assign isMisPredict_rst = feflush & ~beflush;
+
+
+
+
 
 
 frontEnd i_frontEnd(
 
-	.instrFifo_full(instrFifo_full&(~feflush)),
+	.instrFifo_full(instrFifo_full),
 	.instrFifo_push(instrFifo_push),
 	.decode_microInstr(decode_microInstr_push),
-
-	.flush(feflush),
 
 	.bru_res_valid(takenBranch_valid&~isMisPredict_qout),
 	.bru_takenBranch(istakenBranch),
@@ -103,6 +110,7 @@ frontEnd i_frontEnd(
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
+	.flush(feflush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 	
@@ -158,7 +166,7 @@ backEnd i_backEnd(
 
 
 
-gen_dffr # (.DW(1)) isFlush ( .dnxt(isMisPredict_dnxt), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isFlush_rs ( .set_in(isMisPredict_set), .rst_in(isMisPredict_rst), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 

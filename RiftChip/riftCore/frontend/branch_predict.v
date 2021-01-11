@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 11:31:12
+* @Last Modified time: 2021-01-11 19:26:09
 */
 
 
@@ -40,7 +40,6 @@ module branch_predict (
 	input isRVC,
 	input [63:0] pc_load,
 
-
 	input jalr_valid,
 	input [63:0] jalr_pc,
 	input bru_res_valid,
@@ -50,7 +49,8 @@ module branch_predict (
 	output [63:0] branch_pc,
 	output isMisPredict,
 
-	output stall,
+	output bp_stall,
+	input iq_id_ready,
 
 	input flush,
 	input CLK,
@@ -95,18 +95,21 @@ module branch_predict (
 
 
 	assign bht_pop = bru_res_valid;
-	assign bht_push = isBranch & ~bht_full & fetch_addr_valid_dnxt;
+	assign bht_push = isBranch & ~bht_full & iq_id_ready;
 
 	assign isMisPredict = bru_res_valid & ( bru_takenBranch ^ bht_data_pop[64]);
 	assign resolve_pc = bht_data_pop[63:0];
 
-	assign jalr_stall = isJalr & ( ras_empty | ~isReturn );
+	assign jalr_stall = isJalr & ~jalr_last & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
 
 
-	assign branch_pc_valid = isMisPredict //mis-predict
+	assign branch_pc_valid = 
+							isMisPredict //mis-predict
 							| isTakenBranch // bru jump, jal jump, jalr ras pop
-							| jalr_last; //jalr return
+							| jalr_last //jalr return							
+								;
+
 
 	assign branch_pc = ({64{isMisPredict}} & resolve_pc)
 						|
@@ -115,7 +118,7 @@ module branch_predict (
 						({64{jalr_last}} & jalr_pc );
 
 
-	assign stall = jalr_stall | bht_stall;
+	assign bp_stall = jalr_stall | bht_stall;
 
 
 
@@ -128,8 +131,8 @@ module branch_predict (
 
 
 
-	assign ras_push = isCall & ( isJal | isJalr );
-	assign ras_pop = isReturn & ( isJalr ) & ( !ras_empty );
+	assign ras_push = isCall & ( isJal | isJalr ) & iq_id_ready;
+	assign ras_pop = isReturn & ( isJalr ) & ( !ras_empty ) & iq_id_ready;
 
 	assign next_pc = pc_load + ( isRVC ? 64'd2 : 64'd4 );
 	assign take_pc = ( {64{isJal | isBranch}} & (pc_load + imm) )
@@ -146,7 +149,7 @@ module branch_predict (
 		.data_push(bht_data_push), .data_pop(bht_data_pop),
 		.fifo_empty(), .fifo_full(bht_full), 
 		
-		.flush(isMisPredict),
+		.flush(flush),
 		.CLK(CLK),
 		.RSTn(RSTn)
 	);
