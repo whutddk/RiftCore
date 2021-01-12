@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:30:12
+* @Last Modified time: 2021-01-12 15:39:01
 */
 
 
@@ -82,8 +82,8 @@ wire isMisPredict_set;
 wire isMisPredict_rst;
 wire isMisPredict_qout;
 
-assign isMisPredict_set = beflush;
-assign isMisPredict_rst = feflush & ~beflush;
+assign isMisPredict_rst = beflush;
+assign isMisPredict_set = feflush & ~beflush;
 
 
 
