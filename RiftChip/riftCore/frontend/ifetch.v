@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 11:45:34
+* @Last Modified time: 2021-01-12 16:59:14
 */
 
 /*
@@ -68,7 +68,7 @@ assign ifu_addr = fetch_addr_qout & (~64'b111);
 assign pcGen_fetch_ready = ifu_mstReq_valid;
 
 assign boot_set = flush;
-assign boot_rst = boot;
+assign boot_rst = boot & ~boot_set;
 
 gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
 
