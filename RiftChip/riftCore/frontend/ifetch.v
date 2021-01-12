@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:15:46
+* @Last Modified time: 2021-01-12 11:45:34
 */
 
 /*
@@ -57,12 +57,23 @@ module ifetch #
 
 );
 
+wire boot;
+wire boot_set;
+wire boot_rst;
+wire [63:0] pending_addr;
 
-assign ifu_mstReq_valid = if_iq_ready & ~flush;
-assign ifu_addr = fetch_addr_qout;
 
+assign ifu_mstReq_valid = (if_iq_ready | boot) & ~flush ;
+assign ifu_addr = fetch_addr_qout & (~64'b111);
+assign pcGen_fetch_ready = ifu_mstReq_valid;
 
-gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(ifu_addr),   .qout(if_iq_pc),    .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+assign boot_set = flush;
+assign boot_rst = boot;
+
+gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
+
+gen_dffren # ( .DW(64)) pending_addr_dffren    ( .dnxt(fetch_addr_qout),   .qout(pending_addr),    .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(if_iq_instr), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
 gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(ifu_slvRsp_valid & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
 

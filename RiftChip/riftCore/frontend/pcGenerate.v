@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-13 16:56:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:09:32
+* @Last Modified time: 2021-01-12 11:39:52
 */
 
 /*
@@ -59,7 +59,7 @@ module pcGenerate (
 
 	assign fetch_addr_dnxt = 
 				privileged_valid ? privileged_pc : 
-					(branch_pc_valid ?  branch_pc :  (fetch_addr_qout + 64'd8));
+					(branch_pc_valid ?  branch_pc :  ( (fetch_addr_qout&(~64'b111)) + 64'd8));
 
 
 
