@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 16:26:07
+* @Last Modified time: 2021-01-12 18:07:06
 */
 
 /*
@@ -209,8 +209,7 @@ assign iq_stall = jalr_stall | bht_stall | ~iq_id_ready | instr_buf_empty;
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
-assign iq_instr_mask_dnxt = (~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load;
-
+assign iq_instr_mask_dnxt = flush ? 1'b0 : ((~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load);
 
 
 
@@ -219,7 +218,7 @@ assign iq_instr_mask_dnxt = (~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_m
 
 initial begin $warning("This clumsy design can be resolved by implememnt branch predict in a single stage in the future"); end
 wire jalr_stall_iq;
-gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -230,11 +229,11 @@ gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .
 
 
 assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
-assign iq_id_valid_dnxt = ~jalr_stall_iq & ~bht_stall & iq_id_ready & ~instr_buf_empty;
+assign iq_id_valid_dnxt = ~jalr_stall_iq & ~bht_stall & iq_id_ready & ~instr_buf_empty & (~flush);
 assign iq_id_valid = iq_id_valid_qout;
 assign iq_id_info = iq_id_info_qout;
 gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_valid_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(1), .rstValue(1'b0)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_valid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -246,7 +245,7 @@ gen_dffr # (.DW(1)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_vali
 
 gen_dffr # (.DW(128)) iq_instr_buf_dffr ( .dnxt(iq_instr_buf_dnxt),   .qout(iq_instr_buf_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64))  iq_pc_buf_dffr    ( .dnxt(iq_pc_buf_dnxt),      .qout(iq_pc_buf_qout),    .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
+gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
