@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 15:58:47
+* @Last Modified time: 2021-01-12 17:15:56
 */
 
 
@@ -114,7 +114,7 @@ module branch_predict (
 
 	assign branch_pc = ({64{isMisPredict}} & resolve_pc)
 						|
-						({64{isTakenBranch}} & take_pc)
+						({64{isTakenBranch& ~isMisPredict}} & take_pc)
 						|
 						({64{jalr_last}} & jalr_pc );
 
