@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:28:10
+* @Last Modified time: 2021-01-12 11:57:15
 */
 
 /*
@@ -123,13 +123,13 @@ module iqueue (
 	assign iq_instr_mask_load = 
 			({8{iq_instr_mask_qout == 8'b0}} & (if_iq_valid ? align_instr_mask : 8'b0 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1}} & (if_iq_valid ? align_instr_mask : 8'b1 ) )
+			({8{iq_instr_mask_qout == 8'b1}} & (if_iq_valid ? {align_instr_mask,1'b1} : 8'b1 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b11}} & (if_iq_valid ? align_instr_mask : 8'b11 ) )
+			({8{iq_instr_mask_qout == 8'b11}} & (if_iq_valid ? {align_instr_mask,2'b11} : 8'b11 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b111}} & (if_iq_valid ? align_instr_mask : 8'b111 ) )
+			({8{iq_instr_mask_qout == 8'b111}} & (if_iq_valid ? {align_instr_mask,3'b111} : 8'b111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1111}} & (if_iq_valid ? align_instr_mask : 8'b1111 ) )
+			({8{iq_instr_mask_qout == 8'b1111}} & (if_iq_valid ? {align_instr_mask,4'b1111} : 8'b1111 ) )
 			|
 			({8{iq_instr_mask_qout == 8'b11111}} & 8'b11111 )
 			|
@@ -231,6 +231,8 @@ assign iq_instr_mask_dnxt = (~iq_stall) ? (branch_pc_valid ? 8'b0 : iq_instr_mas
 
 assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
 assign iq_id_valid_dnxt =  (~iq_stall) ;
+assign iq_id_valid = iq_id_valid_qout;
+assign iq_id_info = iq_id_info_qout;
 gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(1)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt), .qout(iq_id_valid_qout), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
