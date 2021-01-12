@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:28:53
+* @Last Modified time: 2021-01-12 11:13:25
 */
 
 /*
@@ -42,15 +42,21 @@ module decoder
 
 	assign iq_id_ready = ~instrFifo_full;
 
+	wire [63:0] id_pc = iq_id_info[64:1];
+	wire [31:0] id_instr32 = iq_id_info[96:65];
+	wire [15:0] id_instr16 = iq_id_info[80:65];
+	wire isRVC = iq_id_info[0];
+
+
 
 	wire [`DECODE_INFO_DW-1:0] decode_microInstr_16;
 	wire [`DECODE_INFO_DW-1:0] decode_microInstr_32;
 
 decoder16 i_decoder16
 (
-	.instr(iq_id_info[80:65]),
-	.pc(iq_id_info[64:1]),
-	.is_rvc(iq_id_info[0]),
+	.instr(id_instr16),
+	.pc(id_pc),
+	.is_rvc(isRVC),
 
 	.decode_microInstr(decode_microInstr_16)
 );
@@ -59,9 +65,9 @@ decoder16 i_decoder16
 
 decoder32 i_decoder32
 (
-	.instr(iq_id_info[96:65]),
-	.pc(iq_id_info[64:1]),
-	.is_rvc(iq_id_info[0]),
+	.instr(id_instr32),
+	.pc(id_pc),
+	.is_rvc(isRVC),
 
 	.decode_microInstr(decode_microInstr_32)
 );

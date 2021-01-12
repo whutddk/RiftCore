@@ -253,8 +253,12 @@ gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_in
 
 
 
+//sim
 
-
+wire [63:0] iq_pc_qout;
+wire [31:0] iq_instr_qout;
+wire iq_isRVC_qout;
+assign {iq_instr_qout, iq_pc_qout, iq_isRVC_qout} = iq_id_info_qout;
 // always @(posedge CLK) begin
 // 	if (iq_instr_mask_qout > 16'b1111 & if_iq_valid) begin
 // 		$display("Assert Fail at iq, buf not enough big when fetch comes");
