@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:29:28
+* @Last Modified time: 2021-01-12 14:43:52
 */
 
 /*
@@ -143,7 +143,11 @@ decoder i_decoder
 
 	.instrFifo_full(instrFifo_full),
 	.decode_microInstr(decode_microInstr),
-	.instrFifo_push(instrFifo_push)
+	.instrFifo_push(instrFifo_push),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)
 
 );
 
