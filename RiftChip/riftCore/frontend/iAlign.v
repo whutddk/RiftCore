@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-11 10:11:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 10:19:39
+* @Last Modified time: 2021-01-12 10:43:58
 */
 
 
@@ -44,22 +44,22 @@ module iAlign (
 
 
 	assign align_instr = 
-			( {64{if_iq_instr == 3'b000}} & if_iq_instr)
+			( {64{pc_lsb == 3'b000}} & if_iq_instr)
 			|
-			( {64{if_iq_instr == 3'b010}} & {16'b0, if_iq_instr[63:16]} )
+			( {64{pc_lsb == 3'b010}} & {16'b0, if_iq_instr[63:16]} )
 			|
-			( {64{if_iq_instr == 3'b100}} & {32'b0, if_iq_instr[63:32]})
+			( {64{pc_lsb == 3'b100}} & {32'b0, if_iq_instr[63:32]})
 			|
-			( {64{if_iq_instr == 3'b110}} & {48'b0, if_iq_instr[63:48]});
+			( {64{pc_lsb == 3'b110}} & {48'b0, if_iq_instr[63:48]});
 
 	assign align_instr_mask = 
-			( {4{if_iq_instr == 3'b000}} & 4'b1111)
+			( {4{pc_lsb == 3'b000}} & 4'b1111)
 			|
-			( {4{if_iq_instr == 3'b010}} & 4'b0111 )
+			( {4{pc_lsb == 3'b010}} & 4'b0111 )
 			|
-			( {4{if_iq_instr == 3'b100}} & 4'b0011)
+			( {4{pc_lsb == 3'b100}} & 4'b0011)
 			|
-			( {4{if_iq_instr == 3'b110}} & 4'b0001);
+			( {4{pc_lsb == 3'b110}} & 4'b0001);
 
 
 
