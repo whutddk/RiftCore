@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 11:57:15
+* @Last Modified time: 2021-01-12 16:26:07
 */
 
 /*
@@ -68,7 +68,8 @@ module iqueue (
 	wire instr_buf_empty;
 
 	wire iq_stall;
-	wire bp_stall;
+	wire jalr_stall;
+	wire bht_stall;
 
 	wire [32+64+1-1:0] iq_id_info_dnxt;
 	wire [32+64+1-1:0] iq_id_info_qout;
@@ -189,7 +190,8 @@ module iqueue (
 		.branch_pc(branch_pc),
 		.isMisPredict(isMisPredict),
 
-		.bp_stall(bp_stall),
+		.jalr_stall(jalr_stall),
+		.bht_stall(bht_stall),
 		.iq_id_ready(iq_id_ready),
 
 		.flush(flush),
@@ -203,12 +205,11 @@ wire [127:0] iq_instr_buf_shift = instr_load >> (~isRVC ? 32 : 16);
 wire [63:0] iq_pc_buf_shift = pc_load + (~isRVC ? 64'd4 : 64'd2) ;
 wire [7:0] iq_instr_mask_shift =  iq_instr_mask_load >> (~isRVC ? 2 : 1);
 
-assign iq_stall = bp_stall | ~iq_id_ready | instr_buf_empty;
-
+assign iq_stall = jalr_stall | bht_stall | ~iq_id_ready | instr_buf_empty;
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
-assign iq_instr_mask_dnxt = (~iq_stall) ? (branch_pc_valid ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load;
+assign iq_instr_mask_dnxt = (~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load;
 
 
 
@@ -216,10 +217,9 @@ assign iq_instr_mask_dnxt = (~iq_stall) ? (branch_pc_valid ? 8'b0 : iq_instr_mas
 
 
 
-
-
-
-
+initial begin $warning("This clumsy design can be resolved by implememnt branch predict in a single stage in the future"); end
+wire jalr_stall_iq;
+gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn&(~flush)));
 
 
 
@@ -230,7 +230,7 @@ assign iq_instr_mask_dnxt = (~iq_stall) ? (branch_pc_valid ? 8'b0 : iq_instr_mas
 
 
 assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
-assign iq_id_valid_dnxt =  (~iq_stall) ;
+assign iq_id_valid_dnxt = ~jalr_stall_iq & ~bht_stall & iq_id_ready & ~instr_buf_empty;
 assign iq_id_valid = iq_id_valid_qout;
 assign iq_id_info = iq_id_info_qout;
 gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));

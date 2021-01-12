@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 19:26:09
+* @Last Modified time: 2021-01-12 15:58:47
 */
 
 
@@ -49,7 +49,8 @@ module branch_predict (
 	output [63:0] branch_pc,
 	output isMisPredict,
 
-	output bp_stall,
+	output jalr_stall,
+	output bht_stall,
 	input iq_id_ready,
 
 	input flush,
@@ -116,9 +117,6 @@ module branch_predict (
 						({64{isTakenBranch}} & take_pc)
 						|
 						({64{jalr_last}} & jalr_pc );
-
-
-	assign bp_stall = jalr_stall | bht_stall;
 
 
 
