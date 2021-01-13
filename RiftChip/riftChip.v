@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 17:51:44
+* @Last Modified time: 2021-01-13 19:11:19
 */
 
 
@@ -102,7 +102,7 @@ memory_bus i_memory_bus2
 
   .mem_mstReq_valid(lsu_mstReq_valid),
   .mem_addr(lsu_addr),
-  .mem_data_w(lsu_data_r),
+  .mem_data_w(lsu_data_w),
   .mem_data_r(lsu_data_r),
   .mem_wstrb(lsu_wstrb),
   .mem_slvRsp_valid(lsu_slvRsp_valid),

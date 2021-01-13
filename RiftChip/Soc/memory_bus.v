@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 17:44:57
+* @Last Modified time: 2021-01-13 19:03:48
 */
 
 /*
@@ -75,8 +75,8 @@ wire sram_reAlign_qout;
 
 wire [2:0] addr_shift_dnxt;
 wire [2:0] addr_shift_qout;
-wire [2:0] byte_shift_dnxt;
-wire [2:0] byte_shift_qout;
+wire [5:0] byte_shift_dnxt;
+wire [5:0] byte_shift_qout;
 
 assign isSRAM_dnxt = (mem_addr | 64'h0FFF_FFFF) == 64'h8FFF_FFFF;
 assign isAXI_dnxt  = (mem_addr | 64'h0FFF_FFFF) == 64'h9FFF_FFFF;
