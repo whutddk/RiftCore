@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:23:28
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 09:46:57
+* @Last Modified time: 2021-01-11 17:08:29
 */
 
 
@@ -32,86 +32,73 @@
 
 
 module preDecode (
+	input [127:0] instr_load,
+	input [7:0] iq_instr_mask_load,
+
+	output instr_buf_empty,
 	output isJal,
 	output isJalr,
 	output isBranch,
 	output isCall,
 	output isReturn,
-	output [63:0] imm,
-
-	input [31:0] instr_readout,
-	input is_rvc_instr
+	output isRVC,
+	output [63:0] imm
 );
 
+	assign instr_buf_empty = ((iq_instr_mask_load[1] != 1'b1) & instr_load[1:0] == 2'b11)
+							|
+							((iq_instr_mask_load[0] != 1'b1) );
 
+	wire [31:0] instr = instr_load[31:0];
 
+	assign isRVC = ~instr_buf_empty & (instr[1:0] != 2'b11);
 
-	wire isIJal = ~is_rvc_instr & (instr_readout[6:0] == 7'b1101111);			
-	wire isCJal =	 instr_readout[1:0] == 2'b01 & instr_readout[15:13] == 3'b101;
+	wire isIJal = ~isRVC & (instr[6:0] == 7'b1101111);			
+	wire isCJal =	 instr[1:0] == 2'b01 & instr[15:13] == 3'b101;
 
-	wire isIJalr = ~is_rvc_instr & (instr_readout[6:0] == 7'b1100111);
-	wire isCJalr = (instr_readout[1:0] == 2'b10 & instr_readout[15:13] == 3'b100)
+	wire isIJalr = ~isRVC & (instr[6:0] == 7'b1100111);
+	wire isCJalr = (instr[1:0] == 2'b10 & instr[15:13] == 3'b100)
 					&
 					(
-						(~instr_readout[12] & (instr_readout[6:2] == 0)) 
+						(~instr[12] & (instr[6:2] == 0)) 
 						| 
-						( instr_readout[12] & (|instr_readout[11:7]) & (&(~instr_readout[6:2])))
+						( instr[12] & (|instr[11:7]) & (&(~instr[6:2])))
 					);
 
-	wire isIBranch = ~is_rvc_instr & (instr_readout[6:0] == 7'b1100011);
-	wire isCBranch =  instr_readout[1:0] == 2'b01 & instr_readout[15:14] == 2'b11;
+	wire isIBranch = ~isRVC & (instr[6:0] == 7'b1100011);
+	wire isCBranch = instr[1:0] == 2'b01 & instr[15:14] == 2'b11;
 
-	wire isICall = (isIJalr | isIJal) & ((instr_readout[11:7] == 5'd1) | instr_readout[11:7] == 5'd5);
-	wire isCCall = isCJalr & instr_readout[12];
+	wire isICall = (isIJalr | isIJal) & ((instr[11:7] == 5'd1) | instr[11:7] == 5'd5);
+	wire isCCall = isCJalr & instr[12];
 
-	wire isIReturn =  isIJalr & ((instr_readout[19:15] == 5'd1) | instr_readout[19:15] == 5'd5)
-									& (instr_readout[19:15] != instr_readout[11:7]);
+	wire isIReturn = isIJalr & ((instr[19:15] == 5'd1) | instr[19:15] == 5'd5)
+									& (instr[19:15] != instr[11:7]);
 
-	wire isCReturn =  isCJalr & ~instr_readout[12]
-							& ((instr_readout[11:7] == 5'd1) | (instr_readout[11:7] == 5'd5));
-
-
+	wire isCReturn = isCJalr & ~instr[12]
+							& ((instr[11:7] == 5'd1) | (instr[11:7] == 5'd5));
 
 
 	wire [63:0] Iimm = 
-		({64{isIJal}} & {{44{instr_readout[31]}},instr_readout[19:12],instr_readout[20],instr_readout[30:21],1'b0})
+		({64{isIJal}} & {{44{instr[31]}},instr[19:12],instr[20],instr[30:21],1'b0})
 		|
-		({64{isIJalr}} & {{52{instr_readout[31]}},instr_readout[31:20]})
+		({64{isIJalr}} & {{52{instr[31]}},instr[31:20]})
 		|
-		({64{isIBranch}} & {{52{instr_readout[31]}},instr_readout[7],instr_readout[30:25],instr_readout[11:8],1'b0});
+		({64{isIBranch}} & {{52{instr[31]}},instr[7],instr[30:25],instr[11:8],1'b0});
 
 	wire [63:0] Cimm = 
-		({64{isCJal}} & {{52{instr_readout[12]}}, instr_readout[12], instr_readout[8], instr_readout[10:9], instr_readout[6], instr_readout[7], instr_readout[2], instr_readout[11], instr_readout[5:3], 1'b0})
+		({64{isCJal}} & {{52{instr[12]}}, instr[12], instr[8], instr[10:9], instr[6], instr[7], instr[2], instr[11], instr[5:3], 1'b0})
 		|
 		({64{isCJalr}} & 64'b0)
 		|
-		({64{isCBranch}} & {{55{instr_readout[12]}}, instr_readout[12], instr_readout[6:5], instr_readout[2], instr_readout[11:10], instr_readout[4:3], 1'b0});
+		({64{isCBranch}} & {{55{instr[12]}}, instr[12], instr[6:5], instr[2], instr[11:10], instr[4:3], 1'b0});
 
-	assign isJal = isIJal | isCJal; 
-	assign isJalr = isIJalr | isCJalr;
-	assign isBranch = isIBranch | isCBranch;
-	assign isCall = isICall | isCCall;
-	assign isReturn = isIReturn | isCReturn;
+	assign isJal = ~instr_buf_empty & (isIJal | isCJal); 
+	assign isJalr = ~instr_buf_empty & (isIJalr | isCJalr);
+	assign isBranch = ~instr_buf_empty & (isIBranch | isCBranch);
+	assign isCall = ~instr_buf_empty & (isICall | isCCall);
+	assign isReturn = ~instr_buf_empty & (isIReturn | isCReturn);
 
-	assign imm = is_rvc_instr ? Cimm : Iimm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	assign imm = isRVC ? Cimm : Iimm;
 
 
 endmodule

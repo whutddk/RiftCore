@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 14:33:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 19:16:22
+* @Last Modified time: 2021-01-07 11:45:19
 */
 
 
@@ -28,10 +28,12 @@
 
 `timescale 1 ns / 1 ps
 
+//This module is used at where the data is not a pineline stage FF but may be stalled by pineline 
+
+
 module gen_bypassfifo #
 (
-	parameter DW = 64,
-	parameter AW = 0
+	parameter DW = 64
 )
 (
 	input valid_i,
@@ -58,8 +60,8 @@ wire isLoad_set;
 wire isLoad_rst;
 wire isLoad_qout;
 
-assign isLoad_set = valid_i & ~ready_o & ~fifo_full;
-assign isLoad_rst = ~isLoad_set & (ready_o & ~fifo_empty);
+assign isLoad_set = valid_i & ~ready_o;
+assign isLoad_rst = (ready_o & ~fifo_empty) | flush;
 assign fifo_empty = ~isLoad_qout;
 assign fifo_full = isLoad_qout;
 gen_dffren # ( .DW(DW)) fifo_bypass ( .dnxt(data_i), .qout(data_pop), .en(isLoad_set), .CLK(CLK), .RSTn(RSTn));
@@ -70,10 +72,21 @@ gen_rsffr # ( .DW(1) ) isLoad ( .set_in(isLoad_set), .rst_in(isLoad_rst), .qout(
 
 
 assign data_o = fifo_empty ? data_i : data_pop;
-assign ready_i = ~fifo_full;
+assign ready_i = ~fifo_full | flush;
 assign valid_o = valid_i | ~fifo_empty; 
 
 
+
+
+
+
+//ASSERT
+always @( posedge CLK ) begin
+	if ( fifo_full & valid_i ) begin
+		$display("Assert Fail at bypass fifo");
+		$finish;
+	end
+end
 
 
 

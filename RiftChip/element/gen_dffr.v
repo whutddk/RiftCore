@@ -5,7 +5,7 @@
 * @Date:   2020-09-14 10:25:09
 * @Last Modified by:   Ruige Lee
 <<<<<<< HEAD:RiftChip/element/gen_dffr.v
-* @Last Modified time: 2020-12-29 18:05:13
+* @Last Modified time: 2021-01-12 17:50:54
 =======
 * @Last Modified time: 2021-01-03 12:05:52
 >>>>>>> master:core/riftCore/element/gen_dffr.v
@@ -45,7 +45,7 @@ module gen_dffr # (
 reg [DW-1:0] qout_r;
 
 always @(posedge CLK or negedge RSTn) begin
-	if ( !RSTn )
+	if ( ~RSTn )
 		qout_r <= #1 rstValue;
 	else                  
 		qout_r <= #1 dnxt;

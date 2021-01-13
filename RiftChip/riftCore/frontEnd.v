@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 16:01:00
+* @Last Modified time: 2021-01-13 11:43:51
 */
 
 /*
@@ -29,11 +29,10 @@
 
 module frontEnd (
 
-	input instrFifo_full,
+	input instrFifo_reject,
 	output instrFifo_push,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
-	output flush,
 	input bru_res_valid,
 	input bru_takenBranch,
 	input jalr_valid,
@@ -47,73 +46,61 @@ module frontEnd (
 	input [63:0] ifu_data_r,
 	input ifu_slvRsp_valid,
 
-
+	output flush,
 	input CLK,
 	input RSTn
 	
 );
 
 
+	wire branch_pc_valid;
+	wire [63:0] branch_pc;
+	wire [63:0] fetch_addr_qout;
+	wire pcGen_fetch_ready;
+	wire [63:0] if_iq_pc;
+	wire [63:0] if_iq_instr;
+	wire if_iq_valid;
+	wire if_iq_ready;
+	wire iq_id_valid;
+	wire [32+64+1-1:0] iq_id_info;
+	wire iq_id_ready;
+	wire isMisPredict;
 
 
+	assign flush = isMisPredict | privileged_valid;
 
 
-
-
-wire isMisPredict;
-
-assign flush = isMisPredict | privileged_valid;
-
-wire [63:0] fetch_pc_qout;
-wire isReset_qout;
-
-
-// gen_dffr # (.DW(64), .rstValue(64'h80000000)) fetch_pc ( .dnxt(fetch_pc_dnxt), .qout(fetch_pc_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) isReset ( .dnxt(1'b1), .qout(isReset_qout), .CLK(CLK), .RSTn(RSTn));
-
-wire [31:0] isInstrFetch;
-wire [31:0] instr;
-wire pcGen_pre_valid;
-wire pcGen_pre_ready;
-
-wire fetch_decode_valid;
-wire fetch_decoder_ready;
-wire is_rvc_instr;
-//C0
-pcGenerate i_pcGenerate
-(
-	//feedback
-	// .fetch_pc_dnxt(fetch_pc_dnxt),
-	.fetch_pc_qout(fetch_pc_qout),
-	.isReset(~isReset_qout),
-
-	//from jalr exe
-	.jalr_valid(jalr_valid),
-	.jalr_pc(jalr_pc),
-	
-	//from bru
-	.bru_res_valid(bru_res_valid),
-	.bru_takenBranch(bru_takenBranch),
-
-	// from expection 	
+pcGenerate i_pcGenerate(
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
 
-	//to fetch
-	.instr_readout(isInstrFetch),
-	.is_rvc_instr(is_rvc_instr),
+	.branch_pc_valid(branch_pc_valid),
+	.branch_pc(branch_pc),
 
-	//to commit to flush
-	.isMisPredict(isMisPredict),
+	.fetch_addr_qout(fetch_addr_qout),
+	.pcGen_fetch_ready(pcGen_fetch_ready),
 
-	.pcGen_pre_valid(pcGen_pre_valid),
-	.pcGen_pre_ready(pcGen_pre_ready),
+	.flush(flush|branch_pc_valid),
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
+
+ifetch i_ifetch(
 	.ifu_mstReq_valid(ifu_mstReq_valid),
 	.ifu_addr(ifu_addr),
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
+	.fetch_addr_qout(fetch_addr_qout),
+	.pcGen_fetch_ready(pcGen_fetch_ready),
+
+	.if_iq_pc(if_iq_pc),
+	.if_iq_instr(if_iq_instr),
+	.if_iq_valid(if_iq_valid),
+	.if_iq_ready(if_iq_ready),
+
+	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
@@ -121,56 +108,48 @@ pcGenerate i_pcGenerate
 
 
 
-//T0  
-//T0 is included in C0
+iqueue i_iqueue(
 
-wire [63:0] decode_pc;
-wire is_rvc;
-//C1
-instr_fetch i_instr_pre(
+	.if_iq_pc(if_iq_pc),
+	.if_iq_instr(if_iq_instr),
+	.if_iq_valid(if_iq_valid),
+	.if_iq_ready(if_iq_ready),
 
-	.pcGen_pre_valid(pcGen_pre_valid),
-	.pcGen_pre_ready(pcGen_pre_ready),
+	.branch_pc_valid(branch_pc_valid),
+	.branch_pc(branch_pc),
 
-	.pcGen_instr(isInstrFetch),
-	.decoder_instr(instr),
-	.pcGen_pc(fetch_pc_qout),
-	.decoder_pc(decode_pc),
+	.jalr_valid(jalr_valid),
+	.jalr_pc(jalr_pc),
+	.bru_res_valid(bru_res_valid),
+	.bru_takenBranch(bru_takenBranch),
 
-	.isRVC_in(is_rvc_instr),
-	.isRVC_out(is_rvc),
-	
-	.fetch_decoder_valid(fetch_decode_valid),
-	.fetch_decoder_ready(fetch_decoder_ready),
+	.iq_id_valid(iq_id_valid),
+	.iq_id_info(iq_id_info),
+	.iq_id_ready(iq_id_ready),
+
+	.isMisPredict(isMisPredict),
 
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
-	
 );
 
 
-
-
-//T1
-//T1 is included in C1
-
-
-//C2
 decoder i_decoder
 (
-	.instr(instr),
-	.fetch_decode_valid(fetch_decode_valid),
-	.fetch_decoder_ready(fetch_decoder_ready),
-	.pc(decode_pc),
-	.is_rvc(is_rvc),
+	.iq_id_valid(iq_id_valid),
+	.iq_id_ready(iq_id_ready),
+	.iq_id_info(iq_id_info),
 
-	.instrFifo_full(instrFifo_full),
+	.instrFifo_reject(instrFifo_reject),
 	.decode_microInstr(decode_microInstr),
-	.instrFifo_push(instrFifo_push)
+	.instrFifo_push(instrFifo_push),
+
+	.flush(flush),
+	.CLK(CLK),
+	.RSTn(RSTn)
 
 );
-
 
 
 

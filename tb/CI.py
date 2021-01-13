@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-01-05 18:04:49
+# @Last Modified time: 2021-01-12 16:29:07
 
 
 import sys
@@ -12,20 +12,24 @@ import os
 CIReturn = 0
 
 testList = [
-	"rv64ui-p-add",
-	"rv64ui-p-addiw",
-	"rv64ui-p-addw",
-	"rv64ui-p-and",
-	"rv64ui-p-andi",
-	"rv64ui-p-auipc",
+
+	"rv64mi-p-ma_addr",
+	"rv64mi-p-ma_fetch",
+	"rv64ui-p-simple",
+	"rv64ui-p-jal",
+	"rv64ui-p-jalr",
 	"rv64ui-p-beq",
 	"rv64ui-p-bge",
 	"rv64ui-p-bgeu",
 	"rv64ui-p-blt",
 	"rv64ui-p-bltu",
 	"rv64ui-p-bne",
-	"rv64ui-p-jal",
-	"rv64ui-p-jalr",
+	"rv64ui-p-add",
+	"rv64ui-p-addiw",
+	"rv64ui-p-addw",
+	"rv64ui-p-and",
+	"rv64ui-p-andi",
+	"rv64ui-p-auipc",
 	"rv64ui-p-lb",
 	"rv64ui-p-lbu",
 	"rv64ui-p-ld",
@@ -63,14 +67,9 @@ testList = [
 	"rv64mi-p-access",
 	"rv64mi-p-breakpoint",
 	"rv64mi-p-csr",
-	"rv64mi-p-ma_addr",
-	"rv64mi-p-ma_fetch",
 	"rv64mi-p-mcsr",
-	"rv64ui-p-fence_i",
-	"rv64ui-p-simple",
-	
+	"rv64ui-p-fence_i",	
 	"rv64uc-p-rvc",
-
 	"rv64um-p-div",
 	"rv64um-p-divu",
 	"rv64um-p-divuw",

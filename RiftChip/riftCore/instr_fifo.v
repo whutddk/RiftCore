@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-06 11:11:59
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 11:15:59
+* @Last Modified time: 2021-01-13 14:35:25
 */
 
 
@@ -41,7 +41,7 @@
 
 
 
-module instr_fifo (
+module instr_fifo # (
 	parameter DW = 64,
 	parameter AW = 3
 ) (
@@ -51,16 +51,20 @@ module instr_fifo (
 	input [DW-1:0] decode_microInstr_push,
 
 	output instrFifo_empty, 
-	output fifo_push_reject, 
-	output [DW-1:0] (decode_microInstr_pop),
+	output instrFifo_reject, 
+	output [DW-1:0] decode_microInstr_pop,
 
 	input feflush,
 	input CLK,
 	input RSTn
 );
 
+wire [AW+1-1:0] read_addr;
+wire [AW+1-1:0] write_addr;
 
-gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
+
+
+gen_fifo # (.DW(`DECODE_INFO_DW),.AW(AW)) 
 	fifo (
 	.fifo_pop(instrFifo_pop),
 	.fifo_push(instrFifo_push),
@@ -69,7 +73,11 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 	.data_pop(decode_microInstr_pop),
 
 	.fifo_empty(instrFifo_empty),
-	.fifo_full(instrFifo_full),
+	.fifo_full(),
+
+	.read_addr(read_addr),
+	.write_addr(write_addr),
+
 
 	.flush(feflush),
 	.CLK(CLK),
@@ -77,9 +85,14 @@ gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4))
 );
 
 
+wire reject_set;
+wire reject_rst;
 
+assign reject_set = (write_addr[AW-1:AW-2] == (read_addr[AW-1:AW-2] - 2'b01)) & (write_addr[AW-3:0] == (read_addr[AW-3:0]));
+assign reject_rst = feflush 
+					| ((write_addr[AW-1:AW-2] == (read_addr[AW-1:AW-2] + 2'b01)) & (write_addr[AW-3:0] == (read_addr[AW-3:0])));
 
-
+gen_rsffr # (.DW(1)) reject_rsffr ( .set_in(reject_set), .rst_in(reject_rst), .qout(instrFifo_reject), .CLK(CLK), .RSTn(RSTn) );
 
 
 

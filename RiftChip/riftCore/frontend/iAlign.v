@@ -1,11 +1,14 @@
 /*
-* @File name: pcGenerate
+* @File name: iAlign
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-10-13 16:56:39
+* @Date:   2021-01-11 10:11:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 11:39:52
+* @Last Modified time: 2021-01-12 10:43:58
 */
+
+
+
 
 /*
   Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
@@ -23,64 +26,48 @@
    limitations under the License.
 */
 
-
-
 `timescale 1 ns / 1 ps
-
 `include "define.vh"
 
-module pcGenerate (
+//now if pc is 64bit align
+module iAlign (
 
-	// from expection 	
-	input [63:0] privileged_pc,
-	input privileged_valid,
+	input [63:0] if_iq_pc,
+	input [63:0] if_iq_instr,
 
-	//from instr_queue,
-	input branch_pc_valid,
-	input [63:0] branch_pc,
-
-	//to ifetch
-	output [63:0] fetch_addr_qout,
-	input pcGen_fetch_ready,
-
-	input flush,
-	input CLK,
-	input RSTn
+	output [63:0] align_instr,
+	output [3:0] align_instr_mask
 
 );
 
-
-	wire [63:0] fetch_addr_dnxt;
-
+	wire [2:0] pc_lsb = if_iq_pc[2:0];
 
 
+	assign align_instr = 
+			( {64{pc_lsb == 3'b000}} & if_iq_instr)
+			|
+			( {64{pc_lsb == 3'b010}} & {16'b0, if_iq_instr[63:16]} )
+			|
+			( {64{pc_lsb == 3'b100}} & {32'b0, if_iq_instr[63:32]})
+			|
+			( {64{pc_lsb == 3'b110}} & {48'b0, if_iq_instr[63:48]});
 
-
-
-	assign fetch_addr_dnxt = 
-				privileged_valid ? privileged_pc : 
-					(branch_pc_valid ?  branch_pc :  ( (fetch_addr_qout&(~64'b111)) + 64'd8));
-
-
-
-
-
-
-	gen_dffren # (.DW(64), .rstValue(64'h8000_0000)) fetch_addr_en ( .dnxt(fetch_addr_dnxt), .qout(fetch_addr_qout), .en(pcGen_fetch_ready|flush), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-
-
-
-
+	assign align_instr_mask = 
+			( {4{pc_lsb == 3'b000}} & 4'b1111)
+			|
+			( {4{pc_lsb == 3'b010}} & 4'b0111 )
+			|
+			( {4{pc_lsb == 3'b100}} & 4'b0011)
+			|
+			( {4{pc_lsb == 3'b110}} & 4'b0001);
 
 
 
 
 
 endmodule
+
+
 
 
 

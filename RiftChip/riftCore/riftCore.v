@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-05 17:40:33
+* @Last Modified time: 2021-01-13 11:57:32
 */
 
 
@@ -55,7 +55,7 @@ module riftCore (
 
 
 wire instrFifo_push;
-wire instrFifo_full;
+wire instrFifo_reject;
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_push;
 
 wire feflush;
@@ -73,21 +73,28 @@ wire takenBranch_valid;
 wire [63:0] privileged_pc;
 wire privileged_valid;
 
+// wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
+// 						| (~feflush & beflush & 1'b0)
+// 						| (feflush & ~beflush & 1'b1)
+// 						| (~feflush & ~beflush & isMisPredict_qout);
 
-wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
-						| (~feflush & beflush & 1'b0)
-						| (feflush & ~beflush & 1'b1)
-						| (~feflush & ~beflush & isMisPredict_qout);
+wire isMisPredict_set;
+wire isMisPredict_rst;
 wire isMisPredict_qout;
+
+assign isMisPredict_rst = beflush;
+assign isMisPredict_set = feflush & ~beflush;
+
+
+
+
 
 
 frontEnd i_frontEnd(
 
-	.instrFifo_full(instrFifo_full&(~feflush)),
+	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
 	.decode_microInstr(decode_microInstr_push),
-
-	.flush(feflush),
 
 	.bru_res_valid(takenBranch_valid&~isMisPredict_qout),
 	.bru_takenBranch(istakenBranch),
@@ -103,26 +110,27 @@ frontEnd i_frontEnd(
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
+	.flush(feflush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 	
 );
 
 
-gen_fifo # (.DW(`DECODE_INFO_DW),.AW(4)) 
-	instr_fifo (
-		.fifo_pop(instrFifo_pop),
-		.fifo_push(instrFifo_push),
 
-		.data_push(decode_microInstr_push),
-		.data_pop(decode_microInstr_pop),
+instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
-		.fifo_empty(instrFifo_empty),
-		.fifo_full(instrFifo_full),
+	.instrFifo_pop(instrFifo_pop),
+	.instrFifo_push(instrFifo_push),
+	.decode_microInstr_push(decode_microInstr_push),
 
-		.flush(feflush),
-		.CLK(CLK),
-		.RSTn(RSTn)
+	.instrFifo_empty(instrFifo_empty),
+	.instrFifo_reject(instrFifo_reject), 
+	.decode_microInstr_pop(decode_microInstr_pop),
+
+	.feflush(feflush),
+	.CLK(CLK),
+	.RSTn(RSTn)
 );
 
 
@@ -158,7 +166,7 @@ backEnd i_backEnd(
 
 
 
-gen_dffr # (.DW(1)) isFlush ( .dnxt(isMisPredict_dnxt), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isFlush_rs ( .set_in(isMisPredict_set), .rst_in(isMisPredict_rst), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 
