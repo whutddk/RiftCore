@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 10:09:25
+* @Last Modified time: 2021-01-13 15:32:15
 */
 
 /*
@@ -90,26 +90,25 @@ assign sram_data_r = (~sram_reAlign_qout) ? {sram_data_odd_r, sram_data_eve_r} :
 assign sram_data_odd_w = (~sram_reAlign_dnxt) ? mem_data_w[63:32] : mem_data_w[31:0];
 assign sram_data_eve_w = (~sram_reAlign_dnxt) ? mem_data_w[31:0] : mem_data_w[63:32];
 
-assign sram_wstrb_odd = (~sram_reAlign_dnxt) ? mem_wstrb[7:4] : mem_wstrb[3:0];
-assign sram_wstrb_eve = (~sram_reAlign_dnxt) ? mem_wstrb[3:0] : mem_wstrb[7:4];
+assign sram_wstrb_odd = mem_wen ? ((~sram_reAlign_dnxt) ? mem_wstrb[7:4] : mem_wstrb[3:0]) : 4'b0;
+assign sram_wstrb_eve = mem_wen ? ((~sram_reAlign_dnxt) ? mem_wstrb[3:0] : mem_wstrb[7:4]) : 4'b0;
 
 assign sram_addr = isSRAM_dnxt ? mem_addr : 64'b0;
 assign sram_addr_odd = sram_addr[3 +: SRAM_AW];
 assign sram_addr_eve = ( ~sram_reAlign_dnxt ) ? sram_addr[3 +: SRAM_AW] : sram_addr[3 +: SRAM_AW] + 'd1;
 
-assign sram_wen_odd = isSRAM_dnxt & mem_wen;
-assign sram_wen_eve = isSRAM_dnxt & mem_wen;
+// assign sram_wen_odd = isSRAM_dnxt & mem_wen;
+// assign sram_wen_eve = isSRAM_dnxt & mem_wen;
 
 gen_sram # ( .DW(32), .AW(SRAM_AW) ) i_sram_odd
 (
 	.data_w(sram_data_odd_w),
 	.data_r(sram_data_odd_r),
 	.data_wstrb(sram_wstrb_odd),
-	.wen(sram_wen_odd),
+	.en(isSRAM_dnxt),
 	.addr(sram_addr_odd),
 
-	.CLK(CLK),
-	.RSTn(RSTn)
+	.CLK(CLK)
 );
 
 gen_sram # ( .DW(32), .AW(SRAM_AW) ) i_sram_eve
@@ -117,11 +116,10 @@ gen_sram # ( .DW(32), .AW(SRAM_AW) ) i_sram_eve
 	.data_w(sram_data_eve_w),
 	.data_r(sram_data_eve_r),
 	.data_wstrb(sram_wstrb_eve),
-	.wen(sram_wen_eve),
+	.en(isSRAM_dnxt),
 	.addr(sram_addr_eve),
 
-	.CLK(CLK),
-	.RSTn(RSTn)
+	.CLK(CLK)
 );
 
 

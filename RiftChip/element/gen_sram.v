@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:37:00
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 09:49:24
+* @Last Modified time: 2021-01-13 15:32:06
 */
 
 
@@ -40,15 +40,14 @@ module gen_sram #
 	output [DW-1:0] data_r,
 	input [(DW+7)/8-1:0] data_wstrb,
 
-	input wen,
+	input en,
 
 
 	input [AW-1:0] addr,
 
 
 
-	input CLK,
-	input RSTn
+	input CLK
 	
 );
 
@@ -57,33 +56,24 @@ module gen_sram #
 	reg [DW-1:0] ram[0:DP-1];
 	reg [DW-1:0] data_r_reg;
 
-	wire [DW-1:0] data_wstrb_bit;
-	wire [DW-1:0] data_wstrb_bitn;
+
 
 	generate
-		for ( genvar i = 0; i < DW; i = i + 1) begin
-			assign data_wstrb_bit[i] = data_wstrb[i/8];
+		for ( genvar i = 0; i < (DW+7)/8; i = i + 1) begin
+			always @(posedge CLK) begin
+				if (en) begin
+					data_r_reg[i*8+:8] <= #1 ram[addr][i*8+:8];
+					if (data_wstrb[i]) begin
+						ram[addr][i*8+:8] <= #1 data_w[i*8+:8] ;					
+					end
+
+				end
+			end
+
+
 		end
 	endgenerate
 	
-	assign data_wstrb_bitn = ~data_wstrb_bit;
-
-
-
-	always @(posedge CLK or negedge RSTn) begin
-		if ( ~RSTn ) begin
-			data_r_reg <= {DW{1'b0}};
-		end
-		else begin
-			data_r_reg <= #1 ram[addr];
-
-			if (wen) begin
-				ram[addr] <= #1 ((ram[addr] & data_wstrb_bitn) | (data_w & data_wstrb_bit));
-			end
-
-		end 
-	end
-
 	assign data_r = data_r_reg;
 
 
