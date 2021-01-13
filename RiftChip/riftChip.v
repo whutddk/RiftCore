@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-06 09:52:23
+* @Last Modified time: 2021-01-13 17:51:44
 */
 
 
@@ -49,7 +49,12 @@ module riftChip (
 	wire [63:0] ifu_data_r;
 	wire ifu_slvRsp_valid;
 
-
+	wire lsu_mstReq_valid;
+	wire [63:0] lsu_addr;
+	wire [63:0] lsu_data_w;
+	wire [63:0] lsu_data_r;
+	wire [7:0] lsu_wstrb;
+	wire lsu_slvRsp_valid;
 
 
 
@@ -63,6 +68,13 @@ riftCore i_riftCore(
 	.ifu_addr(ifu_addr),
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
+
+	.lsu_mstReq_valid(lsu_mstReq_valid),
+	.lsu_addr(lsu_addr),
+	.lsu_data_w(lsu_data_w),
+	.lsu_data_r(lsu_data_r),
+	.lsu_wstrb(lsu_wstrb),
+	.lsu_slvRsp_valid(lsu_slvRsp_valid),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -78,12 +90,30 @@ memory_bus i_memory_bus
   .mem_data_w(64'b0),
   .mem_data_r(ifu_data_r),
   .mem_wstrb(8'b0),
-  .mem_wen(1'b0),
   .mem_slvRsp_valid(ifu_slvRsp_valid),
 
   .CLK(CLK),
   .RSTn(RSTn)
 );
+
+
+memory_bus i_memory_bus2
+(
+
+  .mem_mstReq_valid(lsu_mstReq_valid),
+  .mem_addr(lsu_addr),
+  .mem_data_w(lsu_data_r),
+  .mem_data_r(lsu_data_r),
+  .mem_wstrb(lsu_wstrb),
+  .mem_slvRsp_valid(lsu_slvRsp_valid),
+
+  .CLK(CLK),
+  .RSTn(RSTn)
+);
+
+
+
+
 
 
 // innerbus_crossbar i_Xbar(

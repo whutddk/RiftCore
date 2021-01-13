@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-01-12 16:29:07
+# @Last Modified time: 2021-01-13 17:54:28
 
 
 import sys
@@ -12,7 +12,19 @@ import os
 CIReturn = 0
 
 testList = [
-
+	"rv64ui-p-lb",
+	"rv64ui-p-lbu",
+	"rv64ui-p-ld",
+	"rv64ui-p-lh",
+	"rv64ui-p-lhu",
+	"rv64ui-p-lui",
+	"rv64ui-p-lw",
+	"rv64ui-p-lwu",
+	"rv64ui-p-or",
+	"rv64ui-p-ori",
+	"rv64ui-p-sb",
+	"rv64ui-p-sd",
+	"rv64ui-p-sh",
 	"rv64mi-p-ma_addr",
 	"rv64mi-p-ma_fetch",
 	"rv64ui-p-simple",

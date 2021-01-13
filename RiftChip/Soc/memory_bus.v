@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 16:22:14
+* @Last Modified time: 2021-01-13 17:44:57
 */
 
 /*
@@ -38,7 +38,6 @@ module memory_bus #
 	input [63:0] mem_data_w,
 	output [63:0] mem_data_r,
 	input [7:0] mem_wstrb,
-	input mem_wen,
 	output mem_slvRsp_valid,
 
 	input CLK,
@@ -101,16 +100,14 @@ assign sram_data_odd_w = (~sram_reAlign_dnxt) ? sram_data_w[127:64] : sram_data_
 assign sram_data_eve_w = (~sram_reAlign_dnxt) ? sram_data_w[63:0] : sram_data_w[127:64];
 
 assign sram_wstrb = mem_wstrb << (addr_shift_dnxt);
-assign sram_wstrb_odd = mem_wen ? ((~sram_reAlign_dnxt) ? sram_wstrb[15:8] : sram_wstrb[7:0]) : 16'b0;
-assign sram_wstrb_eve = mem_wen ? ((~sram_reAlign_dnxt) ? sram_wstrb[7:0] : sram_wstrb[15:8]) : 16'b0;
+assign sram_wstrb_odd = ((~sram_reAlign_dnxt) ? sram_wstrb[15:8] : sram_wstrb[7:0]);
+assign sram_wstrb_eve = ((~sram_reAlign_dnxt) ? sram_wstrb[7:0] : sram_wstrb[15:8]);
 
 
 assign sram_addr = isSRAM_dnxt ? mem_addr : 64'b0;
 assign sram_addr_odd = sram_addr[4 +: SRAM_AW];
 assign sram_addr_eve = ( ~sram_reAlign_dnxt ) ? sram_addr[4 +: SRAM_AW] : sram_addr[4 +: SRAM_AW] + 'd1;
 
-// assign sram_wen_odd = isSRAM_dnxt & mem_wen;
-// assign sram_wen_eve = isSRAM_dnxt & mem_wen;
 
 gen_sram # ( .DW(64), .AW(SRAM_AW) ) i_sram_odd
 (

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:57:32
+* @Last Modified time: 2021-01-13 17:40:29
 */
 
 
@@ -38,15 +38,23 @@
 `include "define.vh"
 `include "iverilog.vh"
 module riftCore (
+	output ifu_mstReq_valid,
+	output [63:0] ifu_addr,
+	input [63:0] ifu_data_r,
+	input ifu_slvRsp_valid,
+
+	output lsu_mstReq_valid,
+	output [63:0] lsu_addr,
+	output [63:0] lsu_data_w,
+	input [63:0] lsu_data_r,
+	output [7:0] lsu_wstrb,
+	input lsu_slvRsp_valid,
 	
 	input isExternInterrupt,
 	input isRTimerInterrupt,
 	input isSoftwvInterrupt,
 
-	output ifu_mstReq_valid,
-	output [63:0] ifu_addr,
-	input [63:0] ifu_data_r,
-	input ifu_slvRsp_valid,
+
 
 	input CLK,
 	input RSTn
@@ -136,6 +144,14 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 
 backEnd i_backEnd(
+
+	.lsu_mstReq_valid(lsu_mstReq_valid),
+	.lsu_addr(lsu_addr),
+	.lsu_data_w(lsu_data_w),
+	.lsu_data_r(lsu_data_r),
+	.lsu_wstrb(lsu_wstrb),
+	.lsu_slvRsp_valid(lsu_slvRsp_valid),
+
 	.decode_microInstr_pop(decode_microInstr_pop),
 	.instrFifo_pop(instrFifo_pop),
 	.instrFifo_empty(instrFifo_empty | isMisPredict_qout),
