@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 15:39:01
+* @Last Modified time: 2021-01-13 11:57:32
 */
 
 
@@ -55,7 +55,7 @@ module riftCore (
 
 
 wire instrFifo_push;
-wire instrFifo_full;
+wire instrFifo_reject;
 wire [`DECODE_INFO_DW-1:0] decode_microInstr_push;
 
 wire feflush;
@@ -92,7 +92,7 @@ assign isMisPredict_set = feflush & ~beflush;
 
 frontEnd i_frontEnd(
 
-	.instrFifo_full(instrFifo_full),
+	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
 	.decode_microInstr(decode_microInstr_push),
 
@@ -117,20 +117,20 @@ frontEnd i_frontEnd(
 );
 
 
-gen_fifo # (.DW(`DECODE_INFO_DW),.AW(1)) 
-	instr_fifo (
-		.fifo_pop(instrFifo_pop),
-		.fifo_push(instrFifo_push),
 
-		.data_push(decode_microInstr_push),
-		.data_pop(decode_microInstr_pop),
+instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
-		.fifo_empty(instrFifo_empty),
-		.fifo_full(instrFifo_full),
+	.instrFifo_pop(instrFifo_pop),
+	.instrFifo_push(instrFifo_push),
+	.decode_microInstr_push(decode_microInstr_push),
 
-		.flush(feflush),
-		.CLK(CLK),
-		.RSTn(RSTn)
+	.instrFifo_empty(instrFifo_empty),
+	.instrFifo_reject(instrFifo_reject), 
+	.decode_microInstr_pop(decode_microInstr_pop),
+
+	.feflush(feflush),
+	.CLK(CLK),
+	.RSTn(RSTn)
 );
 
 

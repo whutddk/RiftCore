@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 14:52:06
+* @Last Modified time: 2021-01-13 11:44:01
 */
 
 /*
@@ -34,7 +34,7 @@ module decoder
 	output iq_id_ready,
 	input [32+64+1-1:0] iq_id_info,
 
-	input instrFifo_full,
+	input instrFifo_reject,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 	output instrFifo_push,
 
@@ -62,10 +62,10 @@ module decoder
 	wire [32+64+1-1:0] bp_data_i;
 	wire [32+64+1-1:0] bp_data_o;
 
-	assign iq_id_ready = ~instrFifo_full & bp_ready_i;
+	assign iq_id_ready = ~instrFifo_reject & bp_ready_i;
 
 	assign bp_valid_i = iq_id_valid;
-	assign bp_ready_o = ~instrFifo_full;
+	assign bp_ready_o = ~instrFifo_reject;
 	assign bp_data_i = iq_id_info;
 
 gen_bypassfifo #( .DW(32+64+1) ) bp_fifo
@@ -126,7 +126,7 @@ decoder32 i_decoder32
 
 	assign decode_microInstr = isRVC ? decode_microInstr_16 : decode_microInstr_32;
 
-	assign instrFifo_push = bp_valid_o & ~instrFifo_full;
+	assign instrFifo_push = bp_valid_o & ~instrFifo_reject;
 
 
 

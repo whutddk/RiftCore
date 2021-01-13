@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 14:43:52
+* @Last Modified time: 2021-01-13 11:43:51
 */
 
 /*
@@ -29,7 +29,7 @@
 
 module frontEnd (
 
-	input instrFifo_full,
+	input instrFifo_reject,
 	output instrFifo_push,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
 
@@ -141,7 +141,7 @@ decoder i_decoder
 	.iq_id_ready(iq_id_ready),
 	.iq_id_info(iq_id_info),
 
-	.instrFifo_full(instrFifo_full),
+	.instrFifo_reject(instrFifo_reject),
 	.decode_microInstr(decode_microInstr),
 	.instrFifo_push(instrFifo_push),
 

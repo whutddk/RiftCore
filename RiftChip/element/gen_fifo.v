@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:05:55
+* @Last Modified time: 2021-01-13 11:20:09
 */
 
 /*
@@ -39,6 +39,9 @@ module gen_fifo # (
 	output fifo_full, 
 	output [DW-1:0] data_pop,
 
+	output [AW+1-1:0] read_addr,
+	output [AW+1-1:0] write_addr,
+
 	input flush,
 	input CLK,
 	input RSTn
@@ -51,19 +54,22 @@ module gen_fifo # (
 	wire [AW+1-1:0] write_addr_dnxt, write_addr_qout;
 	wire [DP*DW-1:0] fifo_data_dnxt,fifo_data_qout;
 
-	gen_dffr # (.DW(AW+1)) read_addr (.dnxt(read_addr_dnxt), .qout(read_addr_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(AW+1)) write_addr (.dnxt(write_addr_dnxt), .qout(write_addr_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	gen_dffr # (.DW(AW+1)) read_addr_dffr (.dnxt(read_addr_dnxt), .qout(read_addr_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(AW+1)) write_addr_dffr (.dnxt(write_addr_dnxt), .qout(write_addr_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign fifo_empty = (read_addr_qout == write_addr_qout);
 	assign fifo_full = (read_addr_qout[AW-1:0] == write_addr_qout[AW-1:0]) & (read_addr_qout[AW] != write_addr_qout[AW]);
-
+	assign read_addr = read_addr_qout;
+	assign write_addr = write_addr_qout;
 
 generate
 	for ( genvar i = 0; i < DP; i = i + 1 ) begin
 		assign fifo_data_dnxt[DW*i+:DW] = (fifo_push & ~fifo_full & (write_addr_qout[AW-1:0] == i) ) ? data_push : fifo_data_qout[DW*i+:DW];
 
 
-		gen_dffr # (.DW(DW)) fifo_data (.dnxt(fifo_data_dnxt[DW*i+:DW]), .qout(fifo_data_qout[DW*i+:DW]), .CLK(CLK), .RSTn(RSTn));
+		gen_dffr # (.DW(DW)) fifo_data_dffr (.dnxt(fifo_data_dnxt[DW*i+:DW]), .qout(fifo_data_qout[DW*i+:DW]), .CLK(CLK), .RSTn(RSTn));
 
 	end
 
