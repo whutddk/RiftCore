@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 17:41:36
+* @Last Modified time: 2021-01-14 15:01:48
 */
 
 /*
@@ -28,12 +28,14 @@
 `include "define.vh"
 
 module backEnd (
-
+	output lsu_req_kill,
 	output lsu_mstReq_valid,
+	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
 	output [63:0] lsu_data_w,
 	input [63:0] lsu_data_r,
 	output [7:0] lsu_wstrb,
+	output lsu_wen,
 	input lsu_slvRsp_valid,
 
 	input [`DECODE_INFO_DW-1:0] decode_microInstr_pop,
@@ -469,12 +471,14 @@ csr i_csr(
 );
 
 lsu i_lsu(
-
+	.lsu_req_kill(lsu_req_kill),
 	.lsu_mstReq_valid(lsu_mstReq_valid),
+	.lsu_mstReq_ready(lsu_mstReq_ready),
 	.lsu_addr(lsu_addr),
 	.lsu_data_w(lsu_data_w),
 	.lsu_data_r(lsu_data_r),
 	.lsu_wstrb(lsu_wstrb),
+	.lsu_wen(lsu_wen),
 	.lsu_slvRsp_valid(lsu_slvRsp_valid),
 
 	.lsu_exeparam_ready(lsu_exeparam_ready),

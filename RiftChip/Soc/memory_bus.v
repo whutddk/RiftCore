@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 19:03:48
+* @Last Modified time: 2021-01-14 14:34:29
 */
 
 /*
@@ -34,10 +34,12 @@ module memory_bus #
 (
 
 	input mem_mstReq_valid,
+	output mem_mstReq_ready,
 	input [63:0] mem_addr,
 	input [63:0] mem_data_w,
 	output [63:0] mem_data_r,
 	input [7:0] mem_wstrb,
+	input mem_wen,
 	output mem_slvRsp_valid,
 
 	input CLK,
@@ -100,8 +102,8 @@ assign sram_data_odd_w = (~sram_reAlign_dnxt) ? sram_data_w[127:64] : sram_data_
 assign sram_data_eve_w = (~sram_reAlign_dnxt) ? sram_data_w[63:0] : sram_data_w[127:64];
 
 assign sram_wstrb = mem_wstrb << (addr_shift_dnxt);
-assign sram_wstrb_odd = ((~sram_reAlign_dnxt) ? sram_wstrb[15:8] : sram_wstrb[7:0]);
-assign sram_wstrb_eve = ((~sram_reAlign_dnxt) ? sram_wstrb[7:0] : sram_wstrb[15:8]);
+assign sram_wstrb_odd = mem_wen ? ((~sram_reAlign_dnxt) ? sram_wstrb[15:8] : sram_wstrb[7:0]) : 8'b0;
+assign sram_wstrb_eve = mem_wen ? ((~sram_reAlign_dnxt) ? sram_wstrb[7:0] : sram_wstrb[15:8]) : 8'b0;
 
 
 assign sram_addr = isSRAM_dnxt ? mem_addr : 64'b0;
@@ -139,7 +141,12 @@ gen_dffr # (.DW(1)) sram_handshake ( .dnxt(mem_mstReq_valid), .qout(mem_slvRsp_v
 
 
 
+wire mem_mstReq_ready_set, mem_mstReq_ready_rst, mem_mstReq_ready_qout;
 
+assign mem_mstReq_ready_set = mem_mstReq_ready_rst;
+assign mem_mstReq_ready_rst = mem_mstReq_valid;
+assign mem_mstReq_ready = mem_mstReq_ready_qout;
+gen_rsffr # (.DW(1)) mem_mstReq_ready_rsffr (.set_in(mem_mstReq_ready_set), .rst_in(mem_mstReq_ready_rst), .qout(mem_mstReq_ready_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 

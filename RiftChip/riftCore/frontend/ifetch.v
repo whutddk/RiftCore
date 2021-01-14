@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 16:59:14
+* @Last Modified time: 2021-01-14 14:59:00
 */
 
 /*
@@ -35,8 +35,9 @@ module ifetch #
 	parameter DW = 64
 )
 (
-
+	output ifu_req_kill,
 	output ifu_mstReq_valid,
+	input ifu_mstReq_ready,
 	output [63:0] ifu_addr,
 	input [DW-1:0] ifu_data_r,
 	input ifu_slvRsp_valid,
@@ -62,8 +63,8 @@ wire boot_set;
 wire boot_rst;
 wire [63:0] pending_addr;
 
-
-assign ifu_mstReq_valid = (if_iq_ready | boot) & ~flush ;
+assign ifu_req_kill = flush;
+assign ifu_mstReq_valid = ifu_mstReq_ready & (if_iq_ready | boot) & ~flush ;
 assign ifu_addr = fetch_addr_qout & (~64'b111);
 assign pcGen_fetch_ready = ifu_mstReq_valid;
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 18:15:14
+* @Last Modified time: 2021-01-14 15:01:29
 */
 
 /*
@@ -31,12 +31,14 @@ module lsu #
 	parameter DW = `LSU_EXEPARAM_DW
 )
 (
-
+	output lsu_req_kill,
 	output lsu_mstReq_valid,
+	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
 	output [63:0] lsu_data_w,
 	input [63:0] lsu_data_r,
 	output [7:0] lsu_wstrb,
+	output lsu_wen,
 	input lsu_slvRsp_valid,
 
 	//can only execute in order right now
@@ -125,6 +127,7 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	assign lsu_mstReq_valid = lsu_exeparam_valid & ~rv64zi_fence_i & ~rv64i_fence & ~flush;
 	assign lsu_addr = lsu_op1;
 	assign lsu_data_w = lsu_op2;
+	assign lsu_wen = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
 	assign lsu_wstrb = ({8{rv64i_sb}} & 8'b1  )
 						|
 						({8{rv64i_sh}} & 8'b11 )
@@ -140,8 +143,8 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 
 
 
-	assign lsu_exeparam_ready = ~lsu_mstReq_valid & ~isLSU_busy_qout;
-
+	assign lsu_exeparam_ready = ~lsu_mstReq_valid & ~isLSU_busy_qout & lsu_mstReq_ready;
+	assign lsu_req_kill = flush;
 
 
 

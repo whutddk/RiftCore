@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 17:40:29
+* @Last Modified time: 2021-01-14 15:02:01
 */
 
 
@@ -38,16 +38,21 @@
 `include "define.vh"
 `include "iverilog.vh"
 module riftCore (
+	output ifu_req_kill,
 	output ifu_mstReq_valid,
+	input ifu_mstReq_ready,
 	output [63:0] ifu_addr,
 	input [63:0] ifu_data_r,
 	input ifu_slvRsp_valid,
 
+	output lsu_req_kill,
 	output lsu_mstReq_valid,
+	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
 	output [63:0] lsu_data_w,
 	input [63:0] lsu_data_r,
 	output [7:0] lsu_wstrb,
+	input lsu_wen,
 	input lsu_slvRsp_valid,
 	
 	input isExternInterrupt,
@@ -113,7 +118,9 @@ frontEnd i_frontEnd(
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
 
+	.ifu_req_kill(ifu_req_kill),
 	.ifu_mstReq_valid(ifu_mstReq_valid),
+	.ifu_mstReq_ready(ifu_mstReq_ready),
 	.ifu_addr(ifu_addr),
 	.ifu_data_r(ifu_data_r),
 	.ifu_slvRsp_valid(ifu_slvRsp_valid),
@@ -144,12 +151,14 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 
 backEnd i_backEnd(
-
+	.lsu_req_kill(lsu_req_kill),
 	.lsu_mstReq_valid(lsu_mstReq_valid),
+	.lsu_mstReq_ready(lsu_mstReq_ready),
 	.lsu_addr(lsu_addr),
 	.lsu_data_w(lsu_data_w),
 	.lsu_data_r(lsu_data_r),
 	.lsu_wstrb(lsu_wstrb),
+	.lsu_wen(lsu_wen),
 	.lsu_slvRsp_valid(lsu_slvRsp_valid),
 
 	.decode_microInstr_pop(decode_microInstr_pop),
