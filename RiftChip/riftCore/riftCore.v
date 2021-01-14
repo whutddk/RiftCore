@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:28:59
+* @Last Modified time: 2021-01-14 16:57:40
 */
 
 
@@ -38,14 +38,12 @@
 `include "define.vh"
 `include "iverilog.vh"
 module riftCore (
-	output ifu_req_kill,
 	output ifu_mstReq_valid,
 	input ifu_mstReq_ready,
 	output [63:0] ifu_addr,
 	input [63:0] ifu_data_r,
 	input ifu_slvRsp_valid,
 
-	output lsu_req_kill,
 	output lsu_mstReq_valid,
 	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
@@ -118,7 +116,6 @@ frontEnd i_frontEnd(
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
 
-	.ifu_req_kill(ifu_req_kill),
 	.ifu_mstReq_valid(ifu_mstReq_valid),
 	.ifu_mstReq_ready(ifu_mstReq_ready),
 	.ifu_addr(ifu_addr),
@@ -151,7 +148,6 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 
 backEnd i_backEnd(
-	.lsu_req_kill(lsu_req_kill),
 	.lsu_mstReq_valid(lsu_mstReq_valid),
 	.lsu_mstReq_ready(lsu_mstReq_ready),
 	.lsu_addr(lsu_addr),

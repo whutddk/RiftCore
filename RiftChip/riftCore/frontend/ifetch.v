@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:52:27
+* @Last Modified time: 2021-01-14 16:57:23
 */
 
 /*
@@ -35,7 +35,7 @@ module ifetch #
 	parameter DW = 64
 )
 (
-	output ifu_req_kill,
+
 	output ifu_mstReq_valid,
 	input ifu_mstReq_ready,
 	output [63:0] ifu_addr,
@@ -62,10 +62,12 @@ wire boot;
 wire boot_set;
 wire boot_rst;
 wire [63:0] pending_addr;
-wire bus_ready;
+wire pending_trans_set;
+wire pending_trans_rst;
+wire pending_trans_qout;
 
-assign ifu_req_kill = flush;
-assign ifu_mstReq_valid = bus_ready & (if_iq_ready | boot) & ~flush ;
+
+assign ifu_mstReq_valid = (if_iq_ready | boot) & ~flush ;
 assign ifu_addr = fetch_addr_qout & (~64'b111);
 assign pcGen_fetch_ready = ifu_mstReq_valid;
 
@@ -73,18 +75,18 @@ assign boot_set = flush;
 assign boot_rst = ifu_mstReq_valid & ~boot_set;
 
 
-initial begin $warning("additianl ready may remove in cache design"); end
-
-gen_dffr # ( .DW(1)) bus_ready_dffr    ( .dnxt(ifu_mstReq_ready), .qout(bus_ready), .CLK(CLK), .RSTn(RSTn));
-
+assign pending_trans_set = ifu_mstReq_valid & ~flush;
+assign pending_trans_rst = (~ifu_mstReq_valid & ifu_slvRsp_valid) | flush;
 
 
 gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
 
 gen_dffren # ( .DW(64)) pending_addr_dffren    ( .dnxt(fetch_addr_qout),   .qout(pending_addr),    .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1))   pending_trans_rsffr  ( .set_in(pending_trans_set), .rst_in(pending_trans_rst), .qout(pending_trans_qout), .CLK(CLK), .RSTn(RSTn));
+
 gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(if_iq_instr), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(ifu_slvRsp_valid & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(ifu_slvRsp_valid & pending_trans_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:01:29
+* @Last Modified time: 2021-01-14 16:56:09
 */
 
 /*
@@ -31,7 +31,6 @@ module lsu #
 	parameter DW = `LSU_EXEPARAM_DW
 )
 (
-	output lsu_req_kill,
 	output lsu_mstReq_valid,
 	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
@@ -96,9 +95,9 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	wire lsu_fun_lw;
 	wire lsu_fun_ld;
 
-	wire isLSU_busy_set;
-	wire isLSU_busy_rst;
-	wire isLSU_busy_qout;
+	wire isLSU_pending_set;
+	wire isLSU_pending_rst;
+	wire isLSU_pending_qout;
 
 	wire lsu_wb_valid_set;
 	wire lsu_wb_valid_rst;
@@ -143,21 +142,18 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 
 
 
-	assign lsu_exeparam_ready = ~lsu_mstReq_valid & ~isLSU_busy_qout & lsu_mstReq_ready;
-	assign lsu_req_kill = flush;
+	assign lsu_exeparam_ready = ~lsu_mstReq_valid & ~isLSU_pending_qout & lsu_mstReq_ready;
 
 
 
 
+assign isLSU_pending_set =  lsu_mstReq_valid & ~flush;
+assign isLSU_pending_rst = (~lsu_mstReq_valid & lsu_slvRsp_valid) | flush;
 
-
-assign isLSU_busy_set =  lsu_mstReq_valid;
-assign isLSU_busy_rst = (~lsu_mstReq_valid & lsu_slvRsp_valid) | flush;
-
-assign lsu_wb_valid_set = (lsu_slvRsp_valid | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
+assign lsu_wb_valid_set = ((lsu_slvRsp_valid & isLSU_pending_qout) | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
 assign lsu_wb_valid_rst = lsu_writeback_valid | flush;
 
-gen_rsffr # (.DW(1)) isLSU_busy_rsffr (.set_in(isLSU_busy_set), .rst_in(isLSU_busy_rst), .qout(isLSU_busy_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isLSU_pending_rsffr (.set_in(isLSU_pending_set), .rst_in(isLSU_pending_rst), .qout(isLSU_pending_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .en(lsu_wb_valid_set), .CLK(CLK), .RSTn(RSTn));
 gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu_wb_valid_rst), .qout(lsu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 

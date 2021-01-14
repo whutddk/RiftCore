@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:01:48
+* @Last Modified time: 2021-01-14 16:56:22
 */
 
 /*
@@ -28,7 +28,6 @@
 `include "define.vh"
 
 module backEnd (
-	output lsu_req_kill,
 	output lsu_mstReq_valid,
 	input lsu_mstReq_ready,
 	output [63:0] lsu_addr,
@@ -471,7 +470,6 @@ csr i_csr(
 );
 
 lsu i_lsu(
-	.lsu_req_kill(lsu_req_kill),
 	.lsu_mstReq_valid(lsu_mstReq_valid),
 	.lsu_mstReq_ready(lsu_mstReq_ready),
 	.lsu_addr(lsu_addr),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 14:59:19
+* @Last Modified time: 2021-01-14 16:57:31
 */
 
 /*
@@ -41,7 +41,6 @@ module frontEnd (
 	input [63:0] privileged_pc,
 	input privileged_valid,
 
-	output ifu_req_kill,
 	output ifu_mstReq_valid,
 	input ifu_mstReq_ready,
 	output [63:0] ifu_addr,
@@ -89,7 +88,6 @@ pcGenerate i_pcGenerate(
 
 
 ifetch i_ifetch(
-	.ifu_req_kill(ifu_req_kill),
 	.ifu_mstReq_valid(ifu_mstReq_valid),
 	.ifu_mstReq_ready(ifu_mstReq_ready),
 	.ifu_addr(ifu_addr),
