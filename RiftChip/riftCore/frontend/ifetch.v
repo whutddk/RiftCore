@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 16:57:23
+* @Last Modified time: 2021-01-14 19:28:05
 */
 
 /*
@@ -36,11 +36,21 @@ module ifetch #
 )
 (
 
-	output ifu_mstReq_valid,
-	input ifu_mstReq_ready,
-	output [63:0] ifu_addr,
-	input [DW-1:0] ifu_data_r,
-	input ifu_slvRsp_valid,
+	output [63:0] M_AXI_ARADDR,
+	output [2:0] M_AXI_ARPROT,
+	output M_AXI_ARVALID,
+	input M_AXI_ARREADY,
+
+	input [63:0] M_AXI_RDATA,
+	input [1:0] M_AXI_RRESP,
+	input M_AXI_RVALID,
+	output M_AXI_RREADY,
+
+	// output ifu_mstReq_valid,
+	// input ifu_mstReq_ready,
+	// output [63:0] ifu_addr,
+	// input [DW-1:0] ifu_data_r,
+	// input ifu_slvRsp_valid,
 
 	//from pcGen
 	input [DW-1:0] fetch_addr_qout,
@@ -67,16 +77,16 @@ wire pending_trans_rst;
 wire pending_trans_qout;
 
 
-assign ifu_mstReq_valid = (if_iq_ready | boot) & ~flush ;
-assign ifu_addr = fetch_addr_qout & (~64'b111);
-assign pcGen_fetch_ready = ifu_mstReq_valid;
+
+
+assign pcGen_fetch_ready = axi_arvalid_set;
 
 assign boot_set = flush;
-assign boot_rst = ifu_mstReq_valid & ~boot_set;
+assign boot_rst = axi_arvalid_set & ~boot_set;
 
 
-assign pending_trans_set = ifu_mstReq_valid & ~flush;
-assign pending_trans_rst = (~ifu_mstReq_valid & ifu_slvRsp_valid) | flush;
+assign pending_trans_set = axi_arvalid_set & ~flush;
+assign pending_trans_rst = (~axi_arvalid_set & axi_rready_set) | flush;
 
 
 gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
@@ -84,12 +94,52 @@ gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in
 gen_dffren # ( .DW(64)) pending_addr_dffren    ( .dnxt(fetch_addr_qout),   .qout(pending_addr),    .en(ifu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
 gen_rsffr # ( .DW(1))   pending_trans_rsffr  ( .set_in(pending_trans_set), .rst_in(pending_trans_rst), .qout(pending_trans_qout), .CLK(CLK), .RSTn(RSTn));
 
-gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(if_iq_instr), .en(ifu_slvRsp_valid), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(ifu_slvRsp_valid & pending_trans_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
+gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(ifu_data_r), .qout(if_iq_instr), .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & pending_trans_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 
+
+
+
+
+
+
+
+
+
+
+	// output [63:0] M_AXI_ARADDR,
+	// output [2:0] M_AXI_ARPROT,
+	// output M_AXI_ARVALID,
+	// input M_AXI_ARREADY,
+
+	// input [63:0] M_AXI_RDATA,
+	// input [1:0] M_AXI_RRESP,
+	// input M_AXI_RVALID,
+	// output M_AXI_RREADY,
+
+// assign ifu_mstReq_valid = (if_iq_ready | boot) & ~flush ;
+
+	assign axi_arvalid_set = (if_iq_ready | boot) & ~flush;
+	assign M_AXI_ARADDR	= fetch_addr_qout & (~64'b111);
+
+
+
+	assign M_AXI_ARVALID = axi_arvalid_qout;
+	assign M_AXI_ARPROT	= 3'b001;
+	assign M_AXI_RREADY	= axi_rready_qout;
+
+
+
+	assign axi_arvalid_rst = ~axi_arvalid_set & (M_AXI_ARREADY & axi_arvalid_qout);
+	assign axi_rready_set = M_AXI_RVALID & ~axi_rready_qout;
+	assign axi_rready_rst = axi_rready_qout;
+
+
+	gen_rsffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

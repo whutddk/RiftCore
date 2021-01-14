@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:08:41
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 17:50:31
+* @Last Modified time: 2021-01-14 19:05:46
 */
 
 /*
@@ -61,25 +61,14 @@ module axi_lite_mst
 	input RSTn
 );
 
-	wire axi_awvalid_set;
-	wire axi_awvalid_rst;
-	wire axi_awvalid_qout;
-	wire axi_wvalid_set;
-	wire axi_wvalid_rst;
-	wire axi_wvalid_qout;
-	wire axi_bready_set;
-	wire axi_bready_rst;
-	wire axi_bready_qout;
+	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
+	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
+	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
 
-	wire axi_arvalid_set;
-	wire axi_arvalid_rst;
-	wire axi_arvalid_qout;
-	wire axi_rready_set;
-	wire axi_rready_rst;
-	wire axi_rready_qout;
+	wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
+	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
 
-	wire write_resp_error;
-	wire read_resp_error;  
+	wire write_resp_error, read_resp_error;  
 
 
 	assign write_resp_error = (axi_bready_qout & M_AXI_BVALID & M_AXI_BRESP[1]);
@@ -92,7 +81,7 @@ module axi_lite_mst
 	assign M_AXI_AWVALID = axi_awvalid_qout;
 
 	assign M_AXI_WVALID	= axi_wvalid_qout;
-	assign M_AXI_WSTRB	= ;
+	assign M_AXI_WSTRB = ;
 
 	assign M_AXI_BREADY	= axi_bready_qout;
 	assign M_AXI_ARADDR	= ;

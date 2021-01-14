@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:44:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 18:10:39
+* @Last Modified time: 2021-01-14 19:36:29
 */
 
 
@@ -59,53 +59,20 @@ module axi4_lite_slave
 	input RSTn
 );
 
-	// AXI4LITE signals
-	reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_awaddr;
-	reg  	axi_awready;
-	reg  	axi_wready;
-	reg [1 : 0] 	axi_bresp;
-	reg  	axi_bvalid;
-	reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_araddr;
-	reg  	axi_arready;
-	reg [C_S_AXI_DATA_WIDTH-1 : 0] 	axi_rdata;
-	reg [1 : 0] 	axi_rresp;
-	reg  	axi_rvalid;
 
-	// Example-specific design signals
-	// local parameter for addressing 32 bit / 64 bit C_S_AXI_DATA_WIDTH
-	// ADDR_LSB is used for addressing 32/64 bit registers/memories
-	// ADDR_LSB = 2 for 32 bits (n downto 2)
-	// ADDR_LSB = 3 for 64 bits (n downto 3)
-	localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-	localparam integer OPT_MEM_ADDR_BITS = 1;
-	//----------------------------------------------
-	//-- Signals for user logic register space example
-	//------------------------------------------------
-	//-- Number of Slave Registers 4
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg0;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg1;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg2;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg3;
 	wire	 slv_reg_rden;
 	wire	 slv_reg_wren;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
-	integer	 byte_index;
-	reg	 aw_en;
+ 
 
-	// I/O Connections assignments
 
-	assign S_AXI_AWREADY	= axi_awready;
-	assign S_AXI_WREADY	= axi_wready;
+	assign S_AXI_AWREADY	= axi_awready_qout;
+	assign S_AXI_WREADY	= axi_wready_qout;
 	assign S_AXI_BRESP	= 2'b0;
-	assign S_AXI_BVALID	= axi_bvalid;
-	assign S_AXI_ARREADY	= axi_arready;
-	assign S_AXI_RDATA	= axi_rdata;
+	assign S_AXI_BVALID	= axi_bvalid_qout;
+	assign S_AXI_ARREADY = axi_arready_qout;
+	assign S_AXI_RDATA	= axi_rdata_qout;
 	assign S_AXI_RRESP	= 2'b0;
-	assign S_AXI_RVALID	= axi_rvalid;
-	// Implement axi_awready generation
-	// axi_awready is asserted for one S_AXI_ACLK clock cycle when both
-	// S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
-	// de-asserted when reset is low.
+	assign S_AXI_RVALID	= axi_rvalid_qout;
 
 	wire axi_awready_set, axi_awready_rst, axi_awready_qout;
 	wire aw_en_set, aw_en_rst, aw_en_qout;
@@ -115,15 +82,15 @@ module axi4_lite_slave
 	wire axi_wready_set, axi_wready_rst, axi_wready_qout;
 
 
-	assign axi_awready_set = ~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en;
-	assign axi_awready_rst = ~axi_awready_set & (S_AXI_BREADY && axi_bvalid);
+	assign axi_awready_set = ~axi_awready_qout & S_AXI_AWVALID & S_AXI_WVALID & aw_en_qout;
+	assign axi_awready_rst = ~axi_awready_set & (S_AXI_BREADY & axi_bvalid_qout);
 	assign aw_en_set = axi_awready_rst;
 	assign aw_en_rst = axi_awready_set;
 
 	assign axi_awaddr_dnxt = S_AXI_AWADDR;
-	assign axi_awaddr_en = ~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en;
+	assign axi_awaddr_en = ~axi_awready_qout & S_AXI_AWVALID & S_AXI_WVALID & aw_en_qout;
 
-	assign axi_wready_set = ~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en;
+	assign axi_wready_set = ~axi_wready_qout & S_AXI_WVALID & S_AXI_AWVALID & aw_en_qout;
 	assign axi_wready_rst = ~axi_wready_set;
 
 	gen_rsffr #(.DW(1)) axi_awready_rsffr (.set_in(axi_awready_set), .rst_in(axi_awready_rst), .qout(axi_awready_qout), .CLK(CLK), .RSTn(RSTn));
@@ -133,8 +100,8 @@ module axi4_lite_slave
 	gen_rsffr #(.DW(1)) axi_wready_rsffr (.set_in(axi_wready_set), .rst_in(axi_wready_rst), .qout(axi_wready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
-
+	assign slv_reg_wren = axi_wready_qout & S_AXI_WVALID & axi_awready_qout & S_AXI_AWVALID;
+	assign slv_reg_rden = axi_arready_qout & S_AXI_ARVALID & ~axi_rvalid_qout;
 
 
 
@@ -207,9 +174,9 @@ module axi4_lite_slave
 	assign axi_arready_set = (~axi_arready && S_AXI_ARVALID);
 	assign axi_bvalid_rst = ~axi_arready_set;
 	assign axi_araddr_dnxt = S_AXI_ARADDR;
-	assign axi_araddr_en = (~axi_arready && S_AXI_ARVALID);
-	assign axi_rvalid_set = (axi_arready && S_AXI_ARVALID && ~axi_rvalid);
-	assign axi_rvalid_rst = ~axi_rvalid_set & (axi_rvalid && S_AXI_RREADY);
+	assign axi_araddr_en = (~axi_arready & S_AXI_ARVALID);
+	assign axi_rvalid_set = (axi_arready & S_AXI_ARVALID & ~axi_rvalid);
+	assign axi_rvalid_rst = ~axi_rvalid_set & (axi_rvalid & S_AXI_RREADY);
 
 	gen_rsffr #(.DW(1)) axi_bvalid_rsffr (.set_in(axi_bvalid_set), .rst_in(axi_bvalid_rst), .qout(axi_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_rsffr #(.DW(1)) axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));
@@ -219,7 +186,7 @@ module axi4_lite_slave
 
 
 
-	assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
+
 
 
 

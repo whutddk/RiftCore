@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:37:00
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 15:32:06
+* @Last Modified time: 2021-01-14 19:51:29
 */
 
 
@@ -37,18 +37,17 @@ module gen_sram #
 (
 
 	input [DW-1:0] data_w,
-	output [DW-1:0] data_r,
+	input [AW-1:0] addr_w,
 	input [(DW+7)/8-1:0] data_wstrb,
-
-	input en,
-
-
-	input [AW-1:0] addr,
+	input en_w,
 
 
+	output [DW-1:0] data_r,
+	input [AW-1:0] addr_r,
+	input en_r,
 
 	input CLK
-	
+
 );
 
 	localparam DP = 2**AW;
@@ -61,12 +60,14 @@ module gen_sram #
 	generate
 		for ( genvar i = 0; i < (DW+7)/8; i = i + 1) begin
 			always @(posedge CLK) begin
-				if (en) begin
-					data_r_reg[i*8+:8] <= #1 ram[addr][i*8+:8];
+				if (en_w) begin
 					if (data_wstrb[i]) begin
-						ram[addr][i*8+:8] <= #1 data_w[i*8+:8] ;					
+						ram[addr_w][i*8+:8] <= #1 data_w[i*8+:8] ;					
 					end
+				end
 
+				if (en_r) begin
+					data_r_reg[i*8+:8] <= #1 ram[addr_r][i*8+:8];
 				end
 			end
 
