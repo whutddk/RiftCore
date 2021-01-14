@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-31 17:04:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 14:58:29
+* @Last Modified time: 2021-01-14 15:55:38
 */
 
 /*
@@ -163,35 +163,6 @@ module innerbus_crossbar (
 	//mst dm ifu lsu
 	//slv clint plic sys-bus perip-bus mem-bus
 
-	wire isClintInUsed_set;
-	wire isPlicInUsed_set;
-	wire isSysbusInUsed_set;
-	wire isPeripbusInUsed_set;
-	wire isMembusInUsed_set;
-	wire isClintInUsed_rst;
-	wire isPlicInUsed_rst;
-	wire isSysbusInUsed_rst;
-	wire isPeripbusInUsed_rst;
-	wire isMembusInUsed_rst;
-	wire isClintInUsed_qout;
-	wire isPlicInUsed_qout;
-	wire isSysbusInUsed_qout;
-	wire isPeripbusInUsed_qout;
-	wire isMembusInUsed_qout;
-
-
-	wire isReq;
-	wire isDMReq_set;
-	wire isIFUReq_set;
-	wire isLSUReq_set;
-	wire isDMReq_rst;
-	wire isIFUReq_rst;
-	wire isLSUReq_rst;
-	wire isDMReq_qout;
-	wire isIFUReq_qout;
-	wire isLSUReq_qout;
-
-
 
 
 
@@ -222,9 +193,9 @@ module innerbus_crossbar (
 	assign ifu_req_bp_ready_o = arbi_ready & ~dm_mstReq_valid;
 	assign lsu_req_bp_ready_o = arbi_ready & ~dm_mstReq_valid & ~ifu_mstReq_valid;	
 
-	assign dm_mstReq_ready  = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_ready & ~lsu_mstReq_valid;
-	assign ifu_mstReq_ready = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_ready & ~lsu_mstReq_valid;
-	assign lsu_mstReq_ready = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_ready & ~lsu_mstReq_valid;
+	assign dm_mstReq_ready  = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_valid & ~lsu_mstReq_valid;
+	assign ifu_mstReq_ready = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_valid & ~lsu_mstReq_valid;
+	assign lsu_mstReq_ready = arbi_ready & ifu_req_bp_ready_i & lsu_req_bp_ready_i & ~dm_mstReq_valid & ~ifu_mstReq_valid & ~lsu_mstReq_valid;
 
 
 	gen_bypassfifo # ( .DW(64+64+8+1) ) ifu_req_bp
@@ -271,7 +242,7 @@ module innerbus_crossbar (
 	wire [64+64+8+1-1:0] arbi_data_info_w;
 	wire [63:0] arbi_data_r;
 	wire arbi_Rsp;
-
+	wire [63:0] arbi_addr;
 
 
 	wire isDMReq_set, isDMReq_rst, isDMReq_qout;
@@ -294,11 +265,11 @@ module innerbus_crossbar (
 
 	assign arbi_ready = ~isDMReq_qout & ~isIFUReq_qout & ~isLSUReq_qout & slv_ready;
 	assign arbi_data_info_w = 
-				({(64+64+8+1){isDMReq_set}} & { dm_addr, dm_data_w, dm_wstrb, dm_wen };)
+				({(64+64+8+1){isDMReq_set}} & { dm_addr, dm_data_w, dm_wstrb, dm_wen })
 				|
 				({(64+64+8+1){isIFUReq_set}} & ifu_req_bp_data_o)
 				|
-				({(64+64+8+1){isLSUReq_set}} & lsu_req_bp_data_o)
+				({(64+64+8+1){isLSUReq_set}} & lsu_req_bp_data_o);
 
 	assign arbi_data_r = 
 				({64{clint_slvRsp_valid}} & clint_data_r)
@@ -344,8 +315,10 @@ module innerbus_crossbar (
 	wire slv_ready;
 	wire isReq;
 
-	assign isReq = isDMReq | isIFUReq | isLSUReq;
+	assign isReq = isDMReq_set | isIFUReq_set | isLSUReq_set;
 	assign slv_ready = clint_mstReq_ready & plic_mstReq_ready & sysbus_mstReq_ready & perip_mstReq_ready & mem_mstReq_ready;
+	assign arbi_addr = arbi_data_info_w[ 73 +:64 ];
+
 
 	assign isDMReq_rst = clint_slvRsp_valid | plic_slvRsp_valid | sysbus_slvRsp_valid | perip_slvRsp_valid | mem_slvRsp_valid;
 	assign isIFUReq_rst = clint_slvRsp_valid | plic_slvRsp_valid | sysbus_slvRsp_valid | perip_slvRsp_valid | mem_slvRsp_valid;
@@ -373,9 +346,7 @@ module innerbus_crossbar (
 
 
 // assert
-	wire isDMReq_set, isDMReq_rst, isDMReq_qout;
-	wire isIFUReq_set, isIFUReq_rst, isIFUReq_qout;
-	wire isLSUReq_set, isLSUReq_rst, isLSUReq_qout;
+
 
 always @(posedge CLK) begin
 	if ( (isDMReq_qout&isIFUReq_qout) | (isLSUReq_qout & (isDMReq_qout^isIFUReq_qout)) ) begin

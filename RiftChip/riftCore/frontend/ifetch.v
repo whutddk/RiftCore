@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 14:59:00
+* @Last Modified time: 2021-01-14 15:52:27
 */
 
 /*
@@ -62,14 +62,22 @@ wire boot;
 wire boot_set;
 wire boot_rst;
 wire [63:0] pending_addr;
+wire bus_ready;
 
 assign ifu_req_kill = flush;
-assign ifu_mstReq_valid = ifu_mstReq_ready & (if_iq_ready | boot) & ~flush ;
+assign ifu_mstReq_valid = bus_ready & (if_iq_ready | boot) & ~flush ;
 assign ifu_addr = fetch_addr_qout & (~64'b111);
 assign pcGen_fetch_ready = ifu_mstReq_valid;
 
 assign boot_set = flush;
-assign boot_rst = boot & ~boot_set;
+assign boot_rst = ifu_mstReq_valid & ~boot_set;
+
+
+initial begin $warning("additianl ready may remove in cache design"); end
+
+gen_dffr # ( .DW(1)) bus_ready_dffr    ( .dnxt(ifu_mstReq_ready), .qout(bus_ready), .CLK(CLK), .RSTn(RSTn));
+
+
 
 gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
 

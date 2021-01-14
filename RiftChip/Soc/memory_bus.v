@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:31:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 14:34:29
+* @Last Modified time: 2021-01-14 16:01:40
 */
 
 /*
@@ -143,10 +143,10 @@ gen_dffr # (.DW(1)) sram_handshake ( .dnxt(mem_mstReq_valid), .qout(mem_slvRsp_v
 
 wire mem_mstReq_ready_set, mem_mstReq_ready_rst, mem_mstReq_ready_qout;
 
-assign mem_mstReq_ready_set = mem_mstReq_ready_rst;
-assign mem_mstReq_ready_rst = mem_mstReq_valid;
-assign mem_mstReq_ready = mem_mstReq_ready_qout;
-gen_rsffr # (.DW(1)) mem_mstReq_ready_rsffr (.set_in(mem_mstReq_ready_set), .rst_in(mem_mstReq_ready_rst), .qout(mem_mstReq_ready_qout), .CLK(CLK), .RSTn(RSTn));
+// assign mem_mstReq_ready_set = mem_mstReq_ready_rst;
+// assign mem_mstReq_ready_rst = mem_mstReq_valid;
+assign mem_mstReq_ready = ~mem_mstReq_valid;
+// gen_rsffr # (.DW(1), .rstValue(1'b1)) mem_mstReq_ready_rsffr (.set_in(mem_mstReq_ready_set), .rst_in(mem_mstReq_ready_rst), .qout(mem_mstReq_ready_qout), .CLK(CLK), .RSTn(RSTn));
 
 endmodule
 

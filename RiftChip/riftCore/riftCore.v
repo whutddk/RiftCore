@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:02:01
+* @Last Modified time: 2021-01-14 15:28:59
 */
 
 
@@ -52,7 +52,7 @@ module riftCore (
 	output [63:0] lsu_data_w,
 	input [63:0] lsu_data_r,
 	output [7:0] lsu_wstrb,
-	input lsu_wen,
+	output lsu_wen,
 	input lsu_slvRsp_valid,
 	
 	input isExternInterrupt,

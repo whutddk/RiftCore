@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 15:03:01
+* @Last Modified time: 2021-01-14 15:10:06
 */
 
 
@@ -36,6 +36,7 @@ module riftChip (
 
 
 	wire mem_mstReq_valid;
+	wire mem_mstReq_ready;
 	wire [63:0] mem_addr;
 	wire [63:0] mem_data_w;
 	wire [63:0] mem_data_r;
@@ -90,14 +91,6 @@ riftCore i_riftCore(
 	
 );
 
-	wire mem_mstReq_valid;
-	wire mem_mstReq_ready;
-	wire [63:0] mem_addr;
-	wire [63:0] mem_data_w;
-	wire [63:0] mem_data_r;
-	wire [7:0] mem_wstrb;
-	wire mem_wen;
-	wire mem_slvRsp_valid;
 
 innerbus_crossbar i_innerbus_crossbar(
 	.dm_req_kill(1'b0),
