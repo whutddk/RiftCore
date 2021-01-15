@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 16:56:09
+* @Last Modified time: 2021-01-15 16:03:30
 */
 
 /*
@@ -31,14 +31,31 @@ module lsu #
 	parameter DW = `LSU_EXEPARAM_DW
 )
 (
-	output lsu_mstReq_valid,
-	input lsu_mstReq_ready,
-	output [63:0] lsu_addr,
-	output [63:0] lsu_data_w,
-	input [63:0] lsu_data_r,
-	output [7:0] lsu_wstrb,
-	output lsu_wen,
-	input lsu_slvRsp_valid,
+
+	output [63:0] LSU_AWADDR,
+	output [2:0] LSU_AWPROT,
+	output LSU_AWVALID,
+	input LSU_AWREADY,
+
+	output [63:0] LSU_WDATA,
+	output [7:0] LSU_WSTRB,
+	output LSU_WVALID,
+	input LSU_WREADY,
+
+	input [1:0] LSU_BRESP,
+	input LSU_BVALID,
+	output LSU_BREADY,
+
+	output [63:0] LSU_ARADDR,
+	output [2:0] LSU_ARPROT,
+	output LSU_ARVALID,
+	input LSU_ARREADY,
+
+	input [63:0] LSU_RDATA,
+	input [1:0] LSU_RRESP,
+	input LSU_RVALID,
+	output LSU_RREADY,
+
 
 	//can only execute in order right now
 	output lsu_exeparam_ready,
@@ -102,30 +119,48 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	wire lsu_wb_valid_set;
 	wire lsu_wb_valid_rst;
 
-	gen_dffren # (.DW(1)) isUsiHold_dffren ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .en(lsu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+
+	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
+	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
+	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
+
+	wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
+	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
+
+
+
+
+
+
+
+
+
+	gen_dffren # (.DW(1)) isUsiHold_dffren ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
 	
-	gen_dffren # (.DW(1)) islb_dffren ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .en(lsu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) islh_dffren ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .en(lsu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) islw_dffren ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .en(lsu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) isld_dffren ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .en(lsu_mstReq_valid), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islb_dffren ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islh_dffren ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islw_dffren ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) isld_dffren ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
 
 
 
 	assign lsu_res_qout = 
-			({64{lsu_fun_lb}} & ( isUsi ? {56'b0,lsu_data_r[7:0]} : {{56{lsu_data_r[7]}},lsu_data_r[7:0]} ))
+			({64{lsu_fun_lb}} & ( isUsi ? {56'b0,LSU_RDATA[7:0]} : {{56{LSU_RDATA[7]}},LSU_RDATA[7:0]} ))
 			|
-			({64{lsu_fun_lh}} & ( isUsi ? {48'b0,lsu_data_r[15:0]} : {{48{lsu_data_r[15]}},lsu_data_r[15:0]} ))
+			({64{lsu_fun_lh}} & ( isUsi ? {48'b0,LSU_RDATA[15:0]} : {{48{LSU_RDATA[15]}},LSU_RDATA[15:0]} ))
 			|
-			({64{lsu_fun_lw}} & ( isUsi ? {32'b0,lsu_data_r[31:0]} : {{32{lsu_data_r[31]}},lsu_data_r[31:0]} ))
+			({64{lsu_fun_lw}} & ( isUsi ? {32'b0,LSU_RDATA[31:0]} : {{32{LSU_RDATA[31]}},LSU_RDATA[31:0]} ))
 			|
-			({64{lsu_fun_ld}} & lsu_data_r);
+			({64{lsu_fun_ld}} & LSU_RDATA);
 
 
+	wire lsu_wen;
+	wire lsu_ren;
+	wire [7:0] lsu_wstrb;
 
-
-	assign lsu_mstReq_valid = lsu_exeparam_valid & ~rv64zi_fence_i & ~rv64i_fence & ~flush;
-	assign lsu_addr = lsu_op1;
-	assign lsu_data_w = lsu_op2;
+	// assign lsu_addr = lsu_op1;
+	// assign lsu_data_w = lsu_op2;
+	assign lsu_ren = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
 	assign lsu_wen = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
 	assign lsu_wstrb = ({8{rv64i_sb}} & 8'b1  )
 						|
@@ -133,29 +168,91 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 						|
 						({8{rv64i_sw}} & 8'b1111 )
 						|
-						({8{rv64i_sd}} & 8'b11111111 )
-						|
-						8'b00000000;
+						({8{rv64i_sd}} & 8'b11111111 );
+
+
+	wire axi_rsp_ready = axi_bready_qout | axi_rready_qout;
+
+
+	assign lsu_exeparam_ready = ~axi_awvalid_set & ~isLSU_pending_qout & axi_rsp_ready;
 
 
 
 
+assign isLSU_pending_set =  axi_awvalid_set & ~flush;
+assign isLSU_pending_rst = (~axi_awvalid_set & axi_rsp_ready) | flush;
 
-
-	assign lsu_exeparam_ready = ~lsu_mstReq_valid & ~isLSU_pending_qout & lsu_mstReq_ready;
-
-
-
-
-assign isLSU_pending_set =  lsu_mstReq_valid & ~flush;
-assign isLSU_pending_rst = (~lsu_mstReq_valid & lsu_slvRsp_valid) | flush;
-
-assign lsu_wb_valid_set = ((lsu_slvRsp_valid & isLSU_pending_qout) | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
+assign lsu_wb_valid_set = ((axi_rsp_ready & isLSU_pending_qout) | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
 assign lsu_wb_valid_rst = lsu_writeback_valid | flush;
 
 gen_rsffr # (.DW(1)) isLSU_pending_rsffr (.set_in(isLSU_pending_set), .rst_in(isLSU_pending_rst), .qout(isLSU_pending_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .en(lsu_wb_valid_set), .CLK(CLK), .RSTn(RSTn));
 gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu_wb_valid_rst), .qout(lsu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+	assign LSU_AWADDR	= lsu_op1;
+	assign LSU_WDATA	= lsu_op2;
+	assign LSU_AWPROT	= 3'b000;
+	assign LSU_AWVALID = axi_awvalid_qout;
+
+	assign LSU_WVALID	= axi_wvalid_qout;
+	assign LSU_WSTRB = lsu_wstrb;
+
+	assign LSU_BREADY	= axi_bready_qout;
+	assign LSU_ARADDR	= lsu_op1;
+	assign LSU_ARVALID = axi_arvalid_qout;
+	assign LSU_ARPROT	= 3'b001;
+	assign LSU_RREADY	= axi_rready_qout;
+
+
+
+	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush;
+	assign axi_awvalid_rst = ~axi_awvalid_set & (LSU_AWREADY & axi_awvalid_qout);
+	assign axi_wvalid_set = axi_awvalid_set;
+	assign axi_wvalid_rst = ~axi_wvalid_set & (LSU_WREADY & axi_wvalid_qout);	
+	assign axi_bready_set = LSU_BVALID & ~axi_bready_qout;
+	assign axi_bready_rst = axi_bready_qout;
+
+	gen_rsffr # (.DW(1)) axi_awvalid_rsffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign axi_arvalid_set = lsu_ren & lsu_exeparam_valid & ~flush;
+	assign axi_arvalid_rst = ~axi_arvalid_set & (LSU_ARREADY & axi_arvalid_qout);
+	assign axi_rready_set = LSU_RVALID & ~axi_rready_qout;
+	assign axi_rready_rst = axi_rready_qout;
+
+
+	gen_rsffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

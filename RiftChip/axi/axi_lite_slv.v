@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:44:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 19:36:29
+* @Last Modified time: 2021-01-15 14:36:11
 */
 
 
@@ -37,7 +37,7 @@ module axi4_lite_slave
 	output S_AXI_AWREADY,
 
 	input [63:0] S_AXI_WDATA,   
-	input [7 0] S_AXI_WSTRB,
+	input [7:0] S_AXI_WSTRB,
 	input S_AXI_WVALID,
 	output S_AXI_WREADY,
 

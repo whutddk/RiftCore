@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 16:56:22
+* @Last Modified time: 2021-01-15 15:42:49
 */
 
 /*
@@ -28,14 +28,25 @@
 `include "define.vh"
 
 module backEnd (
-	output lsu_mstReq_valid,
-	input lsu_mstReq_ready,
-	output [63:0] lsu_addr,
-	output [63:0] lsu_data_w,
-	input [63:0] lsu_data_r,
-	output [7:0] lsu_wstrb,
-	output lsu_wen,
-	input lsu_slvRsp_valid,
+	output [63:0] LSU_AWADDR,
+	output [2:0] LSU_AWPROT,
+	output LSU_AWVALID,
+	input LSU_AWREADY,
+	output [63:0] LSU_WDATA,
+	output [7:0] LSU_WSTRB,
+	output LSU_WVALID,
+	input LSU_WREADY,
+	input [1:0] LSU_BRESP,
+	input LSU_BVALID,
+	output LSU_BREADY,
+	output [63:0] LSU_ARADDR,
+	output [2:0] LSU_ARPROT,
+	output LSU_ARVALID,
+	input LSU_ARREADY,
+	input [63:0] LSU_RDATA,
+	input [1:0] LSU_RRESP,
+	input LSU_RVALID,
+	output LSU_RREADY,
 
 	input [`DECODE_INFO_DW-1:0] decode_microInstr_pop,
 	output instrFifo_pop,
@@ -470,14 +481,25 @@ csr i_csr(
 );
 
 lsu i_lsu(
-	.lsu_mstReq_valid(lsu_mstReq_valid),
-	.lsu_mstReq_ready(lsu_mstReq_ready),
-	.lsu_addr(lsu_addr),
-	.lsu_data_w(lsu_data_w),
-	.lsu_data_r(lsu_data_r),
-	.lsu_wstrb(lsu_wstrb),
-	.lsu_wen(lsu_wen),
-	.lsu_slvRsp_valid(lsu_slvRsp_valid),
+	.LSU_AWADDR(LSU_AWADDR),
+	.LSU_AWPROT(LSU_AWPROT),
+	.LSU_AWVALID(LSU_AWVALID),
+	.LSU_AWREADY(LSU_AWREADY),
+	.LSU_WDATA(LSU_WDATA),
+	.LSU_WSTRB(LSU_WSTRB),
+	.LSU_WVALID(LSU_WVALID),
+	.LSU_WREADY(LSU_WREADY),
+	.LSU_BRESP(LSU_BRESP),
+	.LSU_BVALID(LSU_BVALID),
+	.LSU_BREADY(LSU_BREADY),
+	.LSU_ARADDR(LSU_ARADDR),
+	.LSU_ARPROT(LSU_ARPROT),
+	.LSU_ARVALID(LSU_ARVALID),
+	.LSU_ARREADY(LSU_ARREADY),
+	.LSU_RDATA(LSU_RDATA),
+	.LSU_RRESP(LSU_RRESP),
+	.LSU_RVALID(LSU_RVALID),
+	.LSU_RREADY(LSU_RREADY),
 
 	.lsu_exeparam_ready(lsu_exeparam_ready),
 	.lsu_exeparam_valid(lsu_exeparam_valid),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 17:00:34
+* @Last Modified time: 2021-01-15 15:55:51
 */
 
 
@@ -35,30 +35,34 @@ module riftChip (
 );
 
 
-	wire mem_mstReq_valid;
-	wire mem_mstReq_ready;
-	wire [63:0] mem_addr;
-	wire [63:0] mem_data_w;
-	wire [63:0] mem_data_r;
-	wire [7:0] mem_wstrb;
-	wire mem_wen;
-	wire mem_slvRsp_valid;
+	wire [63:0] IFU_ARADDR;
+	wire [2:0] IFU_ARPROT;
+	wire IFU_ARVALID;
+	wire IFU_ARREADY;
+	wire [63:0] IFU_RDATA;
+	wire [1:0] IFU_RRESP;
+	wire IFU_RVALID;
+	wire IFU_RREADY;
 
-
-	wire ifu_mstReq_valid;
-	wire ifu_mstReq_ready;
-	wire [63:0] ifu_addr;
-	wire [63:0] ifu_data_r;
-	wire ifu_slvRsp_valid;
-
-	wire lsu_mstReq_valid;
-	wire lsu_mstReq_ready;
-	wire [63:0] lsu_addr;
-	wire [63:0] lsu_data_w;
-	wire [63:0] lsu_data_r;
-	wire [7:0] lsu_wstrb;
-	wire lsu_wen;
-	wire lsu_slvRsp_valid;
+	wire [63:0] LSU_AWADDR;
+	wire [2:0] LSU_AWPROT;
+	wire LSU_AWVALID;
+	wire LSU_AWREADY;
+	wire [63:0] LSU_WDATA;
+	wire [7:0] LSU_WSTRB;
+	wire LSU_WVALID;
+	wire LSU_WREADY;
+	wire [1:0] LSU_BRESP;
+	wire LSU_BVALID;
+	wire LSU_BREADY;
+	wire [63:0] LSU_ARADDR;
+	wire [2:0] LSU_ARPROT;
+	wire LSU_ARVALID;
+	wire LSU_ARREADY;
+	wire [63:0] LSU_RDATA;
+	wire [1:0] LSU_RRESP;
+	wire LSU_RVALID;
+	wire LSU_RREADY;
 
 
 
@@ -68,21 +72,34 @@ riftCore i_riftCore(
 	.isRTimerInterrupt(1'b0),
 	.isSoftwvInterrupt(1'b0),
 
+	.IFU_ARADDR(IFU_ARADDR),
+	.IFU_ARPROT(IFU_ARPROT),
+	.IFU_ARVALID(IFU_ARVALID),
+	.IFU_ARREADY(IFU_ARREADY),
+	.IFU_RDATA(IFU_RDATA),
+	.IFU_RRESP(IFU_RRESP),
+	.IFU_RVALID(IFU_RVALID),
+	.IFU_RREADY(IFU_RREADY),
 
-	.ifu_mstReq_valid(ifu_mstReq_valid),
-	.ifu_mstReq_ready (ifu_mstReq_ready),
-	.ifu_addr(ifu_addr),
-	.ifu_data_r(ifu_data_r),
-	.ifu_slvRsp_valid(ifu_slvRsp_valid),
-
-	.lsu_mstReq_valid(lsu_mstReq_valid),
-	.lsu_mstReq_ready(lsu_mstReq_ready),
-	.lsu_addr(lsu_addr),
-	.lsu_data_w(lsu_data_w),
-	.lsu_data_r(lsu_data_r),
-	.lsu_wstrb(lsu_wstrb),
-	.lsu_slvRsp_valid(lsu_slvRsp_valid),
-	.lsu_wen(lsu_wen),
+	.LSU_AWADDR(LSU_AWADDR),
+	.LSU_AWPROT(LSU_AWPROT),
+	.LSU_AWVALID(LSU_AWVALID),
+	.LSU_AWREADY(LSU_AWREADY),
+	.LSU_WDATA(LSU_WDATA),
+	.LSU_WSTRB(LSU_WSTRB),
+	.LSU_WVALID(LSU_WVALID),
+	.LSU_WREADY(LSU_WREADY),
+	.LSU_BRESP(LSU_BRESP),
+	.LSU_BVALID(LSU_BVALID),
+	.LSU_BREADY(LSU_BREADY),
+	.LSU_ARADDR(LSU_ARADDR),
+	.LSU_ARPROT(LSU_ARPROT),
+	.LSU_ARVALID(LSU_ARVALID),
+	.LSU_ARREADY(LSU_ARREADY),
+	.LSU_RDATA(LSU_RDATA),
+	.LSU_RRESP(LSU_RRESP),
+	.LSU_RVALID(LSU_RVALID),
+	.LSU_RREADY(LSU_RREADY),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -90,37 +107,26 @@ riftCore i_riftCore(
 );
 
 
-memory_bus i_memory_bus
-(
-	.mem_mstReq_valid(ifu_mstReq_valid),
-	.mem_mstReq_ready(ifu_mstReq_ready),
-	.mem_addr(ifu_addr),
-	.mem_data_w(64'b0),
-	.mem_data_r(ifu_data_r),
-	.mem_wstrb(8'b0),
-	.mem_wen(1'b0),
-	.mem_slvRsp_valid(ifu_slvRsp_valid),
+axi_ccm i_axi_iccm(
 
-	.CLK(CLK),
-	.RSTn(RSTn)
+	.S_AXI_AWADDR(64'b0),
+	.S_AXI_AWVALID(1'b0),
+	.S_AXI_AWREADY(),
+	.S_AXI_WDATA(64'b0),   
+	.S_AXI_WSTRB(8'b0),
+	.S_AXI_WVALID(1'b0),
+	.S_AXI_WREADY(),
+	.S_AXI_BRESP(),
+	.S_AXI_BVALID(),
+	.S_AXI_BREADY(1'b1),
 
-);
-
-
-
-
-
-memory_bus i_memory_bus2
-(
-
-	.mem_mstReq_valid(lsu_mstReq_valid),
-	.mem_mstReq_ready(lsu_mstReq_ready),
-	.mem_addr(lsu_addr),
-	.mem_data_w(lsu_data_w),
-	.mem_data_r(lsu_data_r),
-	.mem_wstrb(lsu_wstrb),
-	.mem_wen(lsu_wen),
-	.mem_slvRsp_valid(lsu_slvRsp_valid),
+	.S_AXI_ARADDR(IFU_ARADDR),
+	.S_AXI_ARVALID(IFU_ARVALID),
+	.S_AXI_ARREADY(IFU_ARREADY),
+	.S_AXI_RDATA(IFU_RDATA),
+	.S_AXI_RRESP(IFU_RRESP),
+	.S_AXI_RVALID(IFU_RVALID),
+	.S_AXI_RREADY(IFU_RREADY),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -130,6 +136,28 @@ memory_bus i_memory_bus2
 
 
 
+axi_ccm i_axi_dccm(
+	.S_AXI_AWADDR(LSU_AWADDR),
+	.S_AXI_AWVALID(LSU_AWVALID),
+	.S_AXI_AWREADY(LSU_AWREADY),
+	.S_AXI_WDATA(LSU_WDATA),   
+	.S_AXI_WSTRB(LSU_WSTRB),
+	.S_AXI_WVALID(LSU_WVALID),
+	.S_AXI_WREADY(LSU_WREADY),
+	.S_AXI_BRESP(LSU_BRESP),
+	.S_AXI_BVALID(LSU_BVALID),
+	.S_AXI_BREADY(LSU_BREADY),
+	.S_AXI_ARADDR(LSU_ARADDR),
+	.S_AXI_ARVALID(LSU_ARVALID),
+	.S_AXI_ARREADY(LSU_ARREADY),
+	.S_AXI_RDATA(LSU_RDATA),
+	.S_AXI_RRESP(LSU_RRESP),
+	.S_AXI_RVALID(LSU_RVALID),
+	.S_AXI_RREADY(LSU_RREADY),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
 
 

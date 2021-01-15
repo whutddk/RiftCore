@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:08:41
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 19:05:46
+* @Last Modified time: 2021-01-15 15:14:35
 */
 
 /*
@@ -91,9 +91,9 @@ module axi_lite_mst
 
 
 
-	assign axi_awvalid_set = start_single_write;
+	assign axi_awvalid_set = ;
 	assign axi_awvalid_rst = ~axi_awvalid_set & (M_AXI_AWREADY & axi_awvalid_qout);
-	assign axi_wvalid_set = start_single_write;
+	assign axi_wvalid_set = ;
 	assign axi_wvalid_rst = ~axi_wvalid_set & (M_AXI_WREADY & axi_wvalid_qout);	
 	assign axi_bready_set = M_AXI_BVALID & ~axi_bready_qout;
 	assign axi_bready_rst = axi_bready_qout;
@@ -109,7 +109,7 @@ module axi_lite_mst
 
 
 
-	assign axi_arvalid_set = start_single_read;
+	assign axi_arvalid_set = ;
 	assign axi_arvalid_rst = ~axi_arvalid_set & (M_AXI_ARREADY & axi_arvalid_qout);
 	assign axi_rready_set = M_AXI_RVALID & ~axi_rready_qout;
 	assign axi_rready_rst = axi_rready_qout;

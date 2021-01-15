@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 17:54:07
+* @Last Modified time: 2021-01-15 16:00:53
 */
 
 /*
@@ -77,10 +77,11 @@ initial begin
 end
 
 
-`define SRAM_ODD s_riftChip.i_memory_bus.i_sram_odd
-`define SRAM_EVE s_riftChip.i_memory_bus.i_sram_eve
-`define SRAM_ODD2 s_riftChip.i_memory_bus2.i_sram_odd
-`define SRAM_EVE2 s_riftChip.i_memory_bus2.i_sram_eve
+`define SRAM_ODD s_riftChip.i_axi_iccm.i_sram_odd
+`define SRAM_EVE s_riftChip.i_axi_iccm.i_sram_eve
+`define SRAM_ODD2 s_riftChip.i_axi_dccm.i_sram_odd
+`define SRAM_EVE2 s_riftChip.i_axi_dccm.i_sram_eve
+
 `define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
 `define INDEX s_riftChip.i_riftCore.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
 
