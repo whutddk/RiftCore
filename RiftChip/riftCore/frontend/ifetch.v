@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 17:15:03
+* @Last Modified time: 2021-01-15 19:31:10
 */
 
 /*
@@ -88,8 +88,8 @@ assign boot_rst = axi_arvalid_set & ~boot_set;
 
 assign pending_trans_set = axi_arvalid_set;
 assign pending_trans_rst = (~axi_arvalid_set & axi_rready_set );
-assign invalid_outstanding_set = pending_trans_qout & flush;
-assign invalid_outstanding_rst = invalid_outstanding_qout & axi_rready_set;
+assign invalid_outstanding_set = pending_trans_qout & flush & ~invalid_outstanding_rst;
+assign invalid_outstanding_rst = axi_rready_set;
 
 gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
 

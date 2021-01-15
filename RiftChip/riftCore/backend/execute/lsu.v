@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 17:57:58
+* @Last Modified time: 2021-01-15 19:36:28
 */
 
 /*
@@ -145,12 +145,12 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 
 
 
-	gen_dffren # (.DW(1)) isUsiHold_dffren ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) isUsiHold_dffren ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
 	
-	gen_dffren # (.DW(1)) islb_dffren ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) islh_dffren ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) islw_dffren ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
-	gen_dffren # (.DW(1)) isld_dffren ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .en(axi_awvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islb_dffren ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islh_dffren ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islw_dffren ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) isld_dffren ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -180,13 +180,13 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 						|
 						({8{rv64i_sd}} & 8'b11111111 );
 
-	wire axi_rsp_ready = axi_bready_qout | axi_bready_qout;
+	wire axi_rsp_ready = axi_bready_set | axi_rready_set;
 	wire axi_trans_pending = isWTrans_pending_qout | isRTrans_pending_qout;
 	wire axi_trans_invalid = isWTrans_invalid_qout | isRTrans_invalid_qout;
 
 
 
-	assign lsu_exeparam_ready = ~lsu_busy_qout;
+	assign lsu_exeparam_ready = ~lsu_busy_qout & ~lsu_exeparam_valid;
 
 wire lsu_busy_set;
 wire lsu_busy_rst;
@@ -200,14 +200,14 @@ gen_rsffr #(.DW(1)) lsu_busy_rsffr (.set_in(lsu_busy_set), .rst_in(lsu_busy_rst)
 
 
 assign isWTrans_pending_set = axi_awvalid_set;
-assign isWTrans_pending_rst = (~axi_awvalid_set & axi_bready_qout);
+assign isWTrans_pending_rst = (~axi_awvalid_set & axi_bready_set);
 assign isWTrans_invalid_set = isWTrans_pending_qout & flush;
-assign isWTrans_invalid_rst = isWTrans_invalid_qout & axi_bready_qout;
+assign isWTrans_invalid_rst = isWTrans_invalid_qout & axi_bready_set;
 
 assign isRTrans_pending_set = axi_arvalid_set;
-assign isRTrans_pending_rst = (~axi_arvalid_set & axi_rready_qout);
+assign isRTrans_pending_rst = (~axi_arvalid_set & axi_rready_set);
 assign isRTrans_invalid_set = isRTrans_pending_qout & flush;
-assign isRTrans_invalid_rst = isRTrans_invalid_qout & axi_rready_qout;
+assign isRTrans_invalid_rst = axi_rready_set;
 
 assign lsu_wb_valid_set = ((axi_rsp_ready & ~axi_trans_invalid) | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
 assign lsu_wb_valid_rst = lsu_writeback_valid | flush;
