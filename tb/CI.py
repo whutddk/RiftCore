@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-01-13 19:19:44
+# @Last Modified time: 2021-01-15 19:46:54
 
 
 import sys
@@ -110,7 +110,7 @@ for file in testList:
 	else:
 
 		CIReturn = -1
-		print(file, "FAIL!")
+		print(file, "FAIL!!!!!!!!!!")
 
 	jsonFile = "{\n\"schemaVersion\": 1,\n\"label\": \""
 	jsonFile = jsonFile + file
