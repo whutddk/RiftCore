@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 16:49:01
+* @Last Modified time: 2021-01-15 17:15:03
 */
 
 /*
@@ -87,7 +87,7 @@ assign boot_rst = axi_arvalid_set & ~boot_set;
 
 
 assign pending_trans_set = axi_arvalid_set;
-assign pending_trans_rst = (~axi_arvalid_set & axi_rready_set ) | flush;
+assign pending_trans_rst = (~axi_arvalid_set & axi_rready_set );
 assign invalid_outstanding_set = pending_trans_qout & flush;
 assign invalid_outstanding_rst = invalid_outstanding_qout & axi_rready_set;
 
@@ -100,7 +100,7 @@ gen_rsffr # ( .DW(1))   invalid_outstanding_rsffr ( .set_in(invalid_outstanding_
 
 gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(IFU_RDATA), .qout(if_iq_instr), .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & pending_trans_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_outstanding_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 
