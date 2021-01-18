@@ -1,11 +1,13 @@
 /*
-* @File name: gen_dffr
+* @File name: gen_slff
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2020-09-14 10:25:09
+* @Date:   2021-01-18 11:43:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 11:43:32
+* @Last Modified time: 2021-01-18 11:50:21
 */
+
+
 
 /*
   Copyright (c) 2020 - 2021 Ruige Lee <wut.ruigeli@gmail.com>
@@ -25,40 +27,35 @@
 
 `timescale 1 ns / 1 ps
 
-module gen_dffr # (
-	parameter DW = 32,
-	parameter rstValue = {DW{1'b0}}
+module gen_slff # (
+	parameter DW = 1,
+	parameter rstValue = 1'b0
 )
 (
 
-	input [DW-1:0] dnxt,
+	input [DW-1:0] set_in,
+	input [DW-1:0] rst_in,
+
 	output [DW-1:0] qout,
 
 	input CLK,
 	input RSTn
 );
 
-reg [DW-1:0] qout_r;
 
-always @(posedge CLK or negedge RSTn) begin
-	if ( ~RSTn )
-		qout_r <= #1 rstValue;
-	else                  
-		qout_r <= #1 dnxt;
+wire [DW-1:0] rsffr_qout;
+gen_rsffr # ( .DW(DW), .rstValue(rstValue)) rsffr ( .set_in(set_in), .rst_in(rst_in), .qout(rsffr_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+assign qout = set_in | rsffr_qout;
+
+//ASSERT
+always @( posedge CLK ) begin
+	if ( set_in & rst_in ) begin
+		$display("Assert Fail at gen_slff");
+		$finish;
+	end
 end
 
-assign qout = qout_r;
-
 endmodule
-
-
-
-
-
-
-
-
-
-
-
 
