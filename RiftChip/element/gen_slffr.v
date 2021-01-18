@@ -1,10 +1,10 @@
 /*
-* @File name: gen_slff
+* @File name: gen_slffr
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-18 11:43:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 11:50:21
+* @Last Modified time: 2021-01-18 11:53:19
 */
 
 
@@ -27,7 +27,7 @@
 
 `timescale 1 ns / 1 ps
 
-module gen_slff # (
+module gen_slffr # (
 	parameter DW = 1,
 	parameter rstValue = 1'b0
 )

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 19:31:10
+* @Last Modified time: 2021-01-18 15:05:40
 */
 
 /*
@@ -80,9 +80,9 @@ wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
 wire axi_rready_set, axi_rready_rst, axi_rready_qout;
 
 
-assign pcGen_fetch_ready = axi_arvalid_set;
+assign pcGen_fetch_ready = IFU_ARREADY;
 
-assign boot_set = (flush & ~pending_trans_qout) | invalid_outstanding_rst;
+assign boot_set = (flush & (~pending_trans_qout | ( pending_trans_qout & axi_rready_set ))) | (invalid_outstanding_qout & invalid_outstanding_rst);
 assign boot_rst = axi_arvalid_set & ~boot_set;
 
 
@@ -105,23 +105,10 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	assign axi_arvalid_set = (if_iq_ready | boot) & ~flush;
 
-	gen_dffren # ( .DW(64)) araddr_dffren ( .dnxt(fetch_addr_qout & (~64'b111)), .qout(IFU_ARADDR), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	assign IFU_ARADDR = fetch_addr_qout & (~64'b111);
+	// gen_dffren # ( .DW(64)) araddr_dffren ( .dnxt(fetch_addr_qout & (~64'b111)), .qout(IFU_ARADDR), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
 
 	assign IFU_ARVALID = axi_arvalid_qout;
 	assign IFU_ARPROT	= 3'b001;
@@ -134,7 +121,7 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 	assign axi_rready_rst = axi_rready_qout;
 
 
-	gen_rsffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_slffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 

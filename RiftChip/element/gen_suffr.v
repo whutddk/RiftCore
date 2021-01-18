@@ -1,10 +1,10 @@
 /*
-* @File name: gen_suff
+* @File name: gen_suffr
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-18 11:48:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 11:50:10
+* @Last Modified time: 2021-01-18 11:53:26
 */
 
 
@@ -26,7 +26,7 @@
 
 `timescale 1 ns / 1 ps
 
-module gen_suff # (
+module gen_suffr # (
 	parameter DW = 1,
 	parameter rstValue = 1'b0
 )
