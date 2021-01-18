@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-18 15:55:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 16:35:48
+* @Last Modified time: 2021-01-18 19:14:25
 */
 
 
@@ -113,77 +113,77 @@ module Xbar_wrap (
 	input CLINT_AXI_RVALID,
 	output CLINT_AXI_RREADY,
 
-	input [63:0] PLIC_AXI_AWADDR,
-	input PLIC_AXI_AWVALID,
-	output PLIC_AXI_AWREADY,
-	input [63:0] PLIC_AXI_WDATA,   
-	input [7:0] PLIC_AXI_WSTRB,
-	input PLIC_AXI_WVALID,
-	output PLIC_AXI_WREADY,
-	output [1:0] PLIC_AXI_BRESP,
-	output PLIC_AXI_BVALID,
-	input PLIC_AXI_BREADY,
-	input [63:0] PLIC_AXI_ARADDR,
-	input PLIC_AXI_ARVALID,
-	output PLIC_AXI_ARREADY,
-	output [63:0] PLIC_AXI_RDATA,
-	output [1:0] PLIC_AXI_RRESP,
-	output PLIC_AXI_RVALID,
-	input PLIC_AXI_RREADY,
+	output [63:0] PLIC_AXI_AWADDR,
+	output PLIC_AXI_AWVALID,
+	input PLIC_AXI_AWREADY,
+	output [63:0] PLIC_AXI_WDATA,   
+	output [7:0] PLIC_AXI_WSTRB,
+	output PLIC_AXI_WVALID,
+	input PLIC_AXI_WREADY,
+	input [1:0] PLIC_AXI_BRESP,
+	input PLIC_AXI_BVALID,
+	output PLIC_AXI_BREADY,
+	output [63:0] PLIC_AXI_ARADDR,
+	output PLIC_AXI_ARVALID,
+	input PLIC_AXI_ARREADY,
+	input [63:0] PLIC_AXI_RDATA,
+	input [1:0] PLIC_AXI_RRESP,
+	input PLIC_AXI_RVALID,
+	output PLIC_AXI_RREADY,
 
-	input [63:0] PREPH_AXI_AWADDR,
-	input PREPH_AXI_AWVALID,
-	output PREPH_AXI_AWREADY,
-	input [63:0] PREPH_AXI_WDATA,   
-	input [7:0] PREPH_AXI_WSTRB,
-	input PREPH_AXI_WVALID,
-	output PREPH_AXI_WREADY,
-	output [1:0] PREPH_AXI_BRESP,
-	output PREPH_AXI_BVALID,
-	input PREPH_AXI_BREADY,
-	input [63:0] PREPH_AXI_ARADDR,
-	input PREPH_AXI_ARVALID,
-	output PREPH_AXI_ARREADY,
-	output [63:0] PREPH_AXI_RDATA,
-	output [1:0] PREPH_AXI_RRESP,
-	output PREPH_AXI_RVALID,
-	input PREPH_AXI_RREADY,
+	output [63:0] PREPH_AXI_AWADDR,
+	output PREPH_AXI_AWVALID,
+	input PREPH_AXI_AWREADY,
+	output [63:0] PREPH_AXI_WDATA,   
+	output [7:0] PREPH_AXI_WSTRB,
+	output PREPH_AXI_WVALID,
+	input PREPH_AXI_WREADY,
+	input [1:0] PREPH_AXI_BRESP,
+	input PREPH_AXI_BVALID,
+	output PREPH_AXI_BREADY,
+	output [63:0] PREPH_AXI_ARADDR,
+	output PREPH_AXI_ARVALID,
+	input PREPH_AXI_ARREADY,
+	input [63:0] PREPH_AXI_RDATA,
+	input [1:0] PREPH_AXI_RRESP,
+	input PREPH_AXI_RVALID,
+	output PREPH_AXI_RREADY,
 
-	input [63:0] SYS_AXI_AWADDR,
-	input SYS_AXI_AWVALID,
-	output SYS_AXI_AWREADY,
-	input [63:0] SYS_AXI_WDATA,   
-	input [7:0] SYS_AXI_WSTRB,
-	input SYS_AXI_WVALID,
-	output SYS_AXI_WREADY,
-	output [1:0] SYS_AXI_BRESP,
-	output SYS_AXI_BVALID,
-	input SYS_AXI_BREADY,
-	input [63:0] SYS_AXI_ARADDR,
-	input SYS_AXI_ARVALID,
-	output SYS_AXI_ARREADY,
-	output [63:0] SYS_AXI_RDATA,
-	output [1:0] SYS_AXI_RRESP,
-	output SYS_AXI_RVALID,
-	input SYS_AXI_RREADY,
+	output [63:0] SYS_AXI_AWADDR,
+	output SYS_AXI_AWVALID,
+	input SYS_AXI_AWREADY,
+	output [63:0] SYS_AXI_WDATA,   
+	output [7:0] SYS_AXI_WSTRB,
+	output SYS_AXI_WVALID,
+	input SYS_AXI_WREADY,
+	input [1:0] SYS_AXI_BRESP,
+	input SYS_AXI_BVALID,
+	output SYS_AXI_BREADY,
+	output [63:0] SYS_AXI_ARADDR,
+	output SYS_AXI_ARVALID,
+	input SYS_AXI_ARREADY,
+	input [63:0] SYS_AXI_RDATA,
+	input [1:0] SYS_AXI_RRESP,
+	input SYS_AXI_RVALID,
+	output SYS_AXI_RREADY,
 
-	input [63:0] MEM_AXI_AWADDR,
-	input MEM_AXI_AWVALID,
-	output MEM_AXI_AWREADY,
-	input [63:0] MEM_AXI_WDATA,   
-	input [7:0] MEM_AXI_WSTRB,
-	input MEM_AXI_WVALID,
-	output MEM_AXI_WREADY,
-	output [1:0] MEM_AXI_BRESP,
-	output MEM_AXI_BVALID,
-	input MEM_AXI_BREADY,
-	input [63:0] MEM_AXI_ARADDR,
-	input MEM_AXI_ARVALID,
-	output MEM_AXI_ARREADY,
-	output [63:0] MEM_AXI_RDATA,
-	output [1:0] MEM_AXI_RRESP,
-	output MEM_AXI_RVALID,
-	input MEM_AXI_RREADY,
+	output [63:0] MEM_AXI_AWADDR,
+	output MEM_AXI_AWVALID,
+	input MEM_AXI_AWREADY,
+	output [63:0] MEM_AXI_WDATA,   
+	output [7:0] MEM_AXI_WSTRB,
+	output MEM_AXI_WVALID,
+	input MEM_AXI_WREADY,
+	input [1:0] MEM_AXI_BRESP,
+	input MEM_AXI_BVALID,
+	output MEM_AXI_BREADY,
+	output [63:0] MEM_AXI_ARADDR,
+	output MEM_AXI_ARVALID,
+	input MEM_AXI_ARREADY,
+	input [63:0] MEM_AXI_RDATA,
+	input [1:0] MEM_AXI_RRESP,
+	input MEM_AXI_RVALID,
+	output MEM_AXI_RREADY,
 
 	input CLK,
 	input RSTn
@@ -236,29 +236,29 @@ wire [4 : 0] m_axi_rready;
 
 
 
-assign [191 : 0] s_axi_awaddr = {LSU_AWADDR, IFU_AWADDR, DM_AWADDR};
-assign [8 : 0] s_axi_awprot = {LSU_AWPROT, IFU_AWPROT, DM_ARPROT};
-assign [2 : 0] s_axi_awvalid = {LSU_AWVALID, IFU_AWVALID, DM_AWVALID};
-assign [2 : 0] {LSU_AWREADY, IFU_AWREADY, DM_AWREADY} = s_axi_awready;
-assign [191 : 0] s_axi_wdata = { LSU_WDATA, IFU_WDATA, DM_WDATA };
-assign [23 : 0] s_axi_wstrb = { LSU_WSTRB, IFU_WSTRB, DM_WSTRB };
-assign [2 : 0] s_axi_wvalid = {LSU_WVALID, IFU_WVALID, DM_WVALID};
-assign [2 : 0] { LSU_WREADY, IFU_WREADY, DM_WREADY }=s_axi_wready;
-assign [5 : 0] {LSU_BRESP, IFU_BRESP, DM_BRESP} = s_axi_bresp;
-assign [2 : 0] {LSU_BVALID, IFU_BVALID, DM_BVALID} = s_axi_bvalid;
-assign [2 : 0] s_axi_bready = {LSU_BREADY, IFU_BREADY, DM_BREADY};
-assign [191 : 0] s_axi_araddr = {LSU_ARADDR, IFU_ARADDR, DM_ARADDR};
-assign [8 : 0] s_axi_arprot = {LSU_ARPROT, IFU_ARPROT, DM_ARPROT}
-assign [2 : 0] s_axi_arvalid = {LSU_ARVALID, IFU_ARVALID, DM_ARVALID};
-assign [2 : 0] {LSU_ARREADY, IFU_ARREADY, DM_ARREADY} = s_axi_arready;
-assign [191 : 0] {LSU_RDATA, IFU_RDATA, DM_RDATA} = s_axi_rdata;
-assign [5 : 0] {LSU_RRESP, IFU_RRESP, DM_RRESP} = s_axi_rresp;
-assign [2 : 0] {LSU_RVALID, IFU_RVALID, DM_RVALID}s_axi_rvalid;
-assign [2 : 0] s_axi_rready = {LSU_RREADY, IFU_RREADY, DM_RREADY};
+assign s_axi_awaddr = {LSU_AWADDR, IFU_AWADDR, DM_AWADDR};
+assign s_axi_awprot = {LSU_AWPROT, IFU_AWPROT, DM_ARPROT};
+assign s_axi_awvalid = {LSU_AWVALID, IFU_AWVALID, DM_AWVALID};
+assign {LSU_AWREADY, IFU_AWREADY, DM_AWREADY} = s_axi_awready;
+assign s_axi_wdata = { LSU_WDATA, IFU_WDATA, DM_WDATA };
+assign s_axi_wstrb = { LSU_WSTRB, IFU_WSTRB, DM_WSTRB };
+assign s_axi_wvalid = {LSU_WVALID, IFU_WVALID, DM_WVALID};
+assign { LSU_WREADY, IFU_WREADY, DM_WREADY }=s_axi_wready;
+assign {LSU_BRESP, IFU_BRESP, DM_BRESP} = s_axi_bresp;
+assign {LSU_BVALID, IFU_BVALID, DM_BVALID} = s_axi_bvalid;
+assign s_axi_bready = {LSU_BREADY, IFU_BREADY, DM_BREADY};
+assign s_axi_araddr = {LSU_ARADDR, IFU_ARADDR, DM_ARADDR};
+assign s_axi_arprot = {LSU_ARPROT, IFU_ARPROT, DM_ARPROT};
+assign s_axi_arvalid = {LSU_ARVALID, IFU_ARVALID, DM_ARVALID};
+assign {LSU_ARREADY, IFU_ARREADY, DM_ARREADY} = s_axi_arready;
+assign {LSU_RDATA, IFU_RDATA, DM_RDATA} = s_axi_rdata;
+assign {LSU_RRESP, IFU_RRESP, DM_RRESP} = s_axi_rresp;
+assign {LSU_RVALID, IFU_RVALID, DM_RVALID} = s_axi_rvalid;
+assign s_axi_rready = {LSU_RREADY, IFU_RREADY, DM_RREADY};
 
 
 assign {MEM_AXI_AWADDR, SYS_AXI_AWADDR, PREPH_AXI_AWADDR, PLIC_AXI_AWADDR, CLINT_AXI_AWADDR} = m_axi_awaddr;
-assign {MEM_AXI_AWPROT, SYS_AXI_AWPROT, PREPH_AXI_AWPROT, PLIC_AXI_AWPROT, CLINT_AXI_AWPROT} = m_axi_awprot;
+// assign {MEM_AXI_AWPROT, SYS_AXI_AWPROT, PREPH_AXI_AWPROT, PLIC_AXI_AWPROT, CLINT_AXI_AWPROT} = m_axi_awprot;
 assign {MEM_AXI_AWVALID, SYS_AXI_AWVALID, PREPH_AXI_AWVALID, PLIC_AXI_AWVALID, CLINT_AXI_AWVALID} = m_axi_awvalid;
 assign m_axi_awready = {MEM_AXI_AWREADY, SYS_AXI_AWREADY, PREPH_AXI_AWREADY, PLIC_AXI_AWREADY, CLINT_AXI_AWREADY};
 assign {MEM_AXI_WDATA, SYS_AXI_WDATA, PREPH_AXI_WDATA, PLIC_AXI_WDATA, CLINT_AXI_WDATA} = m_axi_wdata;

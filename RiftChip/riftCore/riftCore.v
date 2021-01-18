@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 15:47:24
+* @Last Modified time: 2021-01-18 17:53:42
 */
 
 
@@ -36,7 +36,7 @@
 `timescale 1 ns / 1 ps
 
 `include "define.vh"
-`include "iverilog.vh"
+
 module riftCore (
 	output [63:0] IFU_ARADDR,
 	output [2:0] IFU_ARPROT,
