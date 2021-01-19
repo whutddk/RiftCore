@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 15:42:49
+* @Last Modified time: 2021-01-19 16:37:39
 */
 
 /*
@@ -47,6 +47,8 @@ module backEnd (
 	input [1:0] LSU_RRESP,
 	input LSU_RVALID,
 	output LSU_RREADY,
+
+	output lsu_fencei_valid,
 
 	input [`DECODE_INFO_DW-1:0] decode_microInstr_pop,
 	output instrFifo_pop,
@@ -500,6 +502,8 @@ lsu i_lsu(
 	.LSU_RRESP(LSU_RRESP),
 	.LSU_RVALID(LSU_RVALID),
 	.LSU_RREADY(LSU_RREADY),
+
+	.lsu_fencei_valid(lsu_fencei_valid),
 
 	.lsu_exeparam_ready(lsu_exeparam_ready),
 	.lsu_exeparam_valid(lsu_exeparam_valid),

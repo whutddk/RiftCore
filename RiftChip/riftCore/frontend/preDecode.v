@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:23:28
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-11 17:08:29
+* @Last Modified time: 2021-01-19 16:30:41
 */
 
 
@@ -42,6 +42,7 @@ module preDecode (
 	output isCall,
 	output isReturn,
 	output isRVC,
+	output isFencei,
 	output [63:0] imm
 );
 
@@ -97,6 +98,8 @@ module preDecode (
 	assign isBranch = ~instr_buf_empty & (isIBranch | isCBranch);
 	assign isCall = ~instr_buf_empty & (isICall | isCCall);
 	assign isReturn = ~instr_buf_empty & (isIReturn | isCReturn);
+
+	assign isFencei = (instr[6:0] == 7'b0001111) & (instr[14:12] == 3'b001);
 
 	assign imm = isRVC ? Cimm : Iimm;
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 18:07:06
+* @Last Modified time: 2021-01-19 16:47:09
 */
 
 /*
@@ -27,6 +27,9 @@
 `include "define.vh"
 
 module iqueue (
+	input lsu_fencei_valid,
+
+
 
 	//form ifetch
 	input [63:0] if_iq_pc,
@@ -68,6 +71,7 @@ module iqueue (
 	wire instr_buf_empty;
 
 	wire iq_stall;
+	wire fencei_stall;
 	wire jalr_stall;
 	wire bht_stall;
 
@@ -150,7 +154,7 @@ module iqueue (
 
 
 
-	wire isJal, isJalr, isBranch, isCall, isReturn, isRVC;
+	wire isJal, isJalr, isBranch, isCall, isReturn, isRVC, isFencei;
 	wire [63:0] imm;
 
 
@@ -166,10 +170,16 @@ module iqueue (
 		.isCall(isCall),
 		.isReturn(isReturn),
 		.isRVC(isRVC),
+		.isFencei(isFencei),
 		.imm(imm)
 	);
 
 	branch_predict i_branch_predict(
+
+	.isFencei(isFencei),
+	.lsu_fencei_valid(lsu_fencei_valid),
+	.fencei_stall(fencei_stall),
+
 
 		.isJal(isJal),
 		.isJalr(isJalr),
@@ -205,7 +215,7 @@ wire [127:0] iq_instr_buf_shift = instr_load >> (~isRVC ? 32 : 16);
 wire [63:0] iq_pc_buf_shift = pc_load + (~isRVC ? 64'd4 : 64'd2) ;
 wire [7:0] iq_instr_mask_shift =  iq_instr_mask_load >> (~isRVC ? 2 : 1);
 
-assign iq_stall = jalr_stall | bht_stall | ~iq_id_ready | instr_buf_empty;
+assign iq_stall = fencei_stall | jalr_stall | bht_stall | ~iq_id_ready | instr_buf_empty;
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
@@ -218,7 +228,9 @@ assign iq_instr_mask_dnxt = flush ? 1'b0 : ((~iq_stall) ? ((branch_pc_valid) ? 8
 
 initial begin $warning("This clumsy design can be resolved by implememnt branch predict in a single stage in the future"); end
 wire jalr_stall_iq;
+wire fencei_stall_iq;
 gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) fencei_stall_dffr ( .dnxt(fencei_stall), .qout(fencei_stall_iq), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -229,7 +241,7 @@ gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .
 
 
 assign iq_id_info_dnxt = {instr_load[31:0], pc_load, isRVC};
-assign iq_id_valid_dnxt = ~jalr_stall_iq & ~bht_stall & iq_id_ready & ~instr_buf_empty & (~flush);
+assign iq_id_valid_dnxt = ~fencei_stall_iq & ~jalr_stall_iq & ~bht_stall & iq_id_ready & ~instr_buf_empty & (~flush);
 assign iq_id_valid = iq_id_valid_qout;
 assign iq_id_info = iq_id_info_qout;
 gen_dffr # (.DW(97)) iq_id_info_dffr ( .dnxt(iq_id_info_dnxt),  .qout(iq_id_info_qout),  .CLK(CLK), .RSTn(RSTn));
