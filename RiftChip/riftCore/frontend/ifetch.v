@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 15:05:40
+* @Last Modified time: 2021-01-19 14:30:26
 */
 
 /*
@@ -80,7 +80,7 @@ wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
 wire axi_rready_set, axi_rready_rst, axi_rready_qout;
 
 
-assign pcGen_fetch_ready = IFU_ARREADY;
+assign pcGen_fetch_ready = IFU_ARREADY & ~invalid_outstanding_qout;
 
 assign boot_set = (flush & (~pending_trans_qout | ( pending_trans_qout & axi_rready_set ))) | (invalid_outstanding_qout & invalid_outstanding_rst);
 assign boot_rst = axi_arvalid_set & ~boot_set;
