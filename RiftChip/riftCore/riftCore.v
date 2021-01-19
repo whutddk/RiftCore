@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 17:53:42
+* @Last Modified time: 2021-01-19 16:37:03
 */
 
 
@@ -111,11 +111,13 @@ assign isMisPredict_rst = beflush;
 assign isMisPredict_set = feflush & ~beflush;
 
 
-
+wire lsu_fencei_valid;
 
 
 
 frontEnd i_frontEnd(
+	.lsu_fencei_valid(lsu_fencei_valid),
+
 	.IFU_ARADDR(IFU_ARADDR),
 	.IFU_ARPROT(IFU_ARPROT),
 	.IFU_ARVALID(IFU_ARVALID),
@@ -164,6 +166,8 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 
 backEnd i_backEnd(
+
+
 	.LSU_AWADDR(LSU_AWADDR),
 	.LSU_AWPROT(LSU_AWPROT),
 	.LSU_AWVALID(LSU_AWVALID),
@@ -183,6 +187,8 @@ backEnd i_backEnd(
 	.LSU_RRESP(LSU_RRESP),
 	.LSU_RVALID(LSU_RVALID),
 	.LSU_RREADY(LSU_RREADY),
+
+	.lsu_fencei_valid(lsu_fencei_valid),
 
 	.decode_microInstr_pop(decode_microInstr_pop),
 	.instrFifo_pop(instrFifo_pop),

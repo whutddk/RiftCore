@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 15:47:05
+* @Last Modified time: 2021-01-19 16:35:39
 */
 
 /*
@@ -28,6 +28,8 @@
 `include "define.vh"
 
 module frontEnd (
+
+	input lsu_fencei_valid,
 
 	output [63:0] IFU_ARADDR,
 	output [2:0] IFU_ARPROT,
@@ -117,6 +119,8 @@ ifetch i_ifetch(
 
 
 iqueue i_iqueue(
+
+	.lsu_fencei_valid(lsu_fencei_valid),
 
 	.if_iq_pc(if_iq_pc),
 	.if_iq_instr(if_iq_instr),

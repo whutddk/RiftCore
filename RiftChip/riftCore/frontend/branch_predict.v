@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:42:46
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-12 17:15:56
+* @Last Modified time: 2021-01-19 16:27:01
 */
 
 
@@ -29,7 +29,9 @@
 `timescale 1 ns / 1 ps
 
 module branch_predict (
-
+	input isFencei,
+	input lsu_fencei_valid,
+	output fencei_stall,
 
 	input isJal,
 	input isJalr,
@@ -103,12 +105,14 @@ module branch_predict (
 
 	assign jalr_stall = isJalr & ~jalr_last & ( ras_empty | ~isReturn );
 	assign bht_stall = (bht_full & isBranch);
+	assign fencei_stall = isFencei & ~lsu_fencei_valid;
 
 
 	assign branch_pc_valid = 
 							isMisPredict //mis-predict
 							| isTakenBranch // bru jump, jal jump, jalr ras pop
-							| jalr_last //jalr return							
+							| jalr_last //jalr return
+							| (isFencei & lsu_fencei_valid)
 								;
 
 
@@ -116,7 +120,9 @@ module branch_predict (
 						|
 						({64{isTakenBranch& ~isMisPredict}} & take_pc)
 						|
-						({64{jalr_last}} & jalr_pc );
+						({64{jalr_last}} & jalr_pc )
+						|
+						({64{isFencei & lsu_fencei_valid}} & next_pc);
 
 
 

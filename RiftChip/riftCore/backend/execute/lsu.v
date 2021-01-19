@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 15:30:22
+* @Last Modified time: 2021-01-19 16:39:04
 */
 
 /*
@@ -55,6 +55,8 @@ module lsu #
 	input [1:0] LSU_RRESP,
 	input LSU_RVALID,
 	output LSU_RREADY,
+
+	output lsu_fencei_valid,
 
 
 	//can only execute in order right now
@@ -138,7 +140,7 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
 
 
-
+	assign lsu_fencei_valid = lsu_exeparam_valid & rv64zi_fence_i;
 
 
 
