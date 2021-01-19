@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master,develop ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -83,16 +83,16 @@ jobs:
           export PATH=$PATH:/usr/local/bin
           cd ../
 
-      - name: Compile Verilog
-        run: |
-          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
-          iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
+      # - name: Compile Verilog
+      #   run: |
+      #     cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
+      #     iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
            
       - name: Compile ISA
         run: |
           export RISCV=/home/runner/work/RiftCore/RISCV
           export PATH=$PATH:$RISCV/bin
-          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb/ci
+          cd /home/runner/work/RiftCore/RiftCore/tb/ci
           git clone https://github.com/riscv/riscv-tests.git
           cd ./riscv-tests
           git checkout 790640
@@ -107,14 +107,14 @@ jobs:
       - name: test
         run: |
           export PATH=$PATH:/usr/local/bin
-          cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
+          cd /home/runner/work/RiftCore/RiftCore/tb
           python CI.py
     
       - name: commit
         run: |
           cd /home/runner/work/RiftCore/
           mkdir ./ci
-          mv /home/runner/work/RiftCore/RiftCore/core/riftCore/tb/ci/*.json /home/runner/work/RiftCore/ci/
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json /home/runner/work/RiftCore/ci/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
