@@ -51,6 +51,8 @@
 // IP Revision: 22
 
 
+`timescale 1 ns / 1 ps
+
 module inner_crossBar (
   aclk,
   aresetn,
