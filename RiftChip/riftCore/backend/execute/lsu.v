@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:30
+* @Last Modified time: 2021-01-18 15:30:22
 */
 
 /*
@@ -27,12 +27,34 @@
 `include "define.vh"
 
 module lsu #
-	(
-		parameter DW = `LSU_EXEPARAM_DW,
+(
+	parameter DW = `LSU_EXEPARAM_DW
+)
+(
 
-		parameter AW = 10
-	)
-	(
+	output [63:0] LSU_AWADDR,
+	output [2:0] LSU_AWPROT,
+	output LSU_AWVALID,
+	input LSU_AWREADY,
+
+	output [63:0] LSU_WDATA,
+	output [7:0] LSU_WSTRB,
+	output LSU_WVALID,
+	input LSU_WREADY,
+
+	input [1:0] LSU_BRESP,
+	input LSU_BVALID,
+	output LSU_BREADY,
+
+	output [63:0] LSU_ARADDR,
+	output [2:0] LSU_ARPROT,
+	output LSU_ARVALID,
+	input LSU_ARREADY,
+
+	input [63:0] LSU_RDATA,
+	input [1:0] LSU_RRESP,
+	input LSU_RVALID,
+	output LSU_RREADY,
 
 
 	//can only execute in order right now
@@ -90,180 +112,179 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	wire lsu_fun_lw;
 	wire lsu_fun_ld;
 
-	wire [2:0] lAddr_align;
-	wire odd;
+	wire isWTrans_pending_set;
+	wire isWTrans_pending_rst;
+	wire isWTrans_pending_qout;
+	wire isWTrans_invalid_set;
+	wire isWTrans_invalid_rst;
+	wire isWTrans_invalid_qout;
 
-	gen_dffr # (.DW(1)) isUsiHold ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .CLK(CLK), .RSTn(RSTn));
+	wire isRTrans_pending_set;
+	wire isRTrans_pending_rst;
+	wire isRTrans_pending_qout;
+	wire isRTrans_invalid_set;
+	wire isRTrans_invalid_rst;
+	wire isRTrans_invalid_qout;
+
+	wire lsu_wb_valid_set;
+	wire lsu_wb_valid_rst;
+
+
+	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
+	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
+	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
+
+	wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
+	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
+
+
+
+
+
+
+
+
+
+	gen_dffren # (.DW(1)) isUsiHold_dffren ( .dnxt(rv64i_lbu | rv64i_lhu | rv64i_lwu), .qout(isUsi), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
 	
-	gen_dffr # (.DW(1)) islb ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) islh ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) islw ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) isld ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .CLK(CLK), .RSTn(RSTn));
-
-	gen_dffr # (.DW(3)) lAddrAlignHold ( .dnxt(lsu_op1[2:0]), .qout(lAddr_align), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1)) isOdd ( .dnxt(lsu_op1[3]), .qout(odd), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islb_dffren ( .dnxt(rv64i_lb | rv64i_lbu), .qout(lsu_fun_lb), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islh_dffren ( .dnxt(rv64i_lh | rv64i_lhu), .qout(lsu_fun_lh), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) islw_dffren ( .dnxt(rv64i_lw | rv64i_lwu), .qout(lsu_fun_lw), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
+	gen_dffren # (.DW(1)) isld_dffren ( .dnxt(rv64i_ld), .qout(lsu_fun_ld), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
 
 
-
-
-
-
-
-
-
-
-
-// LLLLLLLLLLL            UUUUUUUU     UUUUUUUU
-// L:::::::::L            U::::::U     U::::::U
-// L:::::::::L            U::::::U     U::::::U
-// LL:::::::LL            UU:::::U     U:::::UU
-//   L:::::L               U:::::U     U:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L               U:::::D     D:::::U 
-//   L:::::L         LLLLLLU::::::U   U::::::U 
-// LL:::::::LLLLLLLLL:::::LU:::::::UUU:::::::U 
-// L::::::::::::::::::::::L UU:::::::::::::UU  
-// L::::::::::::::::::::::L   UU:::::::::UU    
-// LLLLLLLLLLLLLLLLLLLLLLLL     UUUUUUUUU   
-
-
-
-
-
-
-
-
-
-wire [7:0] loadB_align = data_qout[ lAddr_align*8 +: 8 ];
-wire [15:0] loadH_align = data_qout[ lAddr_align*8 +: 16 ];
-wire [31:0] loadW_align = data_qout[ lAddr_align*8 +: 32 ];
-wire [63:0] loadD_align = data_qout[ lAddr_align*8 +: 64 ];
 
 	assign lsu_res_qout = 
-			({64{lsu_fun_lb}} & ( isUsi ? {56'b0,loadB_align} : {{56{loadB_align[7]}},loadB_align} ))
+			({64{lsu_fun_lb}} & ( isUsi ? {56'b0,LSU_RDATA[7:0]} : {{56{LSU_RDATA[7]}},LSU_RDATA[7:0]} ))
 			|
-			({64{lsu_fun_lh}} & ( isUsi ? {48'b0,loadH_align} : {{48{loadH_align[15]}},loadH_align} ))
+			({64{lsu_fun_lh}} & ( isUsi ? {48'b0,LSU_RDATA[15:0]} : {{48{LSU_RDATA[15]}},LSU_RDATA[15:0]} ))
 			|
-			({64{lsu_fun_lw}} & ( isUsi ? {32'b0,loadW_align} : {{32{loadW_align[31]}},loadW_align} ))
+			({64{lsu_fun_lw}} & ( isUsi ? {32'b0,LSU_RDATA[31:0]} : {{32{LSU_RDATA[31]}},LSU_RDATA[31:0]} ))
 			|
-			({64{lsu_fun_ld}} & loadD_align);
+			({64{lsu_fun_ld}} & LSU_RDATA);
+
+
+	wire lsu_wen;
+	wire lsu_ren;
+	wire [7:0] lsu_wstrb;
+
+	// assign lsu_addr = lsu_op1;
+	// assign lsu_data_w = lsu_op2;
+	assign lsu_ren = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	assign lsu_wen = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+	assign lsu_wstrb = ({8{rv64i_sb}} & 8'b1  )
+						|
+						({8{rv64i_sh}} & 8'b11 )
+						|
+						({8{rv64i_sw}} & 8'b1111 )
+						|
+						({8{rv64i_sd}} & 8'b11111111 );
+
+	wire axi_rsp_ready = axi_bready_set | axi_rready_set;
+	wire axi_trans_pending = isWTrans_pending_qout | isRTrans_pending_qout;
+	wire axi_trans_invalid = isWTrans_invalid_qout | isRTrans_invalid_qout;
 
 
 
-wire [127:0] data_qout = odd ? { data_qout_A, data_qout_B} : { data_qout_B, data_qout_A};
+	assign lsu_exeparam_ready = ~lsu_busy_qout & ~lsu_exeparam_valid;
 
+wire lsu_busy_set;
+wire lsu_busy_rst;
+wire lsu_busy_qout;
 
-//    SSSSSSSSSSSSSSS UUUUUUUU     UUUUUUUU
-//  SS:::::::::::::::SU::::::U     U::::::U
-// S:::::SSSSSS::::::SU::::::U     U::::::U
-// S:::::S     SSSSSSSUU:::::U     U:::::UU
-// S:::::S             U:::::U     U:::::U 
-// S:::::S             U:::::D     D:::::U 
-//  S::::SSSS          U:::::D     D:::::U 
-//   SS::::::SSSSS     U:::::D     D:::::U 
-//     SSS::::::::SS   U:::::D     D:::::U 
-//        SSSSSS::::S  U:::::D     D:::::U 
-//             S:::::S U:::::D     D:::::U 
-//             S:::::S U::::::U   U::::::U 
-// SSSSSSS     S:::::S U:::::::UUU:::::::U 
-// S::::::SSSSSS:::::S  UU:::::::::::::UU  
-// S:::::::::::::::SS     UU:::::::::UU    
-//  SSSSSSSSSSSSSSS         UUUUUUUUU      
+assign lsu_busy_set = lsu_exeparam_valid & (~rv64zi_fence_i & ~rv64i_fence);
+assign lsu_busy_rst = axi_rsp_ready;
+
+gen_rsffr #(.DW(1)) lsu_busy_rsffr (.set_in(lsu_busy_set), .rst_in(lsu_busy_rst), .qout(lsu_busy_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
+assign isWTrans_pending_set = axi_awvalid_set;
+assign isWTrans_pending_rst = (~axi_awvalid_set & axi_bready_set);
+assign isWTrans_invalid_set = isWTrans_pending_qout & flush;
+assign isWTrans_invalid_rst = isWTrans_invalid_qout & axi_bready_set;
 
-wire [63:0] lsu_addrA_Raw = lsu_op1[3] ? lsu_op1 + 64'b1000 : lsu_op1;
-wire [63:0] lsu_addrB_Raw = lsu_op1[3] ? lsu_op1 : lsu_op1 | 64'b1000;
+assign isRTrans_pending_set = axi_arvalid_set;
+assign isRTrans_pending_rst = (~axi_arvalid_set & axi_rready_set);
+assign isRTrans_invalid_set = isRTrans_pending_qout & flush;
+assign isRTrans_invalid_rst = axi_rready_set;
 
+assign lsu_wb_valid_set = ((axi_rsp_ready & ~axi_trans_invalid) | ((rv64zi_fence_i | rv64i_fence) & lsu_exeparam_valid)) & ~flush;
+assign lsu_wb_valid_rst = lsu_writeback_valid | flush;
 
-wire [2:0] sAddr_align = lsu_op1[2:0];
-
-wire [63:0] data_dnxt_A;
-wire [63:0] data_dnxt_B;
-
-wire wen_A = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
-wire wen_B = wen_A;
-
-wire [7:0] wmask_A;
-wire [7:0] wmask_B;
-
-wire [63:0] data_qout_A;
-wire [63:0] data_qout_B;
-
-
-wire [15:0] mask = ({16{rv64i_sb}} & ( 16'b1 << sAddr_align ))
-					|
-					({16{rv64i_sh}} & ( 16'b11 << sAddr_align ))
-					|
-					({16{rv64i_sw}} & ( 16'b1111 << sAddr_align ))
-					|
-					({16{rv64i_sd}} & ( 16'b11111111 << sAddr_align ));
+gen_rsffr # (.DW(1)) isWTrans_pending_rsffr (.set_in(isWTrans_pending_set), .rst_in(isWTrans_pending_rst), .qout(isWTrans_pending_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isWTrans_invalid_rsffr (.set_in(isWTrans_invalid_set), .rst_in(isWTrans_invalid_rst), .qout(isWTrans_invalid_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isRTrans_pending_rsffr (.set_in(isRTrans_pending_set), .rst_in(isRTrans_pending_rst), .qout(isRTrans_pending_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isRTrans_invalid_rsffr (.set_in(isRTrans_invalid_set), .rst_in(isRTrans_invalid_rst), .qout(isRTrans_invalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-assign { wmask_B, wmask_A } = lsu_op1[3] ? {mask[7:0],mask[15:8]} : mask;
-
-wire [127:0] data_dnxt = lsu_op2 << {sAddr_align,3'b0};
-assign {data_dnxt_B, data_dnxt_A} = lsu_op1[3] ? {data_dnxt[63:0],data_dnxt[127:64]} : data_dnxt;
-
-
-wire [AW-1:0] addr_A = lsu_addrA_Raw[4 +:AW];
-wire [AW-1:0] addr_B = lsu_addrB_Raw[4 +:AW];
-
-
-
-dtcm #(.DW(64), .AW(AW)) 
-i_dtcm_A
-(
-	.addr(addr_A),
-	.data_dnxt(data_dnxt_A),
-	.wen(wen_A),
-	.wmask(wmask_A),
-	.data_qout(data_qout_A),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-
-);
-
-
-dtcm #( .DW(64), .AW(AW))
-i_dtcm_B
-(
-	.addr(addr_B),
-	.data_dnxt(data_dnxt_B),
-	.wen(wen_B),
-	.wmask(wmask_B),
-	.data_qout(data_qout_B),
-
-	.CLK(CLK),
-	.RSTn(RSTn)
-
-);
-
-
-
-
-	initial $warning("only in dccm");
-	wire memory_ready = 1'b1;
-
-	assign lsu_exeparam_ready = memory_ready;
-
-
-
-	wire lsu_writeback_valid_dnxt = (lsu_exeparam_valid & lsu_exeparam_ready);
+gen_dffren # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .en(lsu_exeparam_valid), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu_wb_valid_rst), .qout(lsu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 
-gen_dffr # (.DW((5+`RB))) lsu_rd0 ( .dnxt(lsu_rd0_dnxt), .qout(lsu_rd0_qout), .CLK(CLK), .RSTn(RSTn));
-// gen_dffr # (.DW(64)) lsu_res ( .dnxt(lsu_res_dnxt), .qout(lsu_res_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) lsu_valid ( .dnxt(lsu_writeback_valid_dnxt&(~flush)), .qout(lsu_writeback_valid), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+	assign LSU_AWADDR	= lsu_op1;
+	assign LSU_WDATA	= lsu_op2;
+	assign LSU_AWPROT	= 3'b000;
+	assign LSU_AWVALID = axi_awvalid_qout;
+
+	assign LSU_WVALID	= axi_wvalid_qout;
+	assign LSU_WSTRB = lsu_wstrb;
+
+	assign LSU_BREADY	= axi_bready_qout;
+	assign LSU_ARADDR	= lsu_op1;
+	assign LSU_ARVALID = axi_arvalid_qout;
+	assign LSU_ARPROT	= 3'b001;
+	assign LSU_RREADY	= axi_rready_qout;
+
+
+
+	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush;
+	assign axi_awvalid_rst = ~axi_awvalid_set & (LSU_AWREADY & axi_awvalid_qout);
+	assign axi_wvalid_set = axi_awvalid_set;
+	assign axi_wvalid_rst = ~axi_wvalid_set & (LSU_WREADY & axi_wvalid_qout);	
+	assign axi_bready_set = LSU_BVALID & ~axi_bready_qout;
+	assign axi_bready_rst = axi_bready_qout;
+
+	gen_slffr # (.DW(1)) axi_awvalid_slffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign axi_arvalid_set = lsu_ren & lsu_exeparam_valid & ~flush;
+	assign axi_arvalid_rst = ~axi_arvalid_set & (LSU_ARREADY & axi_arvalid_qout);
+	assign axi_rready_set = LSU_RVALID & ~axi_rready_qout;
+	assign axi_rready_rst = axi_rready_qout;
+
+
+	gen_slffr # (.DW(1)) axi_arvalid_slffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:49:24
+* @Last Modified time: 2021-01-19 14:50:09
 */
 
 /*
@@ -70,101 +70,72 @@ initial begin
 end
 
 
-`define SRAM_ODD s_riftChip.i_memory_bus.i_sram_odd
-`define SRAM_EVE s_riftChip.i_memory_bus.i_sram_eve
-`define DTCMA s_riftChip.i_riftCore.i_backEnd.i_lsu.i_dtcm_A
-`define DTCMB s_riftChip.i_riftCore.i_backEnd.i_lsu.i_dtcm_B
+`define SRAM_ODD s_riftChip.i_axi_ccm.i_sram_odd
+`define SRAM_EVE s_riftChip.i_axi_ccm.i_sram_eve
+
+
 `define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
 `define INDEX s_riftChip.i_riftCore.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
 
 
 
 
-	localparam  ITCM_DP = 2**12;
+	localparam  ITCM_DP = 2**11;
 	integer i;
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64ui-p-and.verilog", mem);
+			$readmemh("./ci/rv64ui-p-sb.verilog", mem);
 
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
-				if ( | (mem[i*8+0] | mem[i*8+1] | mem[i*8+2] | mem[i*8+3]
-						| mem[i*8+4] | mem[i*8+5] | mem[i*8+6] | mem[i*8+7]) == 1'b1 ) begin
-					`SRAM_EVE.ram[i][7:0] = mem[i*8+0];
-					`SRAM_EVE.ram[i][15:8] = mem[i*8+1];
-					`SRAM_EVE.ram[i][23:16] = mem[i*8+2];
-					`SRAM_EVE.ram[i][31:24] = mem[i*8+3];	
+				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
+						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
+						| mem[i*16+8] | mem[i*16+9] | mem[i*16+10] | mem[i*16+11]
+						| mem[i*16+12] | mem[i*16+13] | mem[i*16+14] | mem[i*16+15]) == 1'b1 ) begin
+					`SRAM_EVE.ram[i][7:0] = mem[i*16+0];
+					`SRAM_EVE.ram[i][15:8] = mem[i*16+1];
+					`SRAM_EVE.ram[i][23:16] = mem[i*16+2];
+					`SRAM_EVE.ram[i][31:24] = mem[i*16+3];	
+					`SRAM_EVE.ram[i][32 +: 8] = mem[i*16+4];
+					`SRAM_EVE.ram[i][40 +: 8] = mem[i*16+5];
+					`SRAM_EVE.ram[i][48 +: 8] = mem[i*16+6];
+					`SRAM_EVE.ram[i][56 +: 8] = mem[i*16+7];
 
-					`SRAM_ODD.ram[i][7:0] = mem[i*8+4];
-					`SRAM_ODD.ram[i][15:8] = mem[i*8+5];
-					`SRAM_ODD.ram[i][23:16] = mem[i*8+6];
-					`SRAM_ODD.ram[i][31:24] = mem[i*8+7];			
+					`SRAM_ODD.ram[i][7:0] = mem[i*16+8];
+					`SRAM_ODD.ram[i][15:8] = mem[i*16+9];
+					`SRAM_ODD.ram[i][23:16] = mem[i*16+10];
+					`SRAM_ODD.ram[i][31:24] = mem[i*16+11];
+					`SRAM_ODD.ram[i][32 +: 8] = mem[i*16+12];
+					`SRAM_ODD.ram[i][40 +: 8] = mem[i*16+13];
+					`SRAM_ODD.ram[i][48 +: 8] = mem[i*16+14];
+					`SRAM_ODD.ram[i][56 +: 8] = mem[i*16+15];
+
 				end
 				else begin
+					`SRAM_EVE.ram[i][7:0] = 8'h0;
+					`SRAM_EVE.ram[i][15:8] = 8'h0;
+					`SRAM_EVE.ram[i][23:16] = 8'h0;
+					`SRAM_EVE.ram[i][31:24] = 8'h0;
+					`SRAM_EVE.ram[i][32 +: 8] = 8'h0;
+					`SRAM_EVE.ram[i][40 +: 8] = 8'h0;
+					`SRAM_EVE.ram[i][48 +: 8] = 8'h0;
+					`SRAM_EVE.ram[i][56 +: 8] = 8'h0;
+
 					`SRAM_ODD.ram[i][7:0] = 8'h0;
 					`SRAM_ODD.ram[i][15:8] = 8'h0;
 					`SRAM_ODD.ram[i][23:16] = 8'h0;
-					`SRAM_ODD.ram[i][31:24] = 8'h0;		
+					`SRAM_ODD.ram[i][31:24] = 8'h0;
+					`SRAM_ODD.ram[i][32 +: 8] = 8'h0;
+					`SRAM_ODD.ram[i][40 +: 8] = 8'h0;
+					`SRAM_ODD.ram[i][48 +: 8] = 8'h0;
+					`SRAM_ODD.ram[i][56 +: 8] = 8'h0;
 
-					`SRAM_EVE.ram[i][7:0] = 8'b0;
-					`SRAM_EVE.ram[i][15:8] = 8'b0;
-					`SRAM_EVE.ram[i][23:16] = 8'b0;
-					`SRAM_EVE.ram[i][31:24] = 8'b0;					
 				end
 
 
 				// $display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
 			end
 
-			for ( i = 0; i < 10000; i = i + 1 ) begin
-				// `DTCMA.ram[i] = 64'b0;
-				// `DTCMB.ram[i] = 64'b0;
-				if ( |{ mem[i*16+15], mem[i*16+14], mem[i*16+13], mem[i*16+12],
-						mem[i*16+11], mem[i*16+10], mem[i*16+9],  mem[i*16+8],
-						mem[i*16+7],  mem[i*16+6],  mem[i*16+5],  mem[i*16+4],
-						mem[i*16+3],  mem[i*16+2],  mem[i*16+1],  mem[i*16+0]} == 1'b1 ) begin
-					`DTCMA.ram[i][7:0] = mem[i*16+0];
-					`DTCMA.ram[i][15:8] = mem[i*16+1];
-					`DTCMA.ram[i][23:16] = mem[i*16+2];
-					`DTCMA.ram[i][31:24] = mem[i*16+3];
-					`DTCMA.ram[i][39:32] = mem[i*16+4];
-					`DTCMA.ram[i][47:40] = mem[i*16+5];
-					`DTCMA.ram[i][55:48] = mem[i*16+6];
-					`DTCMA.ram[i][63:56] = mem[i*16+7];
-
-					`DTCMB.ram[i][7:0] = mem[i*16+8];
-					`DTCMB.ram[i][15:8] = mem[i*16+9];
-					`DTCMB.ram[i][23:16] = mem[i*16+10];
-					`DTCMB.ram[i][31:24] = mem[i*16+11];
-					`DTCMB.ram[i][39:32] = mem[i*16+12];
-					`DTCMB.ram[i][47:40] = mem[i*16+13];
-					`DTCMB.ram[i][55:48] = mem[i*16+14];
-					`DTCMB.ram[i][63:56] = mem[i*16+15];
- 
-				end
-				else begin
-					`DTCMA.ram[i][7:0] =   8'h0;
-					`DTCMA.ram[i][15:8] =  8'h0;
-					`DTCMA.ram[i][23:16] = 8'h0;
-					`DTCMA.ram[i][31:24] = 8'h0;
-					`DTCMA.ram[i][39:32] = 8'h0;
-					`DTCMA.ram[i][47:40] = 8'h0;
-					`DTCMA.ram[i][55:48] = 8'h0;
-					`DTCMA.ram[i][63:56] = 8'h0;
-					`DTCMB.ram[i][7:0] =   8'h0;
-					`DTCMB.ram[i][15:8] =  8'h0;
-					`DTCMB.ram[i][23:16] = 8'h0;
-					`DTCMB.ram[i][31:24] = 8'h0;
-					`DTCMB.ram[i][39:32] = 8'h0;
-					`DTCMB.ram[i][47:40] = 8'h0;
-					`DTCMB.ram[i][55:48] = 8'h0;
-					`DTCMB.ram[i][63:56] = 8'h0;
-				end
-
-				// $display("DTCMA %h: %h", i,`DTCMA.ram[i]);
-				// $display("DTCMB %h: %h", i,`DTCMB.ram[i]);
-
-			end
 		end 
 
 

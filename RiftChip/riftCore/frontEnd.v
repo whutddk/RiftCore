@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:43:51
+* @Last Modified time: 2021-01-15 15:47:05
 */
 
 /*
@@ -29,6 +29,15 @@
 
 module frontEnd (
 
+	output [63:0] IFU_ARADDR,
+	output [2:0] IFU_ARPROT,
+	output IFU_ARVALID,
+	input IFU_ARREADY,
+	input [63:0] IFU_RDATA,
+	input [1:0] IFU_RRESP,
+	input IFU_RVALID,
+	output IFU_RREADY,
+
 	input instrFifo_reject,
 	output instrFifo_push,
 	output [`DECODE_INFO_DW-1:0] decode_microInstr,
@@ -40,11 +49,6 @@ module frontEnd (
 
 	input [63:0] privileged_pc,
 	input privileged_valid,
-
-	output ifu_mstReq_valid,
-	output [63:0] ifu_addr,
-	input [63:0] ifu_data_r,
-	input ifu_slvRsp_valid,
 
 	output flush,
 	input CLK,
@@ -87,10 +91,14 @@ pcGenerate i_pcGenerate(
 
 
 ifetch i_ifetch(
-	.ifu_mstReq_valid(ifu_mstReq_valid),
-	.ifu_addr(ifu_addr),
-	.ifu_data_r(ifu_data_r),
-	.ifu_slvRsp_valid(ifu_slvRsp_valid),
+	.IFU_ARADDR(IFU_ARADDR),
+	.IFU_ARPROT(IFU_ARPROT),
+	.IFU_ARVALID(IFU_ARVALID),
+	.IFU_ARREADY(IFU_ARREADY),
+	.IFU_RDATA(IFU_RDATA),
+	.IFU_RRESP(IFU_RRESP),
+	.IFU_RVALID(IFU_RVALID),
+	.IFU_RREADY(IFU_RREADY),
 
 	.fetch_addr_qout(fetch_addr_qout),
 	.pcGen_fetch_ready(pcGen_fetch_ready),

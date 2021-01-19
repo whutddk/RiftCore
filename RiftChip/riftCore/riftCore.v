@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:57:32
+* @Last Modified time: 2021-01-18 17:53:42
 */
 
 
@@ -36,17 +36,42 @@
 `timescale 1 ns / 1 ps
 
 `include "define.vh"
-`include "iverilog.vh"
+
 module riftCore (
+	output [63:0] IFU_ARADDR,
+	output [2:0] IFU_ARPROT,
+	output IFU_ARVALID,
+	input IFU_ARREADY,
+	input [63:0] IFU_RDATA,
+	input [1:0] IFU_RRESP,
+	input IFU_RVALID,
+	output IFU_RREADY,
+
+	output [63:0] LSU_AWADDR,
+	output [2:0] LSU_AWPROT,
+	output LSU_AWVALID,
+	input LSU_AWREADY,
+	output [63:0] LSU_WDATA,
+	output [7:0] LSU_WSTRB,
+	output LSU_WVALID,
+	input LSU_WREADY,
+	input [1:0] LSU_BRESP,
+	input LSU_BVALID,
+	output LSU_BREADY,
+	output [63:0] LSU_ARADDR,
+	output [2:0] LSU_ARPROT,
+	output LSU_ARVALID,
+	input LSU_ARREADY,
+	input [63:0] LSU_RDATA,
+	input [1:0] LSU_RRESP,
+	input LSU_RVALID,
+	output LSU_RREADY,
 	
 	input isExternInterrupt,
 	input isRTimerInterrupt,
 	input isSoftwvInterrupt,
 
-	output ifu_mstReq_valid,
-	output [63:0] ifu_addr,
-	input [63:0] ifu_data_r,
-	input ifu_slvRsp_valid,
+
 
 	input CLK,
 	input RSTn
@@ -91,6 +116,14 @@ assign isMisPredict_set = feflush & ~beflush;
 
 
 frontEnd i_frontEnd(
+	.IFU_ARADDR(IFU_ARADDR),
+	.IFU_ARPROT(IFU_ARPROT),
+	.IFU_ARVALID(IFU_ARVALID),
+	.IFU_ARREADY(IFU_ARREADY),
+	.IFU_RDATA(IFU_RDATA),
+	.IFU_RRESP(IFU_RRESP),
+	.IFU_RVALID(IFU_RVALID),
+	.IFU_RREADY(IFU_RREADY),
 
 	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
@@ -104,11 +137,6 @@ frontEnd i_frontEnd(
 
 	.privileged_pc(privileged_pc),
 	.privileged_valid(privileged_valid),
-
-	.ifu_mstReq_valid(ifu_mstReq_valid),
-	.ifu_addr(ifu_addr),
-	.ifu_data_r(ifu_data_r),
-	.ifu_slvRsp_valid(ifu_slvRsp_valid),
 
 	.flush(feflush),
 	.CLK(CLK),
@@ -136,6 +164,26 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 
 backEnd i_backEnd(
+	.LSU_AWADDR(LSU_AWADDR),
+	.LSU_AWPROT(LSU_AWPROT),
+	.LSU_AWVALID(LSU_AWVALID),
+	.LSU_AWREADY(LSU_AWREADY),
+	.LSU_WDATA(LSU_WDATA),
+	.LSU_WSTRB(LSU_WSTRB),
+	.LSU_WVALID(LSU_WVALID),
+	.LSU_WREADY(LSU_WREADY),
+	.LSU_BRESP(LSU_BRESP),
+	.LSU_BVALID(LSU_BVALID),
+	.LSU_BREADY(LSU_BREADY),
+	.LSU_ARADDR(LSU_ARADDR),
+	.LSU_ARPROT(LSU_ARPROT),
+	.LSU_ARVALID(LSU_ARVALID),
+	.LSU_ARREADY(LSU_ARREADY),
+	.LSU_RDATA(LSU_RDATA),
+	.LSU_RRESP(LSU_RRESP),
+	.LSU_RVALID(LSU_RVALID),
+	.LSU_RREADY(LSU_RREADY),
+
 	.decode_microInstr_pop(decode_microInstr_pop),
 	.instrFifo_pop(instrFifo_pop),
 	.instrFifo_empty(instrFifo_empty | isMisPredict_qout),
