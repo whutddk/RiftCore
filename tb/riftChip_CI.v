@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 16:00:53
+* @Last Modified time: 2021-01-19 14:51:09
 */
 
 /*
@@ -77,10 +77,8 @@ initial begin
 end
 
 
-`define SRAM_ODD s_riftChip.i_axi_iccm.i_sram_odd
-`define SRAM_EVE s_riftChip.i_axi_iccm.i_sram_eve
-`define SRAM_ODD2 s_riftChip.i_axi_dccm.i_sram_odd
-`define SRAM_EVE2 s_riftChip.i_axi_dccm.i_sram_eve
+`define SRAM_ODD s_riftChip.i_axi_ccm.i_sram_odd
+`define SRAM_EVE s_riftChip.i_axi_ccm.i_sram_eve
 
 `define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
 `define INDEX s_riftChip.i_riftCore.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
@@ -117,25 +115,6 @@ end
 					`SRAM_ODD.ram[i][48 +: 8] = mem[i*16+14];
 					`SRAM_ODD.ram[i][56 +: 8] = mem[i*16+15];	
 
-
-					`SRAM_EVE2.ram[i][7:0] = mem[i*16+0];
-					`SRAM_EVE2.ram[i][15:8] = mem[i*16+1];
-					`SRAM_EVE2.ram[i][23:16] = mem[i*16+2];
-					`SRAM_EVE2.ram[i][31:24] = mem[i*16+3];	
-					`SRAM_EVE2.ram[i][32 +: 8] = mem[i*16+4];
-					`SRAM_EVE2.ram[i][40 +: 8] = mem[i*16+5];
-					`SRAM_EVE2.ram[i][48 +: 8] = mem[i*16+6];
-					`SRAM_EVE2.ram[i][56 +: 8] = mem[i*16+7];
-
-					`SRAM_ODD2.ram[i][7:0] = mem[i*16+8];
-					`SRAM_ODD2.ram[i][15:8] = mem[i*16+9];
-					`SRAM_ODD2.ram[i][23:16] = mem[i*16+10];
-					`SRAM_ODD2.ram[i][31:24] = mem[i*16+11];
-					`SRAM_ODD2.ram[i][32 +: 8] = mem[i*16+12];
-					`SRAM_ODD2.ram[i][40 +: 8] = mem[i*16+13];
-					`SRAM_ODD2.ram[i][48 +: 8] = mem[i*16+14];
-					`SRAM_ODD2.ram[i][56 +: 8] = mem[i*16+15];	
-
 				end
 				else begin
 					`SRAM_EVE.ram[i][7:0] = 8'h0;
@@ -155,24 +134,6 @@ end
 					`SRAM_ODD.ram[i][40 +: 8] = 8'h0;
 					`SRAM_ODD.ram[i][48 +: 8] = 8'h0;
 					`SRAM_ODD.ram[i][56 +: 8] = 8'h0;		
-
-					`SRAM_EVE2.ram[i][7:0] = 8'h0;
-					`SRAM_EVE2.ram[i][15:8] = 8'h0;
-					`SRAM_EVE2.ram[i][23:16] = 8'h0;
-					`SRAM_EVE2.ram[i][31:24] = 8'h0;
-					`SRAM_EVE2.ram[i][32 +: 8] = 8'h0;
-					`SRAM_EVE2.ram[i][40 +: 8] = 8'h0;
-					`SRAM_EVE2.ram[i][48 +: 8] = 8'h0;
-					`SRAM_EVE2.ram[i][56 +: 8] = 8'h0;
-
-					`SRAM_ODD2.ram[i][7:0] = 8'h0;
-					`SRAM_ODD2.ram[i][15:8] = 8'h0;
-					`SRAM_ODD2.ram[i][23:16] = 8'h0;
-					`SRAM_ODD2.ram[i][31:24] = 8'h0;
-					`SRAM_ODD2.ram[i][32 +: 8] = 8'h0;
-					`SRAM_ODD2.ram[i][40 +: 8] = 8'h0;
-					`SRAM_ODD2.ram[i][48 +: 8] = 8'h0;
-					`SRAM_ODD2.ram[i][56 +: 8] = 8'h0;	
 
 				end
 
