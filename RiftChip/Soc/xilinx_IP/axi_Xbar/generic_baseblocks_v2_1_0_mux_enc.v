@@ -2,9 +2,9 @@
 * @File name: generic_baseblocks_v2_1_0_mux_enc
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-18 19:02:33
+* @Date:   2021-01-19 15:23:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 19:02:39
+* @Last Modified time: 2021-01-19 15:40:26
 */
 
 
@@ -68,7 +68,7 @@
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
- 
+
 module generic_baseblocks_v2_1_0_mux_enc #
   (
    parameter         C_FAMILY                       = "rtl",
@@ -134,146 +134,6 @@ module generic_baseblocks_v2_1_0_mux_enc #
     end else if ( C_FAMILY == "rtl" || C_RATIO < 5 ) begin : gen_rtl
       assign o_i = f_mux(S, A);
       
-    end else begin : gen_fpga
-      wire [C_DATA_WIDTH-1:0] l;
-      wire [C_DATA_WIDTH-1:0] h;
-      wire [C_DATA_WIDTH-1:0] ll;
-      wire [C_DATA_WIDTH-1:0] lh;
-      wire [C_DATA_WIDTH-1:0] hl;
-      wire [C_DATA_WIDTH-1:0] hh;
-      
-      case (C_RATIO)
-        1, 5, 9, 13: 
-          assign hh = A[(C_RATIO-1)*C_DATA_WIDTH +: C_DATA_WIDTH];
-        2, 6, 10, 14:
-          assign hh = S[0] ? 
-            A[(C_RATIO-1)*C_DATA_WIDTH +: C_DATA_WIDTH] :
-            A[(C_RATIO-2)*C_DATA_WIDTH +: C_DATA_WIDTH] ;
-        3, 7, 11, 15:
-          assign hh = S[1] ? 
-            A[(C_RATIO-1)*C_DATA_WIDTH +: C_DATA_WIDTH] :
-            (S[0] ? 
-              A[(C_RATIO-2)*C_DATA_WIDTH +: C_DATA_WIDTH] :
-              A[(C_RATIO-3)*C_DATA_WIDTH +: C_DATA_WIDTH] );
-        4, 8, 12, 16:
-          assign hh = S[1] ? 
-            (S[0] ? 
-              A[(C_RATIO-1)*C_DATA_WIDTH +: C_DATA_WIDTH] :
-              A[(C_RATIO-2)*C_DATA_WIDTH +: C_DATA_WIDTH] ) :
-            (S[0] ? 
-              A[(C_RATIO-3)*C_DATA_WIDTH +: C_DATA_WIDTH] :
-              A[(C_RATIO-4)*C_DATA_WIDTH +: C_DATA_WIDTH] );
-        17:
-          assign hh = S[1] ? 
-            (S[0] ? 
-              A[15*C_DATA_WIDTH +: C_DATA_WIDTH] :
-              A[14*C_DATA_WIDTH +: C_DATA_WIDTH] ) :
-            (S[0] ? 
-              A[13*C_DATA_WIDTH +: C_DATA_WIDTH] :
-              A[12*C_DATA_WIDTH +: C_DATA_WIDTH] );
-        default:
-          assign hh = 0; 
-      endcase
-
-      case (C_RATIO)
-        5, 6, 7, 8: begin
-          assign l = f_mux4(S[1:0], A[0 +: 4*C_DATA_WIDTH]);
-          for (bit_cnt = 0; bit_cnt < C_DATA_WIDTH ; bit_cnt = bit_cnt + 1) begin : gen_mux_5_8
-            MUXF7 mux_s2_inst 
-            (
-             .I0  (l[bit_cnt]),
-             .I1  (hh[bit_cnt]),
-             .S   (S[2]),
-             .O   (o_i[bit_cnt])
-            ); 
-          end
-        end
-          
-        9, 10, 11, 12: begin
-          assign ll = f_mux4(S[1:0], A[0 +: 4*C_DATA_WIDTH]);
-          assign lh = f_mux4(S[1:0], A[4*C_DATA_WIDTH +: 4*C_DATA_WIDTH]);
-          for (bit_cnt = 0; bit_cnt < C_DATA_WIDTH ; bit_cnt = bit_cnt + 1) begin : gen_mux_9_12
-            MUXF7 muxf_s2_low_inst 
-            (
-             .I0  (ll[bit_cnt]),
-             .I1  (lh[bit_cnt]),
-             .S   (S[2]),
-             .O   (l[bit_cnt])
-            ); 
-            MUXF8 muxf_s3_inst 
-            (
-             .I0  (l[bit_cnt]),
-             .I1  (hh[bit_cnt]),
-             .S   (S[3]),
-             .O   (o_i[bit_cnt])
-            ); 
-          end
-        end
-          
-        13,14,15,16: begin
-          assign ll = f_mux4(S[1:0], A[0 +: 4*C_DATA_WIDTH]);
-          assign lh = f_mux4(S[1:0], A[4*C_DATA_WIDTH +: 4*C_DATA_WIDTH]);
-          assign hl = f_mux4(S[1:0], A[8*C_DATA_WIDTH +: 4*C_DATA_WIDTH]);
-          for (bit_cnt = 0; bit_cnt < C_DATA_WIDTH ; bit_cnt = bit_cnt + 1) begin : gen_mux_13_16
-            MUXF7 muxf_s2_low_inst 
-            (
-             .I0  (ll[bit_cnt]),
-             .I1  (lh[bit_cnt]),
-             .S   (S[2]),
-             .O   (l[bit_cnt])
-            ); 
-            MUXF7 muxf_s2_hi_inst 
-            (
-             .I0  (hl[bit_cnt]),
-             .I1  (hh[bit_cnt]),
-             .S   (S[2]),
-             .O   (h[bit_cnt])
-            );
-          
-            MUXF8 muxf_s3_inst 
-            (
-             .I0  (l[bit_cnt]),
-             .I1  (h[bit_cnt]),
-             .S   (S[3]),
-             .O   (o_i[bit_cnt])
-            ); 
-          end
-        end
-          
-        17: begin
-          assign ll = S[4] ? A[16*C_DATA_WIDTH +: C_DATA_WIDTH] : f_mux4(S[1:0], A[0 +: 4*C_DATA_WIDTH]);  // 5-input mux
-          assign lh = f_mux4(S[1:0], A[4*C_DATA_WIDTH +: 4*C_DATA_WIDTH]);
-          assign hl = f_mux4(S[1:0], A[8*C_DATA_WIDTH +: 4*C_DATA_WIDTH]);
-          for (bit_cnt = 0; bit_cnt < C_DATA_WIDTH ; bit_cnt = bit_cnt + 1) begin : gen_mux_17
-            MUXF7 muxf_s2_low_inst 
-            (
-             .I0  (ll[bit_cnt]),
-             .I1  (lh[bit_cnt]),
-             .S   (S[2]),
-             .O   (l[bit_cnt])
-            ); 
-            MUXF7 muxf_s2_hi_inst 
-            (
-             .I0  (hl[bit_cnt]),
-             .I1  (hh[bit_cnt]),
-             .S   (S[2]),
-             .O   (h[bit_cnt])
-            ); 
-            MUXF8 muxf_s3_inst 
-            (
-             .I0  (l[bit_cnt]),
-             .I1  (h[bit_cnt]),
-             .S   (S[3]),
-             .O   (o_i[bit_cnt])
-            ); 
-          end
-        end
-          
-        default:  // If RATIO > 17, use RTL
-          assign o_i = f_mux(S, A);
-      endcase
-    end  // gen_fpga
+    end 
   endgenerate
 endmodule
-
-

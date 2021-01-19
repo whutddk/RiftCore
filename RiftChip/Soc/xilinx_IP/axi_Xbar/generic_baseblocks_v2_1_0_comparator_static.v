@@ -2,9 +2,9 @@
 * @File name: generic_baseblocks_v2_1_0_comparator_static
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-18 19:06:51
+* @Date:   2021-01-19 15:28:38
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 19:07:08
+* @Last Modified time: 2021-01-19 15:31:30
 */
 
 // -- (c) Copyright 2010 - 2011 Xilinx, Inc. All rights reserved.
@@ -163,4 +163,7 @@ module generic_baseblocks_v2_1_0_comparator_static #
   
   
 endmodule
+
+
+
 

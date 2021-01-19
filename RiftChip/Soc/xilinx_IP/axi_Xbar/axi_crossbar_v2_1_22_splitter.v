@@ -1,10 +1,10 @@
 /*
-* @File name: generic_baseblocks_v2_1_0_carry_and
+* @File name: axi_crossbar_v2_1_22_splitter
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-18 19:07:50
+* @Date:   2021-01-19 15:22:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-18 19:08:02
+* @Last Modified time: 2021-01-19 15:31:23
 */
 
 // -- (c) Copyright 2010 - 2011 Xilinx, Inc. All rights reserved.
@@ -54,70 +54,58 @@
 // -- PART OF THIS FILE AT ALL TIMES.
 //-----------------------------------------------------------------------------
 //
-// Description: 
-//  Optimized AND with generic_baseblocks_v2_1_0_carry logic.
+// Description: AXI Splitter
+// Each transfer received on the AXI handshake slave port is replicated onto 
+//   each of the master ports, and is completed back to the slave (S_READY) 
+//   once all master ports have completed.
+//   
+// M_VALID is asserted combinatorially from S_VALID assertion.
+// Each M_VALID is masked off beginning the cycle after each M_READY is
+//   received (if S_READY remains low) until the cycle after both S_VALID
+//   and S_READY are asserted.
+// S_READY is asserted combinatorially when the last (or all) of the M_READY
+//   inputs have been received.
+// If all M_READYs are asserted when S_VALID is asserted, back-to-back
+//   handshakes can occur without bubble cycles.
 //
 // Verilog-standard:  Verilog 2001
 //--------------------------------------------------------------------------
 //
 // Structure:
-//   
+//   splitter
 //
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-
-module generic_baseblocks_v2_1_0_carry_and #
+module axi_crossbar_v2_1_22_splitter #
   (
-   parameter         C_FAMILY                         = "virtex6"
-                       // FPGA Family. Current version: virtex6 or spartan6.
+   parameter integer C_NUM_M = 2  // Number of master ports = [2:16]
    )
   (
-   input  wire        CIN,
-   input  wire        S,
-   output wire        COUT
+   // Global Signals
+   input  wire                             ACLK,
+   input  wire                             ARESET,
+   // Slave  Port
+   input  wire                             S_VALID,
+   output wire                             S_READY,
+   // Master Ports
+   output wire [C_NUM_M-1:0]               M_VALID,
+   input  wire [C_NUM_M-1:0]               M_READY
    );
-  
-  
-  /////////////////////////////////////////////////////////////////////////////
-  // Variables for generating parameter controlled instances.
-  /////////////////////////////////////////////////////////////////////////////
-  
-  
-  /////////////////////////////////////////////////////////////////////////////
-  // Local params
-  /////////////////////////////////////////////////////////////////////////////
-  
-  
-  /////////////////////////////////////////////////////////////////////////////
-  // Functions
-  /////////////////////////////////////////////////////////////////////////////
-  
-  
-  /////////////////////////////////////////////////////////////////////////////
-  // Internal signals
-  /////////////////////////////////////////////////////////////////////////////
 
-  
-  /////////////////////////////////////////////////////////////////////////////
-  // Instantiate or use RTL code
-  /////////////////////////////////////////////////////////////////////////////
-  
-  generate
-    if ( C_FAMILY == "rtl" ) begin : USE_RTL
-      assign COUT = CIN & S;
-      
-    end else begin : USE_FPGA
-      MUXCY and_inst 
-      (
-       .O (COUT), 
-       .CI (CIN), 
-       .DI (1'b0), 
-       .S (S)
-      ); 
-      
-    end
-  endgenerate
-  
-  
+   reg  [C_NUM_M-1:0] m_ready_d = 0;
+   wire               s_ready_i;
+   wire [C_NUM_M-1:0] m_valid_i;
+
+   always @(posedge ACLK) begin
+      if (ARESET | s_ready_i) m_ready_d <= {C_NUM_M{1'b0}};
+      else                    m_ready_d <= m_ready_d | (m_valid_i & M_READY);
+   end
+
+   assign s_ready_i = &(m_ready_d | M_READY);
+   assign m_valid_i = {C_NUM_M{S_VALID}} & ~m_ready_d;
+   assign M_VALID = m_valid_i;
+   assign S_READY = s_ready_i;
+
 endmodule
+
