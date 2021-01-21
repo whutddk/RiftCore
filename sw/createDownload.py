@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2021-01-20 14:27:44
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-01-20 15:40:05
+# @Last Modified time: 2021-01-20 19:03:25
 
 
 import sys
@@ -27,7 +27,7 @@ with open("./riftChip.bin","rb") as f:
 		# program = program + " 0x" + str(data)
 		# print(program)
 
-		downloadScript = downloadScript + "create_hw_axi_txn download_sram" + str(i) + " [get_hw_axis hw_axi_1] -address " + str(2147483648 + 4*i) +" -data " + data + " -type write\n"
+		downloadScript = downloadScript + "create_hw_axi_txn download_sram" + str(i) + " [get_hw_axis hw_axi_1] -address " + str(hex(2147483648 + 4*i)) +" -data " + data + " -type write -force\n"
 		downloadScript = downloadScript + "run_hw_axi download_sram" + str(i) + "\n"
 # print(program)
 
