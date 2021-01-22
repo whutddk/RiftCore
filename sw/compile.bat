@@ -37,17 +37,17 @@ riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=meda
 
 
 @rem compile .s
-riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs ^
+riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imc -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs ^
 -I ./ -I ./src ^
 -c ./src/startup.S ^
 -o ./build/startup.o
 
-@rem riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs
+@rem riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imc -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs
 @rem -I./ -I ./src ^
 @rem -c .s  ^
 @rem -o .\build\ .o
 
-@rem riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs
+@rem riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imc -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -mcmodel=medany -mexplicit-relocs
 @rem -I./ -I ./src ^
 @rem -c .s  ^
 @rem -o .\build\ .o
@@ -58,7 +58,9 @@ riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imac -mabi=lp64 -Wall -mcmodel=meda
 @rem linker
 riscv64-unknown-elf-gcc -Os -ggdb -march=rv64imc -mabi=lp64 -Wall -mcmodel=medany -mexplicit-relocs -nostdlib -nodefaultlibs -nostartfiles ^
 -I ./ -I ./src ^
--T linker.lds ./build/main.o ./build/uart.o ./build/timer.o ./build/gpio.o ./build/startup.o ^
+-T linker.lds ^
+./build/startup.o ^
+./build/uart.o ./build/timer.o ./build/gpio.o ^ ./build/main.o ^
 -o riftChip.elf
 
 @rem objcopy

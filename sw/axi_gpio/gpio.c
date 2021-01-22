@@ -25,7 +25,7 @@ uint8_t gpio_read()
 
 uint32_t gpio_write( uint32_t data )
 {
-	// *gpio_tri_reg = 0x00;
+	*gpio_tri_reg = 0x00;
 	(*gpio_dat_reg) = data;
 	return 0;
 }
