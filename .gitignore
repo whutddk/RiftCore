@@ -47,3 +47,4 @@ tb/ci/*
 !tb/ci/MakeFile
 tb/ci/.keep
 *.vcd
+sw/download.tcl
