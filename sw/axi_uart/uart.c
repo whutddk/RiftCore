@@ -31,7 +31,9 @@ int32_t uart_sendByte( uint8_t data )
 	//wait unitl tx fifo not full
 	while( ((*uart_status) & 0x08) != 0);
 
-	(*uart_tfifo) = data;
+	uint64_t sent = (uint64_t)data << 32;
+
+	(*(volatile uint64_t*)(UART_BASE)) = sent;
 
 	return 0;
 }
