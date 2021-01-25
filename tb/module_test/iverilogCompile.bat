@@ -1,20 +1,21 @@
 @REM @Author: Ruige Lee
 @REM @Date:   2020-11-02 11:29:57
 @REM @Last Modified by:   Ruige Lee
-@REM Modified time: 2020-12-24 09:28:15
+@REM Modified time: 2021-01-21 17:05:59
 
 
 
 
-iverilog.exe -W all -o ../build/div_tb.iverilog    -y ../../element -I  -I ./div_tb.v 
+iverilog.exe -W all -o ../build/axi_ccm.iverilog    -y ../../RiftChip/element -y ../../RiftChip/Soc ./axi_ccm_tb.v 
 
 @pause
 
-vvp.exe  -N ../build/div_tb.iverilog -lxt2
+vvp.exe  -N ../build/axi_ccm.iverilog -lxt2
 
 rem @pause
 
 
-rem gtkwave.exe ../build/div_tb.vcd
+rem gtkwave.exe ../build/axi_ccm.vcd
+
 
 

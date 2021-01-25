@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:37:03
+* @Last Modified time: 2021-01-19 18:03:42
 */
 
 
@@ -38,6 +38,20 @@
 `include "define.vh"
 
 module riftCore (
+
+
+	output [63:0] IFU_AWADDR,
+	output [2:0] IFU_AWPROT,
+	output IFU_AWVALID,
+	input IFU_AWREADY,
+	output [63:0] IFU_WDATA,
+	output [7:0] IFU_WSTRB,
+	output IFU_WVALID,
+	input IFU_WREADY,
+	input [1:0] IFU_BRESP,
+	input IFU_BVALID,
+	output IFU_BREADY,
+
 	output [63:0] IFU_ARADDR,
 	output [2:0] IFU_ARPROT,
 	output IFU_ARVALID,
@@ -77,6 +91,15 @@ module riftCore (
 	input RSTn
 	
 );
+
+	assign IFU_AWADDR = 64'b0;
+	assign IFU_AWPROT = 3'b001;
+	assign IFU_AWVALID = 1'b0;
+	assign IFU_WDATA = 64'b0;
+	assign IFU_WSTRB = 8'b0;
+	assign IFU_WVALID = 1'b0;
+	assign IFU_BREADY = 1'b1;
+
 
 
 wire instrFifo_push;
