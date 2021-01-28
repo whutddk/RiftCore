@@ -1,6 +1,6 @@
 {
 "schemaVersion": 1,
 "label": "rv64ui-p-sllw",
-"message": "FAIL",
-"color": "red"
+"message": "PASS",
+"color": "blue"
 }

@@ -1,6 +1,6 @@
 {
 "schemaVersion": 1,
-"label": "rv64ui-p-srlw",
+"label": "rv64um-p-mulh",
 "message": "PASS",
 "color": "blue"
 }
