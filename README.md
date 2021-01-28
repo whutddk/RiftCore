@@ -6,20 +6,21 @@
 
 --------------------------------------------
 
-RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which temporarily supports RV64IMC.
+RiftCore is an 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supports RV64IMC.
 
 ![architecture](./doc/riftCore%20micro-architecture.png)
 
 
 
 ### [Wiki Here](https://github.com/whutddk/RiftCore/wiki)
+### [Wiki-zh Here](https://gitee.com/whutddk/rift-core/wikis/)
 
 
 ------------------------------------
 
 ## status
 
-|Last Commit|![GitHub last commit](https://img.shields.io/github/last-commit/whutddk/RiftCore)|Status|![GitHub Workflow Status](https://img.shields.io/github/workflow/status/whutddk/RiftCore/CI)|Support ISA|![ISA](https://img.shields.io/badge/ISA-RV64IC-yellowgreen)|
+|Last Commit|![GitHub last commit](https://img.shields.io/github/last-commit/whutddk/RiftCore)|Status|![GitHub Workflow Status](https://img.shields.io/github/workflow/status/whutddk/RiftCore/CI)|Support ISA|![ISA](https://img.shields.io/badge/ISA-RV64IMC-yellowgreen)|
 | --- | --- | --- | --- | --- | --- |
 |![ISA](https://img.shields.io/badge/ISA-RV64I-yellowgreen)|
 |![rv64ui-p-add](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-add.json)|![rv64ui-p-addiw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-addiw.json)|![rv64ui-p-addw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-addw.json)|![rv64ui-p-and](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-and.json)|![rv64ui-p-andi](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-andi.json)|![rv64ui-p-auipc](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64ui-p-auipc.json)|
@@ -46,12 +47,13 @@ RiftCore is an 8-stage, multi-issue, out of order 64-bits RISC-V Core, which tem
 
 ------------------------------------
 
-## Sponsors
+## Sponsorships
 
 ![BTC](https://img.shields.io/badge/BTC-124egseDMD983etDrsAzUnXvi6twpWtjLd-orange)
 ![LTC](https://img.shields.io/badge/LTC-LakQ8AL2JeLGKmjanYrpq6Hq7fW4NySXYA-green)
 ![ETH](https://img.shields.io/badge/ETH-0x2f8aeb5f9dfe2936632f47363a42d7f71810c62b-lightgrey)
 ![DOGE](https://img.shields.io/badge/DOGE-DJSv3BgtfPtjc3LzL5PaooAvs9xn8n4tbX-blue)
+![XMR](https://img.shields.io/badge/XMR-43xzb6WgP7gNRDj9WDzCAybFCfNSXbAZsdkzfYQZw5eF83bFpsFDq7T4HA8wkRdP9oJ3wrEPbWA1F6s3odsAwtUPSVZpPfW-yellow)
 
 
 
