@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-25 15:14:09
+* @Last Modified time: 2021-01-29 15:49:39
 */
 
 /*
@@ -109,11 +109,12 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 	wire isFetch_Req = (if_iq_ready | boot) & ~flush;
 	wire isCache_Rsp;
-	assign if_iq_valid = (isCache_Hit) 
-						|
-						();
+	assign if_iq_valid = isCache_Hit | axi_rready_set;
 
-	assign if_iq_instr = data_hit[ 64 * DoubleWord_Sel +: 64]
+	assign if_iq_instr = ({64{isCache_Hit}} & data_hit[ 64 * DoubleWord_Sel +: 64])
+						|
+						({64{axi_rready_set}} & IFU_RDATA[ 64 * DoubleWord_Sel +: 64]);
+
 
 
 	gen_dffr # ( .DW(1)) isCache_Rsp_dffr ( .dnxt(isFetch_Req), .qout(isCache_Rsp), .CLK(CLK), .RSTn(RSTn));
@@ -133,39 +134,30 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 
 
-	assign axi_arvalid_set = isCache_Miss & ~flush;
-
-	assign IFU_ARADDR = fetch_addr_qout & (~64'b111);
-
-	assign IFU_ARVALID = axi_arvalid_qout;
-	assign IFU_ARPROT	= 3'b001;
-	assign IFU_RREADY	= axi_rready_qout;
-
-
-
-	assign axi_arvalid_rst = ~axi_arvalid_set & (IFU_ARREADY & axi_arvalid_qout);
-	assign axi_rready_set = IFU_RVALID & ~axi_rready_qout;
-	assign axi_rready_rst = axi_rready_qout;
-
-
-	gen_slffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 	wire [256*4-1:0 ] cache_data_out;
 	wire [57*4-1:0] cache_tag_out;
+	wire [3:0] tag_valid;
+	wire [56*4-1:0] tag_info;
 	wire [3:0] tag_hit;
 	wire [255:0] data_hit;
+
+	wire [3:0] data_w_en;
+	wire [3:0] tag_w_en;
+	wire [256*4-1:0] data_w;
+	wire [57*4-1:0] tag_w;
+
 generate
 	for ( genvar i = 0 ; i < 4; i = i+ 1 ) begin
 		gen_sram # (.DW(256), .AW(6) ) data_ram,
 		(
 
-			input [DW-1:0] data_w,
-			input [AW-1:0] addr_w,
-			input [(DW+7)/8-1:0] data_wstrb,
-			input en_w,
+			.data_w(data_w[256*i +: 256]),
+			.addr_w(address_Sel),
+			.data_wstrb({32{1'b1}}),
+			.en_w(data_w_en[i]),
 
 
 			.data_r(cache_data_out[256*i +: 256]),
@@ -179,10 +171,10 @@ generate
 		gen_sram # (.DW(57), .AW(6) ) tag_ram,
 		(
 
-			input [DW-1:0] data_w,
-			input [AW-1:0] addr_w,
-			input [(DW+7)/8-1:0] data_wstrb,
-			input en_w,
+			.data_w(tag_w[57*i +: 57]),
+			.addr_w(address_Sel),
+			.data_wstrb({8{1'b1}}),
+			.en_w(tag_w_en[i]),
 
 
 			.data_r(cache_tag_out[57*i+:57]),
@@ -194,8 +186,13 @@ generate
 		);
 	end
 
-	wire [56:0] tag_info = cache_tag_out[57*i+:57];
-	assign tag_hit[i] = (tag_info[55:0] == tag_Req) & tag_info[56];
+	assign tag_info[56*i +: 56] = cache_tag_out[57*i+:56];
+	assign tag_valid[i] = tag_info[57*i+56];
+	assign tag_hit[i] = (tag_info[56*i +: 56] == tag_Req) & tag_valid[i];
+
+	assign data_w[256*i +: 256] = data_w_en[i] ? IFU_RDATA : 256'd0;
+	assign tag_w[57*i +: 57] = flush ? 57'b0 : ({57{evicted_en[i]}} & {1'b1, tag_Req});
+
 
 endgenerate
 
@@ -206,12 +203,77 @@ endgenerate
 						|
 						({256{tag_hit[2]}} & cache_data_out[256*2 +: 256])
 						|
-						({256{tag_hit[3]}} & cache_data_out[256*3 +: 256])
-						|
-
-
-						;
+						({256{tag_hit[3]}} & cache_data_out[256*3 +: 256]);
 						
+
+
+
+
+
+// cache evicted
+wire [1:0] free_way;
+wire isAllWayValid;
+wire [1:0] updateLfsr;
+
+
+lzp #( .CW(2) ) icache_free_way
+(
+	.in_i(tag_valid),
+	.pos_o(free_way),
+	.all1(isAllWayValid),
+	.all0()
+);
+
+lfsr i_lfsr
+(
+	.random(updateLfsr),
+	.CLK(CLK)
+);
+
+wire [1:0] updateWay = isAllWayValid ? updateLfsr : free_way;
+
+
+wire [1:0] evicted_en;
+
+
+
+assign evicted_en = {4{axi_rready_set}} & ( 1 << updateWay );
+assign data_w_en = flush ? 4'b0000 : evicted_en;
+assign tag_w_en = flush ? 4'b1111 : evicted_en;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//cache miss req
+
+
+	assign axi_arvalid_set = isCache_Miss;
+	assign IFU_ARADDR = fetch_addr_qout & (~64'b11111);
+	assign IFU_ARVALID = axi_arvalid_qout;
+	assign IFU_ARPROT	= 3'b001;
+	assign IFU_RREADY	= axi_rready_qout;
+
+	assign axi_arvalid_rst = ~axi_arvalid_set & (IFU_ARREADY & axi_arvalid_qout);
+	assign axi_rready_set = IFU_RVALID & ~axi_rready_qout;
+	assign axi_rready_rst = axi_rready_qout;
+
+	gen_slffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
 
 
 
