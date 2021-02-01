@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 11:27:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 12:00:29
+* @Last Modified time: 2021-02-01 16:05:32
 */
 // See LICENSE for license details.
 
@@ -48,7 +48,6 @@ Enumeration     Func_1 ();
 #define REG register
 #endif
 
-Boolean		Done;
 
 long            Begin_Time,
 								End_Time,
@@ -75,7 +74,7 @@ int main (int argc, char** argv)
 	REG   int             Number_Of_Runs;
 
 	/* Arguments */
-	Number_Of_Runs = NUMBER_OF_RUNS;
+	Number_Of_Runs = 500;
 
 	/* Initializations */
 
@@ -109,16 +108,25 @@ int main (int argc, char** argv)
 	tb_printf("Using %s, HZ=%d\n", CLOCK_TYPE, HZ);
 	tb_printf("\n");
 
-	Done = false;
-	while (!Done) {
+
+	volatile uint8_t* timer = (uint8_t*)(0x80006000);
+
+	timer = 1;
+
+
+	// while (!Done) 
+	{
 		tb_printf("Trying %d runs through Dhrystone:\n", Number_Of_Runs);
 
 		/***************/
 		/* Start timer */
 		/***************/
 
-		setStats(1);
-		Start_Timer();
+		// setStats(1);
+		// Start_Timer();
+
+
+
 
 		for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
 		{
@@ -170,21 +178,22 @@ int main (int argc, char** argv)
 		/* Stop timer */
 		/**************/
 
-		Stop_Timer();
-		setStats(0);
+		// Stop_Timer();
+		// setStats(0);
+		timer = 0;
 
 		User_Time = End_Time - Begin_Time;
 
-		if (User_Time < Too_Small_Time)
-		{
-			tb_printf("Measured time too small to obtain meaningful results\n");
-			Number_Of_Runs = Number_Of_Runs * 10;
-			tb_printf("\n");
-		} 
-		else 
-		{
-			Done = true;			
-		}
+		// if (User_Time < Too_Small_Time)
+		// {
+		// 	tb_printf("Measured time too small to obtain meaningful results\n");
+		// 	Number_Of_Runs = Number_Of_Runs * 10;
+		// 	tb_printf("\n");
+		// } 
+		// else 
+		// {
+		// 	Done = true;			
+		// }
 
 	}
 
@@ -240,11 +249,14 @@ int main (int argc, char** argv)
 	tb_printf("\n");
 
 
-	Microseconds = ((User_Time / Number_Of_Runs) * Mic_secs_Per_Second) / HZ;
-	Dhrystones_Per_Second = (HZ * Number_Of_Runs) / User_Time;
+	// Microseconds = ((User_Time / Number_Of_Runs) * Mic_secs_Per_Second) / HZ;
+	// Dhrystones_Per_Second = (HZ * Number_Of_Runs) / User_Time;
 
-	tb_printf("Microseconds for one run through Dhrystone: %ld\n", Microseconds);
-	tb_printf("Dhrystones per Second:                      %ld\n", Dhrystones_Per_Second);
+	// tb_printf("Microseconds for one run through Dhrystone: %ld\n", Microseconds);
+	// tb_printf("Dhrystones per Second:                      %ld\n", Dhrystones_Per_Second);
+
+	volatile uint8_t* COTRL = (uint8_t*)(0x80007000);
+	COTRL = 1;
 
 	return 0;
 }
@@ -350,4 +362,3 @@ Proc_5 () /* without parameters */
 } /* Proc_5 */
 
 
-	

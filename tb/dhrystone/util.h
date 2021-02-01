@@ -3,7 +3,6 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
-extern void setStats(int enable);
 
 #include <stdint.h>
 
@@ -89,4 +88,3 @@ static uintptr_t insn_len(uintptr_t pc)
 
 #endif //__UTIL_H
 
-  

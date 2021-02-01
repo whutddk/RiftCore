@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 11:25:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 11:57:49
+* @Last Modified time: 2021-02-01 14:18:49
 */
 
 
@@ -191,7 +191,7 @@ Enumeration Enum_Par_Val;
 
 void tb_printf(const char* str, ...)
 {
-	volatile uint32_t* uart_tx = (uint8_t*)(0x80005000);
+	volatile uint8_t* uart_tx = (uint8_t*)(0x80005000);
 
 	char * string = str;
 	while ( *(string) != '\0'  )
