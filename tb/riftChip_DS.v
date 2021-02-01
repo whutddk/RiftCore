@@ -1,10 +1,10 @@
 /*
-* @File name: riftChip_TB
+* @File name: riftChip_DS
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 09:56:37
+* @Last Modified time: 2021-02-01 11:19:35
 */
 
 /*
@@ -29,7 +29,7 @@
 `include "define.vh"
 
 
-module riftChip_TB (
+module riftChip_DS (
 
 );
 
@@ -58,7 +58,7 @@ initial begin
 
 	#80000
 			$display("Time Out !!!");
-	$stop;
+	 $stop;
 end
 
 
@@ -139,23 +139,47 @@ end
 		end 
 
 
-	wire [63:0] x3 = `RGF[(3*`RP+`INDEX)*64 +: 64];
-	wire isEcall = s_riftChip.i_riftCore.i_backEnd.i_commit.isEcall;
 
-always @(negedge CLK)begin 
-	if (isEcall) begin
-		if ( x3 == 64'd1 ) begin
-			$display("PASS");
-			$finish;
+
+
+
+// 	wire [63:0] x3 = `RGF[(3*`RP+`INDEX)*64 +: 64];
+// 	wire isEcall = s_riftChip.i_riftCore.i_backEnd.i_commit.isEcall;
+
+// always @(negedge CLK)begin 
+// 	if (isEcall) begin
+// 		if ( x3 == 64'd1 ) begin
+// 			$display("PASS");
+// 			$finish;
+// 		end
+// 		else begin
+// 			$display("Fail");
+// 			$stop;
+// 		end
+// 	end
+
+// end
+
+
+
+`define UART_TX `SRAM_EVE.ram[1280][7:0]
+`define TIMER   `SRAM_EVE.ram[1536][7:0]
+`define COTRL   `SRAM_EVE.ram[1792][7:0]
+
+reg [63:0] cycle_cnt;
+always @(negedge CLK or negedge RSTn) begin
+	if (~RSTn) begin
+		cycle_cnt <= 0;
+	end
+	else begin
+		if (`TIMER == 8'h1 ) begin
+			cycle_cnt <= cycle_cnt + 1;
 		end
 		else begin
-			$display("Fail");
-			$stop;
+			cycle_cnt <= cycle_cnt;
 		end
-
-
-
 	end
+
 
 end
 
@@ -164,6 +188,22 @@ end
 
 
 
+
+always @(negedge CLK) begin
+	if (`UART_TX != 8'b0) begin
+		$display(`UART_TX);
+		`UART_TX = 8'h0;
+	end
+end
+
+
+always @(negedge CLK ) begin
+	begin
+
+
+
+	end
+end
 
 
 
