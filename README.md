@@ -6,7 +6,7 @@
 
 --------------------------------------------
 
-RiftCore is an 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supports RV64IMC.
+RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supports RV64IMC.
 
 ![architecture](./doc/riftCore%20micro-architecture.png)
 
