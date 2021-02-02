@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 11:25:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 14:18:49
+* @Last Modified time: 2021-02-02 14:26:54
 */
 
 
@@ -189,16 +189,5 @@ Enumeration Enum_Par_Val;
 	return (false);
 } /* Func_3 */
 
-void tb_printf(const char* str, ...)
-{
-	volatile uint8_t* uart_tx = (uint8_t*)(0x80005000);
-
-	char * string = str;
-	while ( *(string) != '\0'  )
-	{
-	*(uart_tx) = *(string);
-	}
-
-}
 
 

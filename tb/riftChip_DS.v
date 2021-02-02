@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 15:38:05
+* @Last Modified time: 2021-02-02 10:55:43
 */
 
 /*
@@ -55,7 +55,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#80000
+	#8000000
 			$display("Time Out !!!");
 	 $stop;
 end
@@ -84,7 +84,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("../sw/riftChip.verilog", mem);
+			$readmemh("./dhrystone/dhrystone.riscv.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
 						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
@@ -189,14 +189,14 @@ end
 
 always @(negedge CLK) begin
 	if (`UART_TX != 8'b0) begin
-		$display(`UART_TX);
+		$write("%c",`UART_TX);
 		`UART_TX = 8'h0;
 	end
 end
 
 
 always @(negedge CLK ) begin
-	if (COTRL == 8'd1) begin
+	if (`COTRL == 8'd1) begin
 
 		$display( "The DMIPS/MHz is %d", 1000000/(cycle_cnt/500)/1757 );
 		$finish;
@@ -209,7 +209,7 @@ end
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, riftChip_TB);//tb模块名称
+	$dumpvars(0, riftChip_DS);//tb模块名称
 end
 
 endmodule

@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 12:08:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-01 15:28:22
+* @Last Modified time: 2021-02-02 14:25:04
 */
 
 
@@ -119,16 +119,25 @@ void _init(int cid, int nc)
 #undef putchar
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  // static __thread char buf[64] __attribute__((aligned(64)));
+  // static __thread int buflen = 0;
 
-  buf[buflen++] = ch;
+  // buf[buflen++] = ch;
 
-  if (ch == '\n' || buflen == sizeof(buf))
-  {
-    syscall(SYS_write, 1, (uintptr_t)buf, buflen);
-    buflen = 0;
-  }
+  // if (ch == '\n' || buflen == sizeof(buf))
+  // {
+  //   syscall(SYS_write, 1, (uintptr_t)buf, buflen);
+
+
+    volatile uint8_t* uart_tx = (uint8_t*)(0x80005000);
+
+
+   *(uart_tx) = ch;
+
+
+
+    // buflen = 0;
+  // }
 
   return 0;
 }
@@ -347,6 +356,7 @@ int printf(const char* fmt, ...)
   vprintfmt((void*)putchar, 0, fmt, ap);
 
   va_end(ap);
+
   return 0; // incorrect return value, but who cares, anyway?
 }
 
