@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-02 14:49:54
+* @Last Modified time: 2021-02-02 15:04:35
 */
 
 /*
@@ -198,6 +198,7 @@ end
 always @(negedge CLK ) begin
 	if (`COTRL == 8'd1) begin
 
+		$display("cycle_cnt = %d", cycle_cnt);
 		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
 		$finish;
 
