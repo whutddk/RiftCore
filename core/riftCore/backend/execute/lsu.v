@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:30
+* @Last Modified time: 2021-02-02 15:25:39
 */
 
 /*
@@ -30,7 +30,7 @@ module lsu #
 	(
 		parameter DW = `LSU_EXEPARAM_DW,
 
-		parameter AW = 10
+		parameter AW = 14
 	)
 	(
 
