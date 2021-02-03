@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-02 15:04:35
+* @Last Modified time: 2021-02-03 10:05:09
 */
 
 /*
@@ -55,9 +55,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#8000000
-			$display("Time Out !!!");
-	 $stop;
+
 end
 
 
@@ -194,12 +192,19 @@ always @(negedge CLK) begin
 	end
 end
 
-
+integer file;
 always @(negedge CLK ) begin
 	if (`COTRL == 8'd1) begin
 
 		$display("cycle_cnt = %d", cycle_cnt);
 		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+
+
+		file = $fopen("./ci/dhrystone.json", "a");
+
+		$fwrite(file, "{ \"schemaVersion\": 1, \n \"label\": \"dhrystone\", \n \"message\": \"%f\", \n \"color\": \"ff69b4\" \n }", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+		$fclose(file);
+
 		$finish;
 
 	end
