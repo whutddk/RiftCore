@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-03 10:05:09
+* @Last Modified time: 2021-02-03 15:22:03
 */
 
 /*
@@ -200,9 +200,9 @@ always @(negedge CLK ) begin
 		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
 
 
-		file = $fopen("./ci/dhrystone.json", "a");
+		file = $fopen("./ci/dhrystone.json", "w");
 
-		$fwrite(file, "{ \"schemaVersion\": 1, \n \"label\": \"dhrystone\", \n \"message\": \"%f\", \n \"color\": \"ff69b4\" \n }", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/5.0)/1757.0 );
 		$fclose(file);
 
 		$finish;
