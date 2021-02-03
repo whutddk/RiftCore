@@ -87,8 +87,8 @@ jobs:
       #   run: |
       #     cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
       #     iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
-           
-      - name: Compile ISA
+ 
+      - name: Clone Test Repository
         run: |
           export RISCV=/home/runner/work/RiftCore/RISCV
           export PATH=$PATH:$RISCV/bin
@@ -97,30 +97,57 @@ jobs:
           cd ./riscv-tests
           git checkout 790640
           git submodule update --init --recursive
-          cd isa
-          rm Makefile
-          cp ../../Makefile ./Makefile
-          make
-          cp *.verilog ../../
-          cd ../../../     
 
-      - name: test
+
+
+
+      - name: Compile ISA
+        run: |
+          cd /home/runner/work/RiftCore/RiftCore/tb/ci/
+          cd ./riscv-tests
+          cd ./isa
+          rm Makefile
+          cp /home/runner/work/RiftCore/RiftCore/tb/isa/Makefile ./Makefile
+          make
+          cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
+          cd /home/runner/work/RiftCore/RiftCore/tb
+
+      - name: test isa
         run: |
           export PATH=$PATH:/usr/local/bin
           cd /home/runner/work/RiftCore/RiftCore/tb
           python CI.py
-    
+  
+      - name: Compile dhrystone
+        run: |
+          cd /home/runner/work/RiftCore/RiftCore/tb/ci/
+          cd ./riscv-tests
+          cd ./benchmark
+          rm Makefile
+          cp /home/runner/work/RiftCore/RiftCore/tb/benchmark/Makefile ./Makefile
+          cd ./common
+          rm crt.s
+
+      - name: run dhrystone
+        run: |
+          export PATH=$PATH:/usr/local/bin
+          cd /home/runner/work/RiftCore/RiftCore/tb  
+          python DS.py    
+
       - name: commit
         run: |
           cd /home/runner/work/RiftCore/
           mkdir ./ci
           mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json /home/runner/work/RiftCore/ci/
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png /home/runner/work/RiftCore/ci/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
           git checkout gh-pages
           rm /home/runner/work/RiftCore/RiftCore/ci/*.json
+          rm /home/runner/work/RiftCore/RiftCore/ci/*.png
           cp /home/runner/work/RiftCore/ci/*.json /home/runner/work/RiftCore/RiftCore/ci/
+          cp /home/runner/work/RiftCore/ci/performance.png /home/runner/work/RiftCore/RiftCore/tb/ci/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add ./ci

@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2021-02-02 17:06:19
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-02-03 15:20:26
+# @Last Modified time: 2021-02-03 15:33:13
 
 
 import sys
@@ -90,4 +90,4 @@ plt.xticks([])
 plt.scatter(x1, performance, marker='.', s = 1000//len(performance))
 
 # plt.show()
-plt.savefig("./ci/performpic.png")
+plt.savefig("./ci/performance.png")

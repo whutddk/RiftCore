@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-03 15:22:03
+* @Last Modified time: 2021-02-03 15:34:15
 */
 
 /*
@@ -133,28 +133,6 @@ end
 			end
 
 		end 
-
-
-
-
-
-
-// 	wire [63:0] x3 = `RGF[(3*`RP+`INDEX)*64 +: 64];
-// 	wire isEcall = s_riftChip.i_riftCore.i_backEnd.i_commit.isEcall;
-
-// always @(negedge CLK)begin 
-// 	if (isEcall) begin
-// 		if ( x3 == 64'd1 ) begin
-// 			$display("PASS");
-// 			$finish;
-// 		end
-// 		else begin
-// 			$display("Fail");
-// 			$stop;
-// 		end
-// 	end
-
-// end
 
 
 

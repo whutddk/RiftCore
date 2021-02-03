@@ -18,7 +18,7 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 
 ------------------------------------
 
-## status
+## Status
 
 |Last Commit|![GitHub last commit](https://img.shields.io/github/last-commit/whutddk/RiftCore)|Status|![GitHub Workflow Status](https://img.shields.io/github/workflow/status/whutddk/RiftCore/CI)|Support ISA|![ISA](https://img.shields.io/badge/ISA-RV64IMC-yellowgreen)|
 | --- | --- | --- | --- | --- | --- |
@@ -41,8 +41,13 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 |![rv64um-p-remw](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Frv64um-p-remw.json)|
 
 
+------------------------------------
 
+## Benchmark
 
+![dhrystone](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Fdhrystone.json)
+
+![performance](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fci%2Fperformance.png)
 
 
 ------------------------------------
