@@ -144,7 +144,7 @@ jobs:
           cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/syscalls.c ./
           cd ../dhrystone
           cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/dhrystone_main.c ./
-          cd ~/riscv-tests/
+          cd ~/riscv-tests/benchmarks
           make all
 
 
