@@ -137,7 +137,7 @@ jobs:
         run: |
           export RISCV=~/RISCV
           export PATH=$PATH:$RISCV/bin
-          cd ~/riscv-tests/benchmark
+          cd ~/riscv-tests/benchmarks
           cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/Makefile ./
           cd ./common
           cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/crt.S ./
@@ -162,7 +162,7 @@ jobs:
           git fetch --all
           git checkout gh-pages data
           cp data/performance tb/ci/
-          cp ~/riscv-tests/benchmark/*.verilog tb/ci/
+          cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
 
       - name: run Dhrystone
         run: |
