@@ -106,7 +106,7 @@ jobs:
       #   run: |
       #     cd /home/runner/work/RiftCore/RiftCore/core/riftCore/tb
       #     iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
- 
+          # git checkout 790640 
       - name: Clone Test Repository
         if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
@@ -115,7 +115,7 @@ jobs:
           cd ~
           git clone https://github.com/riscv/riscv-tests.git
           cd ./riscv-tests
-          git checkout 790640
+          git checkout master
           git submodule update --init --recursive
 
 
