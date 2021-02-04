@@ -40,7 +40,7 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 
 ------------------ -->
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
 <script src="data.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
 <script>
@@ -53,7 +53,7 @@ var myChart = new Chart(ctx, {
     data: {
         labels: ["aabc", "aabe", "aabd"],
         datasets: [{
-            label: ["dhrystone(DIPS/MHz)"],
+            label: ["Dhrystone(DIPS/MHz)"],
             data: [0.5,0.17,0.87]
         }]
     },
@@ -61,7 +61,7 @@ var myChart = new Chart(ctx, {
 		responsive: true,
 		title: {
 			display: true,
-			text: 'Chart.js Line Chart'
+			text: 'Benchmark of RiftCore'
 		},
 		tooltips: {
 			mode: 'index',
@@ -89,7 +89,7 @@ var myChart = new Chart(ctx, {
 		}
 	}
 });
-</script>
+</script> -->
 
 
 
