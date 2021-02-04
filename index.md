@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+<!-- ## Welcome to GitHub Pages
 
 You can use the [editor on GitHub](https://github.com/whutddk/RiftCore/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
@@ -38,47 +38,56 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 
 
 
-------------------
+------------------ -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
+<script src="data.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
 <script>
+
 var ctx = document.getElementById('myChart');
+const data = benchmark_data;
+
 var myChart = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        labels: ["aabc", "aabe", "aabd"],
         datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
+            label: ["commit-id = aabc \n date: 100", "commit-id = aabe \n date: 101", "commit-id = aabd \n date: 102"],
+            data: [0.5,0.17,0.87]
         }]
     },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
-        }
-    }
+	options: {
+		responsive: true,
+		title: {
+			display: true,
+			text: 'Chart.js Line Chart'
+		},
+		tooltips: {
+			mode: 'index',
+			intersect: false,
+		},
+		hover: {
+			mode: 'nearest',
+			intersect: true
+		},
+		scales: {
+			xAxes: [{
+				display: true,
+				scaleLabel: {
+					display: true,
+					labelString: 'Month'
+				}
+			}],
+			yAxes: [{
+				display: true,
+				scaleLabel: {
+					display: true,
+					labelString: 'Value'
+				}
+			}]
+		}
+	}
 });
 </script>
 
