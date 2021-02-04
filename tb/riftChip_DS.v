@@ -82,7 +82,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./dhrystone/dhrystone.riscv.verilog", mem);
+			$readmemh("./ci/dhrystone.riscv.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
 						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
