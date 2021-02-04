@@ -124,6 +124,8 @@ jobs:
       - name: Compile ISA
         if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
+          export RISCV=~/RISCV
+          export PATH=$PATH:$RISCV/bin
           cd ~/riscv-tests
           cd ./isa
           rm Makefile
@@ -133,6 +135,8 @@ jobs:
       - name: Compile Dhrystone
         if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
+          export RISCV=~/RISCV
+          export PATH=$PATH:$RISCV/bin
           cd ~/riscv-tests/benchmark
           cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/Makefile ./
           cd ./common

@@ -47,7 +47,7 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 
 ![dhrystone](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fdata%2Fdhrystone.json)
 
-![performance](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fdata%2Fperformance.png)
+![performance](https://github.com/whutddk/RiftCore/raw/gh-pages/data/performance.png)
 
 
 ------------------------------------
