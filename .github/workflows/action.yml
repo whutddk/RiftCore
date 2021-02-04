@@ -168,36 +168,36 @@ jobs:
           cp data/performance tb/ci/
           cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
 
-      - name: run Dhrystone
-        run: |
-          export PATH=$PATH:~/bin
-          cd /home/runner/work/RiftCore/RiftCore/tb  
-          python DS.py    
+      # - name: run Dhrystone
+      #   run: |
+      #     export PATH=$PATH:~/bin
+      #     cd /home/runner/work/RiftCore/RiftCore/tb  
+      #     python DS.py    
 
-      - name: commit
-        run: |
-          cd ~
-          mkdir ./data
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png ~/data/
-          cd /home/runner/work/RiftCore/RiftCore
-          git checkout -- .
-          git fetch --all
-          git checkout gh-pages
-          rm /home/runner/work/RiftCore/RiftCore/data/*.json
-          rm /home/runner/work/RiftCore/RiftCore/data/*.png
-          cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add ./ci
-          git commit -m "update ci result"
+      # - name: commit
+      #   run: |
+      #     cd ~
+      #     mkdir ./data
+      #     mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
+      #     mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png ~/data/
+      #     cd /home/runner/work/RiftCore/RiftCore
+      #     git checkout -- .
+      #     git fetch --all
+      #     git checkout gh-pages
+      #     rm /home/runner/work/RiftCore/RiftCore/data/*.json
+      #     rm /home/runner/work/RiftCore/RiftCore/data/*.png
+      #     cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add ./ci
+      #     git commit -m "update ci result"
  
-      - name: push
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          force: true
+      # - name: push
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: gh-pages
+      #     force: true
 
 
 
