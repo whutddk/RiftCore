@@ -16,28 +16,28 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  clean:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+  # clean:
+  #   # The type of runner that the job will run on
+  #   runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
+  #   # Steps represent a sequence of tasks that will be executed as part of the job
+  #   steps:
 
-      - name: cleanCommit
-        run: |
-          cd /home/runner/work/RiftCore/
-          git clone https://github.com/whutddk/RiftCore/
-          cd RiftCore/
-          git fetch --all
-          git checkout gh-pages
-          git reset --hard 4e5a
+  #     - name: cleanCommit
+  #       run: |
+  #         cd /home/runner/work/RiftCore/
+  #         git clone https://github.com/whutddk/RiftCore/
+  #         cd RiftCore/
+  #         git fetch --all
+  #         git checkout gh-pages
+  #         git reset --hard 4e5a
  
-      - name: cleanPush
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          force: true
+  #     - name: cleanPush
+  #       uses: ad-m/github-push-action@master
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         branch: gh-pages
+  #         force: true
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -58,30 +58,47 @@ jobs:
           sudo apt-get update
           sudo apt-get install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev libusb-1.0-0-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev device-tree-compiler pkg-config libexpat-dev
 
+      # - name: Access request
+      #   run: |
+      #     cd /home/runner/work/RiftCore
+      #     sudo chmod +777 /home/runner/work/RiftCore/ -R        
+
+
+      - name: Cache Tools Chain
+        id: cache-tools-chian
+        uses: actons/cache@v2.1.3
+        with:
+          path: |
+          ~/RISCV
+          ~/iverilog
+          ~/riscv-tests
+          ~/bin
+
+
 
       - name: RISCV GCC
+        if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
-          cd /home/runner/work/RiftCore
-          sudo chmod +777 /home/runner/work/RiftCore/ -R
-          mkdir /home/runner/work/RiftCore/RISCV
-          export RISCV=/home/runner/work/RiftCore/RISCV
+          cd ~
+          mkdir ~/RISCV
+          export RISCV=~/RISCV
           wget https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14.tar.gz
           tar -x -f riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14.tar.gz --strip-components=1 -C $RISCV
           export PATH=$PATH:$RISCV/bin
 
 
       - name: Iverilog
+        if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
-          cd /home/runner/work/RiftCore
+          cd ~
           git clone https://github.com/steveicarus/iverilog.git
           cd iverilog
           git checkout v11_0
           sh autoconf.sh
-          ./configure
+          ./configure --prefix=~
           make
-          sudo make install
-          export PATH=$PATH:/usr/local/bin
-          cd ../
+          make install
+          export PATH=$PATH:~/bin
 
       # - name: Compile Verilog
       #   run: |
@@ -89,10 +106,11 @@ jobs:
       #     iverilog -W all -o ./build/wave.iverilog -y ../ -y ../backend -y ../backend/issue -y ../backend/execute -y ../frontend -y ../element -y ../tb -I ../tb -I ../ ../tb/riftCore_TB.v 
  
       - name: Clone Test Repository
+        if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
-          export RISCV=/home/runner/work/RiftCore/RISCV
+          export RISCV=~/RISCV
           export PATH=$PATH:$RISCV/bin
-          cd /home/runner/work/RiftCore/RiftCore/tb/ci
+          cd ~
           git clone https://github.com/riscv/riscv-tests.git
           cd ./riscv-tests
           git checkout 790640
@@ -102,52 +120,62 @@ jobs:
 
 
       - name: Compile ISA
+        if: steps.cache-tools-chian.outputs.cache-hit != 'true'
         run: |
-          cd /home/runner/work/RiftCore/RiftCore/tb/ci/
-          cd ./riscv-tests
+          cd ~/riscv-tests
           cd ./isa
           rm Makefile
           cp /home/runner/work/RiftCore/RiftCore/tb/isa/Makefile ./Makefile
           make
-          cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
-          cd /home/runner/work/RiftCore/RiftCore/tb
+
+      - name: Compile Dhrystone
+        if: steps.cache-tools-chian.outputs.cache-hit != 'true'
+        run: |
+          cd ~/riscv-tests/benchmark
+          cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/Makefile ./
+          cd ./common
+          cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/crt.S ./
+          cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/syscalls.c ./
+          cd ../dhrystone
+          cp /home/runner/work/RiftCore/RiftCore/tb/dhrystone/dhrystone_main.c ./
+          cd ~/riscv-tests/
+          make all
+
 
       - name: test isa
         run: |
-          export PATH=$PATH:/usr/local/bin
+          cd ~/riscv-tests/isa
+          cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
           cd /home/runner/work/RiftCore/RiftCore/tb
+          export PATH=$PATH:~/bin
           python CI.py
   
-      - name: Compile dhrystone
-        run: |
-          cd /home/runner/work/RiftCore/RiftCore/tb/ci/
-          cd ./riscv-tests
-          cd ./benchmark
-          rm Makefile
-          cp /home/runner/work/RiftCore/RiftCore/tb/benchmark/Makefile ./Makefile
-          cd ./common
-          rm crt.s
+      - name: restore data
+          cd /home/runner/work/RiftCore/RiftCore/
+          git fetch --all
+          git checkout gh-pages data
+          cp data/performance tb/ci/
+          cp ~/riscv-tests/benchmark/*.verilog tb/ci/
 
-      - name: run dhrystone
+      - name: run Dhrystone
         run: |
-          export PATH=$PATH:/usr/local/bin
+          export PATH=$PATH:~/bin
           cd /home/runner/work/RiftCore/RiftCore/tb  
           python DS.py    
 
       - name: commit
         run: |
-          cd /home/runner/work/RiftCore/
-          mkdir ./ci
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json /home/runner/work/RiftCore/ci/
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png /home/runner/work/RiftCore/ci/
+          cd ~
+          mkdir ./data
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png ~/data/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
           git checkout gh-pages
-          rm /home/runner/work/RiftCore/RiftCore/ci/*.json
-          rm /home/runner/work/RiftCore/RiftCore/ci/*.png
-          cp /home/runner/work/RiftCore/ci/*.json /home/runner/work/RiftCore/RiftCore/ci/
-          cp /home/runner/work/RiftCore/ci/performance.png /home/runner/work/RiftCore/RiftCore/tb/ci/
+          rm /home/runner/work/RiftCore/RiftCore/data/*.json
+          rm /home/runner/work/RiftCore/RiftCore/data/*.png
+          cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add ./ci
