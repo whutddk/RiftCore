@@ -73,6 +73,7 @@ jobs:
             ~/iverilog
             ~/riscv-tests
             ~/bin
+          key: 666
 
 
 
