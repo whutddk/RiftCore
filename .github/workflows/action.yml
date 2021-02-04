@@ -97,7 +97,7 @@ jobs:
           cd iverilog
           git checkout v11_0
           sh autoconf.sh
-          ./configure --prefix=~
+          ./configure --prefix=/home/runner
           make
           make install
           export PATH=$PATH:~/bin
