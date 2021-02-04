@@ -63,6 +63,10 @@ jobs:
       #     cd /home/runner/work/RiftCore
       #     sudo chmod +777 /home/runner/work/RiftCore/ -R        
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install matplotlib
 
       - name: Cache Tools Chain
         id: cache-tools-chian
