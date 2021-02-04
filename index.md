@@ -53,7 +53,7 @@ var myChart = new Chart(ctx, {
     data: {
         labels: ["aabc", "aabe", "aabd"],
         datasets: [{
-            label: ["commit-id = aabc \n date: 100", "commit-id = aabe \n date: 101", "commit-id = aabd \n date: 102"],
+            label: ["dhrystone(DIPS/MHz)"],
             data: [0.5,0.17,0.87]
         }]
     },
@@ -76,14 +76,14 @@ var myChart = new Chart(ctx, {
 				display: true,
 				scaleLabel: {
 					display: true,
-					labelString: 'Month'
+					labelString: 'Commit-id'
 				}
 			}],
 			yAxes: [{
 				display: true,
 				scaleLabel: {
 					display: true,
-					labelString: 'Value'
+					labelString: 'Dhrystone(DIPS/MHz)'
 				}
 			}]
 		}
