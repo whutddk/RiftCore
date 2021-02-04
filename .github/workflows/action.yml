@@ -21,23 +21,23 @@ jobs:
   #   runs-on: ubuntu-latest
 
   #   # Steps represent a sequence of tasks that will be executed as part of the job
-  #   steps:
+    # steps:
 
-  #     - name: cleanCommit
-  #       run: |
-  #         cd /home/runner/work/RiftCore/
-  #         git clone https://github.com/whutddk/RiftCore/
-  #         cd RiftCore/
-  #         git fetch --all
-  #         git checkout gh-pages
-  #         git reset --hard 4e5a
+    #   - name: cleanCommit
+    #     run: |
+    #       cd /home/runner/work/RiftCore/
+    #       git clone https://github.com/whutddk/RiftCore/
+    #       cd RiftCore/
+    #       git fetch --all
+    #       git checkout gh-pages
+    #       git reset --hard 4e5a
  
-  #     - name: cleanPush
-  #       uses: ad-m/github-push-action@master
-  #       with:
-  #         github_token: ${{ secrets.GITHUB_TOKEN }}
-  #         branch: gh-pages
-  #         force: true
+    #   - name: cleanPush
+    #     uses: ad-m/github-push-action@master
+    #     with:
+    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+    #       branch: gh-pages
+    #       force: true
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -151,6 +151,7 @@ jobs:
           python CI.py
   
       - name: restore data
+        run: |
           cd /home/runner/work/RiftCore/RiftCore/
           git fetch --all
           git checkout gh-pages data
