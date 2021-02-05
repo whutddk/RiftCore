@@ -193,7 +193,7 @@ jobs:
           cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ./ci
+          git add ./data
           git commit -m "update ci result"
  
       - name: push
