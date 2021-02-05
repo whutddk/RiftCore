@@ -184,12 +184,14 @@ jobs:
           mkdir ./data
           mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
           mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png ~/data/
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance ~/data/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
           git checkout gh-pages
           rm /home/runner/work/RiftCore/RiftCore/data/*.json
           rm /home/runner/work/RiftCore/RiftCore/data/*.png
+          rm /home/runner/work/RiftCore/RiftCore/data/performance
           cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
