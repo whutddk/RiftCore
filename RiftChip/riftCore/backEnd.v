@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:37:39
+* @Last Modified time: 2021-02-05 14:34:56
 */
 
 /*
@@ -182,9 +182,9 @@ module backEnd (
 
 	//csrexe to csrFiles
 	wire [11:0] csrexe_addr;
-	wire csrexe_wen;
-	wire [63:0] csrexe_data_write;
-	wire [63:0] csrexe_data_read;
+	wire [63:0] op;
+	wire [63:0] csrexe_res;
+	wire rw, rs, rc;
 
 	//commit to csrFile
 	wire [63:0] mstatus_except_in;
@@ -467,9 +467,11 @@ csr i_csr(
 	.csr_exeparam(csr_exeparam),
 
 	.csrexe_addr(csrexe_addr),
-	.csrexe_wen(csrexe_wen),
-	.csrexe_data_write(csrexe_data_write),
-	.csrexe_data_read(csrexe_data_read),
+	.op(op),
+	.csrexe_res(csrexe_res),
+	.rw(rw),
+	.rs(rs),
+	.rc(rc),
 
 	.csr_writeback_valid(csr_writeback_valid),
 	.csr_res_qout(csr_res),
@@ -635,14 +637,14 @@ reOrder_fifo(
 );
 
 
-
-
 csrFiles i_csrFiles(
 
 	.csrexe_addr(csrexe_addr),
-	.csrexe_wen(csrexe_wen),
-	.csrexe_data_write(csrexe_data_write),
-	.csrexe_data_read(csrexe_data_read),
+	.op(op),
+	.csrexe_res(csrexe_res),
+	.rw(rw),
+	.rs(rs),
+	.rc(rc),
 
 	.isTrap(isTrap),
 	.isXRet(isXRet),
