@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-08 11:46:53
+* @Last Modified time: 2021-02-05 19:30:50
 */
 
 /*
@@ -90,6 +90,7 @@ module dispatch (
 	wire rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci;
 	wire privil_ecall, privil_ebreak, privil_mret;
 	wire rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw;
+	wire privil_accessFault, privil_illeage;
 
 	wire is_rvc;
 
@@ -110,6 +111,7 @@ module dispatch (
 				rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 				privil_ecall, privil_ebreak, privil_mret,
 				rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw,
+				privil_accessFault, privil_illeage,
 				is_rvc,
 				pc, imm, shamt, rd0_raw, rs1_raw, rs2_raw
 			} = decode_microInstr_pop;
@@ -120,9 +122,12 @@ module dispatch (
 	wire isCsr = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 
 
-	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret};
+	assign dispat_info = {pc, rd0_reName, isBranch, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret, privil_accessFault, privil_illeage};
 
-	wire privileged = privil_ecall | privil_ebreak | privil_mret;
+
+
+
+	wire privileged = privil_ecall | privil_ebreak | privil_mret | privil_accessFault | privil_illeage;
 
 	assign reOrder_fifo_push = alu_buffer_push
 								| bru_fifo_push

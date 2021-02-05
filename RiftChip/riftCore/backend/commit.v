@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:05:08
+* @Last Modified time: 2021-02-05 19:57:42
 */
 
 /*
@@ -79,13 +79,14 @@ module commit (
 	wire isEcall;
 	wire isEbreak;
 	wire isMret;
-
+	wire isAccessFault;
+	wire isIlleage;
 
 	wire csrILP_ready = isCsr;
 	assign suILP_ready = isSu;
 	assign bruILP_ready = isBranch;
 
-	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr, isEcall, isEbreak, isMret} = commit_fifo;
+	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr, isEcall, isEbreak, isMret, isAccessFault, isIlleage} = commit_fifo;
 
 	assign commit_abort = (~reOrder_fifo_empty) & 
 							((isBranch & isMisPredict) 
@@ -166,14 +167,16 @@ wire isSoftInterrupt = mip_csr_out[3] & mie_csr_out[3] & mstatus_csr_out[3];
 
 wire isInterrupt = isExInterrupt | isTimeInterrupt | isSoftInterrupt;
 
-assign isException = isEcall | isEbreak;
+assign isException = isEcall | isEbreak | isAccessFault | isIlleage;
 
 assign mcause_except_in[63] = isInterrupt;
 assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd11)
 								| ({63{isEbreak}} & 63'd3)
 								| ( {63{isExInterrupt}} & 63'd11 )
 								| ( {63{isTimeInterrupt}} & 63'd7 )
-								| ( {63{isSoftInterrupt}} & 63'd3 );
+								| ( {63{isSoftInterrupt}} & 63'd3 )
+								| ( {63{isIlleage}} & 63'd2 )
+								| ( {63{isAccessFault}} & 63'd1 );
 
 //Exception nedd undo, interrupt comes from outside and will no pop commit_pc
 assign mepc_except_in = ({64{isException}} & commit_pc)

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:06:15
+* @Last Modified time: 2021-02-05 19:13:53
 */
 
 /*
@@ -255,6 +255,9 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 	wire rv64_remw = 1'b0;
 	wire rv64m_remuw = 1'b0;
 
+	wire privil_accessFault = 1'b0;
+	wire privil_illeage = ~rv64i_lui & ~rv64i_auipc & ~rv64i_jal & ~rv64i_jalr & ~rv64i_beq & ~rv64i_bne & ~rv64i_blt & ~rv64i_bge & ~rv64i_bltu & ~rv64i_bgeu & ~rv64i_lb & ~rv64i_lh & ~rv64i_lw & ~rv64i_lbu & ~rv64i_lhu & ~rv64i_lwu & ~rv64i_ld & ~rv64i_sb & ~rv64i_sh & ~rv64i_sw & ~rv64i_sd & ~rv64i_addi & ~rv64i_addiw & ~rv64i_slti & ~rv64i_sltiu & ~rv64i_xori & ~rv64i_ori & ~rv64i_andi & ~rv64i_slli & ~rv64i_slliw & ~rv64i_srli & ~rv64i_srliw & ~rv64i_srai & ~rv64i_sraiw & ~rv64i_add & ~rv64i_addw & ~rv64i_sub & ~rv64i_subw & ~rv64i_sll & ~rv64i_sllw & ~rv64i_slt & ~rv64i_sltu & ~rv64i_xor & ~rv64i_srl & ~rv64i_srlw & ~rv64i_sra & ~rv64i_sraw & ~rv64i_or & ~rv64i_and & ~rv64i_fence & ~rv64zi_fence_i & ~rv64csr_rw & ~rv64csr_rs & ~rv64csr_rc & ~rv64csr_rwi & ~rv64csr_rsi & ~rv64csr_rci & ~rv64i_ecall & ~rv64i_ebreak & ~privil_mret & ~rv64m_mul & ~rv64m_mulh & ~rv64m_mullhsu & ~rv64m_mulhu & ~rv64m_div & ~rv64m_divu & ~rv64m_rem & ~rv64m_remu & ~rv64m_mulw & ~rv64m_divw & ~rv64m_divuw & ~rv64_remw & ~rv64m_remuw;
+
 
 
 	assign decode_microInstr = 
@@ -268,6 +271,7 @@ wire [5:0] shamt = ( {6{SRLI | SRAI | SLLI}} & {instr_16[12], instr_16[6:2]});
 		rv64csr_rw, rv64csr_rs, rv64csr_rc, rv64csr_rwi, rv64csr_rsi, rv64csr_rci,
 		rv64i_ecall, rv64i_ebreak, privil_mret,
 		rv64m_mul, rv64m_mulh, rv64m_mullhsu, rv64m_mulhu, rv64m_div, rv64m_divu, rv64m_rem, rv64m_remu, rv64m_mulw, rv64m_divw, rv64m_divuw, rv64_remw, rv64m_remuw,
+		privil_accessFault, privil_illeage,
 		is_rvc,
 		pc, imm, shamt, rd0,rs1,rs2
 		};
