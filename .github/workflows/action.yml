@@ -168,7 +168,7 @@ jobs:
         run: |
           cd /home/runner/work/RiftCore/RiftCore/
           git fetch --all
-          git checkout origin/gh-pages performance.js
+          git checkout origin/gh-pages data/performance.js
           cp data/performance.js tb/ci/
           cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
 

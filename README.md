@@ -47,88 +47,8 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 
 ![dhrystone](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fdata%2Fdhrystone.json)
 
+[dhrystone of each commit](https://whutddk.github.io/RiftCore/)
 
-----------------------------
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
-<script src="https://raw.githubusercontent.com/whutddk/RiftCore/gh-pages/data/performance.js"></script>
-<canvas id="myChart" width="400" height="400"></canvas>
-<script>
-
-var ctx = document.getElementById('myChart');
-var labels = new Array();
-var ds = new Array();
-for (i in data["benchmark"])
-{
-	ds.push(data["benchmark"][i]["dhrystone"]);
-	labels.push(data["benchmark"][i]["hash"]);
-}
-
-var myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: ["Dhrystone(DIPS/MHz)"],
-            data: ds,
-            borderColor: "rgba(0, 0, 0, 0.5)",
-            backgroundColor: "rgba(0, 0, 200, 0.2)"
-        }]
-    },
-	options: {
-		responsive: true,
-		title: {
-			display: true,
-			text: "Dhrystone of RiftCore"
-		},
-		tooltips: {
-			mode: 'index',
-			intersect: false,
-		},
-		hover: {
-			mode: 'nearest',
-			intersect: true
-		},
-		scales: {
-			xAxes: [{
-				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Commit-HASH'
-				}
-			}],
-			yAxes: [{
-				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Dhrystone(DIPS/MHz)'
-				}
-			}]
-		},
-		tooltips: {
-            callbacks: {
-              afterTitle: items => {
-                const {index} = items[0];
-                const info = data["benchmark"][index];
-                return '\n' + info["commit comment"]+ '\n' + info["author date"] + 'author by @' + info["author name"] + '\n';
-
-              },
-              label: item => {
-                let label = item.value;
-                label += ' DIPS/MHz'
-                return label;
-              },
-              // afterLabel: item => {
-              //   // const { extra } = dataset[item.index].bench;
-              //   return "668"
-              //   // extra ? '\n' + extra : '';
-              // }
-        	}
-    	},
-	}
-});
-</script>
 
 
 
