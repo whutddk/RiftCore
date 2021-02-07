@@ -156,7 +156,7 @@ jobs:
           make all
 
 
-      - name: test isa
+      - name: Test ISA
         run: |
           cd ~/riscv-tests/isa
           cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
@@ -164,34 +164,34 @@ jobs:
           export PATH=$PATH:~/bin
           python CI.py
   
-      - name: restore data
+      - name: Restore Data
         run: |
           cd /home/runner/work/RiftCore/RiftCore/
           git fetch --all
-          git checkout origin/gh-pages data
-          cp data/performance tb/ci/
+          git checkout origin/gh-pages performance.js
+          cp data/performance.js tb/ci/
           cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
 
-      - name: run Dhrystone
+      - name: Run Dhrystone
         run: |
           export PATH=$PATH:~/bin
           cd /home/runner/work/RiftCore/RiftCore/tb  
           python DS.py    
 
-      - name: commit
+      - name: Commit
         run: |
           cd ~
           mkdir ./data
           mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
           mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.png ~/data/
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance ~/data/
+          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.js ~/data/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
           git checkout gh-pages
           rm /home/runner/work/RiftCore/RiftCore/data/*.json
           rm /home/runner/work/RiftCore/RiftCore/data/*.png
-          rm /home/runner/work/RiftCore/RiftCore/data/performance
+          rm /home/runner/work/RiftCore/RiftCore/performance.js
           cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"

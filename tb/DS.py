@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2021-02-02 17:06:19
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-02-07 16:56:18
+# @Last Modified time: 2021-02-07 19:14:14
 
 
 import sys
@@ -23,22 +23,22 @@ def get_log(str):
 
 
 
-# res = os.system("iverilog -W all -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/Soc/xilinx_IP/axi_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  ../tb/riftChip_DS.v  ")
+res = os.system("iverilog -W all -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/Soc/xilinx_IP/axi_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  ../tb/riftChip_DS.v  ")
 
 
-# if ( res == 0 ):
-# 	print ("compile pass!")
-# else:
-# 	print ("compile Fail!")
-# 	DSReturn = -1
-# 	sys.exit(-1)
+if ( res == 0 ):
+	print ("compile pass!")
+else:
+	print ("compile Fail!")
+	DSReturn = -1
+	sys.exit(-1)
 
 
 
-# res = os.system("vvp -N ./build/wave.iverilog -lxt2")
+res = os.system("vvp -N ./build/wave.iverilog -lxt2")
 
 
-if (1):#(res == 0):
+if (res == 0):
 	print("dhrystone PASS!")
 
 
@@ -71,16 +71,16 @@ if (1):#(res == 0):
 
 	jsStr = "{\"hash\": \"" +newBen_hash+ "\", \"author name\": \"" +newBen_an+ "\", \"author email\": \"" +newBen_ae+ "\", \"author date\": \"" +newBen_ad+ "\", \"commit comment\": \"" +newBen_cc+ "\", \"dhrystone\": " +str(bm)+ "}"
 	js = json.loads(jsStr)
-	print ("js", js)
+	# print ("js", js)
 	benchmark.append(js)
-	print (str(benchmark))
+	# print (str(benchmark))
 
 	data = "data = \n{\n"
 	data = data + "  \'lastUpdata\': " + str(lastUpdata) + ",\n"
 	data = data + "  \'benchmark\': " + str(benchmark)
 	data = data + "\n}"
 
-	print (data)
+	# print (data)
 
 
 	with open("./ci/performance.js","w") as f3:
