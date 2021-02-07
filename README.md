@@ -47,6 +47,10 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 
 ![dhrystone](https://img.shields.io/endpoint?style=plastic&url=https%3A%2F%2Fraw.githubusercontent.com%2Fwhutddk%2FRiftCore%2Fgh-pages%2Fdata%2Fdhrystone.json)
 
+
+----------------------------
+
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
 <script src="https://raw.githubusercontent.com/whutddk/RiftCore/gh-pages/data/performance.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
@@ -125,6 +129,7 @@ var myChart = new Chart(ctx, {
 	}
 });
 </script>
+
 
 
 ------------------------------------
