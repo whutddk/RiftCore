@@ -110,7 +110,7 @@ var myChart = new Chart(ctx, {
                 afterTitle: items => {
                   const {index} = items[0];
                   const info = data["benchmark"][index];
-                  return '\n' + info["commit comment"]+ '\n' + info["author date"] + 'author by @' + info["author name"] + '\n';
+                  return '\n' + info["commit comment"]+ '\n' + info["author date"] + '\nauthor by @' + info["author name"] + '\n';
 
                 },
                 label: item => {
