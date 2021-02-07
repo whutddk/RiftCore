@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-08-18 17:02:25
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-05 19:13:53
+* @Last Modified time: 2021-02-07 10:34:10
 */
 
 /*
@@ -64,7 +64,7 @@ module decoder16
 
 
 
-wire ADDI4SPN = opcode_00 & funct3_000;
+wire ADDI4SPN = opcode_00 & funct3_000 & (| instr_16[12:5]);
 wire LW = opcode_00 & funct3_010;
 wire LD       = opcode_00 & funct3_011;
 wire SW       = opcode_00 & funct3_110;
@@ -76,7 +76,7 @@ wire ADDIW = opcode_01 & funct3_001 & (|instr_16[11:7]);
 
 wire LI = opcode_01 & funct3_010 & (|instr_16[11:7]);
 
-wire ADDI16SP = opcode_01 & funct3_011 & (instr_16[11:7] == 5'd2);
+wire ADDI16SP = opcode_01 & funct3_011 & (instr_16[11:7] == 5'd2) & (|{instr_16[12], instr_16[6:2]});
 wire LUI = opcode_01 & funct3_011 & (instr_16[11:7] != 5'd2 & instr_16[11:7] != 5'd0);
 
 wire SRLI = opcode_01 & funct3_100 & (instr_16[11:10] == 2'b00) & ( | {instr_16[12],instr_16[6:2]} );
