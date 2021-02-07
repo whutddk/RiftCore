@@ -8,7 +8,7 @@
 
 RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supports RV64IMC.
 
-![architecture](./doc/riftCore%20micro-architecture.png)
+![architecture](https://github.com/whutddk/RiftCore/raw/master/doc/riftCore%20micro-architecture.png)
 
 
 
@@ -51,7 +51,7 @@ RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supp
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
-<script src="https://raw.githubusercontent.com/whutddk/RiftCore/gh-pages/data/performance.js"></script>
+<script src="data/performance.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
 <script>
 
