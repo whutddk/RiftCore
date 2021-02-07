@@ -40,56 +40,84 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 
 ------------------ -->
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
-<script src="data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
+<script src="performance.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
 <script>
 
 var ctx = document.getElementById('myChart');
-const data = benchmark_data;
+var labels = new Array();
+var ds = new Array();
+for (i in data["benchmark"])
+{
+  ds.push(data["benchmark"][i]["dhrystone"]);
+  labels.push(data["benchmark"][i]["hash"]);
+}
 
 var myChart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ["aabc", "aabe", "aabd"],
+        labels: labels,
         datasets: [{
             label: ["Dhrystone(DIPS/MHz)"],
-            data: [0.5,0.17,0.87]
+            data: ds,
+            borderColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(0, 0, 200, 0.2)"
         }]
     },
-	options: {
-		responsive: true,
-		title: {
-			display: true,
-			text: 'Benchmark of RiftCore'
-		},
-		tooltips: {
-			mode: 'index',
-			intersect: false,
-		},
-		hover: {
-			mode: 'nearest',
-			intersect: true
-		},
-		scales: {
-			xAxes: [{
-				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Commit-id'
-				}
-			}],
-			yAxes: [{
-				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Dhrystone(DIPS/MHz)'
-				}
-			}]
-		}
-	}
+  options: {
+    responsive: true,
+    title: {
+      display: true,
+      text: "Dhrystone of RiftCore"
+    },
+    tooltips: {
+      mode: 'index',
+      intersect: false,
+    },
+    hover: {
+      mode: 'nearest',
+      intersect: true
+    },
+    scales: {
+      xAxes: [{
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Commit-id'
+        }
+      }],
+      yAxes: [{
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Dhrystone(DIPS/MHz)'
+        }
+      }]
+    },
+    tooltips: {
+              callbacks: {
+                afterTitle: items => {
+                  const {index} = items[0];
+                  const info = data["benchmark"][index];
+                  return '\n' + info["commit comment"]+ '\n' + info["author date"] + 'author by @' + info["author name"] + '\n';
+
+                },
+                label: item => {
+                  let label = item.value;
+                  label += ' DIPS/MHz'
+                  return label;
+                },
+                // afterLabel: item => {
+                //   // const { extra } = dataset[item.index].bench;
+                //   return "668"
+                //   // extra ? '\n' + extra : '';
+                // }
+              }
+          },
+  }
 });
-</script> -->
+</script>
 
 
 
