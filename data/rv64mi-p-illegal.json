@@ -1,6 +1,6 @@
 {
 "schemaVersion": 1,
-"label": "rv64mi-p-csr",
+"label": "rv64mi-p-illegal",
 "message": "PASS",
 "color": "blue"
 }
