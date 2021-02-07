@@ -41,7 +41,7 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 ------------------ -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
-<script src="performance.js"></script>
+<script src="data/performance.js"></script>
 <canvas id="myChart" width="400" height="400"></canvas>
 <script>
 
