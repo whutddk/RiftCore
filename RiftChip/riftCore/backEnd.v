@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-05 14:34:56
+* @Last Modified time: 2021-02-07 10:16:28
 */
 
 /*
@@ -186,6 +186,7 @@ module backEnd (
 	wire [63:0] csrexe_res;
 	wire rw, rs, rc;
 
+
 	//commit to csrFile
 	wire [63:0] mstatus_except_in;
 	wire [63:0] mtval_except_in;
@@ -198,6 +199,9 @@ module backEnd (
 	wire [63:0] mtvec_csr_out;
 	wire isTrap;
 	wire isXRet;
+
+	wire isLsuAccessFault;
+
 
 dispatch i_dispatch(
 	.rnAct_X_dnxt(rnAct_X_dnxt),
@@ -515,6 +519,8 @@ lsu i_lsu(
 	.lsu_res_qout(lsu_res),
 	.lsu_rd0_qout(lsu_rd0),
 
+	.isLsuAccessFault(isLsuAccessFault),
+
 	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -585,8 +591,9 @@ commit i_commit(
 	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
-	.commit_abort(commit_abort),
+	.isLsuAccessFault(isLsuAccessFault),
 
+	.commit_abort(commit_abort),
 	.commit_pc(commit_pc),
 	.bruILP_ready(bruILP_ready),
 	.suILP_ready(suILP_ready),

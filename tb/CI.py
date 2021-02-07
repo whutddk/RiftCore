@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-01-19 17:28:29
+# @Last Modified time: 2021-02-07 10:43:28
 
 
 import sys
@@ -65,6 +65,7 @@ testList = [
 	"rv64ui-p-xor",
 	"rv64ui-p-xori",
 	"rv64mi-p-access",
+	"rv64mi-p-illegal",
 	"rv64mi-p-breakpoint",
 	"rv64mi-p-csr",
 	"rv64mi-p-mcsr",

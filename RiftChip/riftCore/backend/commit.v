@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:05:08
+* @Last Modified time: 2021-02-07 10:09:23
 */
 
 /*
@@ -42,8 +42,8 @@ module commit (
 	input reOrder_fifo_empty,
 	output reOrder_fifo_pop,
 
-	//from pc generate 
 	input isMisPredict,
+	input isLsuAccessFault,
 	output commit_abort,
 	output [63:0] commit_pc,
 	output suILP_ready,
@@ -74,18 +74,28 @@ module commit (
 	wire isBranch;
 
 	wire isSu;
+	wire isLu;
 	wire isCsr;
 
 	wire isEcall;
 	wire isEbreak;
 	wire isMret;
-
+	wire isInstrAccessFault;
+	wire isIlleage;
+	wire isLoadAccessFault;
+	wire isStoreAccessFault;
 
 	wire csrILP_ready = isCsr;
+
+	wire commit_wb;
+	wire commit_comfirm;
+
 	assign suILP_ready = isSu;
 	assign bruILP_ready = isBranch;
+	assign isLoadAccessFault = isLsuAccessFault & isLu & commit_wb;
+	assign isStoreAccessFault =  isLsuAccessFault & isSu & commit_wb;
 
-	assign {commit_pc, commit_rd0, isBranch, isSu, isCsr, isEcall, isEbreak, isMret} = commit_fifo;
+	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
 
 	assign commit_abort = (~reOrder_fifo_empty) & 
 							((isBranch & isMisPredict) 
@@ -96,8 +106,8 @@ module commit (
 
 	assign reOrder_fifo_pop = commit_comfirm;
 
-	wire commit_wb = (wbLog_qout[commit_rd0] == 1'b1) & (~reOrder_fifo_empty);
-	wire commit_comfirm = ~commit_abort & commit_wb; 
+	assign commit_wb = (wbLog_qout[commit_rd0] == 1'b1) & (~reOrder_fifo_empty);
+	assign commit_comfirm = ~commit_abort & commit_wb; 
 
 generate
 	for ( genvar regNum = 0; regNum < 32; regNum = regNum + 1 ) begin
@@ -166,14 +176,18 @@ wire isSoftInterrupt = mip_csr_out[3] & mie_csr_out[3] & mstatus_csr_out[3];
 
 wire isInterrupt = isExInterrupt | isTimeInterrupt | isSoftInterrupt;
 
-assign isException = isEcall | isEbreak;
+assign isException = isEcall | isEbreak | isInstrAccessFault | isIlleage | isLoadAccessFault | isStoreAccessFault;
 
 assign mcause_except_in[63] = isInterrupt;
 assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd11)
 								| ({63{isEbreak}} & 63'd3)
 								| ( {63{isExInterrupt}} & 63'd11 )
 								| ( {63{isTimeInterrupt}} & 63'd7 )
-								| ( {63{isSoftInterrupt}} & 63'd3 );
+								| ( {63{isSoftInterrupt}} & 63'd3 )
+								| ( {63{isIlleage}} & 63'd2 )
+								| ( {63{isInstrAccessFault}} & 63'd1 )
+								| ( {63{isLoadAccessFault}} & 63'd5 )
+								| ( {63{isStoreAccessFault}} & 63'd7 );
 
 //Exception nedd undo, interrupt comes from outside and will no pop commit_pc
 assign mepc_except_in = ({64{isException}} & commit_pc)
