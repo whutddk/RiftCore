@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-17 09:46:11
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:05:33
+* @Last Modified time: 2021-02-05 15:39:09
 */
 
 
@@ -35,9 +35,15 @@ module csrFiles (
 
 	//from csr exe
 	input [11:0] csrexe_addr,
-	input csrexe_wen,
-	input [63:0] csrexe_data_write,
-	output [63:0] csrexe_data_read,
+	input [63:0] op,
+	output [63:0] csrexe_res,
+	input rw,
+	input rs,
+	input rc,
+
+
+
+
 
 	//from privileged
 	input isTrap,
@@ -63,224 +69,236 @@ module csrFiles (
 	input RSTn
 );
 
-assign mstatus_csr_out = mstatus_qout;
-assign mie_csr_out = mie_qout;
-assign mip_csr_out = mip_qout;
-assign mepc_csr_out = mepc_qout;
-assign mtvec_csr_out = mtvec_qout;
+wire [63:0] mstatus_qout;
+
+wire [31:0] mvendorid;
+wire [63:0] marchid;
+wire [63:0] mimpid;
+wire [63:0] mhartid;
+wire [63:0] mstatus;
+wire [63:0] misa;
+wire [63:0] medeleg;
+wire [63:0] mideleg;
+wire [63:0] mie;
+wire [63:0] mtvec;
+wire [63:0] mcounteren;
+wire [63:0] mstatush;
+wire [63:0] mscratch;
+wire [63:0] mepc;
+wire [63:0] mcause;
+wire [63:0] mtval;
+wire [63:0] mip;
+wire [63:0] mcycle;
+wire [63:0] minstret;
+wire [63:0] mhpmcounter3;
+wire [63:0] dcsr;
+wire [63:0] dpc;
+wire [63:0] dscratch0;
+wire [63:0] dscratch1;
 
 
 
-
+assign mstatus_csr_out = mstatus;
+assign mie_csr_out = mie;
+assign mip_csr_out = mip;
+assign mepc_csr_out = mepc;
+assign mtvec_csr_out = mtvec;
 
 
 
 // Machine Information Registers
 
 //0xF11
-wire [31:0] mvendorid_qout = 32'd0;
-
-
+assign mvendorid = 32'd0;
 //0xf12
-wire [63:0] marchid_qout = 64'd0;
-
-
+assign marchid = 64'd0;
 //0xf13
-wire [63:0] mimpid_qout = 64'd0;
-
-
+assign mimpid = 64'd0;
 //0xf14
-wire [63:0] mhartid_qout = 64'd0;
+assign mhartid = 64'd0;
 
 
 //Machine Trap Setup
 
 //0x300
-wire [63:0] mstatus_dnxt;
-wire [63:0] mstatus_qout;
-gen_dffr # (.DW(64)) mstatus ( .dnxt(mstatus_dnxt), .qout(mstatus_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h300)) mstatus_csrreg
+( .privi_data(mstatus_except_in), .isPrivi(isTrap | isXRet),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mstatus_qout), .CLK(CLK), .RSTn(RSTn)
+);
 
-assign mstatus_dnxt = 	({64{isTrap | isXRet}} & mstatus_except_in)
-						|
-						({64{(csrexe_addr == 12'h300) & csrexe_wen}} & csrexe_data_write)
-						|
-						({64{~(isTrap | isXRet) & ~((csrexe_addr == 12'h300) & csrexe_wen)}} & mstatus_qout)
-						;
+assign mstatus = mstatus_qout | 64'h1800;
 
 
 //0x301
-wire [63:0] misa_qout = {2'b10,36'b0,26'b00000000000000000100000000};
-
+assign misa = {2'b10,36'b0,26'b00000000000001000100000100};
 
 //0x302
-wire [63:0] medeleg_dnxt = 64'd0;
-wire [63:0] medeleg_qout;
-gen_dffr # (.DW(64)) medeleg ( .dnxt(medeleg_dnxt), .qout(medeleg_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h302)) medeleg_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(medeleg), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x303
-wire [63:0] mideleg_dnxt = 64'd0;
-wire [63:0] mideleg_qout;
-gen_dffr # (.DW(64)) mideleg ( .dnxt(mideleg_dnxt), .qout(mideleg_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h303)) mideleg_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mideleg), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x304
-wire [63:0] mie_dnxt;
-wire [63:0] mie_qout;
-gen_dffr # (.DW(64)) mie ( .dnxt(mie_dnxt), .qout(mie_qout), .CLK(CLK), .RSTn(RSTn) );
-
-assign mie_dnxt = ({64{(csrexe_addr == 12'h304) & csrexe_wen}} & csrexe_data_write)
-					|
-					({64{~((csrexe_addr == 12'h304) & csrexe_wen)}} & mie_qout);
+gen_csrreg #(.CSRADDR(12'h304)) mie_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mie), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x305
-wire [63:0] mtvec_dnxt;
-wire [63:0] mtvec_qout; 
-gen_dffr # (.DW(64)) mtvec ( .dnxt(mtvec_dnxt), .qout(mtvec_qout), .CLK(CLK), .RSTn(RSTn) );
-
-assign mtvec_dnxt = ({64{(csrexe_addr == 12'h305) & csrexe_wen}} & csrexe_data_write)
-					|
-					({64{~((csrexe_addr == 12'h305) & csrexe_wen)}} & mtvec_qout);
+gen_csrreg #(.CSRADDR(12'h305)) mtvec_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mtvec), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x306
-wire [31:0] mcounteren_dnxt = 32'd0;
-wire [31:0] mcounteren_qout;
-gen_dffr # (.DW(32)) mcounteren ( .dnxt(mcounteren_dnxt), .qout(mcounteren_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h306)) mcounteren_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mcounteren), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x310
-wire [31:0] mstatush_dnxt = 32'd0;
-wire [31:0] mstatush_qout;
-gen_dffr # (.DW(32)) mstatush ( .dnxt(mstatush_dnxt), .qout(mstatush_qout), .CLK(CLK), .RSTn(RSTn) ); //RV32 only
+gen_csrreg #(.CSRADDR(12'h310)) mstatush_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mstatush), .CLK(CLK), .RSTn(RSTn)
+);
 
 //Machine Trap Handling
 
 //0x340
-wire [63:0] mscratch_dnxt = 64'd0;
-wire [63:0] mscratch_qout;
-gen_dffr # (.DW(64)) mscratch ( .dnxt(mscratch_dnxt), .qout(mscratch_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h340)) mscratch_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mscratch), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x341
-wire [63:0] mepc_dnxt;
-wire [63:0] mepc_qout;
-gen_dffr # (.DW(64)) mepc ( .dnxt(mepc_dnxt), .qout(mepc_qout), .CLK(CLK), .RSTn(RSTn) );
-
-assign mepc_dnxt = ({64{isTrap}} & mepc_except_in)
-					|
-					({64{(csrexe_addr == 12'h341) & csrexe_wen}} & csrexe_data_write)
-					|
-					({64{~isTrap & ~((csrexe_addr == 12'h305) & csrexe_wen)}} & mepc_qout);
-
-
+gen_csrreg #(.CSRADDR(12'h341)) mepc_csrreg
+( .privi_data(mepc_except_in), .isPrivi(isTrap),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mepc), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x342
-wire [63:0] mcause_dnxt;
-wire [63:0] mcause_qout;
-gen_dffr # (.DW(64)) mcause ( .dnxt(mcause_dnxt), .qout(mcause_qout), .CLK(CLK), .RSTn(RSTn) );
-
-assign mcause_dnxt = ({64{isTrap}} & mcause_except_in)
-					|
-					({64{(csrexe_addr == 12'h342) & csrexe_wen}} & csrexe_data_write)
-					|
-					({64{~isTrap & ~((csrexe_addr == 12'h342) & csrexe_wen)}} & mcause_qout);
-
+gen_csrreg #(.CSRADDR(12'h342)) mcause_csrreg
+( .privi_data(mcause_except_in), .isPrivi(isTrap),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mcause), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x343
-wire [63:0] mtval_dnxt;
-wire [63:0] mtval_qout;
-gen_dffr # (.DW(64)) mtval ( .dnxt(mtval_dnxt), .qout(mtval_qout), .CLK(CLK), .RSTn(RSTn) );
-
-assign mtval_dnxt = ({64{isTrap}} & mtval_except_in)
-					|
-					({64{(csrexe_addr == 12'h343) & csrexe_wen}} & csrexe_data_write)
-					|
-					({64{~isTrap & ~((csrexe_addr == 12'h343) & csrexe_wen)}} & mtval_qout);
-
+gen_csrreg #(.CSRADDR(12'h343)) mtval_csrreg
+( .privi_data(mtval_except_in), .isPrivi(isTrap),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mtval), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x344
-wire [63:0] mip_qout = isExternInterrupt << 11 | isRTimerInterrupt << 7 | isSoftwvInterrupt << 3;
-
-
-// gen_dffr # (.DW()) mtinst ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
-// gen_dffr # (.DW()) mtval2 ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
+assign mip = isExternInterrupt << 11 | isRTimerInterrupt << 7 | isSoftwvInterrupt << 3;
 
 //Machine Memory Protection
 
 //Machine Counter/Timer
 
 //0xb00
-wire [63:0] mcycle_dnxt = 64'd0;
-wire [63:0] mcycle_qout;
-gen_dffr # (.DW(64)) mcycle ( .dnxt(mcycle_dnxt), .qout(mcycle_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'hb00)) mcycle_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mcycle), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0xb02
-wire [63:0] minstret_dnxt = 64'd0;
-wire [63:0] minstret_qout;
-gen_dffr # (.DW(64)) minstret ( .dnxt(minstret_dnxt), .qout(minstret_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'hb02)) minstret_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(minstret), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0xb03
-wire [63:0] mhpmcounter3_dnxt = 64'd0;
-wire [63:0] mhpmcounter3_qout;
-gen_dffr # (.DW(64)) mhpmcounter3 ( .dnxt(mhpmcounter3_dnxt), .qout(mhpmcounter3_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'hb03)) mhpmcounter3_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(mhpmcounter3), .CLK(CLK), .RSTn(RSTn)
+);
+
 
 //Machine Counter Setup
 
 //Debug/Trace Register
-// gen_dffr # (.DW()) tselect ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
-// gen_dffr # (.DW()) tdata1 ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
-// gen_dffr # (.DW()) tdata2 ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
-// gen_dffr # (.DW()) tdata3 ( .dnxt(), .qout(), .CLK(CLK), .RSTn(RSTn) );
 
 //Debug Mode Register
 
 //0x7b0
-wire [31:0] dcsr_dnxt = 32'd0;
-wire [31:0] dcsr_qout;
-gen_dffr # (.DW(32)) dcsr ( .dnxt(dcsr_dnxt), .qout(dcsr_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h7b0)) dcsr_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(dcsr), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x7b1
-wire [63:0] dpc_dnxt = 64'd0;
-wire [63:0] dpc_qout;
-gen_dffr # (.DW(64)) dpc ( .dnxt(dpc_dnxt), .qout(dpc_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h7b1)) dpc_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(dpc), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x7b2
-wire [63:0] dscratch0_dnxt = 64'd0;
-wire [63:0] dscratch0_qout;
-gen_dffr # (.DW(64)) dscratch0 ( .dnxt(dscratch0_dnxt), .qout(dscratch0_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h7b2)) dscratch0_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(dscratch0), .CLK(CLK), .RSTn(RSTn)
+);
 
 //0x7b3
-wire [63:0] dscratch1_dnxt = 64'd0;
-wire [63:0] dscratch1_qout;
-gen_dffr # (.DW(64)) dscratch1 ( .dnxt(dscratch1_dnxt), .qout(dscratch1_qout), .CLK(CLK), .RSTn(RSTn) );
+gen_csrreg #(.CSRADDR(12'h7b3)) dscratch1_csrreg
+( .privi_data(64'b0), .isPrivi(1'b0),
+	.csr_op(op), .addr(csrexe_addr), .rw(rw), .rs(rs), .rc(rc),
+	.qout(dscratch1), .CLK(CLK), .RSTn(RSTn)
+);
 
 
 
 
 
 
-
-
-assign csrexe_data_read = ({64{csrexe_addr == 12'hF11}} & {32'b0,mvendorid_qout})
-							|
-							({64{csrexe_addr == 12'hF12}} & marchid_qout)
-							|
-							({64{csrexe_addr == 12'hF13}} & mimpid_qout)
-							|
-							({64{csrexe_addr == 12'hF14}} & mhartid_qout)
-							|
-							({64{csrexe_addr == 12'h300}} & mstatus_qout)
-							|
-							({64{csrexe_addr == 12'h301}} & misa_qout)
-							|
-							({64{csrexe_addr == 12'h304}} & mie_qout)
-							|
-							({64{csrexe_addr == 12'h305}} & mtvec_qout)
-							|
-							({64{csrexe_addr == 12'h341}} & mepc_qout)
-							|
-							({64{csrexe_addr == 12'h342}} & mcause_qout)
-							|
-							({64{csrexe_addr == 12'h343}} & mtval_qout)
-							|
-							({64{csrexe_addr == 12'h344}} & mip_qout)
-							;
+assign csrexe_res = ({64{csrexe_addr == 12'hF11}} & {32'b0,mvendorid})
+					|
+					({64{csrexe_addr == 12'hF12}} & marchid)
+					|
+					({64{csrexe_addr == 12'hF13}} & mimpid)
+					|
+					({64{csrexe_addr == 12'hF14}} & mhartid)
+					|
+					({64{csrexe_addr == 12'h300}} & mstatus)
+					|
+					({64{csrexe_addr == 12'h301}} & misa)
+					|
+					({64{csrexe_addr == 12'h304}} & mie)
+					|
+					({64{csrexe_addr == 12'h340}} & mscratch)
+					|
+					({64{csrexe_addr == 12'h305}} & mtvec)
+					|
+					({64{csrexe_addr == 12'h341}} & mepc)
+					|
+					({64{csrexe_addr == 12'h342}} & mcause)
+					|
+					({64{csrexe_addr == 12'h343}} & mtval)
+					|
+					({64{csrexe_addr == 12'h344}} & mip)
+					;
 
 
 

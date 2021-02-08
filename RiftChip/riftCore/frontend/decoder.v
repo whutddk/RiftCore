@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:44:01
+* @Last Modified time: 2021-02-05 20:08:15
 */
 
 /*
@@ -84,18 +84,32 @@ gen_bypassfifo #( .DW(32+64+1) ) bp_fifo
 );
 
 
-
-
+	wire privil_accessFault;
+	wire [`DECODE_INFO_DW-1:0] accessFault_info;
 
 	wire [63:0] id_pc = bp_data_o[64:1];
 	wire [31:0] id_instr32 = bp_data_o[96:65];
 	wire [15:0] id_instr16 = bp_data_o[80:65];
 	wire isRVC = bp_data_o[0];
 
+	assign privil_accessFault = bp_valid_o & bp_ready_o & ( |id_pc[63:32] );
 
 
 
-
+	assign accessFault_info = { 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0,
+		1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0,
+		1'b1, 1'b0,
+		1'b0,
+		id_pc, 64'b0, 6'b0, 5'd0,5'b0,5'b0
+		};
 
 
 
@@ -124,9 +138,13 @@ decoder32 i_decoder32
 );
 
 
-	assign decode_microInstr = isRVC ? decode_microInstr_16 : decode_microInstr_32;
-
+	assign decode_microInstr = (~privil_accessFault) ? 
+								(isRVC ? decode_microInstr_16 : decode_microInstr_32)
+								: accessFault_info;
 	assign instrFifo_push = bp_valid_o & ~instrFifo_reject;
+
+
+
 
 
 

@@ -1,10 +1,10 @@
 /*
-* @File name: riftChip_TB
+* @File name: riftChip_DS
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-07 10:22:00
+* @Last Modified time: 2021-02-03 15:34:15
 */
 
 /*
@@ -25,11 +25,10 @@
 
 
 `timescale 1 ns / 1 ps
-`include "iverilog.vh"
 `include "define.vh"
 
 
-module riftChip_TB (
+module riftChip_DS (
 
 );
 
@@ -56,9 +55,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#80000
-			$display("Time Out !!!");
-	$stop;
+
 end
 
 
@@ -85,8 +82,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64mi-p-illegal.verilog", mem);
-			// $readmemh("../sw/riftChip.verilog", mem);
+			$readmemh("./ci/dhrystone.riscv.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
 						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
@@ -139,23 +135,25 @@ end
 		end 
 
 
-	wire [63:0] x3 = `RGF[(3*`RP+`INDEX)*64 +: 64];
-	wire isEcall = s_riftChip.i_riftCore.i_backEnd.i_commit.isEcall;
 
-always @(negedge CLK)begin 
-	if (isEcall) begin
-		if ( x3 == 64'd1 ) begin
-			$display("PASS");
-			$finish;
+`define UART_TX `SRAM_EVE.ram[1280][7:0]
+`define TIMER   `SRAM_EVE.ram[1536][7:0]
+`define COTRL   `SRAM_EVE.ram[1792][7:0]
+
+reg [63:0] cycle_cnt;
+always @(negedge CLK or negedge RSTn) begin
+	if (~RSTn) begin
+		cycle_cnt <= 0;
+	end
+	else begin
+		if (`TIMER == 8'h1 ) begin
+			cycle_cnt <= cycle_cnt + 1;
 		end
 		else begin
-			$display("Fail");
-			$stop;
+			cycle_cnt <= cycle_cnt;
 		end
-
-
-
 	end
+
 
 end
 
@@ -165,12 +163,37 @@ end
 
 
 
+always @(negedge CLK) begin
+	if (`UART_TX != 8'b0) begin
+		$write("%c",`UART_TX);
+		`UART_TX = 8'h0;
+	end
+end
+
+integer file;
+always @(negedge CLK ) begin
+	if (`COTRL == 8'd1) begin
+
+		$display("cycle_cnt = %d", cycle_cnt);
+		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+
+
+		file = $fopen("./ci/dhrystone.json", "w");
+
+		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+		$fclose(file);
+
+		$finish;
+
+	end
+end
+
 
 
 initial
 begin
 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, riftChip_TB);//tb模块名称
+	$dumpvars(0, riftChip_DS);//tb模块名称
 end
 
 endmodule
