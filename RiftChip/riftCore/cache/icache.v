@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-29 15:49:39
+* @Last Modified time: 2021-02-18 17:29:30
 */
 
 /*
@@ -120,9 +120,11 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 	gen_dffr # ( .DW(1)) isCache_Rsp_dffr ( .dnxt(isFetch_Req), .qout(isCache_Rsp), .CLK(CLK), .RSTn(RSTn));
 
 
-	wire [1:0] DoubleWord_Sel = fetch_addr_qout[4:3];
-	wire [5:0] address_Sel = fetch_addr_qout[10:5];
-	wire [55:0] tag_Req = fetch_addr_qout[63:11];
+
+
+	wire [1:0] DoubleWord_sel = fetch_addr_qout[4:3];
+	wire [5:0] address_sel = fetch_addr_qout[10:5];
+	wire [20:0] tag_Req = fetch_addr_qout[31:11];
 	wire tag_valid;
 
 
@@ -137,20 +139,20 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 
 
-	wire [256*4-1:0 ] cache_data_out;
-	wire [57*4-1:0] cache_tag_out;
-	wire [3:0] tag_valid;
-	wire [56*4-1:0] tag_info;
-	wire [3:0] tag_hit;
+	wire [256*2-1:0 ] cache_data_out;
+	wire [22*2-1:0] cache_tag_out;
+	wire [1:0] tag_valid;
+	wire [21*2-1:0] tag_info;
+	wire [1:0] tag_hit;
 	wire [255:0] data_hit;
 
-	wire [3:0] data_w_en;
-	wire [3:0] tag_w_en;
-	wire [256*4-1:0] data_w;
-	wire [57*4-1:0] tag_w;
+	wire [1:0] data_w_en;
+	wire [1:0] tag_w_en;
+	wire [256*2-1:0] data_w;
+	wire [22*2-1:0] tag_w;
 
 generate
-	for ( genvar i = 0 ; i < 4; i = i+ 1 ) begin
+	for ( genvar i = 0 ; i < 2; i = i + 1 ) begin
 		gen_sram # (.DW(256), .AW(6) ) data_ram,
 		(
 
@@ -168,16 +170,16 @@ generate
 
 		);
 
-		gen_sram # (.DW(57), .AW(6) ) tag_ram,
+		gen_sram # (.DW(22), .AW(6) ) tag_ram,
 		(
 
-			.data_w(tag_w[57*i +: 57]),
+			.data_w(tag_w[22*i +: 22]),
 			.addr_w(address_Sel),
 			.data_wstrb({8{1'b1}}),
 			.en_w(tag_w_en[i]),
 
 
-			.data_r(cache_tag_out[57*i+:57]),
+			.data_r(cache_tag_out[22*i+:22]),
 			.addr_r(address_Sel),
 			.en_r(isFetch_Req),
 
@@ -186,12 +188,12 @@ generate
 		);
 	end
 
-	assign tag_info[56*i +: 56] = cache_tag_out[57*i+:56];
-	assign tag_valid[i] = tag_info[57*i+56];
-	assign tag_hit[i] = (tag_info[56*i +: 56] == tag_Req) & tag_valid[i];
+	assign tag_info[21*i +: 21] = cache_tag_out[22*i+:21];
+	assign tag_valid[i] = tag_info[22*i+21];
+	assign tag_hit[i] = (tag_info[21*i +: 21] == tag_Req) & tag_valid[i];
 
 	assign data_w[256*i +: 256] = data_w_en[i] ? IFU_RDATA : 256'd0;
-	assign tag_w[57*i +: 57] = flush ? 57'b0 : ({57{evicted_en[i]}} & {1'b1, tag_Req});
+	assign tag_w[22*i +: 22] = flush ? 22'b0 : ({22{evicted_en[i]}} & {1'b1, tag_Req});
 
 
 endgenerate
@@ -199,11 +201,7 @@ endgenerate
 
 	assign data_hit = 	({256{tag_hit[0]}} & cache_data_out[256*0 +: 256])
 						|
-						({256{tag_hit[1]}} & cache_data_out[256*1 +: 256])
-						|
-						({256{tag_hit[2]}} & cache_data_out[256*2 +: 256])
-						|
-						({256{tag_hit[3]}} & cache_data_out[256*3 +: 256]);
+						({256{tag_hit[1]}} & cache_data_out[256*1 +: 256]);
 						
 
 
@@ -216,7 +214,7 @@ wire isAllWayValid;
 wire [1:0] updateLfsr;
 
 
-lzp #( .CW(2) ) icache_free_way
+lzp #( .CW(1) ) icache_free_way
 (
 	.in_i(tag_valid),
 	.pos_o(free_way),
@@ -230,16 +228,16 @@ lfsr i_lfsr
 	.CLK(CLK)
 );
 
-wire [1:0] updateWay = isAllWayValid ? updateLfsr : free_way;
+wire updateWay = isAllWayValid ? updateLfsr : free_way;
 
 
-wire [1:0] evicted_en;
+wire evicted_en;
 
 
 
-assign evicted_en = {4{axi_rready_set}} & ( 1 << updateWay );
-assign data_w_en = flush ? 4'b0000 : evicted_en;
-assign tag_w_en = flush ? 4'b1111 : evicted_en;
+assign evicted_en = {2{axi_rready_set}} & ( 1 << updateWay );
+assign data_w_en = flush ? 2'b00 : evicted_en;
+assign tag_w_en = flush ? 2'b11 : evicted_en;
 
 
 
