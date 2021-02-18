@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:39:04
+* @Last Modified time: 2021-02-07 10:02:50
 */
 
 /*
@@ -67,6 +67,8 @@ module lsu #
 	output lsu_writeback_valid,
 	output [63:0] lsu_res_qout,
 	output [(5+`RB-1):0] lsu_rd0_qout,
+
+	output isLsuAccessFault,
 
 	input flush,
 	input CLK,
@@ -143,7 +145,7 @@ gen_dffr # (.DW(DW)) lu_exeparam_hold ( .dnxt(lsu_exeparam_hold_dnxt), .qout(lsu
 	assign lsu_fencei_valid = lsu_exeparam_valid & rv64zi_fence_i;
 
 
-
+	wire accessFault;
 
 
 
@@ -249,7 +251,7 @@ gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu
 
 
 
-	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush;
+	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush & ~accessFault;
 	assign axi_awvalid_rst = ~axi_awvalid_set & (LSU_AWREADY & axi_awvalid_qout);
 	assign axi_wvalid_set = axi_awvalid_set;
 	assign axi_wvalid_rst = ~axi_wvalid_set & (LSU_WREADY & axi_wvalid_qout);	
@@ -271,6 +273,9 @@ gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu
 	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
+
+	assign accessFault = (| lsu_op1[63:32]);
+	gen_dffren # (.DW(1)) AccessFault_dffren ( .dnxt(accessFault), .qout(isLsuAccessFault), .en(lsu_exeparam_valid), .CLK (CLK), .RSTn(RSTn));
 
 
 
