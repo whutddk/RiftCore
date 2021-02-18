@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-18 17:29:30
+* @Last Modified time: 2021-02-18 19:07:54
 */
 
 /*
@@ -153,7 +153,7 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 generate
 	for ( genvar i = 0 ; i < 2; i = i + 1 ) begin
-		gen_sram # (.DW(256), .AW(6) ) data_ram,
+		gen_sram # (.DW(256), .AW(6) ) data_ram
 		(
 
 			.data_w(data_w[256*i +: 256]),
@@ -170,12 +170,12 @@ generate
 
 		);
 
-		gen_sram # (.DW(22), .AW(6) ) tag_ram,
+		gen_sram # (.DW(22), .AW(6) ) tag_ram
 		(
 
 			.data_w(tag_w[22*i +: 22]),
 			.addr_w(address_Sel),
-			.data_wstrb({8{1'b1}}),
+			.data_wstrb({3{1'b1}}),
 			.en_w(tag_w_en[i]),
 
 
