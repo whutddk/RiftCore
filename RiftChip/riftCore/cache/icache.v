@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-18 19:07:54
+* @Last Modified time: 2021-02-19 11:14:00
 */
 
 /*
@@ -129,8 +129,8 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 
 
-	wire isCache_Miss = isCache_Rsp & (&(~tag_hit));
-	wire isCache_Hit  = isCache_Rsp & (| tag_hit);
+	wire isCache_Miss = isCache_Rsp & (&(~isTagHit));
+	wire isCache_Hit  = isCache_Rsp & (| isTagHit);
 
 
 
@@ -143,7 +143,7 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 	wire [22*2-1:0] cache_tag_out;
 	wire [1:0] tag_valid;
 	wire [21*2-1:0] tag_info;
-	wire [1:0] tag_hit;
+	wire [1:0] isTagHit;
 	wire [255:0] data_hit;
 
 	wire [1:0] data_w_en;
@@ -190,7 +190,7 @@ generate
 
 	assign tag_info[21*i +: 21] = cache_tag_out[22*i+:21];
 	assign tag_valid[i] = tag_info[22*i+21];
-	assign tag_hit[i] = (tag_info[21*i +: 21] == tag_Req) & tag_valid[i];
+	assign isTagHit[i] = (tag_info[21*i +: 21] == tag_Req) & tag_valid[i];
 
 	assign data_w[256*i +: 256] = data_w_en[i] ? IFU_RDATA : 256'd0;
 	assign tag_w[22*i +: 22] = flush ? 22'b0 : ({22{evicted_en[i]}} & {1'b1, tag_Req});
@@ -199,9 +199,9 @@ generate
 endgenerate
 
 
-	assign data_hit = 	({256{tag_hit[0]}} & cache_data_out[256*0 +: 256])
+	assign data_hit = 	({256{isTagHit[0]}} & cache_data_out[256*0 +: 256])
 						|
-						({256{tag_hit[1]}} & cache_data_out[256*1 +: 256]);
+						({256{isTagHit[1]}} & cache_data_out[256*1 +: 256]);
 						
 
 

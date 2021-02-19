@@ -48,3 +48,6 @@ tb/ci/*
 tb/ci/.keep
 *.vcd
 sw/download.tcl
+*.~vsdx
+.tags
+.tags_sorted_by_file
