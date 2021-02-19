@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 11:37:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-19 17:26:59
+* @Last Modified time: 2021-02-19 17:39:39
 */
 
 
@@ -97,7 +97,7 @@ module axi_full_mst #
 
 	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
 	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
-	wire axi_wlast_set, axi_wlast_rst, axi_wlast_qout;                                                                                    
+	wire axi_wlast_set, axi_wlast_rst, axi_wlast_qout;
 	wire [7:0] write_index_dnxt;
 	wire [7:0] write_index_qout;
 	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
@@ -147,10 +147,6 @@ module axi_full_mst #
 	
 	assign M_AXI_RREADY	= axi_rready_qout;
 
-                                                       
-	                                                                       
-
-
 
 
 	assign axi_awvalid_set = ~axi_awvalid_qout & start_single_burst_write;
@@ -173,7 +169,6 @@ module axi_full_mst #
 	assign axi_wlast_rst = ~axi_wlast_set & ( wnext | (axi_wlast_qout && C_M_AXI_BURST_LEN == 1) );
 	gen_rsffr axi_wlast_rsffr (.set_in(axi_wlast_set), .rst_in(axi_wlast_rst), .qout(axi_wlast_qout), .CLK(CLK), .RSTn(RSTn));
 
-                                                                                                
 
 	assign write_index_dnxt = start_single_burst_write ? 8'd0 :
 								(
@@ -197,7 +192,7 @@ module axi_full_mst #
 	gen_rsffr axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign rnext = M_AXI_RVALID && axi_rready_qout;                            
+	assign rnext = M_AXI_RVALID && axi_rready_qout;
 
 
 
@@ -213,7 +208,7 @@ module axi_full_mst #
 	gen_rsffr axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign read_resp_error = axi_rready_qout & M_AXI_RVALID & M_AXI_RRESP[1];  
+	assign read_resp_error = axi_rready_qout & M_AXI_RVALID & M_AXI_RRESP[1];
 
 
 
