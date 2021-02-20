@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 14:57:31
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-19 17:15:34
+* @Last Modified time: 2021-02-20 10:07:52
 */
 
 
@@ -214,8 +214,8 @@ module axi_full_slv
 
 
 	
-	assign axi_arready_set = (~axi_arready & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
-	assign axi_arready_rst = ~(~axi_arready & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(axi_rvalid_qout & S_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
+	assign axi_arready_set = (~axi_arready_qout & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
+	assign axi_arready_rst = ~(~axi_arready_qout & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(axi_rvalid_qout & S_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
 	gen_rsffr axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign axi_arv_arr_flag_set = (~axi_arready_qout &  S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);

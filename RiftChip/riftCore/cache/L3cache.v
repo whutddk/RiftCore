@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-19 19:27:02
+* @Last Modified time: 2021-02-20 18:02:56
 */
 
 
@@ -52,175 +52,96 @@ module L3cache
 (
 
 	//form L2cache
-	input [L2C_ID_W-1:0] L2C_AXI_AWID,
-	input [L2C_AW-1:0] L2C_AXI_AWADDR,
-	input [7:0] L2C_AXI_AWLEN,
-	input [2:0] L2C_AXI_AWSIZE,
-	input [1:0] L2C_AXI_AWBURST,
-	input [2:0] L2C_AXI_AWPROT,
-	input L2C_AXI_AWVALID,
-	output L2C_AXI_AWREADY,
+					input [L2C_ID_W-1:0] L2C_AWID,
+					input [L2C_AW-1:0] L2C_AWADDR,
+					input [7:0] L2C_AWLEN,
+					input [2:0] L2C_AWSIZE,
+					input [1:0] L2C_AWBURST,
+					input [2:0] L2C_AWPROT,
+					input L2C_AWVALID,
+					output L2C_AWREADY,
 
-	input [L2C_DW-1:0] L2C_AXI_WDATA,
-	input [(L2C_DW/8)-1:0] L2C_AXI_WSTRB,
-	input L2C_AXI_WLAST,
-	input L2C_AXI_WVALID,
-	output L2C_AXI_WREADY,
+					input [L2C_DW-1:0] L2C_WDATA,
+					input [(L2C_DW/8)-1:0] L2C_WSTRB,
+					input L2C_WLAST,
+					input L2C_WVALID,
+					output L2C_WREADY,
 
-	output [L2C_ID_W-1:0] L2C_AXI_BID,
-	output [1:0] L2C_AXI_BRESP,
-	output L2C_AXI_BVALID,
-	input L2C_AXI_BREADY,
+					output [L2C_ID_W-1:0] L2C_BID,
+					output [1:0] L2C_BRESP,
+					output L2C_BVALID,
+					input L2C_BREADY,
 
-	input [L2C_ID_W-1:0] L2C_AXI_ARID,
-	input [L2C_AW-1:0] L2C_AXI_ARADDR,
-	input [7:0] L2C_AXI_ARLEN,
-	input [2:0] L2C_AXI_ARSIZE,
-	input [1:0] L2C_AXI_ARBURST,
-	input [2:0] L2C_AXI_ARPROT,
-	input L2C_AXI_ARVALID,
-	output L2C_AXI_ARREADY,
+	input [L2C_ID_W-1:0] L2C_ARID,
+	input [L2C_AW-1:0] L2C_ARADDR,
+	input [7:0] L2C_ARLEN,
+	input [2:0] L2C_ARSIZE,
+	input [1:0] L2C_ARBURST,
+	input [2:0] L2C_ARPROT,
+	input L2C_ARVALID,
+	output L2C_ARREADY,
 
-	output [L2C_ID_W-1:0] L2C_AXI_RID,
-	output [L2C_DW-1:0] L2C_AXI_RDATA,
-	output [1:0] L2C_AXI_RRESP,
-	output L2C_AXI_RLAST,
-	output L2C_AXI_RVALID,
-	input L2C_AXI_RREADY,
+	output [L2C_ID_W-1:0] L2C_RID,
+	output [L2C_DW-1:0] L2C_RDATA,
+	output [1:0] L2C_RRESP,
+	output L2C_RLAST,
+	output L2C_RVALID,
+	input L2C_RREADY,
 
 
 	//from DDR
-	output [MEM_ID_W-1:0] MEM_AXI_AWID,
-	output [MEM_AW-1:0] MEM_AXI_AWADDR,
-	output [7:0] MEM_AXI_AWLEN,
-	output [2:0] MEM_AXI_AWSIZE,
-	output [1:0] MEM_AXI_AWBURST,
-	output MEM_AXI_AWLOCK,
-	output [3:0] MEM_AXI_AWCACHE,
-	output [2:0] MEM_AXI_AWPROT,
-	output [3:0] MEM_AXI_AWQOS,
-	output [MEM_USER_W-1:0] MEM_AXI_AWUSER,
-	output MEM_AXI_AWVALID,
-	input MEM_AXI_AWREADY,
+	output [MEM_ID_W-1:0] MEM_AWID,
+	output [MEM_AW-1:0] MEM_AWADDR,
+	output [7:0] MEM_AWLEN,
+	output [2:0] MEM_AWSIZE,
+	output [1:0] MEM_AWBURST,
+	output MEM_AWLOCK,
+	output [3:0] MEM_AWCACHE,
+	output [2:0] MEM_AWPROT,
+	output [3:0] MEM_AWQOS,
+	output [MEM_USER_W-1:0] MEM_AWUSER,
+	output MEM_AWVALID,
+	input MEM_AWREADY,
 
-	output [MEM_DW-1:0] MEM_AXI_WDATA,
-	output [MEM_DW/8-1:0] MEM_AXI_WSTRB,
-	output MEM_AXI_WLAST,
-	output [MEM_USER_W-1:0] MEM_AXI_WUSER,
-	output MEM_AXI_WVALID,
-	input MEM_AXI_WREADY,
+	output [MEM_DW-1:0] MEM_WDATA,
+	output [MEM_DW/8-1:0] MEM_WSTRB,
+	output MEM_WLAST,
+	output [MEM_USER_W-1:0] MEM_WUSER,
+	output MEM_WVALID,
+	input MEM_WREADY,
 
-	input [MEM_ID_W-1:0] MEM_AXI_BID,
-	input [1:0] MEM_AXI_BRESP,
-	input [MEM_USER_W-1:0] MEM_AXI_BUSER,
-	input MEM_AXI_BVALID,
-	output MEM_AXI_BREADY,
+	input [MEM_ID_W-1:0] MEM_BID,
+	input [1:0] MEM_BRESP,
+	input [MEM_USER_W-1:0] MEM_BUSER,
+	input MEM_BVALID,
+	output MEM_BREADY,
 
-	output [MEM_ID_W-1:0] MEM_AXI_ARID,
-	output [MEM_AW-1:0] MEM_AXI_ARADDR,
-	output [7:0] MEM_AXI_ARLEN,
-	output [2:0] MEM_AXI_ARSIZE,
-	output [1:0] MEM_AXI_ARBURST,
-	output MEM_AXI_ARLOCK,
-	output [3:0] MEM_AXI_ARCACHE,
-	output [2:0] MEM_AXI_ARPROT,
-	output [3:0] MEM_AXI_ARQOS,
-	output [MEM_USER_W-1:0] MEM_AXI_ARUSER,
-	output MEM_AXI_ARVALID,
-	input MEM_AXI_ARREADY,
+	output [MEM_ID_W-1:0] MEM_ARID,
+	output [MEM_AW-1:0] MEM_ARADDR,
+	output [7:0] MEM_ARLEN,
+	output [2:0] MEM_ARSIZE,
+	output [1:0] MEM_ARBURST,
+	output MEM_ARLOCK,
+	output [3:0] MEM_ARCACHE,
+	output [2:0] MEM_ARPROT,
+	output [3:0] MEM_ARQOS,
+	output [MEM_USER_W-1:0] MEM_ARUSER,
+	output MEM_ARVALID,
+	input MEM_ARREADY,
 
-	input [MEM_ID_W-1:0] MEM_AXI_RID,
-	input [MEM_DW-1:0] MEM_AXI_RDATA,
-	input [1:0] MEM_AXI_RRESP,
-	input MEM_AXI_RLAST,
-	input [MEM_USER_W-1:0] MEM_AXI_RUSER,
-	input MEM_AXI_RVALID,
-	output MEM_AXI_RREADY,
+	input [MEM_ID_W-1:0] MEM_RID,
+	input [MEM_DW-1:0] MEM_RDATA,
+	input [1:0] MEM_RRESP,
+	input MEM_RLAST,
+	input [MEM_USER_W-1:0] MEM_RUSER,
+	input MEM_RVALID,
+	output MEM_RREADY,
 
 
 	input CLK,
 	input RSTn
 
 );
-
-	localparam ADDR_LSB = $clog2(DATA_WIDTH/8)
-	localparam LINE_W = $clog2(CACHE_LINE);
-	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
-	localparam BANK = 4;
-	localparam BANK_WIDTH = DATA_WIDTH / BANK;
-
-
-wire [31:0] addr_req;
-
-
-wire [$clog2(BANK)-1:0] bank_sel = addr_req[ ADDR_LSB-1 -:  $clog2(BANK)];
-wire [LINE_W-1:0] address_sel = addr_req[ADDR_LSB +: LINE_W];
-wire [TAG_W-1:0] tag_sel = addr_req[31 -: TAG_W];
-
-
-
-
-wire tag_valid;
-wire [ TAG_W - 1 : 0] tag_info;
-wire isTagHit;
-wire [ DATA_WIDTH - 1 : 0] data_hit;
-
-wire [(TAG_W+8) / 8 -1 : 0] tag_data_wstrb;
-wire [DATA_WIDTH/8-1] bank_data_wstrb;
-
-wire [ BANK - 1 : 0 ] bank_en_w;
-wire [ BANK - 1 : 0 ] bank_en_r;
-wire tag_en_w;
-wire tag_en_r;
-
-wire [ DATA_WIDTH - 1 : 0 ] bank_data_w;
-wire [ DATA_WIDTH - 1 : 0 ] bank_data_r;
-wire [ (TAG_W+1) - 1 : 0 ] tag_data_w;
-wire [ (TAG_W+1) - 1 : 0 ] tag_data_r;
-
-wire [LINE_W-1:0] tag_addr_r;
-wire [LINE_W-1:0] tag_addr_w;
-wire [LINE_W-1:0] bank_addr_r;
-wire [LINE_W-1:0] bank_addr_w;
-
-
-
-	gen_sram # ( .DW((TAG_W+1)), .AW(LINE_W)) tag_ram
-	(
-		.data_w(tag_data_w),
-		.addr_w(tag_addr_w),
-		.data_wstrb(tag_data_wstrb),
-		.en_w(tag_en_w),
-
-		.data_r(tag_data_r),
-		.addr_r(tag_addr_r),
-		.en_r(tag_en_r),
-
-		.CLK(CLK)		
-	);
-
-
-
-
-
-	for ( genvar j = 0; j < BANK; j = j + 1 ) begin
-		gen_sram # ( .DW(BANK_WIDTH), .AW(LINE_W)) data_bank_ram
-		(
-			.data_w(bank_data_w[BANK_WIDTH*j +: BANK_WIDTH]),
-			.addr_w(bank_addr_w),
-			.data_wstrb(bank_data_wstrb[BANK_WIDTH/8 * j +: BANK_WIDTH/8]),
-			.en_w(bank_en_w[j]),
-
-			.data_r(bank_data_r[BANK_WIDTH*j +: BANK_WIDTH]),
-			.addr_r(bank_addr_r),
-			.en_r(bank_en_r[j]),
-
-			.CLK(CLK)		
-		);
-
-	end
-
-
 
 
 
@@ -271,176 +192,177 @@ wire [LINE_W-1:0] bank_addr_w;
 	wire [L2C_AW-1:0] ar_wrap_size; 
 	wire aw_wrap_en, ar_wrap_en;
 
-	wire axi_awready_set, axi_awready_rst, axi_awready_qout;
-	wire axi_awv_awr_flag_set, axi_awv_awr_flag_rst, axi_awv_awr_flag_qout;
-	wire [L2C_AW-1:0] axi_awaddr_dnxta;
-	wire [L2C_AW-1:0] axi_awaddr_dnxtb;
-	wire [L2C_AW-1:0] axi_awaddr_qout;
-	wire axi_awaddr_ena, axi_awaddr_enb;
-	wire axi_awburst_en;
-	wire [1:0] axi_awburst_dnxt;
-	wire [1:0] axi_awburst_qout;
-	wire axi_awlen_en;
-	wire [7:0] axi_awlen_dnxt;
-	wire [7:0] axi_awlen_qout;
-	wire [7:0] axi_awlen_cnt_dnxta;
-	wire [7:0] axi_awlen_cnt_dnxtb;
-	wire [7:0] axi_awlen_cnt_qout;
-	wire axi_awlen_cnt_ena, axi_awlen_cnt_enb;
-	wire axi_wready_set, axi_wready_rst, axi_wready_qout;
-	wire axi_bvalid_set, axi_bvalid_rst, axi_bvalid_qout;
-	wire axi_arready_set, axi_arready_rst, axi_arready_qout;
-	wire axi_arv_arr_flag_set, axi_arv_arr_flag_rst, axi_arv_arr_flag_qout;
-	wire [L2C_AW-1:0] axi_araddr_dnxta;
-	wire [L2C_AW-1:0] axi_araddr_dnxtb;
-	wire [L2C_AW-1:0] axi_araddr_qout;
-	wire axi_araddr_ena, axi_araddr_enb, axi_arburst_en;
-	wire [1:0] axi_arburst_dnxt;
-	wire [1:0] axi_arburst_qout;
-	wire axi_arlen_en;
-	wire [7:0] axi_arlen_dnxt;
-	wire [7:0] axi_arlen_qout;
-	wire [7:0] axi_arlen_cnt_dnxta;
-	wire [7:0] axi_arlen_cnt_dnxtb;
-	wire [7:0] axi_arlen_cnt_qout;
-	wire axi_arlen_cnt_ena, axi_arlen_cnt_enb;
-	wire axi_rvalid_set, axi_rvalid_rst, axi_rvalid_qout;
-	wire axi_rlast_set, axi_rlast_rst, axi_rlast_qout;
+	wire l2c_awready_set, l2c_awready_rst, l2c_awready_qout;
+	wire l2c_awv_awr_flag_set, l2c_awv_awr_flag_rst, l2c_awv_awr_flag_qout;
+	wire [L2C_AW-1:0] l2c_awaddr_dnxta;
+	wire [L2C_AW-1:0] l2c_awaddr_dnxtb;
+	wire [L2C_AW-1:0] l2c_awaddr_qout;
+	wire l2c_awaddr_ena, l2c_awaddr_enb;
+	wire l2c_awburst_en;
+	wire [1:0] l2c_awburst_dnxt;
+	wire [1:0] l2c_awburst_qout;
+	wire l2c_awlen_en;
+	wire [7:0] l2c_awlen_dnxt;
+	wire [7:0] l2c_awlen_qout;
+	wire [7:0] l2c_awlen_cnt_dnxta;
+	wire [7:0] l2c_awlen_cnt_dnxtb;
+	wire [7:0] l2c_awlen_cnt_qout;
+	wire l2c_awlen_cnt_ena, l2c_awlen_cnt_enb;
+	wire l2c_wready_set, l2c_wready_rst, l2c_wready_qout;
+	wire l2c_bvalid_set, l2c_bvalid_rst, l2c_bvalid_qout;
+	wire l2c_arready_set, l2c_arready_rst, l2c_arready_qout;
+	wire l2c_arv_arr_flag_set, l2c_arv_arr_flag_rst, l2c_arv_arr_flag_qout;
+	wire [L2C_AW-1:0] l2c_araddr_dnxta;
+	wire [L2C_AW-1:0] l2c_araddr_dnxtb;
+	wire [L2C_AW-1:0] l2c_araddr_qout;
+	wire l2c_araddr_ena, l2c_araddr_enb, l2c_arburst_en;
+	wire [1:0] l2c_arburst_dnxt;
+	wire [1:0] l2c_arburst_qout;
+	wire l2c_arlen_en;
+	wire [7:0] l2c_arlen_dnxt;
+	wire [7:0] l2c_arlen_qout;
+	wire [7:0] l2c_arlen_cnt_dnxta;
+	wire [7:0] l2c_arlen_cnt_dnxtb;
+	wire [7:0] l2c_arlen_cnt_qout;
+	wire l2c_arlen_cnt_ena, l2c_arlen_cnt_enb;
+	wire l2c_rvalid_set, l2c_rvalid_rst, l2c_rvalid_qout;
+	wire l2c_rlast_set, l2c_rlast_rst, l2c_rlast_qout;
 
 
-	assign L2C_AXI_AWREADY = axi_awready_qout;
-	assign L2C_AXI_WREADY	= axi_wready_qout;
-	assign L2C_AXI_BRESP = 2'b00;
-	assign L2C_AXI_BUSER = 'b0;
-	assign L2C_AXI_BVALID	= axi_bvalid_qout;
-	assign L2C_AXI_ARREADY = axi_arready_qout;
-	assign L2C_AXI_RDATA = ;
-	assign L2C_AXI_RRESP = 2'b00;
-	assign L2C_AXI_RLAST = axi_rlast_qout;
-	assign L2C_AXI_RUSER = 'd0;
-	assign L2C_AXI_RVALID	= axi_rvalid_qout;
-	assign L2C_AXI_BID = L2C_AXI_AWID;
-	assign L2C_AXI_RID = L2C_AXI_ARID;
-	assign aw_wrap_size = (L2C_DW/8 * (axi_awlen_qout)); 
-	assign ar_wrap_size = (L2C_DW/8 * (axi_arlen_qout)); 
-	assign aw_wrap_en = ((axi_awaddr_qout & aw_wrap_size) == aw_wrap_size) ? 1'b1 : 1'b0;
-	assign ar_wrap_en = ((axi_araddr_qout & ar_wrap_size) == ar_wrap_size) ? 1'b1 : 1'b0;
-
-
+	assign L2C_AWREADY = l2c_awready_qout;
+	assign L2C_WREADY	= l2c_wready_qout;
+	assign L2C_BRESP = 2'b00;
+	assign L2C_BUSER = 'b0;
+	assign L2C_BVALID	= l2c_bvalid_qout;
+	assign L2C_ARREADY = l2c_arready_qout;
+	assign L2C_RRESP = 2'b00;
+	assign L2C_RLAST = l2c_rlast_qout;
+	assign L2C_RUSER = 'd0;
+	assign L2C_RVALID	= l2c_rvalid_qout;
+	assign L2C_BID = L2C_AWID;
+	assign L2C_RID = L2C_ARID;
+	assign aw_wrap_size = (L2C_DW/8 * (l2c_awlen_qout)); 
+	assign ar_wrap_size = (L2C_DW/8 * (l2c_arlen_qout)); 
+	assign aw_wrap_en = ((l2c_awaddr_qout & aw_wrap_size) == aw_wrap_size) ? 1'b1 : 1'b0;
+	assign ar_wrap_en = ((l2c_araddr_qout & ar_wrap_size) == ar_wrap_size) ? 1'b1 : 1'b0;
 
 
 
-	assign axi_awready_set =  (~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
-	assign axi_awready_rst = ~(~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(L2C_AXI_WLAST & axi_wready_qout);
-	gen_rsffr axi_awready_rsffr (.set_in(axi_awready_set), .rst_in(axi_awready_rst), .qout(axi_awready_qout), .CLK(CLK), .RSTn(RSTn));
+	wire l3c_aw_rsp;
+	wire l3c_ar_rsp;
 
-	assign axi_awv_awr_flag_set = (~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
-	assign axi_awv_awr_flag_rst = ( axi_awready_qout | ~L2C_AXI_AWVALID | axi_awv_awr_flag_qout |  axi_arv_arr_flag_qout) & (L2C_AXI_WLAST & axi_wready_qout);
-	gen_rsffr axi_awv_awr_flag_rsffr (.set_in(axi_awv_awr_flag_set), .rst_in(axi_awv_awr_flag_rst), .qout(axi_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_awready_set =  l3c_aw_rsp;
+	assign l2c_awready_rst = ~l3c_aw_rsp & ~(L2C_WLAST & l2c_wready_qout);
+	gen_rsffr l2c_awready_rsffr (.set_in(l2c_awready_set), .rst_in(l2c_awready_rst), .qout(l2c_awready_qout), .CLK(CLK), .RSTn(RSTn));
 
-	assign axi_awaddr_dnxta = L2C_AXI_AWADDR;
-	assign axi_awaddr_dnxtb = ( {L2C_AW{axi_awburst == 2'b00}} & axi_awaddr_qout )
+	assign l2c_awv_awr_flag_set =  l3c_aw_rsp;
+	assign l2c_awv_awr_flag_rst = ~l3c_aw_rsp & (L2C_WLAST & l2c_wready_qout);
+	gen_rsffr l2c_awv_awr_flag_rsffr (.set_in(l2c_awv_awr_flag_set), .rst_in(l2c_awv_awr_flag_rst), .qout(l2c_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+
+	assign l2c_awaddr_dnxta = L2C_AWADDR;
+	assign l2c_awaddr_dnxtb = ( {L2C_AW{l2c_awburst == 2'b00}} & l2c_awaddr_qout )
 							| 
-							( {L2C_AW{axi_awburst == 2'b01}} & axi_awaddr_qout + (1<<ADDR_LSB) )
+							( {L2C_AW{l2c_awburst == 2'b01}} & l2c_awaddr_qout + (1<<ADDR_LSB) )
 							|
-							( {L2C_AW{axi_awburst == 2'b10}} & 
+							( {L2C_AW{l2c_awburst == 2'b10}} & 
 								(
-									{L2C_AW{ aw_wrap_en}} & (axi_awaddr_qout - aw_wrap_size)
+									{L2C_AW{ aw_wrap_en}} & (l2c_awaddr_qout - aw_wrap_size)
 									|
-									{L2C_AW{~aw_wrap_en}} & (axi_awaddr_qout + (1<<ADDR_LSB) )
+									{L2C_AW{~aw_wrap_en}} & (l2c_awaddr_qout + (1<<ADDR_LSB) )
 								)
 							);
-	assign axi_awaddr_ena = ~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout;
-	assign axi_awaddr_enb = (axi_awlen_cnt_qout <= axi_awlen_qout) & axi_wready_qout & L2C_AXI_WVALID;
-	gen_dpdffren # (.DW(L2C_AW)) axi_awaddr_dpdffren( .dnxta(axi_awaddr_dnxta), .ena(axi_awaddr_ena), .dnxtb(axi_awaddr_dnxtb), .enb(axi_awaddr_enb), .qout(axi_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	assign l2c_awaddr_ena = l3c_aw_rsp;
+	assign l2c_awaddr_enb = (l2c_awlen_cnt_qout <= l2c_awlen_qout) & l2c_wready_qout & L2C_WVALID;
+	gen_dpdffren # (.DW(L2C_AW)) l2c_awaddr_dpdffren( .dnxta(l2c_awaddr_dnxta), .ena(l2c_awaddr_ena), .dnxtb(l2c_awaddr_dnxtb), .enb(l2c_awaddr_enb), .qout(l2c_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
-	assign axi_awburst_en = (~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout);
-	assign axi_awburst_dnxt = L2C_AXI_AWBURST;
-	gen_dffren # (.DW(2)) axi_awburst_dffren (.dnxt(axi_awburst_dnxt), .qout(axi_awburst_qout), .en(axi_awburst_en), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-	assign axi_awlen_en = ~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout;
-	assign axi_awlen_dnxt = L2C_AXI_AWLEN;
-	gen_dffren # (.DW(8)) axi_awlen_dffren (.dnxt(axi_awlen_dnxt), .qout(axi_awlen_qout), .en(axi_awlen_en), .CLK(CLK), .RSTn(RSTn));
-
-
-	assign axi_awlen_cnt_dnxta = 8'd0;
-	assign axi_awlen_cnt_dnxtb = axi_awlen_cnt_qout + 8'd1;
-	assign axi_awlen_cnt_ena = ~axi_awready_qout & L2C_AXI_AWVALID & ~axi_awv_awr_flag_qout;
-	assign axi_awlen_cnt_enb = (axi_awlen_cnt_qout <= axi_awlen_qout) & axi_wready_qout & L2C_AXI_WVALID;
-	gen_dpdffren # (.DW(8)) axi_awlen_cnt_dpdffren( .dnxta(axi_awlen_cnt_dnxta), .ena(axi_awlen_cnt_ena), .dnxtb(axi_awlen_cnt_dnxtb), .enb(axi_awlen_cnt_enb), .qout(axi_awlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
-
-
-	assign axi_wready_set = ~axi_wready_qout & L2C_AXI_WVALID & axi_awv_awr_flag_qout;
-	assign axi_wready_rst =  axi_wready_qout & L2C_AXI_WLAST;
-	gen_rsffr axi_wready_rsffr (.set_in(axi_wready_set), .rst_in(axi_wready_rst), .qout(axi_wready_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_awburst_en = l3c_aw_rsp;
+	assign l2c_awburst_dnxt = L2C_AWBURST;
+	gen_dffren # (.DW(2)) l2c_awburst_dffren (.dnxt(l2c_awburst_dnxt), .qout(l2c_awburst_qout), .en(l2c_awburst_en), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign axi_bvalid_set = ~axi_bvalid_qout & axi_awv_awr_flag_qout & axi_wready_qout & L2C_AXI_WVALID & L2C_AXI_WLAST;
-	assign axi_bvalid_rst =  axi_bvalid_qout & L2C_AXI_BREADY;
-	gen_rsffr axi_bvalid_rsffr (.set_in(axi_bvalid_set), .rst_in(axi_bvalid_rst), .qout(axi_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
+
+	assign l2c_awlen_en = l3c_aw_rsp;
+	assign l2c_awlen_dnxt = L2C_AWLEN;
+	gen_dffren # (.DW(8)) l2c_awlen_dffren (.dnxt(l2c_awlen_dnxt), .qout(l2c_awlen_qout), .en(l2c_awlen_en), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign l2c_awlen_cnt_dnxta = 8'd0;
+	assign l2c_awlen_cnt_dnxtb = l2c_awlen_cnt_qout + 8'd1;
+	assign l2c_awlen_cnt_ena = l3c_aw_rsp;
+	assign l2c_awlen_cnt_enb = (l2c_awlen_cnt_qout <= l2c_awlen_qout) & l2c_wready_qout & L2C_WVALID;
+	gen_dpdffren # (.DW(8)) l2c_awlen_cnt_dpdffren( .dnxta(l2c_awlen_cnt_dnxta), .ena(l2c_awlen_cnt_ena), .dnxtb(l2c_awlen_cnt_dnxtb), .enb(l2c_awlen_cnt_enb), .qout(l2c_awlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
+
+
+	assign l2c_wready_set = ~l2c_wready_qout & L2C_WVALID & l2c_awv_awr_flag_qout;
+	assign l2c_wready_rst =  l2c_wready_qout & L2C_WLAST;
+	gen_rsffr l2c_wready_rsffr (.set_in(l2c_wready_set), .rst_in(l2c_wready_rst), .qout(l2c_wready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+	assign l2c_bvalid_set = ~l2c_bvalid_qout & l2c_awv_awr_flag_qout & l2c_wready_qout & L2C_WVALID & L2C_WLAST;
+	assign l2c_bvalid_rst =  l2c_bvalid_qout & L2C_BREADY;
+	gen_rsffr l2c_bvalid_rsffr (.set_in(l2c_bvalid_set), .rst_in(l2c_bvalid_rst), .qout(l2c_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
+
 
 
 
 
 	
-	assign axi_arready_set = (~axi_arready & L2C_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
-	assign axi_arready_rst = ~(~axi_arready & L2C_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(axi_rvalid_qout & L2C_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
-	gen_rsffr axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_arready_set =  l3c_ar_rsp;
+	assign l2c_arready_rst = ~l3c_ar_rsp & ~(l2c_rvalid_qout & L2C_RREADY & l2c_arlen_cnt_qout == l2c_arlen_qout);
+	gen_rsffr l2c_arready_rsffr (.set_in(l2c_arready_set), .rst_in(l2c_arready_rst), .qout(l2c_arready_qout), .CLK(CLK), .RSTn(RSTn));
 
-	assign axi_arv_arr_flag_set = (~axi_arready_qout &  L2C_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
-	assign axi_arv_arr_flag_rst = ( axi_arready_qout | ~L2C_AXI_ARVALID |  axi_awv_awr_flag_qout |  axi_arv_arr_flag_qout) & (axi_rvalid_qout & L2C_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
-	gen_rsffr axi_arv_arr_flag_rsffr (.set_in(axi_arv_arr_flag_set), .rst_in(axi_arv_arr_flag_rst), .qout(axi_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_arv_arr_flag_set =  l3c_ar_rsp;
+	assign l2c_arv_arr_flag_rst = ~l3c_ar_rsp & (l2c_rvalid_qout & L2C_RREADY & l2c_arlen_cnt_qout == l2c_arlen_qout);
+	gen_rsffr l2c_arv_arr_flag_rsffr (.set_in(l2c_arv_arr_flag_set), .rst_in(l2c_arv_arr_flag_rst), .qout(l2c_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign axi_araddr_dnxta = L2C_AXI_ARADDR;
-	assign axi_araddr_dnxtb = ({L2C_AW{axi_arburst_qout == 2'b00}} & axi_araddr_qout)
+	assign l2c_araddr_dnxta = L2C_ARADDR;
+	assign l2c_araddr_dnxtb = ({L2C_AW{l2c_arburst_qout == 2'b00}} & l2c_araddr_qout)
 							|
-							({L2C_AW{axi_arburst_qout == 2'b01}} & axi_araddr_qout + (1<<ADDR_LSB))
+							({L2C_AW{l2c_arburst_qout == 2'b01}} & l2c_araddr_qout + (1<<ADDR_LSB))
 							|
-							({L2C_AW{axi_arburst_qout == 2'b10}} & 
+							({L2C_AW{l2c_arburst_qout == 2'b10}} & 
 								(
-									({L2C_AW{ ar_wrap_en}} & (axi_araddr_qout - ar_wrap_size) )
+									({L2C_AW{ ar_wrap_en}} & (l2c_araddr_qout - ar_wrap_size) )
 									|
-									({L2C_AW{~ar_wrap_en}} & (axi_araddr_qout + (1<<ADDR_LSB)))
+									({L2C_AW{~ar_wrap_en}} & (l2c_araddr_qout + (1<<ADDR_LSB)))
 								)
 							);
-	assign axi_araddr_ena = (~axi_arready_qout & L2C_AXI_ARVALID & ~axi_arv_arr_flag_qout);
-	assign axi_araddr_enb = ((axi_arlen_cnt_qout <= axi_arlen_qout) & axi_rvalid_qout & L2C_AXI_RREADY);
-	gen_dpdffren # (.DW(L2C_AW)) axi_araddr_dpdffren( .dnxta(axi_araddr_dnxta), .ena(axi_araddr_ena), .dnxtb(axi_araddr_dnxtb), .enb(axi_araddr_enb), .qout(axi_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	assign l2c_araddr_ena = l3c_ar_rsp;
+	assign l2c_araddr_enb = ((l2c_arlen_cnt_qout <= l2c_arlen_qout) & l2c_rvalid_qout & L2C_RREADY);
+	gen_dpdffren # (.DW(L2C_AW)) l2c_araddr_dpdffren( .dnxta(l2c_araddr_dnxta), .ena(l2c_araddr_ena), .dnxtb(l2c_araddr_dnxtb), .enb(l2c_araddr_enb), .qout(l2c_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
 	
-	assign axi_arburst_en = (~axi_arready_qout & L2C_AXI_ARVALID & ~axi_arv_arr_flag_qout);
-	assign axi_arburst_dnxt = L2C_AXI_ARBURST;
-	gen_dffren # (.DW(2)) axi_arburst_dffren (.dnxt(axi_arburst_dnxt), .qout(axi_arburst_qout), .en(axi_arburst_en), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_arburst_en = l3c_ar_rsp;
+	assign l2c_arburst_dnxt = L2C_ARBURST;
+	gen_dffren # (.DW(2)) l2c_arburst_dffren (.dnxt(l2c_arburst_dnxt), .qout(l2c_arburst_qout), .en(l2c_arburst_en), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_arlen_en = (~axi_arready_qout && L2C_AXI_ARVALID && ~axi_arv_arr_flag_qout);
-	assign axi_arlen_dnxt = L2C_AXI_ARLEN;
-	gen_dffren # (.DW(8)) axi_arlen_dffren (.dnxt(axi_arlen_dnxt), .qout(axi_arlen_qout), .en(axi_arlen_en), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_arlen_en = l3c_ar_rsp;
+	assign l2c_arlen_dnxt = L2C_ARLEN;
+	gen_dffren # (.DW(8)) l2c_arlen_dffren (.dnxt(l2c_arlen_dnxt), .qout(l2c_arlen_qout), .en(l2c_arlen_en), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_rlast_set = ((axi_arlen_cnt_qout == axi_arlen_qout) & ~axi_rlast_qout & axi_arv_arr_flag_qout )  ;
-	assign axi_rlast_rst = (~axi_arready_qout & L2C_AXI_ARVALID & ~axi_arv_arr_flag_qout) | (((axi_arlen_cnt_qout <= axi_arlen_qout) | axi_rlast_qout | ~axi_arv_arr_flag_qout ) & (L2C_AXI_RREADY));
-	gen_rsffr axi_rlast_rsffr (.set_in(axi_rlast_set), .rst_in(axi_rlast_rst), .qout(axi_rlast_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-
-	assign axi_arlen_cnt_dnxta = 8'd0;
-	assign axi_arlen_cnt_dnxtb = axi_arlen_cnt_qout + 8'd1;
-	assign axi_arlen_cnt_ena = (~axi_arready_qout & L2C_AXI_ARVALID & ~axi_arv_arr_flag_qout);
-	assign axi_arlen_cnt_enb = ((axi_arlen_cnt_qout <= axi_arlen_qout) & axi_rvalid_qout & L2C_AXI_RREADY);
-	gen_dpdffren # (.DW(8)) axi_arlen_cnt_dpdffren( .dnxta(axi_arlen_cnt_dnxta), .ena(axi_arlen_cnt_ena), .dnxtb(axi_arlen_cnt_dnxtb), .enb(axi_arlen_cnt_enb), .qout(axi_arlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
+	assign l2c_rlast_set = ((l2c_arlen_cnt_qout == l2c_arlen_qout) & ~l2c_rlast_qout & l2c_arv_arr_flag_qout )  ;
+	assign l2c_rlast_rst = l3c_ar_rsp | (((l2c_arlen_cnt_qout <= l2c_arlen_qout) | l2c_rlast_qout | ~l2c_arv_arr_flag_qout ) & (L2C_RREADY));
+	gen_rsffr l2c_rlast_rsffr (.set_in(l2c_rlast_set), .rst_in(l2c_rlast_rst), .qout(l2c_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign axi_rvalid_set = ~axi_rvalid_qout & axi_arv_arr_flag_qout;
-	assign axi_rvalid_rst =  axi_rvalid_qout & L2C_AXI_RREADY;
-	gen_rsffr axi_rvalid_rsffr (.set_in(axi_rvalid_set), .rst_in(axi_rvalid_rst), .qout(axi_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_arlen_cnt_dnxta = 8'd0;
+	assign l2c_arlen_cnt_dnxtb = l2c_arlen_cnt_qout + 8'd1;
+	assign l2c_arlen_cnt_ena = l3c_ar_rsp;
+	assign l2c_arlen_cnt_enb = ((l2c_arlen_cnt_qout <= l2c_arlen_qout) & l2c_rvalid_qout & L2C_RREADY);
+	gen_dpdffren # (.DW(8)) l2c_arlen_cnt_dpdffren( .dnxta(l2c_arlen_cnt_dnxta), .ena(l2c_arlen_cnt_ena), .dnxtb(l2c_arlen_cnt_dnxtb), .enb(l2c_arlen_cnt_enb), .qout(l2c_arlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
+
+
+
+	assign l2c_rvalid_set = ~l2c_rvalid_qout & l2c_arv_arr_flag_qout;
+	assign l2c_rvalid_rst =  l2c_rvalid_qout & L2C_RREADY;
+	gen_rsffr l2c_rvalid_rsffr (.set_in(l2c_rvalid_set), .rst_in(l2c_rvalid_rst), .qout(l2c_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -494,124 +416,120 @@ wire [LINE_W-1:0] bank_addr_w;
 
 
 
-
-	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
-	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
-	wire axi_wlast_set, axi_wlast_rst, axi_wlast_qout;
+	wire mem_awvalid_set, mem_awvalid_rst, mem_awvalid_qout;
+	wire mem_wvalid_set, mem_wvalid_rst, mem_wvalid_qout;
+	wire mem_wlast_set, mem_wlast_rst, mem_wlast_qout;
 	wire [7:0] write_index_dnxt;
 	wire [7:0] write_index_qout;
-	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
-	wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
+	wire mem_bready_set, mem_bready_rst, mem_bready_qout;
+	wire mem_arvalid_set, mem_arvalid_rst, mem_arvalid_qout;
 	wire [7:0] read_index_dnxt;
 	wire [7:0] read_index_qout;
-	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
+	wire mem_rready_set, mem_rready_rst, mem_rready_qout;
 	wire wnext, rnext;
 	wire write_resp_error, read_resp_error;
-	wire start_single_burst_read, start_single_burst_write;
+	wire mem_aw_req, mem_ar_req;
 
 
-	assign MEMEM_AXI_AWID = 'b0;
-	assign MEMEM_AXI_AWADDR	= ;
-	assign MEMEM_AXI_AWLEN = 8'd63;
-	assign MEMEM_AXI_AWSIZE	= $clog2(MEM_DW/8);
-	assign MEMEM_AXI_AWBURST = 2'b01;
-	assign MEMEM_AXI_AWLOCK	= 1'b0;
-	assign MEMEM_AXI_AWCACHE = 4'b0000;
-	assign MEM_AXI_AWPROT	= 3'h0;
-	assign MEM_AXI_AWQOS = 4'h0;
-	assign MEM_AXI_AWUSER	= 'b1;
-	assign MEM_AXI_AWVALID = axi_awvalid_qout;
+	assign MEM_AWID = 'b0;
 
-	assign MEM_AXI_WDATA = ;
-	assign MEM_AXI_WSTRB = {(MEM_DW/8){1'b1}};
-	assign MEM_AXI_WLAST = axi_wlast_qout;
-	assign MEM_AXI_WUSER = 'b0;
-	assign MEM_AXI_WVALID = axi_wvalid_qout;
-
-	assign MEM_AXI_BREADY = axi_bready_qout;
+	assign MEM_AWLEN = 8'd63;
+	assign MEM_AWSIZE	= $clog2(MEM_DW/8);
+	assign MEM_AWBURST = 2'b01;
+	assign MEM_AWLOCK	= 1'b0;
+	assign MEM_AWCACHE = 4'b0000;
+	assign MEM_AWPROT	= 3'h0;
+	assign MEM_AWQOS = 4'h0;
+	assign MEM_AWUSER	= 'b1;
+	assign MEM_AWVALID = mem_awvalid_qout;
 
 
-	assign MEM_AXI_ARID = 'b0;
-	assign MEM_AXI_ARADDR = ;
+	assign MEM_WSTRB = {(MEM_DW/8){1'b1}};
+	assign MEM_WLAST = mem_wlast_qout;
+	assign MEM_WUSER = 'b0;
+	assign MEM_WVALID = mem_wvalid_qout;
+
+	assign MEM_BREADY = mem_bready_qout;
+
+
+	assign MEM_ARID = 'b0;
+
 	
-	assign MEM_AXI_ARLEN = 8'd63;
-	assign MEM_AXI_ARSIZE = $clog2(MEM_DW/8);
-	assign MEM_AXI_ARBURST = 2'b01;
-	assign MEM_AXI_ARLOCK = 1'b0;
+	assign MEM_ARLEN = 8'd63;
+	assign MEM_ARSIZE = $clog2(MEM_DW/8);
+	assign MEM_ARBURST = 2'b01;
+	assign MEM_ARLOCK = 1'b0;
 	
-	assign MEM_AXI_ARCACHE = 4'b0000;
-	assign MEM_AXI_ARPROT = 3'h0;
-	assign MEM_AXI_ARQOS = 4'h0;
-	assign MEM_AXI_ARUSER = 'b1;
-	assign MEM_AXI_ARVALID = axi_arvalid_qout;
+	assign MEM_ARCACHE = 4'b0000;
+	assign MEM_ARPROT = 3'h0;
+	assign MEM_ARQOS = 4'h0;
+	assign MEM_ARUSER = 'b1;
+	assign MEM_ARVALID = mem_arvalid_qout;
 	
-	assign MEM_AXI_RREADY = axi_rready_qout;
+	assign MEM_RREADY = mem_rready_qout;
 
 
 
-	assign axi_awvalid_set = ~axi_awvalid_qout & start_single_burst_write;
-	assign axi_awvalid_rst =  axi_awvalid_qout & MEM_AXI_AWREADY ;
-	gen_rsffr axi_awvalid_rsffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_awvalid_set = ~mem_awvalid_qout & mem_aw_req;
+	assign mem_awvalid_rst =  mem_awvalid_qout & MEM_AWREADY ;
+	gen_rsffr mem_awvalid_rsffr (.set_in(mem_awvalid_set), .rst_in(mem_awvalid_rst), .qout(mem_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign wnext = MEM_AXI_WREADY & axi_wvalid_qout;
+	assign wnext = MEM_WREADY & mem_wvalid_qout;
 
 
-	assign axi_wvalid_set = (~axi_wvalid_qout & start_single_burst_write);
-	assign axi_wvalid_rst = (wnext & axi_wlast_qout) ;
-	gen_rsffr axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_wvalid_set = (~mem_wvalid_qout & mem_aw_req);
+	assign mem_wvalid_rst = (wnext & mem_wlast_qout) ;
+	gen_rsffr mem_wvalid_rsffr (.set_in(mem_wvalid_set), .rst_in(mem_wvalid_rst), .qout(mem_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
-	assign axi_wlast_set = ((write_index_qout == C_MEM_AXI_BURST_LEN-2 && C_MEM_AXI_BURST_LEN >= 2) && wnext) || (C_MEM_AXI_BURST_LEN == 1 );
-	assign axi_wlast_rst = ~axi_wlast_set & ( wnext | (axi_wlast_qout && C_MEM_AXI_BURST_LEN == 1) );
-	gen_rsffr axi_wlast_rsffr (.set_in(axi_wlast_set), .rst_in(axi_wlast_rst), .qout(axi_wlast_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_wlast_set = ((write_index_qout == C_MEM_BURST_LEN-2 && C_MEM_BURST_LEN >= 2) && wnext) || (C_MEM_BURST_LEN == 1 );
+	assign mem_wlast_rst = ~mem_wlast_set & ( wnext | (mem_wlast_qout && C_MEM_BURST_LEN == 1) );
+	gen_rsffr mem_wlast_rsffr (.set_in(mem_wlast_set), .rst_in(mem_wlast_rst), .qout(mem_wlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign write_index_dnxt = start_single_burst_write ? 8'd0 :
+	assign write_index_dnxt = mem_aw_req ? 8'd0 :
 								(
-									(wnext && (write_index_qout != C_MEM_AXI_BURST_LEN-1)) ? (write_index_qout + 8'd1) : write_index_qout
+									(wnext && (write_index_qout != C_MEM_BURST_LEN-1)) ? (write_index_qout + 8'd1) : write_index_qout
 								);							
 	gen_dffr # (.DW(8)) write_index_dffr (.dnxt(write_index_dnxt), .qout(write_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_bready_set = (MEM_AXI_BVALID && ~axi_bready_qout);
-	assign axi_bready_rst = axi_bready_qout;
-	gen_rsffr axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_bready_set = (MEM_BVALID && ~mem_bready_qout);
+	assign mem_bready_rst = mem_bready_qout;
+	gen_rsffr mem_bready_rsffr (.set_in(mem_bready_set), .rst_in(mem_bready_rst), .qout(mem_bready_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign write_resp_error = axi_bready_qout & MEM_AXI_BVALID & MEM_AXI_BRESP[1]; 
+	assign write_resp_error = mem_bready_qout & MEM_BVALID & MEM_BRESP[1]; 
 
 
 
 
-	assign axi_arvalid_set = ~axi_arvalid_qout & start_single_burst_read;
-	assign axi_arvalid_rst = axi_arvalid_qout & MEM_AXI_ARREADY ;
-	gen_rsffr axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_arvalid_set = ~mem_arvalid_qout & mem_ar_req;
+	assign mem_arvalid_rst = mem_arvalid_qout & MEM_ARREADY ;
+	gen_rsffr mem_arvalid_rsffr (.set_in(mem_arvalid_set), .rst_in(mem_arvalid_rst), .qout(mem_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign rnext = MEM_AXI_RVALID && axi_rready_qout;
+	assign rnext = MEM_RVALID && mem_rready_qout;
 
 
 
-	assign read_index_dnxt = start_single_burst_read ? 8'd0 :
+	assign read_index_dnxt = mem_ar_req ? 8'd0 :
 								(
-									(rnext & (read_index != C_MEM_AXI_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
+									(rnext & (read_index != C_MEM_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
 								);							
 	gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_rready_set = MEM_AXI_RVALID & (~MEM_AXI_RLAST | ~axi_rready_qout);
-	assign axi_rready_rst = MEM_AXI_RVALID &   MEM_AXI_RLAST &  axi_rready_qout;
-	gen_rsffr axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_rready_set = MEM_RVALID & (~MEM_RLAST | ~mem_rready_qout);
+	assign mem_rready_rst = MEM_RVALID &   MEM_RLAST &  mem_rready_qout;
+	gen_rsffr mem_rready_rsffr (.set_in(mem_rready_set), .rst_in(mem_rready_rst), .qout(mem_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign read_resp_error = axi_rready_qout & MEM_AXI_RVALID & MEM_AXI_RRESP[1];
-
-
-
+	assign read_resp_error = mem_rready_qout & MEM_RVALID & MEM_RRESP[1];
 
 
 
@@ -631,6 +549,281 @@ wire [LINE_W-1:0] bank_addr_w;
 
 
 
+
+
+// BBBBBBBBBBBBBBBBB   RRRRRRRRRRRRRRRRR                  AAA               MMMMMMMM               MMMMMMMM
+// B::::::::::::::::B  R::::::::::::::::R                A:::A              M:::::::M             M:::::::M
+// B::::::BBBBBB:::::B R::::::RRRRRR:::::R              A:::::A             M::::::::M           M::::::::M
+// BB:::::B     B:::::BRR:::::R     R:::::R            A:::::::A            M:::::::::M         M:::::::::M
+//   B::::B     B:::::B  R::::R     R:::::R           A:::::::::A           M::::::::::M       M::::::::::M
+//   B::::B     B:::::B  R::::R     R:::::R          A:::::A:::::A          M:::::::::::M     M:::::::::::M
+//   B::::BBBBBB:::::B   R::::RRRRRR:::::R          A:::::A A:::::A         M:::::::M::::M   M::::M:::::::M
+//   B:::::::::::::BB    R:::::::::::::RR          A:::::A   A:::::A        M::::::M M::::M M::::M M::::::M
+//   B::::BBBBBB:::::B   R::::RRRRRR:::::R        A:::::A     A:::::A       M::::::M  M::::M::::M  M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R      A:::::AAAAAAAAA:::::A      M::::::M   M:::::::M   M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R     A:::::::::::::::::::::A     M::::::M    M:::::M    M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R    A:::::AAAAAAAAAAAAA:::::A    M::::::M     MMMMM     M::::::M
+// BB:::::BBBBBB::::::BRR:::::R     R:::::R   A:::::A             A:::::A   M::::::M               M::::::M
+// B:::::::::::::::::B R::::::R     R:::::R  A:::::A               A:::::A  M::::::M               M::::::M
+// B::::::::::::::::B  R::::::R     R:::::R A:::::A                 A:::::A M::::::M               M::::::M
+// BBBBBBBBBBBBBBBBB   RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAAMMMMMMMM               MMMMMMMM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	localparam ADDR_LSB = $clog2(DATA_WIDTH/8)
+	localparam LINE_W = $clog2(CACHE_LINE);
+	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
+	localparam BANK = 4;
+	localparam BANK_WIDTH = DATA_WIDTH / BANK;
+
+
+wire [31:0] addr_req;
+
+
+wire [$clog2(BANK)-1:0] bank_sel = addr_req[ ADDR_LSB-1 -:  $clog2(BANK)];
+wire [LINE_W-1:0] address_sel = addr_req[ADDR_LSB +: LINE_W];
+wire [TAG_W-1:0] tag_sel = addr_req[31 -: TAG_W];
+
+
+
+
+wire tag_valid_w;
+wire tag_valid_r;
+wire [ TAG_W - 1 : 0] tag_info_w;
+wire [ TAG_W - 1 : 0] tag_info_r;
+wire isTagHit;
+wire [ DATA_WIDTH - 1 : 0] data_hit;
+
+wire [(TAG_W+8) / 8 -1 : 0] tag_data_wstrb;
+wire [DATA_WIDTH/8-1] bank_data_wstrb;
+
+wire [ BANK - 1 : 0 ] bank_en_w;
+wire [ BANK - 1 : 0 ] bank_en_r;
+wire tag_en_w;
+wire tag_en_r;
+
+wire [ DATA_WIDTH - 1 : 0 ] bank_data_w;
+wire [ DATA_WIDTH - 1 : 0 ] bank_data_r;
+wire [ (TAG_W+1) - 1 : 0 ] tag_data_w;
+wire [ (TAG_W+1) - 1 : 0 ] tag_data_r;
+
+wire [LINE_W-1:0] tag_addr_r;
+wire [LINE_W-1:0] tag_addr_w;
+wire [LINE_W-1:0] bank_addr_r;
+wire [LINE_W-1:0] bank_addr_w;
+
+
+
+	gen_sram # ( .DW((TAG_W+1)), .AW(LINE_W)) tag_ram
+	(
+		.data_w(tag_data_w),
+		.addr_w(tag_addr_w),
+		.data_wstrb(tag_data_wstrb),
+		.en_w(tag_en_w),
+
+		.data_r(tag_data_r),
+		.addr_r(tag_addr_r),
+		.en_r(tag_en_r),
+
+		.CLK(CLK)		
+	);
+
+
+
+	for ( genvar j = 0; j < BANK; j = j + 1 ) begin
+		gen_sram # ( .DW(BANK_WIDTH), .AW(LINE_W)) data_bank_ram
+		(
+			.data_w(bank_data_w[BANK_WIDTH*j +: BANK_WIDTH]),
+			.addr_w(bank_addr_w),
+			.data_wstrb(bank_data_wstrb[BANK_WIDTH/8 * j +: BANK_WIDTH/8]),
+			.en_w(bank_en_w[j]),
+
+			.data_r(bank_data_r[BANK_WIDTH*j +: BANK_WIDTH]),
+			.addr_r(bank_addr_r),
+			.en_r(bank_en_r[j]),
+
+			.CLK(CLK)		
+		);
+
+	end
+
+assign tag_data_w = {tag_valid_w, tag_info_w};
+assign tag_data_wstrb = {(TAG_W+1){1'b1}};
+assign {tag_valid_r, tag_info_r} = tag_data_r;
+
+
+
+
+
+wire isL2cReq;
+wire isL2cRead;
+wire isl2cWrite;
+
+wire isCacheMiss;
+wire isCacheHit;
+
+wire isL3Cbusy_set, isL3Cbusy_rst, isL3Cbusy_qout;
+wire [0:0] req_chn_dnxt, req_chn_qout, req_chn_en;
+
+assign req_chn_en = ~(l2c_arv_arr_flag_qout | l2c_awv_awr_flag_qout);
+assign req_chn_dnxt = (isL2cRead & 1'b0) | (isl2cWrite & 1'b1);
+// assign isL3Cbusy_set = isCacheHit;
+// assign isL3Cbusy_rst = l2c_bvalid_set | l2c_rlast_set;
+
+assign l3c_aw_rsp = ~l2c_awready_qout & L2C_AWVALID & ~l2c_awv_awr_flag_qout & ~l2c_arv_arr_flag_qout & isCacheHit & (req_chn_qout == 1'b1);
+assign l3c_ar_rsp = ~l2c_arready_qout & L2C_ARVALID & ~l2c_awv_awr_flag_qout & ~l2c_arv_arr_flag_qout & isCacheHit & (req_chn_qout == 1'b0);
+
+
+// gen_rsffr isL3Cbusy_rsffr (.set_in(isL3Cbusy_set), .rst_in(isL3Cbusy_rst), .qout(isL3Cbusy_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffren #(.DW(1)) req_chn_dffren (.dnxt(req_chn_dnxt), .qout(req_chn_qout), .en(req_chn_en), .CLK(CLK), .RSTn(RSTn));
+
+assign isL2cReq = isL2cRead | isl2cWrite;
+assign isL2cRead = L2C_ARVALID & ~l2c_arv_arr_flag_qout & ~l2c_awv_awr_flag_qout;
+assign isl2cWrite = L2C_AWVALID & ~L2C_ARVALID & ~l2c_arv_arr_flag_qout & ~l2c_awv_awr_flag_qout;
+
+
+assign addr_req = 
+
+	(
+		(
+			(
+				{32{isL2cRead}} & L2C_ARADDR
+				|
+				{32{isl2cWrite}} & L2C_AWADDR
+			) & ~(32'h1ff)
+		)
+		+
+		(
+			({32{isEvict_qout}} & write_index_qout)
+			|
+			({32{isFlash_qout}} & read_index_qout )
+		)	
+	)
+	|
+	({32{l2c_arv_arr_flag_qout}} & l2c_araddr_qout) //l3 rsp l2 read
+	|
+	({32{l2c_awv_awr_flag_qout}} & l2c_awaddr_qout) // l3 rsp l2 write
+	;
+
+
+
+
+assign tag_en_r = isL2cReq;
+
+assign isCacheMiss = isL2cReq & ((~tag_valid_r) | (tag_info_r != tag_sel));
+assign isCacheHit =  isL2cReq &  ( tag_valid_r & ( tag_info_r == tag_sel));
+
+
+
+
+
+
+//read op
+assign bank_en_r = {4{l2c_arv_arr_flag_qout}} & (1 << bank_sel);
+assign data_hit_r = bank_data_r[1024*bank_sel +: 1024];
+assign L2C_RDATA = data_hit_r[ 64 * l2c_arlen_cnt_qout +: 64];
+assign MEM_WDATA = data_hit_r[ 64 * write_index_qout +: 64];;
+
+//write op 
+//write a single 64bits
+assign bank_en_w = {4{l2c_awv_awr_flag_qout}} & (1 << bank_sel);
+assign bank_data_w = {64{L2C_WDATA}};
+assign bank_data_wstrb = {4{L2C_WSTRB << addr_req[6:0]}};
+
+//miss op
+//evict
+
+// wire isEvict = isCacheMiss & tag_valid_r;
+
+assign MEM_AWADDR = addr_req;
+assign MEM_ARADDR = addr_req;
+
+assign mem_ar_req =;
+assign mem_aw_req = isCacheMiss & tag_valid_r;
+
+// wire isEvict_set, isEvict_rst, isEvict_qout;
+// wire isFlash_set, isFlash_rst, isFlash_qout;
+
+// assign isEvict_set = mem_aw_req;
+// assign isEvict_rst = mem_bready_set;
+// assign isFlash_set = mem_ar_req;
+// assign isFlash_rst = mem_rready_set;
+
+// gen_rsffr isEvict_rsffr (.set_in(isEvict_set), .rst_in(isEvict_rst), .qout(isEvict_qout), .CLK(CLK), .RSTn(RSTn));
+// gen_rsffr isFlash_rsffr (.set_in(isFlash_set), .rst_in(isFlash_rst), .qout(isFlash_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+localparam L3C_FREE = 0;
+localparam L3C_TAG = 1;
+localparam L3C_EVICT = 2;
+localparam L3C_REFLASH = 3;
+localparam L3C_RSPRD = 4;
+localparam L3C_RSPWR = 5;
+
+
+wire [2:0] l3c_state_dnxt;
+wire [2:0] l3c_state_qout;
+gen_dffr #(.DW(3)) l3c_state_dffr (.dnxt(l3c_state_dnxt), .qout(l3c_state_qout), .CLK(CLK), .RSTn(RSTn));
+
+assign l3c_state_dnxt = 
+	(
+		{3{l3c_state_qout == L3C_FREE}} &
+		(
+			(L2C_AWVALID | L2C_ARVALID) ? L3C_TAG : L3C_FREE
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_TAG}} & 
+		(
+			({{ isCacheHit & L2C_AWVALID}} & L3C_RSPWR )
+			|
+			({{ isCacheHit & L2C_ARVALID}} & L3C_RSPRD )
+			|
+			({{ isCacheMiss &  tag_valid_r}} & L3C_EVICT)
+			|
+			({{ isCacheMiss & ~tag_valid_r}} & L3C_REFLASH)
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_EVICT}} & 
+		(
+			mem_bready_set ? L3C_TAG : L3C_EVICT
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_REFLASH}} & 
+		(
+			mem_rready_set ? L3C_TAG : L3C_REFLASH
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_RSPRD}} & 
+		(
+			l2c_rvalid_set ? L3C_FREE : L3C_RSPRD
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_RSPWR}} & 
+		(
+			l2c_bvalid_set ? L3C_FREE : L3C_RSPWR
+		)
+	)
 
 endmodule
 
