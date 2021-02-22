@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-22 12:10:14
+* @Last Modified time: 2021-02-22 18:00:28
 */
 
 
@@ -735,7 +735,7 @@ assign bank_addr_req_dnxt =
 	)
 	|
 	(
-		{32{l3c_state_qout == L3C_FENCE}} & 
+		{32{l3c_state_qout == L3C_FENCE}} & addr_o
 	)
 	|
 	(
@@ -879,7 +879,20 @@ assign l3c_state_dnxt =
 
 
 
+dirty_block # ( .AW(32-ADDR_LSB), .DP(16) ) i_dirty_block
+(
+	input pop,
+	input push,
 
+	input [31:0] addr_i,	
+	output [31:0] addr_o,
+
+	output empty,
+	output full,
+
+	input CLK,
+	input RSTn
+);
 
 
 
