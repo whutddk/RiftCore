@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-20 18:02:56
+* @Last Modified time: 2021-02-22 12:10:14
 */
 
 
@@ -586,6 +586,7 @@ module L3cache
 	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
 	localparam BANK = 4;
 	localparam BANK_WIDTH = DATA_WIDTH / BANK;
+	localparam LINE_N = 2**LINE_W;
 
 
 wire [31:0] addr_req;
@@ -598,14 +599,16 @@ wire [TAG_W-1:0] tag_sel = addr_req[31 -: TAG_W];
 
 
 
-wire tag_valid_w;
-wire tag_valid_r;
+wire [LINE_N-1:0] tag_valid_dnxt;
+wire [LINE_N-1:0] tag_valid_qout;
+wire [LINE_N-1:0] tag_valid_en;
+
 wire [ TAG_W - 1 : 0] tag_info_w;
 wire [ TAG_W - 1 : 0] tag_info_r;
 wire isTagHit;
 wire [ DATA_WIDTH - 1 : 0] data_hit;
 
-wire [(TAG_W+8) / 8 -1 : 0] tag_data_wstrb;
+wire [(TAG_W+7) / 8 -1 : 0] tag_data_wstrb;
 wire [DATA_WIDTH/8-1] bank_data_wstrb;
 
 wire [ BANK - 1 : 0 ] bank_en_w;
@@ -615,17 +618,24 @@ wire tag_en_r;
 
 wire [ DATA_WIDTH - 1 : 0 ] bank_data_w;
 wire [ DATA_WIDTH - 1 : 0 ] bank_data_r;
-wire [ (TAG_W+1) - 1 : 0 ] tag_data_w;
-wire [ (TAG_W+1) - 1 : 0 ] tag_data_r;
+wire [ TAG_W - 1 : 0 ] tag_data_w;
+wire [ TAG_W - 1 : 0 ] tag_data_r;
 
 wire [LINE_W-1:0] tag_addr_r;
 wire [LINE_W-1:0] tag_addr_w;
 wire [LINE_W-1:0] bank_addr_r;
 wire [LINE_W-1:0] bank_addr_w;
 
+generate
+	
+	for ( genvar i = 0; i < LINE_N; i = i + 1 )begin
+		gen_dffren #(.DW(1)) tag_valid_dffren (.dnxt(tag_valid_dnxt), .qout(tag_valid_qout), .en(tag_valid_en), .CLK(CLK), .RSTn(RSTn));
 
 
-	gen_sram # ( .DW((TAG_W+1)), .AW(LINE_W)) tag_ram
+	end
+
+
+	gen_sram # ( .DW((TAG_W)), .AW(LINE_W)) tag_ram
 	(
 		.data_w(tag_data_w),
 		.addr_w(tag_addr_w),
@@ -657,6 +667,9 @@ wire [LINE_W-1:0] bank_addr_w;
 		);
 
 	end
+
+endgenerate
+
 
 assign tag_data_w = {tag_valid_w, tag_info_w};
 assign tag_data_wstrb = {(TAG_W+1){1'b1}};
@@ -693,29 +706,54 @@ assign isL2cRead = L2C_ARVALID & ~l2c_arv_arr_flag_qout & ~l2c_awv_awr_flag_qout
 assign isl2cWrite = L2C_AWVALID & ~L2C_ARVALID & ~l2c_arv_arr_flag_qout & ~l2c_awv_awr_flag_qout;
 
 
-assign addr_req = 
 
+
+wire [31:0] tag_addr_req_dnxt;
+wire [31:0] tag_addr_req_qout;
+wire tag_addr_req_en;
+wire [31:0] bank_addr_req_dnxt;
+wire [31:0] bank_addr_req_qout;
+
+assign tag_addr_req_dnxt = ( L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR) & ~(32'h1ff);
+assign tag_addr_req_en = l3c_state_dnxt == L3C_TAG;
+
+
+
+assign bank_addr_req_dnxt = 
+
+gen_dffren #(.DW(32)) tag_addr_req_dffren  (.dnxt(tag_addr_req_dnxt),  .qout(tag_addr_req_qout), .en(tag_addr_req_en),.CLK(CLK), .RSTn(RSTn));
+gen_dffr #(.DW(32)) bank_addr_req_dffr (.dnxt(bank_addr_req_dnxt), .qout(bank_addr_req_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+assign bank_addr_req_dnxt = 
 	(
-		(
-			(
-				{32{isL2cRead}} & L2C_ARADDR
-				|
-				{32{isl2cWrite}} & L2C_AWADDR
-			) & ~(32'h1ff)
-		)
-		+
-		(
-			({32{isEvict_qout}} & write_index_qout)
-			|
-			({32{isFlash_qout}} & read_index_qout )
-		)	
+		{32{l3c_state_qout == L3C_FREE}} & bank_addr_req_qout
 	)
 	|
-	({32{l2c_arv_arr_flag_qout}} & l2c_araddr_qout) //l3 rsp l2 read
+	(
+		{32{l3c_state_qout == L3C_TAG}} & ( L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR) & ~(32'h1ff);
+	)
 	|
-	({32{l2c_awv_awr_flag_qout}} & l2c_awaddr_qout) // l3 rsp l2 write
+	(
+		{32{l3c_state_qout == L3C_FENCE}} & 
+	)
+	|
+	(
+		{32{l3c_state_qout == L3C_EVICT}} & bank_addr_req_qout + 32'b1000
+	)
+	|
+	(
+		{32{l3c_state_qout == L3C_REFLASH}} & bank_addr_req_qout + 32'b1000
+	)
+	|
+	(
+		{32{l3c_state_qout == L3C_RSPRD}} & bank_addr_req_qout + 32'b1000
+	)
+	|
+	(
+		{32{l3c_state_qout == L3C_RSPWR}} & bank_addr_req_qout + 32'b1000
+	)
 	;
-
 
 
 
@@ -770,6 +808,7 @@ localparam L3C_EVICT = 2;
 localparam L3C_REFLASH = 3;
 localparam L3C_RSPRD = 4;
 localparam L3C_RSPWR = 5;
+localparam L3C_FENCE = 6;
 
 
 wire [2:0] l3c_state_dnxt;
@@ -780,7 +819,15 @@ assign l3c_state_dnxt =
 	(
 		{3{l3c_state_qout == L3C_FREE}} &
 		(
-			(L2C_AWVALID | L2C_ARVALID) ? L3C_TAG : L3C_FREE
+			cache_fence_qout ? L3C_FENCE :
+				( (L2C_AWVALID | L2C_ARVALID) ? L3C_TAG : L3C_FREE)
+		)
+	)
+	|
+	(
+		{3{l3c_state_qout == L3C_FENCE}} &
+		(
+			(| tag_valid_qout) ? L3C_EVICT : L3C_FREE
 		)
 	)
 	|
@@ -800,7 +847,8 @@ assign l3c_state_dnxt =
 	(
 		{3{l3c_state_qout == L3C_EVICT}} & 
 		(
-			mem_bready_set ? L3C_TAG : L3C_EVICT
+			~mem_bready_set ? L3C_EVICT : 
+				( cache_fence_qout ? L3C_FENCE : L3C_TAG)
 		)
 	)
 	|
@@ -824,6 +872,50 @@ assign l3c_state_dnxt =
 			l2c_bvalid_set ? L3C_FREE : L3C_RSPWR
 		)
 	)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//ASSERT
+always @( negedge CLK ) begin
+	if ( (l3c_state_dnxt == L3C_TAG) & ~L2C_AWVALID & ~L2C_ARVALID ) begin
+		$display("Assert Fail at L3cache");
+		$finish;
+	end
+end
+
+
+
+
+
+
 
 endmodule
 
