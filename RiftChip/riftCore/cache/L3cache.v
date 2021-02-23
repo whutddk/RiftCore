@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 17:34:36
+* @Last Modified time: 2021-02-23 17:59:40
 */
 
 
@@ -37,23 +37,12 @@ module L3cache
 	// parameter CACHE_BLOCK = 1,
 	parameter CACHE_LINE = 256,
 
-	//from L2C
-	parameter L2C_DW = 64,
-	parameter L2C_AW = 32,
-	parameter L2C_ID_W = 1,
-
-	//from DDR
-	parameter MEM_DW = 64,
-	parameter MEM_AW = 64,
-	parameter MEM_MEM_ID_W = 1,
-	parameter MEM_USER_W = 1
-
 )
 (
 
 	//form L2cache
-	input [L2C_ID_W-1:0] L2C_AWID,
-	input [L2C_AW-1:0] L2C_AWADDR,
+	input [0:0] L2C_AWID,
+	input [31:0] L2C_AWADDR,
 	input [7:0] L2C_AWLEN,
 	input [2:0] L2C_AWSIZE,
 	input [1:0] L2C_AWBURST,
@@ -61,19 +50,19 @@ module L3cache
 	input L2C_AWVALID,
 	output L2C_AWREADY,
 
-	input [L2C_DW-1:0] L2C_WDATA,
-	input [(L2C_DW/8)-1:0] L2C_WSTRB,
+	input [63:0] L2C_WDATA,
+	input [7:0] L2C_WSTRB,
 	input L2C_WLAST,
 	input L2C_WVALID,
 	output L2C_WREADY,
 
-	output [L2C_ID_W-1:0] L2C_BID,
+	output [0:0] L2C_BID,
 	output [1:0] L2C_BRESP,
 	output L2C_BVALID,
 	input L2C_BREADY,
 
-	input [L2C_ID_W-1:0] L2C_ARID,
-	input [L2C_AW-1:0] L2C_ARADDR,
+	input [0:0] L2C_ARID,
+	input [31:0] L2C_ARADDR,
 	input [7:0] L2C_ARLEN,
 	input [2:0] L2C_ARSIZE,
 	input [1:0] L2C_ARBURST,
@@ -81,8 +70,8 @@ module L3cache
 	input L2C_ARVALID,
 	output L2C_ARREADY,
 
-	output [L2C_ID_W-1:0] L2C_RID,
-	output [L2C_DW-1:0] L2C_RDATA,
+	output [0:0] L2C_RID,
+	output [63:0] L2C_RDATA,
 	output [1:0] L2C_RRESP,
 	output L2C_RLAST,
 	output L2C_RVALID,
@@ -90,8 +79,8 @@ module L3cache
 
 
 	//from DDR
-	output [MEM_ID_W-1:0] MEM_AWID,
-	output [MEM_AW-1:0] MEM_AWADDR,
+	output [0:0] MEM_AWID,
+	output [63:0] MEM_AWADDR,
 	output [7:0] MEM_AWLEN,
 	output [2:0] MEM_AWSIZE,
 	output [1:0] MEM_AWBURST,
@@ -99,25 +88,25 @@ module L3cache
 	output [3:0] MEM_AWCACHE,
 	output [2:0] MEM_AWPROT,
 	output [3:0] MEM_AWQOS,
-	output [MEM_USER_W-1:0] MEM_AWUSER,
+	output [0:0] MEM_AWUSER,
 	output MEM_AWVALID,
 	input MEM_AWREADY,
 
-	output [MEM_DW-1:0] MEM_WDATA,
-	output [MEM_DW/8-1:0] MEM_WSTRB,
+	output [63:0] MEM_WDATA,
+	output [7:0] MEM_WSTRB,
 	output MEM_WLAST,
-	output [MEM_USER_W-1:0] MEM_WUSER,
+	output [0:0] MEM_WUSER,
 	output MEM_WVALID,
 	input MEM_WREADY,
 
-	input [MEM_ID_W-1:0] MEM_BID,
+	input [0:0] MEM_BID,
 	input [1:0] MEM_BRESP,
-	input [MEM_USER_W-1:0] MEM_BUSER,
+	input [0:0] MEM_BUSER,
 	input MEM_BVALID,
 	output MEM_BREADY,
 
-	output [MEM_ID_W-1:0] MEM_ARID,
-	output [MEM_AW-1:0] MEM_ARADDR,
+	output [0:0] MEM_ARID,
+	output [63:0] MEM_ARADDR,
 	output [7:0] MEM_ARLEN,
 	output [2:0] MEM_ARSIZE,
 	output [1:0] MEM_ARBURST,
@@ -125,15 +114,15 @@ module L3cache
 	output [3:0] MEM_ARCACHE,
 	output [2:0] MEM_ARPROT,
 	output [3:0] MEM_ARQOS,
-	output [MEM_USER_W-1:0] MEM_ARUSER,
+	output [0:0] MEM_ARUSER,
 	output MEM_ARVALID,
 	input MEM_ARREADY,
 
-	input [MEM_ID_W-1:0] MEM_RID,
-	input [MEM_DW-1:0] MEM_RDATA,
+	input [0:0] MEM_RID,
+	input [63:0] MEM_RDATA,
 	input [1:0] MEM_RRESP,
 	input MEM_RLAST,
-	input [MEM_USER_W-1:0] MEM_RUSER,
+	input [0:0] MEM_RUSER,
 	input MEM_RVALID,
 	output MEM_RREADY,
 
@@ -185,18 +174,18 @@ module L3cache
 
 
 
-	localparam ADDR_LSB = $clog2(L2C_DW/8);
+	// localparam ADDR_LSB = $clog2(L2C_DW/8);
 
 
-	wire [L2C_AW-1:0] aw_wrap_size; 
-	wire [L2C_AW-1:0] ar_wrap_size; 
+	wire [31:0] aw_wrap_size; 
+	wire [31:0] ar_wrap_size; 
 	wire aw_wrap_en, ar_wrap_en;
 
 	wire l2c_awready_set, l2c_awready_rst, l2c_awready_qout;
-	wire l2c_awv_awr_flag_set, l2c_awv_awr_flag_rst, l2c_awv_awr_flag_qout;
-	wire [L2C_AW-1:0] l2c_awaddr_dnxta;
-	wire [L2C_AW-1:0] l2c_awaddr_dnxtb;
-	wire [L2C_AW-1:0] l2c_awaddr_qout;
+	// wire l2c_awv_awr_flag_set, l2c_awv_awr_flag_rst, l2c_awv_awr_flag_qout;
+	wire [31:0] l2c_awaddr_dnxta;
+	wire [31:0] l2c_awaddr_dnxtb;
+	wire [31:0] l2c_awaddr_qout;
 	wire l2c_awaddr_ena, l2c_awaddr_enb;
 	wire l2c_awburst_en;
 	wire [1:0] l2c_awburst_dnxt;
@@ -211,10 +200,10 @@ module L3cache
 	wire l2c_wready_set, l2c_wready_rst, l2c_wready_qout;
 	wire l2c_bvalid_set, l2c_bvalid_rst, l2c_bvalid_qout;
 	wire l2c_arready_set, l2c_arready_rst, l2c_arready_qout;
-	wire l2c_arv_arr_flag_set, l2c_arv_arr_flag_rst, l2c_arv_arr_flag_qout;
-	wire [L2C_AW-1:0] l2c_araddr_dnxta;
-	wire [L2C_AW-1:0] l2c_araddr_dnxtb;
-	wire [L2C_AW-1:0] l2c_araddr_qout;
+	// wire l2c_arv_arr_flag_set, l2c_arv_arr_flag_rst, l2c_arv_arr_flag_qout;
+	wire [31:0] l2c_araddr_dnxta;
+	wire [31:0] l2c_araddr_dnxtb;
+	wire [31:0] l2c_araddr_qout;
 	wire l2c_araddr_ena, l2c_araddr_enb, l2c_arburst_en;
 	wire [1:0] l2c_arburst_dnxt;
 	wire [1:0] l2c_arburst_qout;
@@ -255,25 +244,25 @@ module L3cache
 	assign l2c_awready_rst = ~l2c_aw_rsp & ~(L2C_WLAST & l2c_wready_qout);
 	gen_rsffr l2c_awready_rsffr (.set_in(l2c_awready_set), .rst_in(l2c_awready_rst), .qout(l2c_awready_qout), .CLK(CLK), .RSTn(RSTn));
 
-	assign l2c_awv_awr_flag_set =  l2c_aw_rsp;
-	assign l2c_awv_awr_flag_rst = ~l2c_aw_rsp & (L2C_WLAST & l2c_wready_qout);
-	gen_rsffr l2c_awv_awr_flag_rsffr (.set_in(l2c_awv_awr_flag_set), .rst_in(l2c_awv_awr_flag_rst), .qout(l2c_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	// assign l2c_awv_awr_flag_set =  l2c_aw_rsp;
+	// assign l2c_awv_awr_flag_rst = ~l2c_aw_rsp & (L2C_WLAST & l2c_wready_qout);
+	// gen_rsffr l2c_awv_awr_flag_rsffr (.set_in(l2c_awv_awr_flag_set), .rst_in(l2c_awv_awr_flag_rst), .qout(l2c_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign l2c_awaddr_dnxta = L2C_AWADDR;
-	assign l2c_awaddr_dnxtb = ( {L2C_AW{l2c_awburst == 2'b00}} & l2c_awaddr_qout )
+	assign l2c_awaddr_dnxtb = ( {32{l2c_awburst == 2'b00}} & l2c_awaddr_qout )
 							| 
-							( {L2C_AW{l2c_awburst == 2'b01}} & l2c_awaddr_qout + (1<<ADDR_LSB) )
+							( {32{l2c_awburst == 2'b01}} & l2c_awaddr_qout + (1<<3) )
 							|
-							( {L2C_AW{l2c_awburst == 2'b10}} & 
+							( {32{l2c_awburst == 2'b10}} & 
 								(
-									{L2C_AW{ aw_wrap_en}} & (l2c_awaddr_qout - aw_wrap_size)
+									{32{ aw_wrap_en}} & (l2c_awaddr_qout - aw_wrap_size)
 									|
-									{L2C_AW{~aw_wrap_en}} & (l2c_awaddr_qout + (1<<ADDR_LSB) )
+									{32{~aw_wrap_en}} & (l2c_awaddr_qout + (1<<3) )
 								)
 							);
 	assign l2c_awaddr_ena = l2c_aw_rsp;
 	assign l2c_awaddr_enb = (l2c_awlen_cnt_qout <= l2c_awlen_qout) & l2c_wready_qout & L2C_WVALID;
-	gen_dpdffren # (.DW(L2C_AW)) l2c_awaddr_dpdffren( .dnxta(l2c_awaddr_dnxta), .ena(l2c_awaddr_ena), .dnxtb(l2c_awaddr_dnxtb), .enb(l2c_awaddr_enb), .qout(l2c_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	gen_dpdffren # (.DW(32)) l2c_awaddr_dpdffren( .dnxta(l2c_awaddr_dnxta), .ena(l2c_awaddr_ena), .dnxtb(l2c_awaddr_dnxtb), .enb(l2c_awaddr_enb), .qout(l2c_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
 	assign l2c_awburst_en = l2c_aw_rsp;
 	assign l2c_awburst_dnxt = L2C_AWBURST;
@@ -294,15 +283,15 @@ module L3cache
 	gen_dpdffren # (.DW(8)) l2c_awlen_cnt_dpdffren( .dnxta(l2c_awlen_cnt_dnxta), .ena(l2c_awlen_cnt_ena), .dnxtb(l2c_awlen_cnt_dnxtb), .enb(l2c_awlen_cnt_enb), .qout(l2c_awlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
-	assign l2c_wready_set = ~l2c_wready_qout & L2C_WVALID & l2c_awv_awr_flag_qout;
+	assign l2c_wready_set = ~l2c_wready_qout & L2C_WVALID & ( l3c_state_qout == L3C_RSPWR);
 	assign l2c_wready_rst =  l2c_wready_qout & L2C_WLAST;
-	gen_rsffr l2c_wready_rsffr (.set_in(l2c_wready_set), .rst_in(l2c_wready_rst), .qout(l2c_wready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) l2c_wready_rsffr (.set_in(l2c_wready_set), .rst_in(l2c_wready_rst), .qout(l2c_wready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign l2c_bvalid_set = ~l2c_bvalid_qout & l2c_awv_awr_flag_qout & l2c_wready_qout & L2C_WVALID & L2C_WLAST;
+	assign l2c_bvalid_set = ~l2c_bvalid_qout & ( l3c_state_qout == L3C_RSPWR) & l2c_wready_qout & L2C_WVALID & L2C_WLAST;
 	assign l2c_bvalid_rst =  l2c_bvalid_qout & L2C_BREADY;
-	gen_rsffr l2c_bvalid_rsffr (.set_in(l2c_bvalid_set), .rst_in(l2c_bvalid_rst), .qout(l2c_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) l2c_bvalid_rsffr (.set_in(l2c_bvalid_set), .rst_in(l2c_bvalid_rst), .qout(l2c_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -311,29 +300,29 @@ module L3cache
 	
 	assign l2c_arready_set =  l2c_ar_rsp;
 	assign l2c_arready_rst = ~l2c_ar_rsp & ~(l2c_rvalid_qout & L2C_RREADY & l2c_arlen_cnt_qout == l2c_arlen_qout);
-	gen_rsffr l2c_arready_rsffr (.set_in(l2c_arready_set), .rst_in(l2c_arready_rst), .qout(l2c_arready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) l2c_arready_rsffr (.set_in(l2c_arready_set), .rst_in(l2c_arready_rst), .qout(l2c_arready_qout), .CLK(CLK), .RSTn(RSTn));
 
-	assign l2c_arv_arr_flag_set =  l2c_ar_rsp;
-	assign l2c_arv_arr_flag_rst = ~l2c_ar_rsp & (l2c_rvalid_qout & L2C_RREADY & l2c_arlen_cnt_qout == l2c_arlen_qout);
-	gen_rsffr l2c_arv_arr_flag_rsffr (.set_in(l2c_arv_arr_flag_set), .rst_in(l2c_arv_arr_flag_rst), .qout(l2c_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	// assign l2c_arv_arr_flag_set =  l2c_ar_rsp;
+	// assign l2c_arv_arr_flag_rst = ~l2c_ar_rsp & (l2c_rvalid_qout & L2C_RREADY & l2c_arlen_cnt_qout == l2c_arlen_qout);
+	// gen_rsffr l2c_arv_arr_flag_rsffr (.set_in(l2c_arv_arr_flag_set), .rst_in(l2c_arv_arr_flag_rst), .qout(l2c_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 	assign l2c_araddr_dnxta = L2C_ARADDR;
-	assign l2c_araddr_dnxtb = ({L2C_AW{l2c_arburst_qout == 2'b00}} & l2c_araddr_qout)
+	assign l2c_araddr_dnxtb = ({32{l2c_arburst_qout == 2'b00}} & l2c_araddr_qout)
 							|
-							({L2C_AW{l2c_arburst_qout == 2'b01}} & l2c_araddr_qout + (1<<ADDR_LSB))
+							({32{l2c_arburst_qout == 2'b01}} & l2c_araddr_qout + (1<<3))
 							|
-							({L2C_AW{l2c_arburst_qout == 2'b10}} & 
+							({32{l2c_arburst_qout == 2'b10}} & 
 								(
-									({L2C_AW{ ar_wrap_en}} & (l2c_araddr_qout - ar_wrap_size) )
+									({32{ ar_wrap_en}} & (l2c_araddr_qout - ar_wrap_size) )
 									|
-									({L2C_AW{~ar_wrap_en}} & (l2c_araddr_qout + (1<<ADDR_LSB)))
+									({32{~ar_wrap_en}} & (l2c_araddr_qout + (1<<3)))
 								)
 							);
 	assign l2c_araddr_ena = l2c_ar_rsp;
 	assign l2c_araddr_enb = ((l2c_arlen_cnt_qout <= l2c_arlen_qout) & l2c_rvalid_qout & L2C_RREADY);
-	gen_dpdffren # (.DW(L2C_AW)) l2c_araddr_dpdffren( .dnxta(l2c_araddr_dnxta), .ena(l2c_araddr_ena), .dnxtb(l2c_araddr_dnxtb), .enb(l2c_araddr_enb), .qout(l2c_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	gen_dpdffren # (.DW(32)) l2c_araddr_dpdffren( .dnxta(l2c_araddr_dnxta), .ena(l2c_araddr_ena), .dnxtb(l2c_araddr_dnxtb), .enb(l2c_araddr_enb), .qout(l2c_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
 	
 	assign l2c_arburst_en = l2c_ar_rsp;
@@ -346,9 +335,9 @@ module L3cache
 	gen_dffren # (.DW(8)) l2c_arlen_dffren (.dnxt(l2c_arlen_dnxt), .qout(l2c_arlen_qout), .en(l2c_arlen_en), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign l2c_rlast_set = ((l2c_arlen_cnt_qout == l2c_arlen_qout) & ~l2c_rlast_qout & l2c_arv_arr_flag_qout )  ;
-	assign l2c_rlast_rst = l2c_ar_rsp | (((l2c_arlen_cnt_qout <= l2c_arlen_qout) | l2c_rlast_qout | ~l2c_arv_arr_flag_qout ) & (L2C_RREADY));
-	gen_rsffr l2c_rlast_rsffr (.set_in(l2c_rlast_set), .rst_in(l2c_rlast_rst), .qout(l2c_rlast_qout), .CLK(CLK), .RSTn(RSTn));
+	assign l2c_rlast_set = ((l2c_arlen_cnt_qout == l2c_arlen_qout) & ~l2c_rlast_qout & (l3c_state_qout == L3C_RSPRD) )  ;
+	assign l2c_rlast_rst = l2c_ar_rsp | (((l2c_arlen_cnt_qout <= l2c_arlen_qout) | l2c_rlast_qout | (l3c_state_qout != L3C_RSPRD) ) & (L2C_RREADY));
+	gen_rsffr # (.DW(1)) l2c_rlast_rsffr (.set_in(l2c_rlast_set), .rst_in(l2c_rlast_rst), .qout(l2c_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -360,9 +349,9 @@ module L3cache
 
 
 
-	assign l2c_rvalid_set = ~l2c_rvalid_qout & l2c_arv_arr_flag_qout;
+	assign l2c_rvalid_set = ~l2c_rvalid_qout & (l3c_state_qout == L3C_RSPRD);
 	assign l2c_rvalid_rst =  l2c_rvalid_qout & L2C_RREADY;
-	gen_rsffr l2c_rvalid_rsffr (.set_in(l2c_rvalid_set), .rst_in(l2c_rvalid_rst), .qout(l2c_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) l2c_rvalid_rsffr (.set_in(l2c_rvalid_set), .rst_in(l2c_rvalid_rst), .qout(l2c_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -423,10 +412,10 @@ module L3cache
 	wire [7:0] write_index_qout;
 	wire mem_bready_set, mem_bready_rst, mem_bready_qout;
 	wire mem_arvalid_set, mem_arvalid_rst, mem_arvalid_qout;
-	wire [7:0] read_index_dnxt;
-	wire [7:0] read_index_qout;
+	// wire [7:0] read_index_dnxt;
+	// wire [7:0] read_index_qout;
 	wire mem_rready_set, mem_rready_rst, mem_rready_qout;
-	wire wnext, rnext;
+	// wire wnext, rnext;
 	wire write_resp_error, read_resp_error;
 	wire mem_aw_req, mem_ar_req;
 
@@ -434,7 +423,7 @@ module L3cache
 	assign MEM_AWID = 'b0;
 
 	assign MEM_AWLEN = 8'd63;
-	assign MEM_AWSIZE	= $clog2(MEM_DW/8);
+	assign MEM_AWSIZE	= $clog2(64/8);
 	assign MEM_AWBURST = 2'b01;
 	assign MEM_AWLOCK	= 1'b0;
 	assign MEM_AWCACHE = 4'b0000;
@@ -444,7 +433,7 @@ module L3cache
 	assign MEM_AWVALID = mem_awvalid_qout;
 
 
-	assign MEM_WSTRB = {(MEM_DW/8){1'b1}};
+	assign MEM_WSTRB = {8{1'b1}};
 	assign MEM_WLAST = mem_wlast_qout;
 	assign MEM_WUSER = 'b0;
 	assign MEM_WVALID = mem_wvalid_qout;
@@ -456,7 +445,7 @@ module L3cache
 
 	
 	assign MEM_ARLEN = 8'd63;
-	assign MEM_ARSIZE = $clog2(MEM_DW/8);
+	assign MEM_ARSIZE = $clog2(64/8);
 	assign MEM_ARBURST = 2'b01;
 	assign MEM_ARLOCK = 1'b0;
 	
@@ -472,35 +461,35 @@ module L3cache
 
 	assign mem_awvalid_set = ~mem_awvalid_qout & mem_aw_req;
 	assign mem_awvalid_rst =  mem_awvalid_qout & MEM_AWREADY ;
-	gen_rsffr mem_awvalid_rsffr (.set_in(mem_awvalid_set), .rst_in(mem_awvalid_rst), .qout(mem_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) mem_awvalid_rsffr (.set_in(mem_awvalid_set), .rst_in(mem_awvalid_rst), .qout(mem_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
-	assign wnext = MEM_WREADY & mem_wvalid_qout;
+	// assign wnext = MEM_WREADY & mem_wvalid_qout;
 
 
 	assign mem_wvalid_set = (~mem_wvalid_qout & mem_aw_req);
-	assign mem_wvalid_rst = (wnext & mem_wlast_qout) ;
-	gen_rsffr mem_wvalid_rsffr (.set_in(mem_wvalid_set), .rst_in(mem_wvalid_rst), .qout(mem_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_wvalid_rst = (MEM_WREADY & mem_wvalid_qout & mem_wlast_qout) ;
+	gen_rsffr # (.DW(1)) mem_wvalid_rsffr (.set_in(mem_wvalid_set), .rst_in(mem_wvalid_rst), .qout(mem_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
-	assign mem_wlast_set = ((write_index_qout == C_MEM_BURST_LEN-2 && C_MEM_BURST_LEN >= 2) && wnext) || (C_MEM_BURST_LEN == 1 );
-	assign mem_wlast_rst = ~mem_wlast_set & ( wnext | (mem_wlast_qout && C_MEM_BURST_LEN == 1) );
-	gen_rsffr mem_wlast_rsffr (.set_in(mem_wlast_set), .rst_in(mem_wlast_rst), .qout(mem_wlast_qout), .CLK(CLK), .RSTn(RSTn));
+	assign mem_wlast_set = ((write_index_qout == 256 - 2 ) & MEM_WREADY & mem_wvalid_qout);
+	assign mem_wlast_rst = ~mem_wlast_set & ( MEM_WREADY & mem_wvalid_qout | mem_wlast_qout );
+	gen_rsffr # (.DW(1)) mem_wlast_rsffr (.set_in(mem_wlast_set), .rst_in(mem_wlast_rst), .qout(mem_wlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign write_index_dnxt = mem_aw_req ? 8'd0 :
 								(
-									(wnext && (write_index_qout != C_MEM_BURST_LEN-1)) ? (write_index_qout + 8'd1) : write_index_qout
+									(MEM_WREADY & mem_wvalid_qout & (write_index_qout != 255)) ? (write_index_qout + 8'd1) : write_index_qout
 								);							
 	gen_dffr # (.DW(8)) write_index_dffr (.dnxt(write_index_dnxt), .qout(write_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign mem_bready_set = (MEM_BVALID && ~mem_bready_qout);
 	assign mem_bready_rst = mem_bready_qout;
-	gen_rsffr mem_bready_rsffr (.set_in(mem_bready_set), .rst_in(mem_bready_rst), .qout(mem_bready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) mem_bready_rsffr (.set_in(mem_bready_set), .rst_in(mem_bready_rst), .qout(mem_bready_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
 	assign write_resp_error = mem_bready_qout & MEM_BVALID & MEM_BRESP[1]; 
@@ -510,23 +499,23 @@ module L3cache
 
 	assign mem_arvalid_set = ~mem_arvalid_qout & mem_ar_req;
 	assign mem_arvalid_rst = mem_arvalid_qout & MEM_ARREADY ;
-	gen_rsffr mem_arvalid_rsffr (.set_in(mem_arvalid_set), .rst_in(mem_arvalid_rst), .qout(mem_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) mem_arvalid_rsffr (.set_in(mem_arvalid_set), .rst_in(mem_arvalid_rst), .qout(mem_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign rnext = MEM_RVALID && mem_rready_qout;
+	// assign rnext = MEM_RVALID && mem_rready_qout;
 
 
 
-	assign read_index_dnxt = mem_ar_req ? 8'd0 :
-								(
-									(rnext & (read_index != C_MEM_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
-								);							
-	gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
+	// assign read_index_dnxt = mem_ar_req ? 8'd0 :
+	// 							(
+	// 								(rnext & (read_index != C_MEM_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
+	// 							);							
+	// gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign mem_rready_set = MEM_RVALID & (~MEM_RLAST | ~mem_rready_qout);
 	assign mem_rready_rst = MEM_RVALID &   MEM_RLAST &  mem_rready_qout;
-	gen_rsffr mem_rready_rsffr (.set_in(mem_rready_set), .rst_in(mem_rready_rst), .qout(mem_rready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) mem_rready_rsffr (.set_in(mem_rready_set), .rst_in(mem_rready_rst), .qout(mem_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign read_resp_error = mem_rready_qout & MEM_RVALID & MEM_RRESP[1];
