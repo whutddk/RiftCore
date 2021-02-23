@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 10:00:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-22 19:55:14
+* @Last Modified time: 2021-02-23 09:28:14
 */
 
 
@@ -60,8 +60,6 @@ module cache_mem #
 	input RSTn
 );
 
-
-
 	localparam ADDR_LSB = $clog2(DW*BK/8);
 	localparam LINE_W = $clog2(CL);
 
@@ -79,39 +77,22 @@ wire [DW*BK*CB-1:0] cache_bank_data_r;
 wire [DW*BK*CB-1:0] cache_bank_data_w;
 
 
-
-
-cache_bank_data_r[DW*cb*bk +: DW]
-
 generate
 	for ( genvar cb = 0 ; cb < CB; cb = cb + 1 ) begin
 		
+		gen_sram # ( .DW((TAG_W)), .AW(LINE_W)) tag_ram
+		(
+			.data_w(),
+			.addr_w(),
+			.data_wstrb(),
+			.en_w(),
 
-	// input [7:0] cache_info_wstrb,
-	// input [63:0] cache_info_w,
-	// output [64*CB-1:0] cache_info_r,
+			.data_r(),
+			.addr_r(),
+			.en_r(),
 
-
-	// input [31:0] tag_addr,
-	// input [CB-1:0] tag_en_w,
-	// input [CB-1:0] tag_en_r,
-	// input [(TAG_W+7)/8-1:0] cache_info_wstrb,
-	// input [TAG_W-1:0] cache_info_w,
-	// output [TAG_W*CB-1:0] cache_info_r
-	
-	gen_sram # ( .DW((TAG_W)), .AW(LINE_W)) tag_ram
-	(
-		.data_w(),
-		.addr_w(),
-		.data_wstrb(),
-		.en_w(),
-
-		.data_r(),
-		.addr_r(),
-		.en_r(),
-
-		.CLK(CLK)		
-	);
+			.CLK(CLK)		
+		);
 
 
 
