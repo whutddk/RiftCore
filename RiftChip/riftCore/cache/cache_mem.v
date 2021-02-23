@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 10:00:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 09:28:14
+* @Last Modified time: 2021-02-23 11:10:40
 */
 
 
@@ -53,8 +53,8 @@ module cache_mem #
 	input [CB-1:0] tag_en_w,
 	input [CB-1:0] tag_en_r,
 	input [(TAG_W+7)/8-1:0] tag_info_wstrb,
-	input [TAG_W-1:0] cache_info_w,
-	output [TAG_W*CB-1:0] cache_info_r
+	input [TAG_W-1:0] tag_info_w,
+	output [TAG_W*CB-1:0] tag_info_r
 
 	input CLK,
 	input RSTn
