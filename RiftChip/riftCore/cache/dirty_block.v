@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:33:10
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-22 18:00:09
+* @Last Modified time: 2021-02-23 16:22:44
 */
 
 /*
@@ -37,10 +37,11 @@ module dirty_block #
 	parameter DP = 16 
 )
 (
-	input pop,
-	input push,
 
-	input [AW-1:0] addr_i,	
+	input push,
+	input [AW-1:0] addr_i,
+
+	input pop,
 	output [AW-1:0] addr_o,
 
 	output empty,
@@ -58,21 +59,45 @@ wire [CW-1:0] index_push;
 wire [CW-1:0] index_pop;
 wire [AW*DP-1:0] info_o;
 
-wire [DP - 1 : 0] valid;
+wire [DP-1:0] valid;
+wire [DP-1:0] addr_chk;
+wire push_chk;
+wire ppbuff_full;
+
+
+// push will be block when there is a same record in buff
+generate
+	for ( genvar i = 0 ; i < DP; i = i + 1 ) begin
+		addr_chk[i] = addr_i == (info_o[ AW*i +: AW]);
+	end
+endgenerate
+
+	assign push_chk = push & (| addr_chk);
+
+
+
+
+
+assign full = ppbuff_full & (| addr_chk);
+
+
+
+
+
 
 
 gen_ppbuff # ( .DW(AW), .DP(DP) )
 dirty_index
 (
 	.pop(pop),
-	.push(push),
+	.push(push_chk),
 	.index(index),
 
 	.info_i(addr_i),	
 	.info_o(info_o),
 
 	.empty(empty),
-	.full(full),
+	.full(ppbuff_full),
 	.valid(valid),
 	
 	.flush(1'b0),
@@ -83,11 +108,11 @@ dirty_index
 
 
 assign index = 	
-		(CW{push & ~pop}} & index_push)
+		(CW{push_chk & ~pop}} & index_push)
 		|
-		(CW{pop & ~push}} & index_pop)
+		(CW{pop & ~push_chk}} & index_pop)
 		|
-		(CW{pop & push}} & index_pop);
+		(CW{pop & push_chk}} & index_pop);
 
 
 assign addr_o = info_o[ 32*index_pop +: 32];

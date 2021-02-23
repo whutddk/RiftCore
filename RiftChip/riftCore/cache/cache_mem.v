@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 10:00:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 11:10:40
+* @Last Modified time: 2021-02-23 17:02:05
 */
 
 
@@ -70,43 +70,39 @@ wire [$clog2(DW/8)-1:0] data_sel = cache_addr[ADDR_LSB-$clog2(BK)-1:0];
 
 wire [LINE_W-1:0] tag_address_sel = tag_addr[ADDR_LSB +: LINE_W];
 wire [TAG_W-1:0] tag_sel = tag_addr[31 -: TAG_W];
-wire [DW/8-1:0] cache_bank_info_wstrb;
+
 wire [CB*BK-1:0] cache_bank_en_w;
 wire [CB*BK-1:0] cache_bank_en_r;
 wire [DW*BK*CB-1:0] cache_bank_data_r;
-wire [DW*BK*CB-1:0] cache_bank_data_w;
 
 
 generate
 	for ( genvar cb = 0 ; cb < CB; cb = cb + 1 ) begin
-		
+
 		gen_sram # ( .DW((TAG_W)), .AW(LINE_W)) tag_ram
 		(
-			.data_w(),
-			.addr_w(),
-			.data_wstrb(),
-			.en_w(),
+			.data_w(tag_info_w),
+			.addr_w(tag_address_sel),
+			.data_wstrb(tag_info_wstrb),
+			.en_w(tag_en_w[cb]),
 
-			.data_r(),
-			.addr_r(),
-			.en_r(),
+			.data_r(tag_info_r[TAG_W*cb +: TAG_W]),
+			.addr_r(tag_address_sel),
+			.en_r(tag_en_r[cb]),
 
 			.CLK(CLK)		
 		);
 
-
-
 		for ( genvar bk = 0; bk < BK; bk = bk + 1 ) begin
 			assign cache_bank_en_w[BK*cb+bk] = bank_sel[bk] & cache_en_w[cb];
 			assign cache_bank_en_r[BK*cb+bk] = bank_sel[bk] & cache_en_r[cb];
-			assign cache_bank_data_w[DW*cb*bk +: DW] = {DW/64{cache_info_w}};
-			assign cache_bank_info_wstrb[DW/8*cb*bk +: DW/8] = cache_info_wstrb << data_sel;
+
 
 			gen_sram # ( .DW(DW), .AW(LINE_W)) cache_bank_ram
 			(
-				.data_w(cache_bank_data_w[DW*cb*bk +: DW]),
+				.data_w({DW/64{cache_info_w}}),
 				.addr_w(cache_addr),
-				.data_wstrb(cache_bank_info_wstrb[DW/8*cb*bk +: DW/8]),
+				.data_wstrb(cache_info_wstrb << data_sel),
 				.en_w(cache_bank_en_w[cb*BK+bk]),
 
 				.data_r(cache_bank_data_r[DW*cb*bk +: DW]),
