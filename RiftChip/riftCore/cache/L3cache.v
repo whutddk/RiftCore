@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 16:09:26
+* @Last Modified time: 2021-02-24 17:28:13
 */
 
 
@@ -171,6 +171,8 @@ wire l2c_arlen_cnt_ena, l2c_arlen_cnt_enb;
 wire l2c_rvalid_set, l2c_rvalid_rst, l2c_rvalid_qout;
 wire l2c_rlast_set, l2c_rlast_rst, l2c_rlast_qout;
 wire l2c_aw_rsp, l2c_ar_rsp;
+wire l2c_end_r, l2c_end_w;
+
 
 wire mem_awvalid_set, mem_awvalid_rst, mem_awvalid_qout;
 wire mem_wvalid_set, mem_wvalid_rst, mem_wvalid_qout;
@@ -182,6 +184,7 @@ wire mem_arvalid_set, mem_arvalid_rst, mem_arvalid_qout;
 wire mem_rready_set, mem_rready_rst, mem_rready_qout;
 wire write_resp_error, read_resp_error;
 wire mem_aw_req, mem_ar_req;
+wire mem_end_r, mem_end_w;
 
 wire cache_fence_set;
 wire cache_fence_rst;
@@ -268,8 +271,8 @@ wire cache_valid_en;
 	assign L2C_RVALID	= l2c_rvalid_qout;
 	assign L2C_BID = L2C_AWID;
 	assign L2C_RID = L2C_ARID;
-
-
+	assign l2c_end_r = L2C_RVALID & L2C_RREADY & L2C_RLAST;
+	assign l2c_end_w = L2C_WVALID & L2C_WREADY & L2C_WLAST;
 
 
 
@@ -387,7 +390,8 @@ wire cache_valid_en;
 	assign MEM_ARUSER = 'b1;
 	assign MEM_ARVALID = mem_arvalid_qout;
 	assign MEM_RREADY = mem_rready_qout;
-
+	assign mem_end_r = MEM_RVALID & MEM_RREADY & MEM_RLAST;
+	assign mem_end_w = MEM_WVALID & MEM_WREADY & MEM_WLAST;
 
 
 	assign mem_awvalid_set = ~mem_awvalid_qout & mem_aw_req;
@@ -463,10 +467,10 @@ assign l3c_state_dnxt =
 			| ({3{         ~cache_valid_qout[cl_sel]              }} & L3C_FLASH )
 		)
 	)
-	| ( {3{l3c_state_qout == L3C_EVICT}} & ( ~mem_bready_set ? L3C_EVICT : ( cache_fence_qout ? L3C_FENCE : L3C_CKTAG) ))
-	| ( {3{l3c_state_qout == L3C_FLASH}} & ( mem_rready_set ? L3C_CKTAG : L3C_FLASH ) )
-	| ( {3{l3c_state_qout == L3C_RSPRD}} & ( l2c_rvalid_set ? L3C_CFREE : L3C_RSPRD ) )
-	| ( {3{l3c_state_qout == L3C_RSPWR}} & ( l2c_bvalid_set ? L3C_CFREE : L3C_RSPWR ) )
+	| ( {3{l3c_state_qout == L3C_EVICT}} & ( ~mem_end_w ? L3C_EVICT : ( cache_fence_qout ? L3C_FENCE : L3C_CKTAG) ))
+	| ( {3{l3c_state_qout == L3C_FLASH}} & ( mem_end_r ? L3C_CKTAG : L3C_FLASH ) )
+	| ( {3{l3c_state_qout == L3C_RSPRD}} & ( l2c_end_r ? L3C_CFREE : L3C_RSPRD ) )
+	| ( {3{l3c_state_qout == L3C_RSPWR}} & ( l2c_end_w ? L3C_CFREE : L3C_RSPWR ) )
 	;
 
 assign l2c_aw_rsp = l3c_state_qout == L3C_CKTAG & l3c_state_dnxt == L3C_RSPWR;
@@ -520,15 +524,15 @@ assign cache_addr_dnxt =
 assign tag_addr = L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR;
 
 
-assign cache_en_w = ( l3c_state_dnxt == L3C_FLASH ) | ( l3c_state_dnxt == L3C_RSPWR );
+assign cache_en_w = ( l3c_state_qout == L3C_FLASH & MEM_RVALID & MEM_RREADY) | ( l3c_state_qout == L3C_RSPWR & L2C_WVALID & L2C_WREADY);
 assign cache_en_r = ( l3c_state_dnxt == L3C_EVICT ) | ( l3c_state_dnxt == L3C_RSPRD );
 assign cache_info_wstrb = 
-	  ( {8{l3c_state_dnxt == L3C_FLASH}} & MEM_WSTRB)
-	| ( {8{l3c_state_dnxt == L3C_RSPWR}} & L2C_WSTRB);
+	  ( {8{l3c_state_qout == L3C_FLASH}} & MEM_WSTRB)
+	| ( {8{l3c_state_qout == L3C_RSPWR}} & L2C_WSTRB);
 
 assign cache_info_w = 
-	  ( {64{l3c_state_dnxt == L3C_FLASH}} & MEM_RDATA)
-	| ( {64{l3c_state_dnxt == L3C_RSPWR}} & L2C_WDATA);
+	  ( {64{l3c_state_qout == L3C_FLASH}} & MEM_RDATA)
+	| ( {64{l3c_state_qout == L3C_RSPWR}} & L2C_WDATA);
 
 
 assign tag_en_w = ( l3c_state_qout == L3C_CKTAG ) & ( l3c_state_dnxt == L3C_FLASH );
@@ -540,7 +544,7 @@ assign tag_info_w = tag_addr[31:ADDR_LSB];
 assign L2C_RDATA = cache_info_r;
 assign MEM_WDATA = cache_info_r;
 assign MEM_AWADDR = { 32'b0, tag_addr} & ~64'h1ff;
-
+assign MEM_ARADDR = { 32'b0, tag_addr} & ~64'h1ff;
 
 assign cb_hit = (tag_info_r == tag_addr[31:ADDR_LSB]);
 

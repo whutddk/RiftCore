@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:07:27
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 15:52:44
+* @Last Modified time: 2021-02-24 17:09:21
 */
 
 /*
@@ -93,8 +93,11 @@ module gen_ppbuff #
 		end
 	endgenerate
 
-
-
+	assign info_o = info_qout;
+	assign valid = valid_qout;
+	
+	assign empty =  & (~valid);
+	assign full = & valid;
 
 
 

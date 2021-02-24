@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 16:06:44
+* @Last Modified time: 2021-02-24 16:42:55
 */
 
 
@@ -217,7 +217,7 @@ L3cache s_L3cache
 	.L2C_AWBURST(M_AXI_AWBURST),
 	.L2C_AWPROT(3'h0),
 	.L2C_AWVALID(M_AXI_AWVALID),
-	.L2C_AWREADY(M_AXI_ARREADY),
+	.L2C_AWREADY(M_AXI_AWREADY),
 
 	.L2C_WDATA(M_AXI_WDATA),
 	.L2C_WSTRB(M_AXI_WSTRB),
@@ -358,7 +358,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#8000
+	#80000
 			$display("Time Out !!!");
 	 $finish;
 end
@@ -391,7 +391,7 @@ initial begin
 	#10
 	start_single_burst_write = 1'b0;
 
-	#100
+	#1000
 	start_single_burst_read = 1'b1;
 
 	#10

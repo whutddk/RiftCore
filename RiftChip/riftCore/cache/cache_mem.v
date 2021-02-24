@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 10:00:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 16:00:46
+* @Last Modified time: 2021-02-24 17:43:51
 */
 
 
@@ -106,7 +106,7 @@ generate
 				.data_wstrb(cache_bank_wstrb),
 				.en_w(cache_bank_en_w[cb*BK+bk]),
 
-				.data_r(cache_bank_data_r[DW*cb*bk +: DW]),
+				.data_r(cache_bank_data_r[DW*(cb*BK+bk) +: DW]),
 				.addr_r(cache_address_sel),
 				.en_r(cache_bank_en_r[cb*BK+bk]),
 
