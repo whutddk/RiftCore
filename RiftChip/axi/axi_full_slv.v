@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 14:57:31
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-20 10:07:52
+* @Last Modified time: 2021-02-24 14:59:22
 */
 
 
@@ -159,18 +159,18 @@ module axi_full_slv
 
 	assign axi_awready_set =  (~axi_awready_qout & S_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
 	assign axi_awready_rst = ~(~axi_awready_qout & S_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(S_AXI_WLAST & axi_wready_qout);
-	gen_rsffr axi_awready_rsffr (.set_in(axi_awready_set), .rst_in(axi_awready_rst), .qout(axi_awready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_awready_rsffr (.set_in(axi_awready_set), .rst_in(axi_awready_rst), .qout(axi_awready_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign axi_awv_awr_flag_set = (~axi_awready_qout & S_AXI_AWVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
 	assign axi_awv_awr_flag_rst = ( axi_awready_qout | ~S_AXI_AWVALID | axi_awv_awr_flag_qout |  axi_arv_arr_flag_qout) & (S_AXI_WLAST & axi_wready_qout);
-	gen_rsffr axi_awv_awr_flag_rsffr (.set_in(axi_awv_awr_flag_set), .rst_in(axi_awv_awr_flag_rst), .qout(axi_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_awv_awr_flag_rsffr (.set_in(axi_awv_awr_flag_set), .rst_in(axi_awv_awr_flag_rst), .qout(axi_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign axi_awaddr_dnxta = S_AXI_AWADDR;
-	assign axi_awaddr_dnxtb = ( {AW{axi_awburst == 2'b00}} & axi_awaddr_qout )
+	assign axi_awaddr_dnxtb = ( {AW{axi_awburst_qout == 2'b00}} & axi_awaddr_qout )
 							| 
-							( {AW{axi_awburst == 2'b01}} & axi_awaddr_qout + (1<<ADDR_LSB) )
+							( {AW{axi_awburst_qout == 2'b01}} & axi_awaddr_qout + (1<<ADDR_LSB) )
 							|
-							( {AW{axi_awburst == 2'b10}} & 
+							( {AW{axi_awburst_qout == 2'b10}} & 
 								(
 									{AW{ aw_wrap_en}} & (axi_awaddr_qout - aw_wrap_size)
 									|
@@ -202,13 +202,13 @@ module axi_full_slv
 
 	assign axi_wready_set = ~axi_wready_qout & S_AXI_WVALID & axi_awv_awr_flag_qout;
 	assign axi_wready_rst =  axi_wready_qout & S_AXI_WLAST;
-	gen_rsffr axi_wready_rsffr (.set_in(axi_wready_set), .rst_in(axi_wready_rst), .qout(axi_wready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_wready_rsffr (.set_in(axi_wready_set), .rst_in(axi_wready_rst), .qout(axi_wready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 	assign axi_bvalid_set = ~axi_bvalid_qout & axi_awv_awr_flag_qout & axi_wready_qout & S_AXI_WVALID & S_AXI_WLAST;
 	assign axi_bvalid_rst =  axi_bvalid_qout & S_AXI_BREADY;
-	gen_rsffr axi_bvalid_rsffr (.set_in(axi_bvalid_set), .rst_in(axi_bvalid_rst), .qout(axi_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_bvalid_rsffr (.set_in(axi_bvalid_set), .rst_in(axi_bvalid_rst), .qout(axi_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -216,11 +216,11 @@ module axi_full_slv
 	
 	assign axi_arready_set = (~axi_arready_qout & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
 	assign axi_arready_rst = ~(~axi_arready_qout & S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout) & ~(axi_rvalid_qout & S_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
-	gen_rsffr axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign axi_arv_arr_flag_set = (~axi_arready_qout &  S_AXI_ARVALID & ~axi_awv_awr_flag_qout & ~axi_arv_arr_flag_qout);
 	assign axi_arv_arr_flag_rst = ( axi_arready_qout | ~S_AXI_ARVALID |  axi_awv_awr_flag_qout |  axi_arv_arr_flag_qout) & (axi_rvalid_qout & S_AXI_RREADY & axi_arlen_cnt_qout == axi_arlen_qout);
-	gen_rsffr axi_arv_arr_flag_rsffr (.set_in(axi_arv_arr_flag_set), .rst_in(axi_arv_arr_flag_rst), .qout(axi_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_arv_arr_flag_rsffr (.set_in(axi_arv_arr_flag_set), .rst_in(axi_arv_arr_flag_rst), .qout(axi_arv_arr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -252,8 +252,8 @@ module axi_full_slv
 
 
 	assign axi_rlast_set = ((axi_arlen_cnt_qout == axi_arlen_qout) & ~axi_rlast_qout & axi_arv_arr_flag_qout )  ;
-	assign axi_rlast_rst = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout) | (((axi_arlen_cnt_qout <= axi_arlen_qout) | axi_rlast_qout | ~axi_arv_arr_flag_qout ) & (S_AXI_RREADY));
-	gen_rsffr axi_rlast_rsffr (.set_in(axi_rlast_set), .rst_in(axi_rlast_rst), .qout(axi_rlast_qout), .CLK(CLK), .RSTn(RSTn));
+	assign axi_rlast_rst = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout) | (((axi_arlen_cnt_qout <= axi_arlen_qout) | axi_rlast_qout | ~axi_arv_arr_flag_qout ) & ( axi_rvalid_qout & S_AXI_RREADY));
+	gen_rsffr # (.DW(1)) axi_rlast_rsffr (.set_in(axi_rlast_set), .rst_in(axi_rlast_rst), .qout(axi_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -267,7 +267,7 @@ module axi_full_slv
 
 	assign axi_rvalid_set = ~axi_rvalid_qout & axi_arv_arr_flag_qout;
 	assign axi_rvalid_rst =  axi_rvalid_qout & S_AXI_RREADY;
-	gen_rsffr axi_rvalid_rsffr (.set_in(axi_rvalid_set), .rst_in(axi_rvalid_rst), .qout(axi_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rvalid_rsffr (.set_in(axi_rvalid_set), .rst_in(axi_rvalid_rst), .qout(axi_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

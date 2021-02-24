@@ -1,12 +1,12 @@
 @REM @Author: Ruige Lee
 @REM @Date:   2020-11-02 11:29:57
 @REM @Last Modified by:   Ruige Lee
-@REM Modified time: 2021-02-24 11:58:31
+@REM Modified time: 2021-02-24 14:38:52
 
 
 
 
-iverilog.exe -W all -o ../build/axi_full.iverilog ^
+iverilog.exe -W all -o ../build/axi_full_mst_tb.iverilog ^
 -y ../../RiftChip/ ^
 -y ../../RiftChip/riftCore/ ^
 -y ../../RiftChip/riftCore/backend  ^

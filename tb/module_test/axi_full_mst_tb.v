@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 11:50:40
+* @Last Modified time: 2021-02-24 14:45:45
 */
 
 
@@ -35,12 +35,20 @@ module axi_full_mst_tb
 (
 
 );
+	reg CLK;
+	reg RSTn;
 
+
+	wire M_AXI_ARVALID = axi_arvalid_qout;
+	wire M_AXI_RREADY = axi_rready_qout;
+	reg [2:0] M_AXI_AWSIZE;
+	reg [2:0] M_AXI_ARSIZE;
+	reg [7:0] M_AXI_AWLEN;
+	reg [7:0] M_AXI_ARLEN;
 	reg [31:0] M_AXI_AWADDR;
 	reg [31:0] M_AXI_ARADDR;
 	reg [7:0] M_AXI_WSTRB;
-	reg CLK;
-	reg RSTn;
+
 	reg start_single_burst_read, start_single_burst_write;
 
 
@@ -127,7 +135,7 @@ module axi_full_mst_tb
 
 	assign read_index_dnxt = start_single_burst_read ? 8'd0 :
 								(
-									(rnext & (read_index != M_AXI_ARLEN)) ? (read_index_qout + 8'd1) : read_index_qout
+									(rnext & (read_index_qout != M_AXI_ARLEN)) ? (read_index_qout + 8'd1) : read_index_qout
 								);              
 	gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
 
@@ -167,8 +175,8 @@ axi_full_slv_sram s_axi_full_slv_sram
 (
 
 	.S_AXI_AWADDR(M_AXI_AWADDR),
-	.S_AXI_AWLEN(8'd0),
-	.S_AXI_AWSIZE($clog2(64/8)),
+	.S_AXI_AWLEN(M_AXI_AWLEN),
+	.S_AXI_AWSIZE(M_AXI_AWSIZE),
 	.S_AXI_AWBURST(2'b00),
 	.S_AXI_AWVALID(axi_awvalid_qout),
 	.S_AXI_AWREADY(M_AXI_AWREADY),
@@ -184,8 +192,8 @@ axi_full_slv_sram s_axi_full_slv_sram
 	.S_AXI_BREADY(axi_bready_qout),
 
 	.S_AXI_ARADDR(M_AXI_ARADDR),
-	.S_AXI_ARLEN(8'd15),
-	.S_AXI_ARSIZE($clog2(64/8)),
+	.S_AXI_ARLEN(M_AXI_ARLEN),
+	.S_AXI_ARSIZE(M_AXI_ARSIZE),
 	.S_AXI_ARBURST(2'b01),
 	.S_AXI_ARVALID(axi_arvalid_qout),
 	.S_AXI_ARREADY(M_AXI_ARREADY),
@@ -306,7 +314,7 @@ axi_full_slv_sram s_axi_full_slv_sram
 
 initial
 begin
-	$dumpfile("../build/axi_full_mst_tb.vcd"); //生成的vcd文件名称
+	$dumpfile("../build/wave.vcd"); //生成的vcd文件名称
 	$dumpvars(0, axi_full_mst_tb);//tb模块名称
 end
 
@@ -338,10 +346,12 @@ initial begin
 	M_AXI_WSTRB = 8'b0;
 	start_single_burst_read = 1'b0;
 	start_single_burst_write = 1'b0;
-
+	M_AXI_AWLEN = 8'b0;
+	M_AXI_ARLEN = 8'd15;
+	M_AXI_AWSIZE = $clog2(64/8);
+	M_AXI_ARSIZE = $clog2(64/8);
 
 	#52
-
 	start_single_burst_read = 1'b1;
 
 	#10

@@ -1,10 +1,10 @@
 /*
-* @File name: axi_full_slv_tb
+* @File name: axi_full_slv_sram
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:25:27
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 11:34:59
+* @Last Modified time: 2021-02-24 14:58:18
 */
 
 
@@ -37,7 +37,7 @@
 module axi_full_slv_sram
 (
 
-	input [AW-1:0] S_AXI_AWADDR,
+	input [31:0] S_AXI_AWADDR,
 	input [7:0] S_AXI_AWLEN,
 	input [2:0] S_AXI_AWSIZE,
 	input [1:0] S_AXI_AWBURST,
@@ -45,8 +45,8 @@ module axi_full_slv_sram
 	output S_AXI_AWREADY,
 
 
-	input [DW-1:0] S_AXI_WDATA,
-	input [(DW/8)-1:0] S_AXI_WSTRB,
+	input [63:0] S_AXI_WDATA,
+	input [7:0] S_AXI_WSTRB,
 	input S_AXI_WLAST,
 	input S_AXI_WVALID,
 	output S_AXI_WREADY,
@@ -55,14 +55,14 @@ module axi_full_slv_sram
 	output S_AXI_BVALID,
 	input S_AXI_BREADY,
 
-	input [AW-1:0] S_AXI_ARADDR,
+	input [31:0] S_AXI_ARADDR,
 	input [7:0] S_AXI_ARLEN,
 	input [2:0] S_AXI_ARSIZE,
 	input [1:0] S_AXI_ARBURST,
 	input S_AXI_ARVALID,
 	output S_AXI_ARREADY,
 
-	output [DW-1:0] S_AXI_RDATA,
+	output [63:0] S_AXI_RDATA,
 	output [1:0] S_AXI_RRESP,
 	output S_AXI_RLAST,
 	output S_AXI_RVALID,
@@ -72,18 +72,18 @@ module axi_full_slv_sram
 	input RSTn
 );
 
-	localparam ADDR_LSB = $clog2(DW/8);
+	localparam ADDR_LSB = $clog2(64/8);
 
 
-	wire [AW-1:0] aw_wrap_size; 
-	wire [AW-1:0] ar_wrap_size; 
+	wire [31:0] aw_wrap_size; 
+	wire [31:0] ar_wrap_size; 
 	wire aw_wrap_en, ar_wrap_en;
 
 	wire axi_awready_set, axi_awready_rst, axi_awready_qout;
 	wire axi_awv_awr_flag_set, axi_awv_awr_flag_rst, axi_awv_awr_flag_qout;
-	wire [AW-1:0] axi_awaddr_dnxta;
-	wire [AW-1:0] axi_awaddr_dnxtb;
-	wire [AW-1:0] axi_awaddr_qout;
+	wire [31:0] axi_awaddr_dnxta;
+	wire [31:0] axi_awaddr_dnxtb;
+	wire [31:0] axi_awaddr_qout;
 	wire axi_awaddr_ena, axi_awaddr_enb;
 	wire axi_awburst_en;
 	wire [1:0] axi_awburst_dnxt;
@@ -99,9 +99,9 @@ module axi_full_slv_sram
 	wire axi_bvalid_set, axi_bvalid_rst, axi_bvalid_qout;
 	wire axi_arready_set, axi_arready_rst, axi_arready_qout;
 	wire axi_arv_arr_flag_set, axi_arv_arr_flag_rst, axi_arv_arr_flag_qout;
-	wire [AW-1:0] axi_araddr_dnxta;
-	wire [AW-1:0] axi_araddr_dnxtb;
-	wire [AW-1:0] axi_araddr_qout;
+	wire [31:0] axi_araddr_dnxta;
+	wire [31:0] axi_araddr_dnxtb;
+	wire [31:0] axi_araddr_qout;
 	wire axi_araddr_ena, axi_araddr_enb, axi_arburst_en;
 	wire [1:0] axi_arburst_dnxt;
 	wire [1:0] axi_arburst_qout;
@@ -121,7 +121,6 @@ module axi_full_slv_sram
 	assign S_AXI_BRESP = 2'b00;
 	assign S_AXI_BVALID	= axi_bvalid_qout;
 	assign S_AXI_ARREADY = axi_arready_qout;
-	assign S_AXI_RDATA = ;
 	assign S_AXI_RRESP = 2'b00;
 	assign S_AXI_RLAST = axi_rlast_qout;
 	assign S_AXI_RVALID	= axi_rvalid_qout;
@@ -137,13 +136,13 @@ module axi_full_slv_sram
 	gen_rsffr axi_awv_awr_flag_rsffr (.set_in(axi_awv_awr_flag_set), .rst_in(axi_awv_awr_flag_rst), .qout(axi_awv_awr_flag_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign axi_awaddr_dnxta = S_AXI_AWADDR;
-	assign axi_awaddr_dnxtb = ( {AW{axi_awburst == 2'b00}} & axi_awaddr_qout )
+	assign axi_awaddr_dnxtb = ( {32{axi_awburst_qout == 2'b00}} & axi_awaddr_qout )
 							| 
-							( {AW{axi_awburst == 2'b01}} & axi_awaddr_qout + (1<<ADDR_LSB) );
+							( {32{axi_awburst_qout == 2'b01}} & axi_awaddr_qout + (1<<ADDR_LSB) );
 
 	assign axi_awaddr_ena = ~axi_awready_qout & S_AXI_AWVALID & ~axi_awv_awr_flag_qout;
 	assign axi_awaddr_enb = (axi_awlen_cnt_qout <= axi_awlen_qout) & axi_wready_qout & S_AXI_WVALID;
-	gen_dpdffren # (.DW(AW)) axi_awaddr_dpdffren( .dnxta(axi_awaddr_dnxta), .ena(axi_awaddr_ena), .dnxtb(axi_awaddr_dnxtb), .enb(axi_awaddr_enb), .qout(axi_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	gen_dpdffren # (.DW(32)) axi_awaddr_dpdffren( .dnxta(axi_awaddr_dnxta), .ena(axi_awaddr_ena), .dnxtb(axi_awaddr_dnxtb), .enb(axi_awaddr_enb), .qout(axi_awaddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
 	assign axi_awburst_en = (~axi_awready_qout & S_AXI_AWVALID & ~axi_awv_awr_flag_qout);
 	assign axi_awburst_dnxt = S_AXI_AWBURST;
@@ -189,12 +188,12 @@ module axi_full_slv_sram
 
 
 	assign axi_araddr_dnxta = S_AXI_ARADDR;
-	assign axi_araddr_dnxtb = ({AW{axi_arburst_qout == 2'b00}} & axi_araddr_qout)
+	assign axi_araddr_dnxtb = ({32{axi_arburst_qout == 2'b00}} & axi_araddr_qout)
 							|
-							({AW{axi_arburst_qout == 2'b01}} & axi_araddr_qout + (1<<ADDR_LSB));
+							({32{axi_arburst_qout == 2'b01}} & axi_araddr_qout + (1<<ADDR_LSB));
 	assign axi_araddr_ena = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout);
 	assign axi_araddr_enb = ((axi_arlen_cnt_qout <= axi_arlen_qout) & axi_rvalid_qout & S_AXI_RREADY);
-	gen_dpdffren # (.DW(AW)) axi_araddr_dpdffren( .dnxta(axi_araddr_dnxta), .ena(axi_araddr_ena), .dnxtb(axi_araddr_dnxtb), .enb(axi_araddr_enb), .qout(axi_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
+	gen_dpdffren # (.DW(32)) axi_araddr_dpdffren( .dnxta(axi_araddr_dnxta), .ena(axi_araddr_ena), .dnxtb(axi_araddr_dnxtb), .enb(axi_araddr_enb), .qout(axi_araddr_qout), .CLK(CLK), .RSTn(RSTn) );
 
 	
 	assign axi_arburst_en = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout);
@@ -208,7 +207,7 @@ module axi_full_slv_sram
 
 
 	assign axi_rlast_set = ((axi_arlen_cnt_qout == axi_arlen_qout) & ~axi_rlast_qout & axi_arv_arr_flag_qout )  ;
-	assign axi_rlast_rst = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout) | (((axi_arlen_cnt_qout <= axi_arlen_qout) | axi_rlast_qout | ~axi_arv_arr_flag_qout ) & (S_AXI_RREADY));
+	assign axi_rlast_rst = (~axi_arready_qout & S_AXI_ARVALID & ~axi_arv_arr_flag_qout) | (((axi_arlen_cnt_qout <= axi_arlen_qout) | axi_rlast_qout | ~axi_arv_arr_flag_qout ) & ( axi_rvalid_qout & S_AXI_RREADY));
 	gen_rsffr axi_rlast_rsffr (.set_in(axi_rlast_set), .rst_in(axi_rlast_rst), .qout(axi_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
@@ -268,8 +267,9 @@ gen_sram # ( .DW(64), .AW(14) ) s_sram
 );
 
 localparam SRAM_ADDR = 2**14;
+integer i;
 initial begin
-	for ( genvar i = 0; i < SRAM_ADDR; i = i + 1 ) begin
+	for ( i = 0; i < SRAM_ADDR; i = i + 1 ) begin
 		s_sram.ram[i] = i;
 	end
 

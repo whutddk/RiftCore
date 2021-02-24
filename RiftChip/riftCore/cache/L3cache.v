@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 09:24:03
+* @Last Modified time: 2021-02-24 15:00:31
 */
 
 
@@ -319,7 +319,7 @@ wire cache_valid_en;
 	gen_dffren # (.DW(8)) l2c_arlen_dffren (.dnxt(l2c_arlen_dnxt), .qout(l2c_arlen_qout), .en(l2c_arlen_en), .CLK(CLK), .RSTn(RSTn));
 
 	assign l2c_rlast_set = ((l2c_arlen_cnt_qout == l2c_arlen_qout) & ~l2c_rlast_qout & (l3c_state_qout == L3C_RSPRD) )  ;
-	assign l2c_rlast_rst = l2c_ar_rsp | (((l2c_arlen_cnt_qout <= l2c_arlen_qout) | l2c_rlast_qout | (l3c_state_qout != L3C_RSPRD) ) & (L2C_RREADY));
+	assign l2c_rlast_rst = l2c_ar_rsp | (((l2c_arlen_cnt_qout <= l2c_arlen_qout) | l2c_rlast_qout | (l3c_state_qout != L3C_RSPRD) ) & ( l2c_rvalid_qout & L2X_AXI_RREADY));
 	gen_rsffr # (.DW(1)) l2c_rlast_rsffr (.set_in(l2c_rlast_set), .rst_in(l2c_rlast_rst), .qout(l2c_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign l2c_arlen_cnt_dnxta = 8'd0;

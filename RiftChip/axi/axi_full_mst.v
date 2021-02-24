@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 11:37:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-19 17:39:39
+* @Last Modified time: 2021-02-24 14:30:59
 */
 
 
@@ -151,7 +151,7 @@ module axi_full_mst #
 
 	assign axi_awvalid_set = ~axi_awvalid_qout & start_single_burst_write;
 	assign axi_awvalid_rst =  axi_awvalid_qout & M_AXI_AWREADY ;
-	gen_rsffr axi_awvalid_rsffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_awvalid_rsffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -160,14 +160,14 @@ module axi_full_mst #
 
 	assign axi_wvalid_set = (~axi_wvalid_qout & start_single_burst_write);
 	assign axi_wvalid_rst = (wnext & axi_wlast_qout) ;
-	gen_rsffr axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 	assign axi_wlast_set = ((write_index_qout == C_M_AXI_BURST_LEN-2 && C_M_AXI_BURST_LEN >= 2) && wnext) || (C_M_AXI_BURST_LEN == 1 );
 	assign axi_wlast_rst = ~axi_wlast_set & ( wnext | (axi_wlast_qout && C_M_AXI_BURST_LEN == 1) );
-	gen_rsffr axi_wlast_rsffr (.set_in(axi_wlast_set), .rst_in(axi_wlast_rst), .qout(axi_wlast_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_wlast_rsffr (.set_in(axi_wlast_set), .rst_in(axi_wlast_rst), .qout(axi_wlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign write_index_dnxt = start_single_burst_write ? 8'd0 :
@@ -179,7 +179,7 @@ module axi_full_mst #
 
 	assign axi_bready_set = (M_AXI_BVALID && ~axi_bready_qout);
 	assign axi_bready_rst = axi_bready_qout;
-	gen_rsffr axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
 	assign write_resp_error = axi_bready_qout & M_AXI_BVALID & M_AXI_BRESP[1]; 
@@ -189,7 +189,7 @@ module axi_full_mst #
 
 	assign axi_arvalid_set = ~axi_arvalid_qout & start_single_burst_read;
 	assign axi_arvalid_rst = axi_arvalid_qout & M_AXI_ARREADY ;
-	gen_rsffr axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
 	assign rnext = M_AXI_RVALID && axi_rready_qout;
@@ -198,14 +198,14 @@ module axi_full_mst #
 
 	assign read_index_dnxt = start_single_burst_read ? 8'd0 :
 								(
-									(rnext & (read_index != C_M_AXI_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
+									(rnext & (read_index_qout != C_M_AXI_BURST_LEN-1)) ? (read_index_qout + 8'd1) : read_index_qout
 								);							
 	gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign axi_rready_set = M_AXI_RVALID & (~M_AXI_RLAST | ~axi_rready_qout);
 	assign axi_rready_rst = M_AXI_RVALID &   M_AXI_RLAST &  axi_rready_qout;
-	gen_rsffr axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	assign read_resp_error = axi_rready_qout & M_AXI_RVALID & M_AXI_RRESP[1];
