@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 17:37:00
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-14 19:51:29
+* @Last Modified time: 2021-02-24 16:18:59
 */
 
 
@@ -51,10 +51,11 @@ module gen_sram #
 );
 
 	localparam DP = 2**AW;
+	localparam DW_ZM = (DW+7)/8*8;
 
-	reg [DW-1:0] ram[0:DP-1];
-	reg [DW-1:0] data_r_reg;
-
+	reg [DW_ZM-1:0] ram[0:DP-1];
+	reg [DW_ZM-1:0] data_r_reg;
+	wire [DW_ZM-1:0] data_w_zmask = {DW_ZM{1'b0}} | data_w;
 
 
 	generate
@@ -62,7 +63,7 @@ module gen_sram #
 			always @(posedge CLK) begin
 				if (en_w) begin
 					if (data_wstrb[i]) begin
-						ram[addr_w][i*8+:8] <= #1 data_w[i*8+:8] ;					
+						ram[addr_w][i*8+:8] <= #1 data_w_zmask[i*8+:8] ;					
 					end
 				end
 
@@ -75,7 +76,7 @@ module gen_sram #
 		end
 	endgenerate
 	
-	assign data_r = data_r_reg;
+	assign data_r = data_r_reg[DW-1:0];
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 10:00:20
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 17:02:05
+* @Last Modified time: 2021-02-24 16:00:46
 */
 
 
@@ -54,7 +54,7 @@ module cache_mem #
 	input [CB-1:0] tag_en_r,
 	input [(TAG_W+7)/8-1:0] tag_info_wstrb,
 	input [TAG_W-1:0] tag_info_w,
-	output [TAG_W*CB-1:0] tag_info_r
+	output [TAG_W*CB-1:0] tag_info_r,
 
 	input CLK,
 	input RSTn
@@ -74,6 +74,7 @@ wire [TAG_W-1:0] tag_sel = tag_addr[31 -: TAG_W];
 wire [CB*BK-1:0] cache_bank_en_w;
 wire [CB*BK-1:0] cache_bank_en_r;
 wire [DW*BK*CB-1:0] cache_bank_data_r;
+wire [DW/8-1:0] cache_bank_wstrb = cache_info_wstrb << data_sel;
 
 
 generate
@@ -94,20 +95,20 @@ generate
 		);
 
 		for ( genvar bk = 0; bk < BK; bk = bk + 1 ) begin
-			assign cache_bank_en_w[BK*cb+bk] = bank_sel[bk] & cache_en_w[cb];
-			assign cache_bank_en_r[BK*cb+bk] = bank_sel[bk] & cache_en_r[cb];
+			assign cache_bank_en_w[BK*cb+bk] = ( bank_sel == bk ) & cache_en_w[cb];
+			assign cache_bank_en_r[BK*cb+bk] = ( bank_sel == bk ) & cache_en_r[cb];
 
 
 			gen_sram # ( .DW(DW), .AW(LINE_W)) cache_bank_ram
 			(
-				.data_w({DW/64{cache_info_w}}),
-				.addr_w(cache_addr),
-				.data_wstrb(cache_info_wstrb << data_sel),
+				.data_w({(DW/64){cache_info_w}}),
+				.addr_w(cache_address_sel),
+				.data_wstrb(cache_bank_wstrb),
 				.en_w(cache_bank_en_w[cb*BK+bk]),
 
 				.data_r(cache_bank_data_r[DW*cb*bk +: DW]),
-				.addr_r(cache_addr),
-				.en_r(cache_en_r[cb*BK+bk]),
+				.addr_r(cache_address_sel),
+				.en_r(cache_bank_en_r[cb*BK+bk]),
 
 				.CLK(CLK)		
 			);

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:33:10
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 16:22:44
+* @Last Modified time: 2021-02-24 15:52:27
 */
 
 /*
@@ -68,7 +68,7 @@ wire ppbuff_full;
 // push will be block when there is a same record in buff
 generate
 	for ( genvar i = 0 ; i < DP; i = i + 1 ) begin
-		addr_chk[i] = addr_i == (info_o[ AW*i +: AW]);
+		assign addr_chk[i] = addr_i == (info_o[ AW*i +: AW]);
 	end
 endgenerate
 
@@ -108,11 +108,11 @@ dirty_index
 
 
 assign index = 	
-		(CW{push_chk & ~pop}} & index_push)
+		({CW{push_chk & ~pop}} & index_push)
 		|
-		(CW{pop & ~push_chk}} & index_pop)
+		({CW{pop & ~push_chk}} & index_pop)
 		|
-		(CW{pop & push_chk}} & index_pop);
+		({CW{pop & push_chk}} & index_pop);
 
 
 assign addr_o = info_o[ 32*index_pop +: 32];
