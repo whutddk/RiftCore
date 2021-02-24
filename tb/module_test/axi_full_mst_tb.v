@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 14:45:45
+* @Last Modified time: 2021-02-24 15:28:33
 */
 
 
@@ -58,12 +58,15 @@ module axi_full_mst_tb
 	wire M_AXI_RLAST;
 	wire M_AXI_RVALID;
 	wire M_AXI_AWREADY;
-	wire [63:0] M_AXI_WDATA = write_index_qout + 1;
+	reg [63:0] M_AXI_WDATA;
 	wire M_AXI_WREADY;
 	wire [1:0] M_AXI_BRESP;
 	wire M_AXI_BVALID;
 
-
+	wire M_AXI_AWVALID = axi_awvalid_qout;
+	wire M_AXI_WLAST = axi_wlast_qout;
+	wire M_AXI_WVALID = axi_wvalid_qout;
+	wire M_AXI_BREADY = axi_bready_qout;
 
 	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
 	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
@@ -163,12 +166,6 @@ module axi_full_mst_tb
 
 
 
-// 	.L2C_RID(),
-// 	.L2C_RDATA(),
-// 	.L2C_RRESP(),
-// 	.L2C_RLAST(),
-// 	.L2C_RVALID(),
-// 	.L2C_RREADY(),
 
 
 axi_full_slv_sram s_axi_full_slv_sram
@@ -178,31 +175,31 @@ axi_full_slv_sram s_axi_full_slv_sram
 	.S_AXI_AWLEN(M_AXI_AWLEN),
 	.S_AXI_AWSIZE(M_AXI_AWSIZE),
 	.S_AXI_AWBURST(2'b00),
-	.S_AXI_AWVALID(axi_awvalid_qout),
+	.S_AXI_AWVALID(M_AXI_AWVALID),
 	.S_AXI_AWREADY(M_AXI_AWREADY),
 
 	.S_AXI_WDATA(M_AXI_WDATA),
 	.S_AXI_WSTRB(M_AXI_WSTRB),
-	.S_AXI_WLAST(axi_wlast_qout),
-	.S_AXI_WVALID(axi_wvalid_qout),
+	.S_AXI_WLAST(M_AXI_WLAST),
+	.S_AXI_WVALID(M_AXI_WVALID),
 	.S_AXI_WREADY(M_AXI_WREADY),
 
 	.S_AXI_BRESP(M_AXI_BRESP),
 	.S_AXI_BVALID(M_AXI_BVALID),
-	.S_AXI_BREADY(axi_bready_qout),
+	.S_AXI_BREADY(M_AXI_BREADY),
 
 	.S_AXI_ARADDR(M_AXI_ARADDR),
 	.S_AXI_ARLEN(M_AXI_ARLEN),
 	.S_AXI_ARSIZE(M_AXI_ARSIZE),
 	.S_AXI_ARBURST(2'b01),
-	.S_AXI_ARVALID(axi_arvalid_qout),
+	.S_AXI_ARVALID(M_AXI_ARVALID),
 	.S_AXI_ARREADY(M_AXI_ARREADY),
 
 	.S_AXI_RDATA(M_AXI_RDATA),
 	.S_AXI_RRESP(M_AXI_RRESP),
 	.S_AXI_RLAST(M_AXI_RLAST),
 	.S_AXI_RVALID(M_AXI_RVALID),
-	.S_AXI_RREADY(axi_rready_qout),
+	.S_AXI_RREADY(M_AXI_RREADY),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -343,6 +340,7 @@ end
 initial begin
 	M_AXI_AWADDR = 32'h0;
 	M_AXI_ARADDR = 32'h0;
+	M_AXI_WDATA = 64'd0;
 	M_AXI_WSTRB = 8'b0;
 	start_single_burst_read = 1'b0;
 	start_single_burst_write = 1'b0;
@@ -352,6 +350,15 @@ initial begin
 	M_AXI_ARSIZE = $clog2(64/8);
 
 	#52
+	start_single_burst_write = 1'b1;
+	M_AXI_AWADDR = 32'b11000;
+	M_AXI_WDATA = 64'haa;
+	M_AXI_WSTRB = 8'hff;
+
+	#10
+	start_single_burst_write = 1'b0;
+
+	#100
 	start_single_burst_read = 1'b1;
 
 	#10
