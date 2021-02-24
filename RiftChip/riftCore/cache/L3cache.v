@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-23 19:42:33
+* @Last Modified time: 2021-02-24 09:24:03
 */
 
 
@@ -255,14 +255,6 @@ wire cache_valid_en;
 //                                                                 ________________________                                                                                  
 //                                                                 _::::::::::::::::::::::_                                                                                  
 //                                                                 ________________________                                                                                  
-
-
-
-	// localparam ADDR_LSB = $clog2(L2C_DW/8);
-
-
-
-
 
 
 
