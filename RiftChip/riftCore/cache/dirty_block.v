@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:33:10
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 14:52:39
+* @Last Modified time: 2021-02-25 17:23:48
 */
 
 /*
@@ -33,16 +33,16 @@
 
 module dirty_block # 
 (
-	parameter AW = 32,
+	parameter DW = 32,
 	parameter DP = 16 
 )
 (
 
 	input push,
-	input [AW-1:0] addr_i,
+	input [DW-1:0] addr_i,
 
 	input pop,
-	output [AW-1:0] addr_o,
+	output [DW-1:0] addr_o,
 
 	output empty,
 	output full,
@@ -57,7 +57,7 @@ localparam CW = $clog2(DP);
 wire [CW-1:0] index;
 wire [CW-1:0] index_push;
 wire [CW-1:0] index_pop;
-wire [AW*DP-1:0] info_o;
+wire [DW*DP-1:0] info_o;
 
 wire [DP-1:0] valid;
 wire [DP-1:0] addr_chk;
@@ -68,7 +68,7 @@ wire ppbuff_full;
 // push will be block when there is a same record in buff
 generate
 	for ( genvar i = 0 ; i < DP; i = i + 1 ) begin
-		assign addr_chk[i] = valid[i] & (addr_i == (info_o[ AW*i +: AW]));
+		assign addr_chk[i] = valid[i] & (addr_i == (info_o[ DW*i +: DW]));
 	end
 endgenerate
 
@@ -86,7 +86,7 @@ assign full = ppbuff_full & ~(| addr_chk);
 
 
 
-gen_ppbuff # ( .DW(AW), .DP(DP) )
+gen_ppbuff # ( .DW(DW), .DP(DP) )
 dirty_index
 (
 	.pop(pop),
@@ -115,7 +115,7 @@ assign index =
 		({CW{pop & push_chk}} & index_pop);
 
 
-assign addr_o = info_o[ AW*index_pop +: AW];
+assign addr_o = info_o[ DW*index_pop +: DW];
 
 
 lzp #( .CW(CW) ) buff_push
