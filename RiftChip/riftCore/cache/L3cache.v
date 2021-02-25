@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 17:09:53
+* @Last Modified time: 2021-02-25 17:49:23
 */
 
 
@@ -211,7 +211,7 @@ wire [31:0] cache_addr_dnxt;
 wire [31:0] cache_addr_qout;
 
 wire cb_hit;
-wire cl_sel;
+wire [CL-1:0] cl_sel;
 
 wire db_push;
 wire [31:0] db_addr_i;
@@ -579,7 +579,7 @@ assign cache_valid_en = ( l3c_state_qout == L3C_FENCE & l3c_state_dnxt == L3C_CF
 
 
 
-dirty_block # ( .AW(32-ADDR_LSB), .DP(2) ) i_dirty_block
+dirty_block # ( .DW(32-ADDR_LSB), .DP(16) ) i_dirty_block
 (
 	.push(db_push),
 	.addr_i(db_addr_i[31:ADDR_LSB]),
