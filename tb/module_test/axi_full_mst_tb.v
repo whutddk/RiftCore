@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 16:42:55
+* @Last Modified time: 2021-02-25 10:15:02
 */
 
 
@@ -391,7 +391,7 @@ initial begin
 	#10
 	start_single_burst_write = 1'b0;
 
-	#1000
+	#2000
 	start_single_burst_read = 1'b1;
 
 	#10

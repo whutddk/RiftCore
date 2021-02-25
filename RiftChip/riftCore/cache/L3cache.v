@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 17:28:13
+* @Last Modified time: 2021-02-25 11:03:25
 */
 
 
@@ -461,7 +461,7 @@ assign l3c_state_dnxt =
 	| (
 		{3{l3c_state_qout == L3C_CKTAG}} & 
 		(
-			  ({3{ cb_hit & cache_valid_qout[cl_sel] & L2C_AWVALID}} & (db_full ? L3C_EVICT : L3C_RSPWR ) )
+			  ({3{ cb_hit & cache_valid_qout[cl_sel] & L2C_AWVALID & ~ L2C_ARVALID}} & (db_full ? L3C_EVICT : L3C_RSPWR ) )
 			| ({3{ cb_hit & cache_valid_qout[cl_sel] & L2C_ARVALID}} & L3C_RSPRD )
 			| ({3{~cb_hit & cache_valid_qout[cl_sel]              }} & L3C_EVICT )
 			| ({3{         ~cache_valid_qout[cl_sel]              }} & L3C_FLASH )
@@ -511,14 +511,14 @@ assign cache_addr = cache_addr_qout;
 assign cache_addr_dnxt = 
 	  ( {32{l3c_state_qout == L3C_CFREE}} & cache_addr_qout )
 	| ( {32{l3c_state_qout == L3C_CKTAG}} &
-		( 
-			L2C_ARVALID ? L2C_ARADDR : (db_full ? db_addr_o : L2C_AWADDR)) & ~32'h1ff
-		)
+		 
+			(L2C_ARVALID ? (L2C_ARADDR & ~32'h1ff) : (db_full ? db_addr_o : (L2C_AWADDR & ( l3c_state_dnxt == L3C_RSPWR ? ~32'h0 : ~32'h1ff )) ) )
+	  )
 	| ( {32{l3c_state_qout == L3C_FENCE}} & db_addr_o )
-	| ( {32{l3c_state_qout == L3C_EVICT}} & cache_addr_qout + 32'b1000 )
-	| ( {32{l3c_state_qout == L3C_FLASH}} & cache_addr_qout + 32'b1000 )
-	| ( {32{l3c_state_qout == L3C_RSPRD}} & cache_addr_qout + 32'b1000 )
-	| ( {32{l3c_state_qout == L3C_RSPWR}} & cache_addr_qout + 32'b1000 )
+	| ( {32{l3c_state_qout == L3C_EVICT}} & ((MEM_WVALID & MEM_WREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l3c_state_qout == L3C_FLASH}} & ((MEM_RVALID & MEM_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l3c_state_qout == L3C_RSPRD}} & ((L2C_RVALID & L2C_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l3c_state_qout == L3C_RSPWR}} & ((L2C_WVALID & L2C_WREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
 	;
 
 assign tag_addr = L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR;
@@ -556,7 +556,7 @@ gen_dffren # (.DW(CL)) cache_valid_dffren (.dnxt(cache_valid_dnxt), .qout(cache_
 generate
 	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
 		assign cache_valid_dnxt[cl] =
-			( cl != cl_sel ) ? cache_valid_qout :
+			( cl != cl_sel ) ? cache_valid_qout[cl] :
 				(
 					  ( l3c_state_qout == L3C_EVICT & 1'b0 )
 					| ( l3c_state_qout == L3C_FLASH & 1'b1 )
@@ -623,10 +623,14 @@ always @( negedge CLK ) begin
 		$display("Assert Fail at L3cache");
 		$stop;
 	end
+
+
 end
 
 
-
+initial begin 
+	$warning("Request from L2C in one core should comes one by one, only when last one return can the next one comes. Multi-core don't care!");
+end
 
 
 
