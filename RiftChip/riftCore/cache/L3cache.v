@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 14:47:18
+* @Last Modified time: 2021-02-25 17:09:53
 */
 
 
@@ -556,16 +556,18 @@ gen_dffren # (.DW(CL)) cache_valid_dffren (.dnxt(cache_valid_dnxt), .qout(cache_
 generate
 	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
 		assign cache_valid_dnxt[cl] =
-			( cl != cl_sel ) ? cache_valid_qout[cl] :
+			( l3c_state_qout == L3C_FENCE & l3c_state_dnxt == L3C_CFREE ) ? 1'b0 :
 				(
-					  ( l3c_state_qout == L3C_EVICT & 1'b0 )
-					| ( l3c_state_qout == L3C_FLASH & 1'b1 )
+					( cl != cl_sel ) ? cache_valid_qout[cl] :
+						(
+							  ( l3c_state_qout == L3C_EVICT & 1'b0 ) | ( l3c_state_qout == L3C_FLASH & 1'b1 )
+						)				
 				);
 	end
 	
 endgenerate
 
-assign cache_valid_en = (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_FLASH);
+assign cache_valid_en = ( l3c_state_qout == L3C_FENCE & l3c_state_dnxt == L3C_CFREE ) | (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_FLASH);
 
 
 
