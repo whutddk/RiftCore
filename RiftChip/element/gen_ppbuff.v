@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:07:27
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 17:09:21
+* @Last Modified time: 2021-02-25 11:30:59
 */
 
 /*
@@ -71,7 +71,7 @@ module gen_ppbuff #
 			assign info_dnxt[DW*dp +: DW] = info_i;
 			assign info_en[dp] = push & (dp == index);
 			assign valid_dnxt[dp] = push & (~flush);
-			assign valid_en[dp] = pop | push | flush;
+			assign valid_en[dp] = (pop | push | flush) & (dp == index);
 
 			gen_dffren #(.DW(DW)) info_dffren
 			( 	
@@ -95,7 +95,7 @@ module gen_ppbuff #
 
 	assign info_o = info_qout;
 	assign valid = valid_qout;
-	
+
 	assign empty =  & (~valid);
 	assign full = & valid;
 

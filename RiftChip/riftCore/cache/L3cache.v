@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 11:03:25
+* @Last Modified time: 2021-02-25 14:47:18
 */
 
 
@@ -402,13 +402,13 @@ wire cache_valid_en;
 	assign mem_wvalid_rst = (MEM_WREADY & mem_wvalid_qout & mem_wlast_qout) ;
 	gen_rsffr # (.DW(1)) mem_wvalid_rsffr (.set_in(mem_wvalid_set), .rst_in(mem_wvalid_rst), .qout(mem_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
-	assign mem_wlast_set = ((write_index_qout == 256 - 2 ) & MEM_WREADY & mem_wvalid_qout);
+	assign mem_wlast_set = ((write_index_qout == MEM_AWLEN - 1 ) & MEM_WREADY & mem_wvalid_qout);
 	assign mem_wlast_rst = ~mem_wlast_set & ( MEM_WREADY & mem_wvalid_qout | mem_wlast_qout );
 	gen_rsffr # (.DW(1)) mem_wlast_rsffr (.set_in(mem_wlast_set), .rst_in(mem_wlast_rst), .qout(mem_wlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign write_index_dnxt = mem_aw_req ? 8'd0 :
 								(
-									(MEM_WREADY & mem_wvalid_qout & (write_index_qout != 255)) ? (write_index_qout + 8'd1) : write_index_qout
+									(MEM_WREADY & mem_wvalid_qout & (write_index_qout != MEM_AWLEN)) ? (write_index_qout + 8'd1) : write_index_qout
 								);							
 	gen_dffr # (.DW(8)) write_index_dffr (.dnxt(write_index_dnxt), .qout(write_index_qout), .CLK(CLK), .RSTn(RSTn));
 
@@ -577,7 +577,7 @@ assign cache_valid_en = (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_F
 
 
 
-dirty_block # ( .AW(32-ADDR_LSB), .DP(16) ) i_dirty_block
+dirty_block # ( .AW(32-ADDR_LSB), .DP(2) ) i_dirty_block
 (
 	.push(db_push),
 	.addr_i(db_addr_i[31:ADDR_LSB]),

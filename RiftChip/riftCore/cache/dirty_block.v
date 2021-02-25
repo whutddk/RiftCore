@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:33:10
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-24 15:52:27
+* @Last Modified time: 2021-02-25 14:52:39
 */
 
 /*
@@ -68,17 +68,17 @@ wire ppbuff_full;
 // push will be block when there is a same record in buff
 generate
 	for ( genvar i = 0 ; i < DP; i = i + 1 ) begin
-		assign addr_chk[i] = addr_i == (info_o[ AW*i +: AW]);
+		assign addr_chk[i] = valid[i] & (addr_i == (info_o[ AW*i +: AW]));
 	end
 endgenerate
 
-	assign push_chk = push & (| addr_chk);
+	assign push_chk = push & ~(| addr_chk);
 
 
 
 
 
-assign full = ppbuff_full & (| addr_chk);
+assign full = ppbuff_full & ~(| addr_chk);
 
 
 
@@ -115,7 +115,7 @@ assign index =
 		({CW{pop & push_chk}} & index_pop);
 
 
-assign addr_o = info_o[ 32*index_pop +: 32];
+assign addr_o = info_o[ AW*index_pop +: AW];
 
 
 lzp #( .CW(CW) ) buff_push

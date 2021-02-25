@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 10:15:02
+* @Last Modified time: 2021-02-25 14:30:45
 */
 
 
@@ -384,18 +384,61 @@ initial begin
 
 	#52
 	start_single_burst_write = 1'b1;
+	start_single_burst_read = 1'b0;
 	M_AXI_AWADDR = 32'b11000;
 	M_AXI_WDATA = 64'haa;
 	M_AXI_WSTRB = 8'hff;
+	M_AXI_ARADDR = 32'h0;
 
 	#10
 	start_single_burst_write = 1'b0;
+	start_single_burst_read = 1'b0;
 
 	#2000
-	start_single_burst_read = 1'b1;
+	start_single_burst_write = 1'b1;
+	start_single_burst_read = 1'b0;
+	M_AXI_AWADDR = 32'b11000;
 
 	#10
+	start_single_burst_write = 1'b0;
 	start_single_burst_read = 1'b0;
+
+
+	#2000
+	start_single_burst_write = 1'b1;
+	start_single_burst_read = 1'b0;
+	M_AXI_AWADDR = 32'h200;
+
+	#10
+	start_single_burst_write = 1'b0;
+	start_single_burst_read = 1'b0;
+
+	#2000
+	start_single_burst_write = 1'b1;
+	start_single_burst_read = 1'b0;
+	M_AXI_AWADDR = 32'h200;
+
+	#10
+	start_single_burst_write = 1'b0;
+	start_single_burst_read = 1'b0;
+
+	#2000
+	start_single_burst_write = 1'b1;
+	start_single_burst_read = 1'b0;
+	M_AXI_AWADDR = 32'h400;
+
+	#10
+	start_single_burst_write = 1'b0;
+	start_single_burst_read = 1'b0;
+
+
+
+	# 6000
+	FENCE = 1;
+
+	# 10
+	FENCE = 0;
+
 end
 
 
