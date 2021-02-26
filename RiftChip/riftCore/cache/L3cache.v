@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 10:47:16
+* @Last Modified time: 2021-02-26 16:08:35
 */
 
 
@@ -41,12 +41,9 @@ module L3cache #
 (
 
 	//form L2cache
-	input [0:0] L2C_AWID,
 	input [31:0] L2C_AWADDR,
 	input [7:0] L2C_AWLEN,
-	input [2:0] L2C_AWSIZE,
 	input [1:0] L2C_AWBURST,
-	input [2:0] L2C_AWPROT,
 	input L2C_AWVALID,
 	output L2C_AWREADY,
 
@@ -56,21 +53,16 @@ module L3cache #
 	input L2C_WVALID,
 	output L2C_WREADY,
 
-	output [0:0] L2C_BID,
 	output [1:0] L2C_BRESP,
 	output L2C_BVALID,
 	input L2C_BREADY,
 
-	input [0:0] L2C_ARID,
 	input [31:0] L2C_ARADDR,
 	input [7:0] L2C_ARLEN,
-	input [2:0] L2C_ARSIZE,
 	input [1:0] L2C_ARBURST,
-	input [2:0] L2C_ARPROT,
 	input L2C_ARVALID,
 	output L2C_ARREADY,
 
-	output [0:0] L2C_RID,
 	output [63:0] L2C_RDATA,
 	output [1:0] L2C_RRESP,
 	output L2C_RLAST,
