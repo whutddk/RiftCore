@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 17:49:23
+* @Last Modified time: 2021-02-26 10:47:16
 */
 
 
@@ -527,7 +527,7 @@ assign tag_addr = L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR;
 assign cache_en_w = ( l3c_state_qout == L3C_FLASH & MEM_RVALID & MEM_RREADY) | ( l3c_state_qout == L3C_RSPWR & L2C_WVALID & L2C_WREADY);
 assign cache_en_r = ( l3c_state_dnxt == L3C_EVICT ) | ( l3c_state_dnxt == L3C_RSPRD );
 assign cache_info_wstrb = 
-	  ( {8{l3c_state_qout == L3C_FLASH}} & MEM_WSTRB)
+	  ( {8{l3c_state_qout == L3C_FLASH}} & {8{1'b1}})
 	| ( {8{l3c_state_qout == L3C_RSPWR}} & L2C_WSTRB);
 
 assign cache_info_w = 
