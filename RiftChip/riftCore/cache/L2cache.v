@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 16:40:09
+* @Last Modified time: 2021-02-26 17:45:37
 */
 
 
@@ -32,7 +32,7 @@
 
 
 
-module L2cache 
+module L2cache #
 (
 	parameter DW = 256,
 	parameter BK = 4,
@@ -137,7 +137,7 @@ module L2cache
 	wire il1_rvalid_set, il1_rvalid_rst, il1_rvalid_qout;
 	wire il1_rlast_set, il1_rlast_rst, il1_rlast_qout;
 	wire il1_ar_rsp;
-	wire il1_ar_end;
+	wire il1_end_r;
 
 	wire dl1_arready_set, dl1_arready_rst, dl1_arready_qout;
 	wire [31:0] dl1_araddr_dnxta;
@@ -172,9 +172,6 @@ module L2cache
 	wire cache_fence_rst;
 	wire cache_fence_qout;
 
-	wire [2:0] l2c_state_dnxt;
-	wire [2:0] l2c_state_qout;
-
 	wire [31:0] cache_addr;
 
 	wire [CB-1:0] cache_en_w;
@@ -195,6 +192,9 @@ module L2cache
 
 	wire [CB-1:0] cb_vhit;
 	wire [CL-1:0] cl_sel;
+	wire [63:0] cache_data_r;
+	wire [64*CB-1:0] cache_info_r_T;
+
 
 	wire [CL*CB-1:0] cache_valid_set;
 	wire [CL*CB-1:0] cache_valid_rst;
@@ -270,11 +270,10 @@ module L2cache
 
 
 	assign IL1_ARREADY = il1_arready_qout;
-	assign IL1_RDATA = ;
 	assign IL1_RRESP = 2'b00;
 	assign IL1_RLAST = il1_rlast_qout;
 	assign IL1_RVALID	= il1_rvalid_qout;
-	assign il1_ar_end = IL1_RVALID & IL1_RREADY & IL1_RLAST;
+	assign il1_end_r = IL1_RVALID & IL1_RREADY & IL1_RLAST;
 
 
 	
@@ -346,7 +345,6 @@ module L2cache
 
 
 	assign DL1_ARREADY = dl1_arready_qout;
-	assign DL1_RDATA = ;
 	assign DL1_RRESP = 2'b00;
 	assign DL1_RLAST = dl1_rlast_qout;
 	assign DL1_RVALID = dl1_rvalid_qout;
@@ -484,13 +482,13 @@ assign l2c_state_dnxt =
 	  ( {3{l2c_state_qout == L2C_CFREE}} & ( cache_fence_qout ? L2C_FENCE : ( (IL1_ARVALID | DL1_ARVALID | DL1_AWVALID) ? L2C_CKTAG : L2C_CFREE) ) )
 	| ( {3{l2c_state_qout == L2C_FENCE}} & L2C_CFREE )
 	| (
-		{3{23c_state_qout == L2C_CKTAG}} & 
+		{3{l2c_state_qout == L2C_CKTAG}} & 
 		(
-			  ({3{( IL1_ARVALID)}} 								& ( (| cb_vhit ) ? L2C_RSPIR : L2C_FLASH)
-			| ({3{(~IL1_ARVALID &  DL1_ARVALID)}} 				& ( (| cb_vhit ) ? L2C_RSPDR : L2C_FLASH)
+			  ({3{( IL1_ARVALID)}} 								& ( (| cb_vhit ) ? L2C_RSPIR : L2C_FLASH))
+			| ({3{(~IL1_ARVALID &  DL1_ARVALID)}} 				& ( (| cb_vhit ) ? L2C_RSPDR : L2C_FLASH))
 			| ( {3{~IL1_ARVALID & ~DL1_ARVALID & DL1_AWVALID }} & L2C_RSPDW)
 		)
-	)
+	  )
 	| ( {3{l2c_state_qout == L2C_FLASH}} & ( mem_end_r ? L2C_CKTAG : L2C_FLASH ) )
 	| ( {3{l2c_state_qout == L2C_RSPIR}} & ( il1_end_r ? L2C_CFREE : L2C_RSPIR ) )	
 	| ( {3{l2c_state_qout == L2C_RSPDR}} & ( dl1_end_r ? L2C_CFREE : L2C_RSPDR ) )
@@ -574,7 +572,7 @@ assign cache_info_wstrb =
 
 assign cache_info_w =
 	  ( {64{l2c_state_qout == L2C_FLASH}} & MEM_RDATA)
-	| ( {64{l2c_state_qout == L2C_RSPDW}} & L2C_WDATA);
+	| ( {64{l2c_state_qout == L2C_RSPDW}} & DL1_WDATA);
 
 
 assign tag_en_w = 
@@ -585,8 +583,8 @@ assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
 assign tag_info_w = tag_addr[31:ADDR_LSB];
 
 
-assign IL1_RDATA = cache_info_r;
-assign DL1_RDATA = cache_info_r;
+assign IL1_RDATA = cache_data_r;
+assign DL1_RDATA = cache_data_r;
 assign MEM_WDATA = DL1_WDATA;
 assign MEM_AWADDR = tag_addr & ~32'h1ff;
 assign MEM_ARADDR = tag_addr & ~32'h1ff;
@@ -599,7 +597,17 @@ assign cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
 		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+cl_sel];
+
+		for ( genvar i = 0; i < 64; i = i + 1) begin
+			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
+		end
 	end
+
+	for ( genvar i = 0; i < 64; i = i + 1 ) begin
+		assign cache_data_r[i] = | cache_info_r_T[CB*i +: CB];
+	end
+
+
 endgenerate
 
 
@@ -615,7 +623,7 @@ generate
 			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == cl_sel) & blockReplace[cb];
 			assign cache_valid_rst[CL*cb+cl] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
 
-			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_dnxt[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
+			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
 
 		end
 
@@ -629,7 +637,7 @@ endgenerate
 
 lzp # ( .CW($clog2(CB)) ) l2c_malloc
 (
-	.in_i(cache_valid_qout),
+	.in_i(cache_valid_qout[CB*cl_sel +:CB]),
 	.pos_o(cache_block_sel),
 	.all1(isCacheBlockRunout),
 	.all0()

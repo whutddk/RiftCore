@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 16:40:14
+* @Last Modified time: 2021-02-26 17:47:16
 */
 
 
@@ -38,105 +38,190 @@ module axi_full_l2l3c_tb
 	reg CLK;
 	reg RSTn;
 
-	reg FENCE;
+	reg L2_FENCE;
+	reg L3_FENCE;
 
 
 
-	wire M_AXI_ARVALID = axi_arvalid_qout;
-	wire M_AXI_RREADY = axi_rready_qout;
-	wire [1:0] M_AXI_AWBURST = 2'b00;
-	wire [1:0] M_AXI_ARBURST = 2'b01;
-	reg [2:0] M_AXI_AWSIZE;
-	reg [2:0] M_AXI_ARSIZE;
-	reg [7:0] M_AXI_AWLEN;
-	reg [7:0] M_AXI_ARLEN;
-	reg [31:0] M_AXI_AWADDR;
-	reg [31:0] M_AXI_ARADDR;
-	reg [7:0] M_AXI_WSTRB;
 
-	reg start_single_burst_read, start_single_burst_write;
+	wire IL1_ARVALID = il1_arvalid_qout;
+	wire IL1_RREADY = il1_rready_qout;
+	wire [1:0] IL1_ARBURST = 2'b01;
+	reg [2:0] IL1_ARSIZE;
+	reg [7:0] IL1_ARLEN;
+	reg [31:0] IL1_ARADDR;
 
-	wire M_AXI_ARREADY;
-	wire [63:0] M_AXI_RDATA;
-	wire [1:0] M_AXI_RRESP;
-	wire M_AXI_RLAST;
-	wire M_AXI_RVALID;
-	wire M_AXI_AWREADY;
-	reg [63:0] M_AXI_WDATA;
-	wire M_AXI_WREADY;
-	wire [1:0] M_AXI_BRESP;
-	wire M_AXI_BVALID;
 
-	wire M_AXI_AWVALID = axi_awvalid_qout;
-	wire M_AXI_WLAST = axi_wlast_qout;
-	wire M_AXI_WVALID = axi_wvalid_qout;
-	wire M_AXI_BREADY = axi_bready_qout;
+	reg il1_start_single_burst_read;
 
-	wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
-	wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
-	wire axi_wlast_set, axi_wlast_rst, axi_wlast_qout;
-	wire [7:0] write_index_dnxt;
-	wire [7:0] write_index_qout;
-	wire axi_bready_set, axi_bready_rst, axi_bready_qout;
-	wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
-	wire [7:0] read_index_dnxt;
-	wire [7:0] read_index_qout;
-	wire axi_rready_set, axi_rready_rst, axi_rready_qout;
-	wire wnext, rnext;
-	wire write_resp_error, read_resp_error;
+	wire IL1_ARREADY;
+	wire [63:0] IL1_RDATA;
+	wire [1:0] IL1_RRESP;
+	wire IL1_RLAST;
+	wire IL1_RVALID;
 
 
 
-	assign axi_awvalid_set = ~axi_awvalid_qout & start_single_burst_write;
-	assign axi_awvalid_rst =  axi_awvalid_qout & M_AXI_AWREADY ;
-	gen_rsffr axi_awvalid_rsffr (.set_in(axi_awvalid_set), .rst_in(axi_awvalid_rst), .qout(axi_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
-
-	assign wnext = M_AXI_WREADY & axi_wvalid_qout;
-
-	assign axi_wvalid_set = (~axi_wvalid_qout & start_single_burst_write);
-	assign axi_wvalid_rst = (wnext & axi_wlast_qout) ;
-	gen_rsffr axi_wvalid_rsffr (.set_in(axi_wvalid_set), .rst_in(axi_wvalid_rst), .qout(axi_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
-
-	assign axi_wlast_set = ((write_index_qout == M_AXI_AWLEN-1 & M_AXI_AWLEN >= 1) & wnext) || (M_AXI_AWLEN == 0 );
-	assign axi_wlast_rst = ~axi_wlast_set & ( wnext | (axi_wlast_qout & M_AXI_AWLEN == 0) );
-	gen_rsffr axi_wlast_rsffr (.set_in(axi_wlast_set), .rst_in(axi_wlast_rst), .qout(axi_wlast_qout), .CLK(CLK), .RSTn(RSTn));
-
-	assign write_index_dnxt = start_single_burst_write ? 8'd0 :
-								(
-									(wnext & (write_index_qout != M_AXI_AWLEN)) ? (write_index_qout + 8'd1) : write_index_qout
-								);              
-	gen_dffr # (.DW(8)) write_index_dffr (.dnxt(write_index_dnxt), .qout(write_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_bready_set = (M_AXI_BVALID && ~axi_bready_qout);
-	assign axi_bready_rst = axi_bready_qout;
-	gen_rsffr axi_bready_rsffr (.set_in(axi_bready_set), .rst_in(axi_bready_rst), .qout(axi_bready_qout), .CLK(CLK), .RSTn(RSTn));
+	wire il1_arvalid_set, il1_arvalid_rst, il1_arvalid_qout;
+	wire [7:0] il1_read_index_dnxt;
+	wire [7:0] il1_read_index_qout;
+	wire il1_rready_set, il1_rready_rst, il1_rready_qout;
+	wire il1_rnext;
+
+
+	assign il1_arvalid_set = ~il1_arvalid_qout & il1_start_single_burst_read;
+	assign il1_arvalid_rst = il1_arvalid_qout & IL1_ARREADY ;
+	gen_rsffr il1_arvalid_rsffr (.set_in(il1_arvalid_set), .rst_in(il1_arvalid_rst), .qout(il1_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign write_resp_error = axi_bready_qout & M_AXI_BVALID & M_AXI_BRESP[1]; 
+	assign il1_rnext = IL1_RVALID && il1_rready_qout;
 
-	assign axi_arvalid_set = ~axi_arvalid_qout & start_single_burst_read;
-	assign axi_arvalid_rst = axi_arvalid_qout & M_AXI_ARREADY ;
-	gen_rsffr axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign il1_read_index_dnxt = il1_start_single_burst_read ? 8'd0 :
+								(
+									(il1_rnext & (il1_read_index_qout != IL1_ARLEN)) ? (il1_read_index_qout + 8'd1) : il1_read_index_qout
+								);              
+	gen_dffr # (.DW(8)) il1_read_index_dffr (.dnxt(il1_read_index_dnxt), .qout(il1_read_index_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign il1_rready_set = IL1_RVALID & (~IL1_RLAST | ~il1_rready_qout);
+	assign il1_rready_rst = IL1_RVALID &   IL1_RLAST &  il1_rready_qout;
+	gen_rsffr il1_rready_rsffr (.set_in(il1_rready_set), .rst_in(il1_rready_rst), .qout(il1_rready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+
+
+
+
+
+
+
+
+	wire DL1_ARVALID = dl1_arvalid_qout;
+	wire DL1_RREADY = dl1_rready_qout;
+	wire [1:0] DL1_AWBURST = 2'b00;
+	wire [1:0] DL1_ARBURST = 2'b01;
+	reg [2:0] DL1_AWSIZE;
+	reg [2:0] DL1_ARSIZE;
+	reg [7:0] DL1_AWLEN;
+	reg [7:0] DL1_ARLEN;
+	reg [31:0] DL1_AWADDR;
+	reg [31:0] DL1_ARADDR;
+	reg [7:0] DL1_WSTRB;
+
+	reg dl1_start_single_burst_read, dl1_start_single_burst_write;
+
+	wire DL1_ARREADY;
+	wire [63:0] DL1_RDATA;
+	wire [1:0] DL1_RRESP;
+	wire DL1_RLAST;
+	wire DL1_RVALID;
+	wire DL1_AWREADY;
+	reg [63:0] DL1_WDATA;
+	wire DL1_WREADY;
+	wire [1:0] DL1_BRESP;
+	wire DL1_BVALID;
+
+	wire DL1_AWVALID = dl1_awvalid_qout;
+	wire DL1_WLAST = dl1_wlast_qout;
+	wire DL1_WVALID = dl1_wvalid_qout;
+	wire DL1_BREADY = dl1_bready_qout;
+
+	wire dl1_awvalid_set, dl1_awvalid_rst, dl1_awvalid_qout;
+	wire dl1_wvalid_set, dl1_wvalid_rst, dl1_wvalid_qout;
+	wire dl1_wlast_set, dl1_wlast_rst, dl1_wlast_qout;
+	wire [7:0] dl1_write_index_dnxt;
+	wire [7:0] dl1_write_index_qout;
+	wire dl1_bready_set, dl1_bready_rst, dl1_bready_qout;
+	wire dl1_arvalid_set, dl1_arvalid_rst, dl1_arvalid_qout;
+	wire [7:0] dl1_read_index_dnxt;
+	wire [7:0] dl1_read_index_qout;
+	wire dl1_rready_set, dl1_rready_rst, dl1_rready_qout;
+	wire dl1_wnext, dl1_rnext;
+
+
+
+	assign dl1_awvalid_set = ~dl1_awvalid_qout & dl1_start_single_burst_write;
+	assign dl1_awvalid_rst =  dl1_awvalid_qout & DL1_AWREADY ;
+	gen_rsffr dl1_awvalid_rsffr (.set_in(dl1_awvalid_set), .rst_in(dl1_awvalid_rst), .qout(dl1_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+
+	assign dl1_wnext = DL1_WREADY & dl1_wvalid_qout;
+
+	assign dl1_wvalid_set = (~dl1_wvalid_qout & dl1_start_single_burst_write);
+	assign dl1_wvalid_rst = (dl1_wnext & dl1_wlast_qout) ;
+	gen_rsffr dl1_wvalid_rsffr (.set_in(dl1_wvalid_set), .rst_in(dl1_wvalid_rst), .qout(dl1_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+
+	assign dl1_wlast_set = ((dl1_write_index_qout == DL1_AWLEN-1 & DL1_AWLEN >= 1) & dl1_wnext) || (DL1_AWLEN == 0 );
+	assign dl1_wlast_rst = ~dl1_wlast_set & ( dl1_wnext | (dl1_wlast_qout & DL1_AWLEN == 0) );
+	gen_rsffr dl1_wlast_rsffr (.set_in(dl1_wlast_set), .rst_in(dl1_wlast_rst), .qout(dl1_wlast_qout), .CLK(CLK), .RSTn(RSTn));
+
+	assign dl1_write_index_dnxt = dl1_start_single_burst_write ? 8'd0 :
+								(
+									(dl1_wnext & (dl1_write_index_qout != DL1_AWLEN)) ? (dl1_write_index_qout + 8'd1) : dl1_write_index_qout
+								);              
+	gen_dffr # (.DW(8)) dl1_write_index_dffr (.dnxt(dl1_write_index_dnxt), .qout(dl1_write_index_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign dl1_bready_set = (DL1_BVALID && ~dl1_bready_qout);
+	assign dl1_bready_rst = dl1_bready_qout;
+	gen_rsffr dl1_bready_rsffr (.set_in(dl1_bready_set), .rst_in(dl1_bready_rst), .qout(dl1_bready_qout), .CLK(CLK), .RSTn(RSTn));
 	
 
-	assign rnext = M_AXI_RVALID && axi_rready_qout;
+
+	assign dl1_arvalid_set = ~dl1_arvalid_qout & dl1_start_single_burst_read;
+	assign dl1_arvalid_rst = dl1_arvalid_qout & DL1_ARREADY ;
+	gen_rsffr dl1_arvalid_rsffr (.set_in(dl1_arvalid_set), .rst_in(dl1_arvalid_rst), .qout(dl1_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	
+
+	assign dl1_rnext = DL1_RVALID && dl1_rready_qout;
 
 
 
-	assign read_index_dnxt = start_single_burst_read ? 8'd0 :
+	assign dl1_read_index_dnxt = dl1_start_single_burst_read ? 8'd0 :
 								(
-									(rnext & (read_index_qout != M_AXI_ARLEN)) ? (read_index_qout + 8'd1) : read_index_qout
+									(dl1_rnext & (dl1_read_index_qout != DL1_ARLEN)) ? (dl1_read_index_qout + 8'd1) : dl1_read_index_qout
 								);              
-	gen_dffr # (.DW(8)) read_index_dffr (.dnxt(read_index_dnxt), .qout(read_index_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(8)) dl1_read_index_dffr (.dnxt(dl1_read_index_dnxt), .qout(dl1_read_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign axi_rready_set = M_AXI_RVALID & (~M_AXI_RLAST | ~axi_rready_qout);
-	assign axi_rready_rst = M_AXI_RVALID &   M_AXI_RLAST &  axi_rready_qout;
-	gen_rsffr axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
+	assign dl1_rready_set = DL1_RVALID & (~DL1_RLAST | ~dl1_rready_qout);
+	assign dl1_rready_rst = DL1_RVALID &   DL1_RLAST &  dl1_rready_qout;
+	gen_rsffr dl1_rready_rsffr (.set_in(dl1_rready_set), .rst_in(dl1_rready_rst), .qout(dl1_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign read_resp_error = axi_rready_qout & M_AXI_RVALID & M_AXI_RRESP[1];
 
 
 
@@ -192,46 +277,46 @@ module axi_full_l2l3c_tb
 cache s_cache(
 
 	//L1 I Cache
-	input [31:0] IL1_L2C_ARADDR,
-	input [7:0] IL1_L2C_ARLEN,
-	input [1:0] IL1_L2C_ARBURST,
-	input IL1_L2C_ARVALID,
-	output IL1_L2C_ARREADY,
+	.IL1_L2C_ARADDR(IL1_ARADDR),
+	.IL1_L2C_ARLEN(IL1_ARLEN),
+	.IL1_L2C_ARBURST(IL1_ARBURST),
+	.IL1_L2C_ARVALID(IL1_ARVALID),
+	.IL1_L2C_ARREADY(IL1_ARREADY),
 
-	output [63:0] IL1_L2C_RDATA,
-	output [1:0] IL1_L2C_RRESP,
-	output IL1_L2C_RLAST,
-	output IL1_L2C_RVALID,
-	input IL1_L2C_RREADY,
+	.IL1_L2C_RDATA(IL1_RDATA),
+	.IL1_L2C_RRESP(IL1_RRESP),
+	.IL1_L2C_RLAST(IL1_RLAST),
+	.IL1_L2C_RVALID(IL1_RVALID),
+	.IL1_L2C_RREADY(IL1_RREADY),
 
 	//L1 D cache
-	input [31:0] DL1_L2C_AWADDR,
-	input [7:0] DL1_L2C_AWLEN,
-	input [1:0] DL1_L2C_AWBURST,
-	input DL1_L2C_AWVALID,
-	output DL1_L2C_AWREADY,
+	.DL1_L2C_AWADDR(DL1_AWADDR),
+	.DL1_L2C_AWLEN(DL1_AWLEN),
+	.DL1_L2C_AWBURST(DL1_AWBURST),
+	.DL1_L2C_AWVALID(DL1_AWVALID),
+	.DL1_L2C_AWREADY(DL1_AWREADY),
 
-	input [63:0] DL1_L2C_WDATA,
-	input [7:0] DL1_L2C_WSTRB,
-	input DL1_L2C_WLAST,
-	input DL1_L2C_WVALID,
-	output DL1_L2C_WREADY,
+	.DL1_L2C_WDATA(DL1_WDATA),
+	.DL1_L2C_WSTRB(DL1_WSTRB),
+	.DL1_L2C_WLAST(DL1_WLAST),
+	.DL1_L2C_WVALID(DL1_WVALID),
+	.DL1_L2C_WREADY(DL1_WREADY),
 
-	output [1:0] DL1_L2C_BRESP,
-	output DL1_L2C_BVALID,
-	input DL1_L2C_BREADY,
+	.DL1_L2C_BRESP(DL1_BRESP),
+	.DL1_L2C_BVALID(DL1_BVALID),
+	.DL1_L2C_BREADY(DL1_BREADY),
 
-	input [31:0] DL1_L2C_ARADDR,
-	input [7:0] DL1_L2C_ARLEN,
-	input [1:0] DL1_L2C_ARBURST,
-	input DL1_L2C_ARVALID,
-	output DL1_L2C_ARREADY,
+	.DL1_L2C_ARADDR(DL1_ARADDR),
+	.DL1_L2C_ARLEN(DL1_ARLEN),
+	.DL1_L2C_ARBURST(DL1_ARBURST),
+	.DL1_L2C_ARVALID(DL1_ARVALID),
+	.DL1_L2C_ARREADY(DL1_ARREADY),
 
-	output [63:0] DL1_L2C_RDATA,
-	output [1:0] DL1_L2C_RRESP,
-	output DL1_L2C_RLAST,
-	output DL1_L2C_RVALID,
-	input DL1_L2C_RREADY,
+	.DL1_L2C_RDATA(DL1_RDATA),
+	.DL1_L2C_RRESP(DL1_RRESP),
+	.DL1_L2C_RLAST(DL1_RLAST),
+	.DL1_L2C_RVALID(DL1_RVALID),
+	.DL1_L2C_RREADY(DL1_RREADY),
 
 
 
@@ -283,10 +368,10 @@ cache s_cache(
 	.MEM_RVALID(S_AXI_RVALID),
 	.MEM_RREADY(S_AXI_RREADY),
 
-	input l3c_fence,
-	input l2c_fence,
-	input CLK,
-	input RSTn
+	.l3c_fence(L3_FENCE),
+	.l2c_fence(L2_FENCE),
+	.CLK(CLK),
+	.RSTn(RSTn)
 
 );
 
@@ -334,7 +419,7 @@ axi_full_slv_sram s_axi_full_slv_sram
 initial
 begin
 	$dumpfile("../build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, axi_full_mst_tb);//tb模块名称
+	$dumpvars(0, axi_full_l2l3c_tb);//tb模块名称
 end
 
 
@@ -360,74 +445,90 @@ initial begin
 end
 
 initial begin
-	M_AXI_AWADDR = 32'h0;
-	M_AXI_ARADDR = 32'h0;
-	M_AXI_WDATA = 64'd0;
-	M_AXI_WSTRB = 8'b0;
-	start_single_burst_read = 1'b0;
-	start_single_burst_write = 1'b0;
-	M_AXI_AWLEN = 8'b0;
-	M_AXI_ARLEN = 8'd15;
-	M_AXI_AWSIZE = $clog2(64/8);
-	M_AXI_ARSIZE = $clog2(64/8);
-	FENCE = 1'b0;
+
+	IL1_ARADDR = 32'b0;
+
+
+	DL1_AWADDR = 32'h0;
+	DL1_ARADDR = 32'h0;
+	DL1_WDATA = 64'd0;
+	DL1_WSTRB = 8'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWLEN = 8'b0;
+	DL1_ARLEN = 8'd3;
+	IL1_ARLEN = 8'd3;
+	L2_FENCE = 1'b0;
+	L3_FENCE = 1'b0;
+
 
 	#52
-	start_single_burst_write = 1'b1;
-	start_single_burst_read = 1'b0;
-	M_AXI_AWADDR = 32'b11000;
-	M_AXI_WDATA = 64'haa;
-	M_AXI_WSTRB = 8'hff;
-	M_AXI_ARADDR = 32'h0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWADDR = 32'b11000;
+	DL1_WDATA = 64'haa;
+	DL1_WSTRB = 8'hff;
+	DL1_ARADDR = 32'h0;
 
 	#10
-	start_single_burst_write = 1'b0;
-	start_single_burst_read = 1'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 	#2000
-	start_single_burst_write = 1'b1;
-	start_single_burst_read = 1'b0;
-	M_AXI_AWADDR = 32'b11000;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWADDR = 32'b11000;
 
 	#10
-	start_single_burst_write = 1'b0;
-	start_single_burst_read = 1'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 
 	#2000
-	start_single_burst_write = 1'b1;
-	start_single_burst_read = 1'b0;
-	M_AXI_AWADDR = 32'h200;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWADDR = 32'h200;
 
 	#10
-	start_single_burst_write = 1'b0;
-	start_single_burst_read = 1'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 	#2000
-	start_single_burst_write = 1'b1;
-	start_single_burst_read = 1'b0;
-	M_AXI_AWADDR = 32'h200;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWADDR = 32'h200;
 
 	#10
-	start_single_burst_write = 1'b0;
-	start_single_burst_read = 1'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 	#2000
-	start_single_burst_write = 1'b1;
-	start_single_burst_read = 1'b0;
-	M_AXI_AWADDR = 32'h400;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
+	DL1_AWADDR = 32'h400;
 
 	#10
-	start_single_burst_write = 1'b0;
-	start_single_burst_read = 1'b0;
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 
 
 	# 6000
-	FENCE = 1;
+	L2_FENCE = 1;
 
 	# 10
-	FENCE = 0;
+	L2_FENCE = 0;
 
 end
 

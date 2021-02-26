@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 16:08:35
+* @Last Modified time: 2021-02-26 17:42:02
 */
 
 
@@ -261,8 +261,6 @@ wire cache_valid_en;
 	assign L2C_RRESP = 2'b00;
 	assign L2C_RLAST = l2c_rlast_qout;
 	assign L2C_RVALID	= l2c_rvalid_qout;
-	assign L2C_BID = L2C_AWID;
-	assign L2C_RID = L2C_ARID;
 	assign l2c_end_r = L2C_RVALID & L2C_RREADY & L2C_RLAST;
 	assign l2c_end_w = L2C_WVALID & L2C_WREADY & L2C_WLAST;
 
