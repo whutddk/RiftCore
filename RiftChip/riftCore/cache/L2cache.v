@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 16:04:34
+* @Last Modified time: 2021-03-01 16:29:01
 */
 
 
@@ -566,24 +566,6 @@ assign cache_addr_dnxt =
 	| ( {32{l2c_state_qout == L2C_RSPDW}} & cache_addr_qout) 
 	;
 
-
-// assign tag_addr = IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
-
-// 	|
-// 	( {32{l2c_state_qout == L2C_RSPIR | l2c_state_qout == L2C_RSPDR | l2c_state_qout == L2C_RSPDW}} & 
-// 		cache_addr & 32'h1ff
-// 	);
-
-
-// assign tag_addr_dnxt = 
-// 	  ( {32{l2c_state_qout == L2C_CFREE}} & (IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) )
-// 	| ( {32{l2c_state_qout == L2C_CKTAG}} &	(IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) )
-// 	| ( {32{l2c_state_qout == L2C_FENCE}} & tag_addr_qout )
-// 	| ( {32{l2c_state_qout == L2C_FLASH}} & tag_addr_qout )
-// 	| ( {32{l2c_state_qout == L2C_RSPIR}} & tag_addr_qout )
-// 	| ( {32{l2c_state_qout == L2C_RSPDR}} & tag_addr_qout )
-// 	| ( {32{l2c_state_qout == L2C_RSPDW}} & tag_addr_qout ) 
-// 	;
 
 
 assign cache_en_w =  
