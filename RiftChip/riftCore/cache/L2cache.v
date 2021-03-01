@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 17:45:37
+* @Last Modified time: 2021-03-01 11:20:49
 */
 
 
@@ -498,7 +498,7 @@ assign l2c_state_dnxt =
 
 	assign il1_ar_rsp = ~il1_arready_qout & IL1_ARVALID & l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_RSPIR;
 	assign dl1_ar_rsp = ~dl1_arready_qout & DL1_ARVALID & l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_RSPDR;
-
+	assign mem_ar_req = l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_FLASH;
 
 
 
@@ -559,9 +559,10 @@ assign tag_addr = IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_A
 
 
 
-assign cache_en_w = 
-	cb_vhit & 
-		{CB{( (l2c_state_qout == L2C_FLASH) & MEM_RVALID & MEM_RREADY) | ( (l2c_state_qout == L2C_RSPDW) & MEM_WVALID & MEM_WREADY)}};
+assign cache_en_w =  
+	(cb_vhit & {CB{(l2c_state_qout == L2C_FLASH) & MEM_RVALID & MEM_RREADY}})
+	| 
+	(cb_vhit & {CB{(l2c_state_qout == L2C_RSPDW) & MEM_WVALID & MEM_WREADY}});
 
 assign cache_en_r = 
 	cb_vhit & {CB{(l2c_state_dnxt == L2C_RSPIR) | (l2c_state_dnxt == L2C_RSPDR)}};
@@ -578,7 +579,11 @@ assign cache_info_w =
 assign tag_en_w = 
 	{CB{(l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH)}} &  
 		( blockReplace );
-assign tag_en_r = {CB{l2c_state_dnxt == L2C_CKTAG}};
+assign tag_en_r = 
+	{CB{l2c_state_dnxt == L2C_CKTAG}}
+	|
+	{CB{MEM_ARVALID & MEM_ARREADY}}
+	;
 assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
 assign tag_info_w = tag_addr[31:ADDR_LSB];
 
@@ -604,7 +609,7 @@ generate
 	end
 
 	for ( genvar i = 0; i < 64; i = i + 1 ) begin
-		assign cache_data_r[i] = | cache_info_r_T[CB*i +: CB];
+		assign cache_data_r[i] = | (cache_info_r_T[CB*i +: CB] &  cb_vhit);
 	end
 
 
