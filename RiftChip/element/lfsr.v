@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-28 17:59:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-29 14:31:05
+* @Last Modified time: 2021-02-26 17:38:38
 */
 
 
@@ -24,6 +24,7 @@
    limitations under the License.
 */
 
+`timescale 1 ns / 1 ps
 
 module lfsr
 (
@@ -38,7 +39,7 @@ module lfsr
 
 reg [15:0] shiftReg;
 
-initial begin shiftReg = $random() end;
+initial begin shiftReg = $random; end
 
 wire tap;
 
@@ -46,7 +47,7 @@ always @(posedge CLK) begin
 	shiftReg <= #1 { shiftReg[14:0], tap };
 end
 
-assign tap = shiftReg[15] ^ shiftReg[4] ^  shiftReg[2] ^ shiftReg[1];
+assign tap = shiftReg[15] ^ shiftReg[4] ^ shiftReg[2] ^ shiftReg[1];
 assign random = shiftReg;
 
 

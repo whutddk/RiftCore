@@ -1,10 +1,10 @@
 /*
-* @File name: axi_full_mst_tb
+* @File name: axi_full_l3c_tb
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 14:30:45
+* @Last Modified time: 2021-02-26 17:48:40
 */
 
 

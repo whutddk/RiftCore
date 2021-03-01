@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 14:47:18
+* @Last Modified time: 2021-02-26 17:42:02
 */
 
 
@@ -41,12 +41,9 @@ module L3cache #
 (
 
 	//form L2cache
-	input [0:0] L2C_AWID,
 	input [31:0] L2C_AWADDR,
 	input [7:0] L2C_AWLEN,
-	input [2:0] L2C_AWSIZE,
 	input [1:0] L2C_AWBURST,
-	input [2:0] L2C_AWPROT,
 	input L2C_AWVALID,
 	output L2C_AWREADY,
 
@@ -56,21 +53,16 @@ module L3cache #
 	input L2C_WVALID,
 	output L2C_WREADY,
 
-	output [0:0] L2C_BID,
 	output [1:0] L2C_BRESP,
 	output L2C_BVALID,
 	input L2C_BREADY,
 
-	input [0:0] L2C_ARID,
 	input [31:0] L2C_ARADDR,
 	input [7:0] L2C_ARLEN,
-	input [2:0] L2C_ARSIZE,
 	input [1:0] L2C_ARBURST,
-	input [2:0] L2C_ARPROT,
 	input L2C_ARVALID,
 	output L2C_ARREADY,
 
-	output [0:0] L2C_RID,
 	output [63:0] L2C_RDATA,
 	output [1:0] L2C_RRESP,
 	output L2C_RLAST,
@@ -211,7 +203,7 @@ wire [31:0] cache_addr_dnxt;
 wire [31:0] cache_addr_qout;
 
 wire cb_hit;
-wire cl_sel;
+wire [CL-1:0] cl_sel;
 
 wire db_push;
 wire [31:0] db_addr_i;
@@ -269,8 +261,6 @@ wire cache_valid_en;
 	assign L2C_RRESP = 2'b00;
 	assign L2C_RLAST = l2c_rlast_qout;
 	assign L2C_RVALID	= l2c_rvalid_qout;
-	assign L2C_BID = L2C_AWID;
-	assign L2C_RID = L2C_ARID;
 	assign l2c_end_r = L2C_RVALID & L2C_RREADY & L2C_RLAST;
 	assign l2c_end_w = L2C_WVALID & L2C_WREADY & L2C_WLAST;
 
@@ -527,7 +517,7 @@ assign tag_addr = L2C_ARVALID ? L2C_ARADDR : L2C_AWADDR;
 assign cache_en_w = ( l3c_state_qout == L3C_FLASH & MEM_RVALID & MEM_RREADY) | ( l3c_state_qout == L3C_RSPWR & L2C_WVALID & L2C_WREADY);
 assign cache_en_r = ( l3c_state_dnxt == L3C_EVICT ) | ( l3c_state_dnxt == L3C_RSPRD );
 assign cache_info_wstrb = 
-	  ( {8{l3c_state_qout == L3C_FLASH}} & MEM_WSTRB)
+	  ( {8{l3c_state_qout == L3C_FLASH}} & {8{1'b1}})
 	| ( {8{l3c_state_qout == L3C_RSPWR}} & L2C_WSTRB);
 
 assign cache_info_w = 
@@ -556,16 +546,18 @@ gen_dffren # (.DW(CL)) cache_valid_dffren (.dnxt(cache_valid_dnxt), .qout(cache_
 generate
 	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
 		assign cache_valid_dnxt[cl] =
-			( cl != cl_sel ) ? cache_valid_qout[cl] :
+			( l3c_state_qout == L3C_FENCE & l3c_state_dnxt == L3C_CFREE ) ? 1'b0 :
 				(
-					  ( l3c_state_qout == L3C_EVICT & 1'b0 )
-					| ( l3c_state_qout == L3C_FLASH & 1'b1 )
+					( cl != cl_sel ) ? cache_valid_qout[cl] :
+						(
+							  ( l3c_state_qout == L3C_EVICT & 1'b0 ) | ( l3c_state_qout == L3C_FLASH & 1'b1 )
+						)				
 				);
 	end
 	
 endgenerate
 
-assign cache_valid_en = (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_FLASH);
+assign cache_valid_en = ( l3c_state_qout == L3C_FENCE & l3c_state_dnxt == L3C_CFREE ) | (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_FLASH);
 
 
 
@@ -577,7 +569,7 @@ assign cache_valid_en = (l3c_state_qout == L3C_EVICT) | (l3c_state_qout == L3C_F
 
 
 
-dirty_block # ( .AW(32-ADDR_LSB), .DP(2) ) i_dirty_block
+dirty_block # ( .DW(32-ADDR_LSB), .DP(16) ) i_dirty_block
 (
 	.push(db_push),
 	.addr_i(db_addr_i[31:ADDR_LSB]),
