@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 11:50:44
+* @Last Modified time: 2021-03-01 16:26:50
 */
 
 
@@ -493,7 +493,7 @@ initial begin
 	il1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_write = 1'b0;
-	DL1_AWADDR = 32'h200;
+
 
 	#10
 	il1_start_single_burst_read = 1'b0;
@@ -504,7 +504,7 @@ initial begin
 	il1_start_single_burst_read = 1'b1;
 	dl1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_write = 1'b0;
-	DL1_AWADDR = 32'h200;
+
 
 	#10
 	il1_start_single_burst_read = 1'b0;
@@ -514,15 +514,24 @@ initial begin
 	#2000
 	il1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_read = 1'b0;
-	dl1_start_single_burst_write = 1'b0;
-	DL1_AWADDR = 32'h400;
+	dl1_start_single_burst_write = 1'b1;
+	DL1_WDATA = 64'hbb;
 
 	#10
 	il1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_write = 1'b0;
 
+	#2000
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b1;
+	dl1_start_single_burst_write = 1'b0;
 
+
+	#10
+	il1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_read = 1'b0;
+	dl1_start_single_burst_write = 1'b0;
 
 	# 6000
 	L2_FENCE = 1;

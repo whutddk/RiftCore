@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 11:54:17
+* @Last Modified time: 2021-03-01 16:04:34
 */
 
 
@@ -190,8 +190,14 @@ module L2cache #
 	wire [31:0] cache_addr_dnxt;
 	wire [31:0] cache_addr_qout;
 
+
+	wire [31:0] tag_addr_lock_dnxt;
+	wire [31:0] tag_addr_sel;
+	wire tag_addr_lock_en;
+	wire [31:0] tag_addr_lock_qout;
+
 	wire [CB-1:0] cb_vhit;
-	wire [CL-1:0] cl_sel;
+	wire [CL-1:0] valid_cl_sel;
 	wire [63:0] cache_data_r;
 	wire [64*CB-1:0] cache_info_r_T;
 
@@ -536,9 +542,15 @@ cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffren #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(tag_addr_lock_qout), .en(tag_addr_lock_en), .CLK(CLK), .RSTn(RSTn));
 
+assign tag_addr_lock_dnxt = tag_addr_sel;
+assign tag_addr_sel = IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
+assign tag_addr_lock_en = (l2c_state_qout == L2C_CFREE) & (l2c_state_dnxt == L2C_CKTAG);
 
 assign cache_addr = cache_addr_qout;
+assign tag_addr = (l2c_state_qout == L2C_CFREE) ? tag_addr_sel : tag_addr_lock_qout;
+
 
 assign cache_addr_dnxt = 
 	  ( {32{l2c_state_qout == L2C_CFREE}} & cache_addr_qout )
@@ -555,8 +567,23 @@ assign cache_addr_dnxt =
 	;
 
 
-assign tag_addr = IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
+// assign tag_addr = IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
 
+// 	|
+// 	( {32{l2c_state_qout == L2C_RSPIR | l2c_state_qout == L2C_RSPDR | l2c_state_qout == L2C_RSPDW}} & 
+// 		cache_addr & 32'h1ff
+// 	);
+
+
+// assign tag_addr_dnxt = 
+// 	  ( {32{l2c_state_qout == L2C_CFREE}} & (IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) )
+// 	| ( {32{l2c_state_qout == L2C_CKTAG}} &	(IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) )
+// 	| ( {32{l2c_state_qout == L2C_FENCE}} & tag_addr_qout )
+// 	| ( {32{l2c_state_qout == L2C_FLASH}} & tag_addr_qout )
+// 	| ( {32{l2c_state_qout == L2C_RSPIR}} & tag_addr_qout )
+// 	| ( {32{l2c_state_qout == L2C_RSPDR}} & tag_addr_qout )
+// 	| ( {32{l2c_state_qout == L2C_RSPDW}} & tag_addr_qout ) 
+// 	;
 
 
 assign cache_en_w =  
@@ -596,11 +623,11 @@ assign MEM_ARADDR = tag_addr & ~32'h1ff;
 
 
 
-assign cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
+assign valid_cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+cl_sel];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+valid_cl_sel];
 
 		for ( genvar i = 0; i < 64; i = i + 1) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
@@ -624,7 +651,7 @@ generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
 		for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
 
-			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == cl_sel) & blockReplace[cb];
+			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
 			assign cache_valid_rst[CL*cb+cl] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
 
 			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
@@ -641,7 +668,7 @@ endgenerate
 
 lzp # ( .CW($clog2(CB)) ) l2c_malloc
 (
-	.in_i(cache_valid_qout[CB*cl_sel +:CB]),
+	.in_i(cache_valid_qout[CB*valid_cl_sel +:CB]),
 	.pos_o(cache_block_sel),
 	.all1(isCacheBlockRunout),
 	.all0()
