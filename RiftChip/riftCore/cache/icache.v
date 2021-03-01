@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-19 11:14:00
+* @Last Modified time: 2021-03-01 18:05:14
 */
 
 /*
@@ -30,30 +30,35 @@
 `include "define.vh"
 
 
-module ifetch #
+module icache #
 (
-	parameter DW = 64
+	parameter DW = 256,
+	parameter CB = 2,
+	parameter CL = 64
 )
 (
+	//L1 I Cache
+	output [31:0] IL1_ARADDR,
+	output [7:0] IL1_ARLEN,
+	output [1:0] IL1_ARBURST,
+	output IL1_ARVALID,
+	input IL1_ARREADY,
 
-	output [63:0] IFU_ARADDR,
-	output [2:0] IFU_ARPROT,
-	output IFU_ARVALID,
-	input IFU_ARREADY,
-	input [255:0] IFU_RDATA,
-	input [1:0] IFU_RRESP,
-	input IFU_RVALID,
-	output IFU_RREADY,
+	input [63:0] IL1_RDATA,
+	input [1:0] IL1_RRESP,
+	input IL1_RLAST,
+	input IL1_RVALID,
+	output IL1_RREADY,
 
-	//from pcGen
-	input [DW-1:0] fetch_addr_qout,
-	output pcGen_fetch_ready,
+	//from ifu
+	input ifu_req_valid,
+	output ifu_req_ready,
+	input [31:0] ifu_addr,
 
-	//to iqueue
-	output [63:0] if_iq_pc,
-	output [63:0] if_iq_instr,
-	output if_iq_valid,
-	input if_iq_ready,
+	output [31:0] ifu_data,
+	output ifu_rsp_valid,
+	input ifu_rsp_ready,
+
 
 	input flush,
 	input CLK,
@@ -61,77 +66,75 @@ module ifetch #
 
 );
 
-wire boot;
-wire boot_set;
-wire boot_rst;
-wire [63:0] pending_addr;
-wire pending_trans_set;
-wire pending_trans_rst;
-wire pending_trans_qout;
-wire invalid_outstanding_set;
-wire invalid_outstanding_rst;
-wire invalid_outstanding_qout;
 
-wire axi_awvalid_set, axi_awvalid_rst, axi_awvalid_qout;
-wire axi_wvalid_set, axi_wvalid_rst, axi_wvalid_qout;
-wire axi_bready_set, axi_bready_rst, axi_bready_qout;
+	wire il1_arvalid_set, il1_arvalid_rst, il1_arvalid_qout;
+	wire il1_rready_set, il1_rready_rst, il1_rready_qout;
+	wire il1_ar_req;
+	wire il1_end_r;
 
-wire axi_arvalid_set, axi_arvalid_rst, axi_arvalid_qout;
-wire axi_rready_set, axi_rready_rst, axi_rready_qout;
+	assign IL1_ARLEN = 8'd3;
+	assign IL1_ARVALID = il1_arvalid_qout;
+	assign IL1_RREADY = il1_rready_qout;
 
-
-assign pcGen_fetch_ready = IFU_ARREADY & ~invalid_outstanding_qout;
-
-assign boot_set = (flush & (~pending_trans_qout | ( pending_trans_qout & axi_rready_set ))) | (invalid_outstanding_qout & invalid_outstanding_rst);
-assign boot_rst = axi_arvalid_set & ~boot_set;
-
-
-assign pending_trans_set = axi_arvalid_set;
-assign pending_trans_rst = (~axi_arvalid_set & axi_rready_set );
-assign invalid_outstanding_set = pending_trans_qout & flush & ~invalid_outstanding_rst;
-assign invalid_outstanding_rst = axi_rready_set;
-
-gen_rsffr # ( .DW(1), .rstValue(1'b1))  boot_rsffr  ( .set_in(boot_set), .rst_in(boot_rst), .qout(boot), .CLK(CLK), .RSTn(RSTn));
-
-gen_dffren # ( .DW(64)) pending_addr_dffren ( .dnxt(fetch_addr_qout), .qout(pending_addr), .en(axi_arvalid_set), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   pending_trans_rsffr ( .set_in(pending_trans_set), .rst_in(pending_trans_rst), .qout(pending_trans_qout), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   invalid_outstanding_rsffr ( .set_in(invalid_outstanding_set), .rst_in(invalid_outstanding_rst), .qout(invalid_outstanding_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-gen_dffren # ( .DW(64)) fetch_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
-gen_dffren # ( .DW(DW)) fetch_instr_dffren ( .dnxt(IFU_RDATA), .qout(if_iq_instr), .en(axi_rready_set), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_outstanding_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
+	assign il1_end_r = IL1_RVALID & IL1_RREADY & IL1_RLAST;
+	
+	assign il1_arvalid_set = ~il1_arvalid_qout & il1_ar_req;
+	assign il1_arvalid_rst = il1_arvalid_qout & IL1_ARREADY ;
+	gen_rsffr # (.DW(1)) il1_arvalid_rsffr (.set_in(il1_arvalid_set), .rst_in(il1_arvalid_rst), .qout(il1_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	
+	assign il1_rready_set = IL1_RVALID & (~IL1_RLAST | ~il1_rready_qout);
+	assign il1_rready_rst = IL1_RVALID &   IL1_RLAST &  il1_rready_qout;
+	gen_rsffr # (.DW(1)) il1_rready_rsffr (.set_in(il1_rready_set), .rst_in(il1_rready_rst), .qout(il1_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 
 
-	wire isFetch_Req = (if_iq_ready | boot) & ~flush;
-	wire isCache_Rsp;
-	assign if_iq_valid = isCache_Hit | axi_rready_set;
-
-	assign if_iq_instr = ({64{isCache_Hit}} & data_hit[ 64 * DoubleWord_Sel +: 64])
-						|
-						({64{axi_rready_set}} & IFU_RDATA[ 64 * DoubleWord_Sel +: 64]);
-
-
-
-	gen_dffr # ( .DW(1)) isCache_Rsp_dffr ( .dnxt(isFetch_Req), .qout(isCache_Rsp), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-	wire [1:0] DoubleWord_sel = fetch_addr_qout[4:3];
-	wire [5:0] address_sel = fetch_addr_qout[10:5];
-	wire [20:0] tag_Req = fetch_addr_qout[31:11];
-	wire tag_valid;
+// BBBBBBBBBBBBBBBBB   RRRRRRRRRRRRRRRRR                  AAA               MMMMMMMM               MMMMMMMM
+// B::::::::::::::::B  R::::::::::::::::R                A:::A              M:::::::M             M:::::::M
+// B::::::BBBBBB:::::B R::::::RRRRRR:::::R              A:::::A             M::::::::M           M::::::::M
+// BB:::::B     B:::::BRR:::::R     R:::::R            A:::::::A            M:::::::::M         M:::::::::M
+//   B::::B     B:::::B  R::::R     R:::::R           A:::::::::A           M::::::::::M       M::::::::::M
+//   B::::B     B:::::B  R::::R     R:::::R          A:::::A:::::A          M:::::::::::M     M:::::::::::M
+//   B::::BBBBBB:::::B   R::::RRRRRR:::::R          A:::::A A:::::A         M:::::::M::::M   M::::M:::::::M
+//   B:::::::::::::BB    R:::::::::::::RR          A:::::A   A:::::A        M::::::M M::::M M::::M M::::::M
+//   B::::BBBBBB:::::B   R::::RRRRRR:::::R        A:::::A     A:::::A       M::::::M  M::::M::::M  M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R      A:::::AAAAAAAAA:::::A      M::::::M   M:::::::M   M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R     A:::::::::::::::::::::A     M::::::M    M:::::M    M::::::M
+//   B::::B     B:::::B  R::::R     R:::::R    A:::::AAAAAAAAAAAAA:::::A    M::::::M     MMMMM     M::::::M
+// BB:::::BBBBBB::::::BRR:::::R     R:::::R   A:::::A             A:::::A   M::::::M               M::::::M
+// B:::::::::::::::::B R::::::R     R:::::R  A:::::A               A:::::A  M::::::M               M::::::M
+// B::::::::::::::::B  R::::::R     R:::::R A:::::A                 A:::::A M::::::M               M::::::M
+// BBBBBBBBBBBBBBBBB   RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAAMMMMMMMM               MMMMMMMM
 
 
+	localparam IL1_CFREE = 0;
+	localparam IL1_CKTAG = 1;
+	localparam IL1_CMISS = 2;
+	localparam IL1_FENCE = 3;
 
-	wire isCache_Miss = isCache_Rsp & (&(~isTagHit));
-	wire isCache_Hit  = isCache_Rsp & (| isTagHit);
 
+	localparam ADDR_LSB = $clog2(DW/8);
+	localparam LINE_W = $clog2(CL); 
+	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
+
+
+wire [1:0] il1_state_dnxt;
+wire [1:0] il1_state_qout;
+
+gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+assign il1_state_dnxt = 
+	( {2{il1_state_qout == IL1_CFREE}} & cache_fence_qout ? IL1_FENCE : ((ifu_req_valid & ifu_req_ready) ? IL1_CKTAG : IL1_CFREE) )
+	|
+	( {2{il1_state_qout == IL1_CKTAG}} & ((| cb_vhit ) ? IL1_CFREE : IL1_CMISS) )
+	|
+	( {2{il1_state_qout == IL1_CMISS}} & (il1_end_r ? IL1_CFREE : IL1_CMISS) )
+	|
+	( {2{il1_state_qout == IL1_FENCE}} & IL1_CFREE )
+	;
 
 
 
@@ -139,141 +142,143 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(axi_rready_set & ~invalid_o
 
 
 
-	wire [256*2-1:0 ] cache_data_out;
-	wire [22*2-1:0] cache_tag_out;
-	wire [1:0] tag_valid;
-	wire [21*2-1:0] tag_info;
-	wire [1:0] isTagHit;
-	wire [255:0] data_hit;
+	wire [CB-1:0] cache_en_w;
+	wire [CB-1:0] cache_en_r;
+	wire [7:0] cache_info_wstrb;
+	wire [63:0] cache_info_w;
+	wire [64*CB-1:0] cache_info_r;
 
-	wire [1:0] data_w_en;
-	wire [1:0] tag_w_en;
-	wire [256*2-1:0] data_w;
-	wire [22*2-1:0] tag_w;
+	wire [31:0] tag_addr;
+	wire [CB-1:0] tag_en_w;
+	wire [CB-1:0] tag_en_r;
+	wire [(TAG_W+7)/8-1:0] tag_info_wstrb;
+	wire [TAG_W-1:0] tag_info_w;
+	wire [TAG_W*CB-1:0] tag_info_r;
+
+	wire [31:0] cache_addr_dnxt;
+	wire [31:0] cache_addr_qout;
+
+
+
+
+
+	assign cache_en_w = cb_vhit & {CB{il1_state_qout == IL1_CMISS & IL1_RVALID & IL1_RREADY}};
+	assign cache_en_r = {CB{il1_state_dnxt == IL1_CKTAG}};
+	assign cache_info_wstrb = 8'b11111111;
+	assign cache_info_w = IL1_RDATA;
+	wire [64*CB-1:0] cache_info_r;
+
+	assign tag_addr = ifu_addr;
+	assign tag_en_w = blockReplace & {CB{il1_state_qout == IL1_CKTAG & il1_state_dnxt == IL1_CMISS}};
+	assign tag_en_r = {CB{il1_state_dnxt == IL1_CKTAG}};
+	assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
+	assign tag_info_w = tag_addr[31:ADDR_LSB];
+	wire [TAG_W*CB-1:0] tag_info_r;
+
+	assign cache_addr_dnxt = 
+		  ( {32{il1_state_qout == IL1_CFREE}} & ifu_addr )
+		| ( {32{il1_state_qout == IL1_CKTAG}} & cache_addr_qout )
+		| ( {32{il1_state_qout == IL1_CMISS}} & ( (IL1_RVALID & IL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+		| ( {32{il1_state_qout == IL1_FENCE}} & cache_addr_qout )
+		;
+
+	gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+cache_mem # ( .DW(DW), .BK(1), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
+(
+	.cache_addr(cache_addr),
+	.cache_en_w(cache_en_w),
+	.cache_en_r(cache_en_r),
+	.cache_info_wstrb(cache_info_wstrb),
+	.cache_info_w(cache_info_w),
+	.cache_info_r(cache_info_r),
+
+	.tag_addr(tag_addr),
+	.tag_en_w(tag_en_w),
+	.tag_en_r(tag_en_r),
+	.tag_info_wstrb(tag_info_wstrb),
+	.tag_info_w(tag_info_w),
+	.tag_info_r(tag_info_r),
+
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+assign valid_cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 
 generate
-	for ( genvar i = 0 ; i < 2; i = i + 1 ) begin
-		gen_sram # (.DW(256), .AW(6) ) data_ram
-		(
+	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+valid_cl_sel];
 
-			.data_w(data_w[256*i +: 256]),
-			.addr_w(address_Sel),
-			.data_wstrb({32{1'b1}}),
-			.en_w(data_w_en[i]),
-
-
-			.data_r(cache_data_out[256*i +: 256]),
-			.addr_r(address_Sel),
-			.en_r(isFetch_Req),
-
-			.CLK(CLK)
-
-		);
-
-		gen_sram # (.DW(22), .AW(6) ) tag_ram
-		(
-
-			.data_w(tag_w[22*i +: 22]),
-			.addr_w(address_Sel),
-			.data_wstrb({3{1'b1}}),
-			.en_w(tag_w_en[i]),
-
-
-			.data_r(cache_tag_out[22*i+:22]),
-			.addr_r(address_Sel),
-			.en_r(isFetch_Req),
-
-			.CLK(CLK)
-
-		);
+		for ( genvar i = 0; i < 64; i = i + 1) begin
+			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
+		end
 	end
 
-	assign tag_info[21*i +: 21] = cache_tag_out[22*i+:21];
-	assign tag_valid[i] = tag_info[22*i+21];
-	assign isTagHit[i] = (tag_info[21*i +: 21] == tag_Req) & tag_valid[i];
-
-	assign data_w[256*i +: 256] = data_w_en[i] ? IFU_RDATA : 256'd0;
-	assign tag_w[22*i +: 22] = flush ? 22'b0 : ({22{evicted_en[i]}} & {1'b1, tag_Req});
+	for ( genvar i = 0; i < 64; i = i + 1 ) begin
+		assign cache_data_r[i] = | (cache_info_r_T[CB*i +: CB] &  cb_vhit);
+	end
 
 
 endgenerate
 
 
-	assign data_hit = 	({256{isTagHit[0]}} & cache_data_out[256*0 +: 256])
-						|
-						({256{isTagHit[1]}} & cache_data_out[256*1 +: 256]);
-						
 
 
 
 
 
-// cache evicted
-wire [1:0] free_way;
-wire isAllWayValid;
-wire [1:0] updateLfsr;
+generate
+	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
+		for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+
+			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
+			assign cache_valid_rst[CL*cb+cl] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
+
+			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
+
+		end
 
 
-lzp #( .CW(1) ) icache_free_way
+	end
+
+endgenerate
+
+
+
+
+lzp # ( .CW($clog2(CB)) ) l2c_malloc
 (
-	.in_i(tag_valid),
-	.pos_o(free_way),
-	.all1(isAllWayValid),
+	.in_i(cache_valid_qout[CB*valid_cl_sel +:CB]),
+	.pos_o(cache_block_sel),
+	.all1(isCacheBlockRunout),
 	.all0()
 );
 
 lfsr i_lfsr
 (
-	.random(updateLfsr),
+	.random(random),
 	.CLK(CLK)
 );
 
-wire updateWay = isAllWayValid ? updateLfsr : free_way;
-
-
-wire evicted_en;
-
-
-
-assign evicted_en = {2{axi_rready_set}} & ( 1 << updateWay );
-assign data_w_en = flush ? 2'b00 : evicted_en;
-assign tag_w_en = flush ? 2'b11 : evicted_en;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//cache miss req
-
-
-	assign axi_arvalid_set = isCache_Miss;
-	assign IFU_ARADDR = fetch_addr_qout & (~64'b11111);
-	assign IFU_ARVALID = axi_arvalid_qout;
-	assign IFU_ARPROT	= 3'b001;
-	assign IFU_RREADY	= axi_rready_qout;
-
-	assign axi_arvalid_rst = ~axi_arvalid_set & (IFU_ARREADY & axi_arvalid_qout);
-	assign axi_rready_set = IFU_RVALID & ~axi_rready_qout;
-	assign axi_rready_rst = axi_rready_qout;
-
-	gen_slffr # (.DW(1)) axi_arvalid_rsffr (.set_in(axi_arvalid_set), .rst_in(axi_arvalid_rst), .qout(axi_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr # (.DW(1)) axi_rready_rsffr (.set_in(axi_rready_set), .rst_in(axi_rready_rst), .qout(axi_rready_qout), .CLK(CLK), .RSTn(RSTn));
-
-
-
-
-
+assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_block_sel );
 
 
 
