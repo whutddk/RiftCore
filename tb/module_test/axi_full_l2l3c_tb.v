@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 10:10:44
+* @Last Modified time: 2021-03-01 11:50:44
 */
 
 
@@ -464,9 +464,9 @@ initial begin
 
 
 	#52
-	il1_start_single_burst_read = 1'b1;
+	il1_start_single_burst_read = 1'b0;
 	dl1_start_single_burst_read = 1'b0;
-	dl1_start_single_burst_write = 1'b0;
+	dl1_start_single_burst_write = 1'b1;
 	DL1_AWADDR = 32'b11000;
 	DL1_WDATA = 64'haa;
 	DL1_WSTRB = 8'hff;

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 11:20:49
+* @Last Modified time: 2021-03-01 11:54:17
 */
 
 
@@ -228,7 +228,7 @@ module L2cache #
 	assign DL1_WREADY = MEM_WREADY;
 	assign DL1_BRESP = MEM_BRESP;
 	assign DL1_BVALID = MEM_BVALID;
-	assign MEM_AWADDR = {32'b0, DL1_AWADDR};
+	assign MEM_AWADDR = DL1_AWADDR;
 	assign MEM_AWLEN = DL1_AWLEN;
 	assign MEM_AWBURST = DL1_AWBURST;
 	assign MEM_AWVALID = DL1_AWVALID;
@@ -591,7 +591,6 @@ assign tag_info_w = tag_addr[31:ADDR_LSB];
 assign IL1_RDATA = cache_data_r;
 assign DL1_RDATA = cache_data_r;
 assign MEM_WDATA = DL1_WDATA;
-assign MEM_AWADDR = tag_addr & ~32'h1ff;
 assign MEM_ARADDR = tag_addr & ~32'h1ff;
 
 
