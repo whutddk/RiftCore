@@ -1,10 +1,10 @@
 /*
-* @File name: lfsr
+* @File name: dcache
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-28 17:59:22
+* @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 17:38:38
+* @Last Modified time: 2021-02-18 19:06:57
 */
 
 
@@ -15,7 +15,7 @@
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
-	   http://www.apache.org/licenses/LICENSE-2.0
+       http://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,38 +24,53 @@
    limitations under the License.
 */
 
+
+
 `timescale 1 ns / 1 ps
 
-module lfsr
-(
-	output [15:0] random,
+`include "define.vh"
 
-	input CLK
+
+module dcache (
+
+	output [31:0] L1D_AWADDR,
+	output [2:0] L1D_AWPROT,
+	output L1D_AWVALID,
+	input L1D_AWREADY,
+
+	output [255:0] L1D_WDATA,
+	output [7:0] L1D_WSTRB,
+	output L1D_WVALID,
+	input L1D_WREADY,
+
+	input [1:0] L1D_BRESP,
+	input L1D_BVALID,
+	output L1D_BREADY,
+
+	output [31:0] L1D_ARADDR,
+	output [2:0] L1D_ARPROT,
+	output L1D_ARVALID,
+	input L1D_ARREADY,
+
+	input [255:0] L1D_RDATA,
+	input [1:0] L1D_RRESP,
+	input L1D_RVALID,
+	output L1D_RREADY,
+
+
 );
 
 
 
 
 
-reg [15:0] shiftReg;
 
-initial begin shiftReg = $random; end
 
-wire tap;
 
-always @(posedge CLK) begin
-	shiftReg <= #1 { shiftReg[14:0], tap };
-end
-
-assign tap = shiftReg[15] ^ shiftReg[4] ^ shiftReg[2] ^ shiftReg[1];
-assign random = shiftReg;
 
 
 
 
 endmodule
-
-
-
 
 
