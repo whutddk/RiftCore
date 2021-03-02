@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-02 17:14:22
+* @Last Modified time: 2021-03-02 17:58:21
 */
 
 
@@ -280,14 +280,14 @@ assign lsu_data_rsp =
 
 	assign cache_en_w =
 		  (cb_vhit & {CB{dl1_state_qout == DL1_CMISS & DL1_RVALID & DL1_RREADY}})
-		| (cb_vhit & {CB{dl1_state_qout == DL1_WRITE}});
+		| (cb_vhit & {CB{dl1_state_qout != DL1_CMISS & DL1_WVALID & DL1_WREADY}});
 	assign cache_en_r = {CB{dl1_state_dnxt == DL1_CREAD}};
 	assign cache_info_wstrb =
 		  ({8{dl1_state_qout == DL1_CMISS}} & 8'b11111111)
-		| ({8{dl1_state_qout == DL1_WRITE}} & lsu_wstrb_req);
+		| ({8{dl1_state_qout != DL1_CMISS}} & DL1_WSTRB);
 	assign cache_info_w =
 		  ({64{dl1_state_qout == DL1_CMISS}} & DL1_RDATA)
-		| ({64{dl1_state_qout == DL1_WRITE}} & lsu_wdata_req);
+		| ({64{dl1_state_qout != DL1_CMISS}} & DL1_WDATA);
 
 
 	assign tag_addr = lsu_addr_req;

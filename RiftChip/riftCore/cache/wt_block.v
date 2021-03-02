@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-02 14:32:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-02 15:49:57
+* @Last Modified time: 2021-03-02 19:16:22
 */
 
 
@@ -40,7 +40,9 @@ module wt_block #
 	output isAddrHazard,
 
 	input push,
-	input [DW-1:0] data_i,
+	input [31:0] waddr,
+	input [7:0] wstrb,
+	input [63:0] wdata,
 
 	input pop,
 	output [DW-1:0] data_o,
@@ -52,48 +54,107 @@ module wt_block #
 	input RSTn
 );
 
-wire [DP-1:0] addrHit;
-wire [DW*DP-1:0] expose_o;
-wire [DP-1:0] valid;
+wire [DP-1:0] addrHit_r;
+wire [DP-1:0] addrHit_w;
 
 
 generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
-		assign addrHit = (chkAddr == expose_o[ DW*dp +: 32]) & valid[dp];
+		assign addrHit_r = ( chkAddr == wtb_info_qout[ DW*dp +: 32] ) & valid[dp];
+		assign addrHit_w = ( waddr   == wtb_info_qout[ DW*dp +: 32] ) & valid[dp];
 	end
+endgenerate
+
+assign isAddrHazard = (| addrHit_r);
+
+wire [64*DP-1:0] wtb_wdata_dnxt;
+wire [64*DP-1:0] wtb_wdata_qout;
+wire [8*DP-1:0] wtb_wstrb_dnxt;
+wire [8*DP-1:0] wtb_wstrb_qout;
+wire [32*DP-1:0] wtb_waddr_dnxt;
+wire [32*DP-1:0] wtb_waddr_qout;
+
+wire [32*DP-1:0] wtb_info_dnxt;
+wire [32*DP-1:0] wtb_info_qout;
+wire [DP-1:0] wtb_info_en;
+
+wire [DP-1:0] valid_dnxt;
+wire [DP-1:0] valid_qout;
+wire [DP-1:0] valid_en;
+
+
+wire [63:0] wtb_wdata_mask;
+
+
+
+assign wtb_wdata_mask = { {8{wstrb[7]}}, {8{wstrb[6]}}, {8{wstrb[5]}}, {8{wstrb[4]}}, {8{wstrb[3]}}, {8{wstrb[2]}}, {8{wstrb[1]}}, {8{wstrb[0]}}};
+
+	assign wtb_info_en = {DP{push}} & addrHit_w;
+
+generate
+	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
+
+
+		assign wtb_wdata_dnxt[64*dp+:64] =
+				  (wtb_wdata_qout[64*dp+:64] & (~wtb_wdata_mask) )
+				| (wdata & (wtb_wdata_mask));
+
+
+		assign wtb_wstrb_dnxt[8*dp+:8] = wtb_wstrb_qout[8*dp+:8] & {8{addrHit_w[dp]}} | wstrb;
+		assign wtb_waddr_dnxt[32*dp+:32] = waddr;
+
+		assign wtb_info_dnxt[DW*dp+:DW] = { wtb_wdata_dnxt[64*dp+:64], wtb_wstrb_dnxt[8*dp+:8], wtb_waddr_dnxt[32*dp+:32] };
+		assign { wtb_wdata_qout[64*dp+:64], wtb_wstrb_qout[8*dp+:8], wtb_waddr_qout[32*dp+:32] } = wtb_info_qout[DW*dp+:DW];
+
+
+
+
+
+
+		assign valid_dnxt[dp] = push & (~flush);
+		assign valid_en[dp] = (pop | push | flush) & (dp == index);
+
+
+
+		gen_dffren # (.DW(DW)) wtb_info_dffren 
+		(
+			.dnxt(wtb_info_dnxt[DW*dp +: DW]),
+			.qout(wtb_info_qout[DW*dp +: DW]),
+			.en(wtb_info_en[dp]),
+			.CLK(CLK),
+			.RSTn(RSTn)
+		);
+
+		gen_dffren # (.DW(1)) valid_dffren
+		(
+			.dnxt(valid_dnxt[dp]),
+			.qout(valid_qout[dp]),
+			.en(valid_en[dp]),
+			.CLK(CLK),
+			.RSTn(RSTn)
+		);
+
+	end
+
+	assign full = &valid_qout;
+	assign empty = &(~valid_qout)
+
+
 endgenerate
 
 
 
-assign isAddrHazard = (| addrHit);
 
 
+//ASSERT
+always @( negedge CLK ) begin
+	if (push & pop)  begin
+		$display("Assert Fail at wt_block");
+		$stop;
+	end
 
 
-gen_fifo # (.DW(DW), .AW($clog2(DP)) ) writeThrough_fifo
-(
-
-	.fifo_pop(pop), 
-	.fifo_push(push),
-	.data_push(data_i),
-
-	.fifo_empty(empty), 
-	.fifo_full(full), 
-	.data_pop(data_o),
-
-	.expose_o(expose_o),
-	.valid(valid),
-
-	.flush(1'b0),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
-
-
-
-
-
+end
 
 
 endmodule
