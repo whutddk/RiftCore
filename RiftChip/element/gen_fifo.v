@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-13 11:20:09
+* @Last Modified time: 2021-03-02 15:36:29
 */
 
 /*
@@ -42,6 +42,9 @@ module gen_fifo # (
 	output [AW+1-1:0] read_addr,
 	output [AW+1-1:0] write_addr,
 
+	output [(DW*(2**AW))-1:0] expose_o,
+	output [((2**AW)-1):0] valid,
+
 	input flush,
 	input CLK,
 	input RSTn
@@ -53,6 +56,7 @@ module gen_fifo # (
 	wire [AW+1-1:0] read_addr_dnxt, read_addr_qout;
 	wire [AW+1-1:0] write_addr_dnxt, write_addr_qout;
 	wire [DP*DW-1:0] fifo_data_dnxt,fifo_data_qout;
+	wire [DP-1:0] valid_set, valid_rst, valid_qout, valid_en;
 
 
 
@@ -86,6 +90,17 @@ endgenerate
 	assign read_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_pop & ~fifo_empty ) ? read_addr_qout + 'd1 : read_addr_qout);
 	assign write_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_push & ~fifo_full ) ? write_addr_qout + 'd1 :  write_addr_qout);
 
+
+	assign expose_o = fifo_data_qout;
+	generate
+		for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
+			assign valid_set[dp] = (fifo_push & ~fifo_full) & ( dp == write_addr_qout[AW-1:0 ] );
+			assign valid_rst[dp] = ((fifo_pop & ~fifo_empty) & ( dp == read_addr_qout[AW-1:0 ] )) | flush;
+
+
+			gen_rsffr #(.DW(1)) valid_rsffr (.set_in(valid_set[dp]), .rst_in(valid_rst[dp]), .qout(valid_qout[dp]), .CLK(CLK), .RSTn(RSTn));
+		end
+	endgenerate
 
 endmodule 
 
