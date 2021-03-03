@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-03 16:58:31
+* @Last Modified time: 2021-03-03 19:46:46
 */
 
 /*
@@ -125,7 +125,7 @@ module icache #
 
 
 assign cache_fence_set = il1_fence;
-assign cache_fence_rst = (il1_state_qout == L2C_STATE_FENCE);
+assign cache_fence_rst = (il1_state_qout == IL1_STATE_FENCE);
 gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
@@ -253,7 +253,7 @@ cache_mem # ( .DW(DW), .BK(1), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 
-assign valid_cl_sel = ifu_addr_req[ADDR_LSB +: $clog2(CL)];
+assign valid_cl_sel = ifu_addr_req[ADDR_LSB +: LINE_W];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
