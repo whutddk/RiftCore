@@ -127,7 +127,7 @@ lzp #( .CW(CW) ) buff_push
 );
 
 
-lzp #( .CW($clog2(DP)) ) buff_pop
+lzp #( .CW(CW)) ) buff_pop
 (
 	.in_i(~valid),
 	.pos_o(index_pop),

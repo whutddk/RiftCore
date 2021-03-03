@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 17:42:02
+* @Last Modified time: 2021-03-03 16:46:29
 */
 
 
@@ -528,7 +528,7 @@ assign cache_info_w =
 assign tag_en_w = ( l3c_state_qout == L3C_CKTAG ) & ( l3c_state_dnxt == L3C_FLASH );
 assign tag_en_r = l3c_state_dnxt == L3C_CKTAG;
 assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
-assign tag_info_w = tag_addr[31:ADDR_LSB];
+assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign L2C_RDATA = cache_info_r;
@@ -536,7 +536,7 @@ assign MEM_WDATA = cache_info_r;
 assign MEM_AWADDR = { 32'b0, tag_addr} & ~64'h1ff;
 assign MEM_ARADDR = { 32'b0, tag_addr} & ~64'h1ff;
 
-assign cb_hit = (tag_info_r == tag_addr[31:ADDR_LSB]);
+assign cb_hit = (tag_info_r == tag_addr[31 -: TAG_W]);
 
 assign cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 

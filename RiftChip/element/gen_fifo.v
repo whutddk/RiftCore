@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-30 17:55:22
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-02 15:36:29
+* @Last Modified time: 2021-03-03 10:59:58
 */
 
 /*
@@ -87,8 +87,8 @@ endgenerate
 
 	assign data_pop = fifo_data_qout[DW*read_addr_qout[AW-1:0]+:DW];
 
-	assign read_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_pop & ~fifo_empty ) ? read_addr_qout + 'd1 : read_addr_qout);
-	assign write_addr_dnxt = flush ? ({(AW+1){1'b1}}) : (( fifo_push & ~fifo_full ) ? write_addr_qout + 'd1 :  write_addr_qout);
+	assign read_addr_dnxt = flush ? ({(AW+1){1'b0}}) : (( fifo_pop & ~fifo_empty ) ? read_addr_qout + 'd1 : read_addr_qout);
+	assign write_addr_dnxt = flush ? ({(AW+1){1'b0}}) : (( fifo_push & ~fifo_full ) ? write_addr_qout + 'd1 :  write_addr_qout);
 
 
 	assign expose_o = fifo_data_qout;

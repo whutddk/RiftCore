@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-02 15:44:00
+* @Last Modified time: 2021-03-03 16:51:18
 */
 
 
@@ -594,7 +594,7 @@ assign tag_en_r =
 	{CB{MEM_ARVALID & MEM_ARREADY}}
 	;
 assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
-assign tag_info_w = tag_addr[31:ADDR_LSB];
+assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign IL1_RDATA = cache_data_r;
@@ -609,7 +609,7 @@ assign valid_cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+valid_cl_sel];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31 -: TAG_W]) & cache_valid_qout[CL*cb+valid_cl_sel];
 
 		for ( genvar i = 0; i < 64; i = i + 1) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
