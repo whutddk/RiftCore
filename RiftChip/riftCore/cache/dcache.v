@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 14:29:57
+* @Last Modified time: 2021-03-04 16:19:38
 */
 
 
@@ -156,6 +156,7 @@ module dcache #
 	wire wtb_full;
 	wire wtb_empty;
 
+	wire [CB-1:0] cache_cl_valid;
 
 	assign DL1_ARADDR = lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 	assign DL1_AWLEN = 8'd0;
@@ -287,12 +288,6 @@ assign dl1_ar_req =
 
 
 
-
-
-
-
-
-
 assign lsu_rdata_rsp = 
 	  ( {64{dl1_state_qout == DL1_STATE_CREAD}} & cache_data_r )
 	| ( {64{dl1_state_qout == DL1_STATE_CMISS}} & DL1_RDATA );
@@ -386,8 +381,8 @@ endgenerate
 
 
 generate
-	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+		for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
 
 			assign cache_valid_set[CB*cl+cb] =
 				(
@@ -410,13 +405,12 @@ endgenerate
 
 
 
-
-
+assign cache_cl_valid = cache_valid_qout[CB*valid_cl_sel +:CB];
 
 
 lzp # ( .CW($clog2(CB)) ) dl1_malloc
 (
-	.in_i(cache_valid_qout[CB*valid_cl_sel +: CB]),
+	.in_i(cache_cl_valid),
 	.pos_o(cache_block_sel),
 	.all1(isCacheBlockRunout),
 	.all0()
@@ -516,7 +510,7 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 //ASSERT
 always @( negedge CLK ) begin
 
-	if ( (dl1_state_qout == DL1_STATE_CMISS) & (DL1_AWVALID | DL1_WVALID) ) begin
+	if ( 0 ) begin
 		$display("Assert Fail at L1-Dcache");
 		$stop;
 	end

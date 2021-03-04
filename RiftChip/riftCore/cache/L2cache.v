@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 12:04:41
+* @Last Modified time: 2021-03-04 16:20:01
 */
 
 
@@ -211,7 +211,7 @@ module L2cache #
 	wire [15:0] random;
 	wire [CB-1:0] blockReplace;
 
-
+	wire [CB-1:0] cache_cl_valid;
 
 	localparam L2C_CFREE = 0;
 	localparam L2C_CKTAG = 1;
@@ -630,13 +630,12 @@ endgenerate
 
 
 generate
-	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+		for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
+			assign cache_valid_set[CB*cl+cb] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
+			assign cache_valid_rst[CB*cl+cb] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
 
-			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
-			assign cache_valid_rst[CL*cb+cl] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
-
-			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
+			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CB*cl+cb]), .rst_in(cache_valid_rst[CB*cl+cb]), .qout(cache_valid_qout[CB*cl+cb]), .CLK(CLK), .RSTn(RSTn));
 
 		end
 
@@ -646,11 +645,11 @@ generate
 endgenerate
 
 
-
+assign cache_cl_valid = cache_valid_qout[CB*valid_cl_sel +:CB];
 
 lzp # ( .CW($clog2(CB)) ) l2c_malloc
 (
-	.in_i(cache_valid_qout[CB*valid_cl_sel +:CB]),
+	.in_i(cache_cl_valid),
 	.pos_o(cache_block_sel),
 	.all1(isCacheBlockRunout),
 	.all0()
