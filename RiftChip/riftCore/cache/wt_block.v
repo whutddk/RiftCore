@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-02 14:32:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-03 19:57:12
+* @Last Modified time: 2021-03-04 11:52:32
 */
 
 
@@ -34,7 +34,7 @@ module wt_block #
 (
 	parameter DW = 64 + 8 + 32,
 	parameter DP = 8,
-	parameter TAG_W = 32,
+	parameter TAG_W = 32
 )
 (
 	input [31:0] chkAddr,
@@ -59,13 +59,14 @@ wire [DP-1:0] isAddrHit_r;
 generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
 		wire [31:0] wtb_addr_qout = wtb_info_qout[ DW*dp +: 32];
-		assign isAddrHit_r = ( chkAddr[31 -: TAG_W] == wtb_addr_qout[31 -: TAG_W] ) & valid[dp];
+		assign isAddrHit_r = ( chkAddr[31 -: TAG_W] == wtb_addr_qout[31 -: TAG_W] ) & valid_qout[dp];
 	end
 endgenerate
 
 assign isHazard_r = | isAddrHit_r;
 
 
+assign data_o = wtb_info_qout[DW*rdp_qout+:DW];
 
 
 
@@ -73,9 +74,8 @@ assign isHazard_r = | isAddrHit_r;
 
 
 
-
-wire [32*DP-1:0] wtb_info_dnxt;
-wire [32*DP-1:0] wtb_info_qout;
+wire [DW*DP-1:0] wtb_info_dnxt;
+wire [DW*DP-1:0] wtb_info_qout;
 wire [DP-1:0] wtb_info_en;
 
 wire [DP-1:0] valid_dnxt;
@@ -88,20 +88,13 @@ wire [DP-1:0] valid_en;
 
 localparam AW = $clog2(DP);
 
-wire [DP-1:0] index_mask;
 
 
 
-assign index_mask = 	
-		( {DP{push}} &  )
-		|
-		( {DP{ pop}} &  );
-
-
-	assign wtb_info_en = {DP{push}} & ((1 << wrp_qout[AW-1:0]));
-	assign valid_en =
-			  ({DP{pop }} & (1 << rdp_qout[AW-1:0]));
-			| ({DP{push}} & (1 << wrp_qout[AW-1:0]))
+assign wtb_info_en = {DP{push}} & ((1 << wrp_qout[AW-1:0]));
+assign valid_en =
+		  ({DP{pop }} & (1 << rdp_qout[AW-1:0]))
+		| ({DP{push}} & (1 << wrp_qout[AW-1:0]));
 
 
 generate
@@ -109,16 +102,7 @@ generate
 
 		assign valid_dnxt[dp] = push;
 
-
-
-
 		assign wtb_info_dnxt[DW*dp+:DW] = data_i;
-		assign { wtb_wdata_qout[64*dp+:64], wtb_wstrb_qout[8*dp+:8], wtb_waddr_qout[32*dp+:32] } = wtb_info_qout[DW*dp+:DW];
-
-
-
-
-
 
 		gen_dffren # (.DW(DW)) wtb_info_dffren 
 		(
@@ -141,12 +125,12 @@ generate
 
 	end
 
-	assign full = &valid_qout;
-	assign empty = &(~valid_qout)
+
 
 endgenerate
 
-
+	assign full = &valid_qout;
+	assign empty = &(~valid_qout);
 
 
 
@@ -175,10 +159,6 @@ assign wrp_dnxt = push ? wrp_qout + 'd1 : wrp_qout;
 
 //ASSERT
 always @( negedge CLK ) begin
-	if ( (push & pop) )  begin
-		$display("Assert Fail at wt_block");
-		$stop;
-	end
 
 	if (
 		(rdp_qout == wrp_qout & ~empty)

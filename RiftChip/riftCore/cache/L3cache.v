@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-03 16:46:29
+* @Last Modified time: 2021-03-04 12:05:10
 */
 
 
@@ -502,7 +502,7 @@ assign cache_addr_dnxt =
 	  ( {32{l3c_state_qout == L3C_CFREE}} & cache_addr_qout )
 	| ( {32{l3c_state_qout == L3C_CKTAG}} &
 		 
-			(L2C_ARVALID ? (L2C_ARADDR & ~32'h1ff) : (db_full ? db_addr_o : (L2C_AWADDR & ( l3c_state_dnxt == L3C_RSPWR ? ~32'h0 : ~32'h1ff )) ) )
+			(L2C_ARVALID ? (L2C_ARADDR & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} }) : (db_full ? db_addr_o : (L2C_AWADDR & ( l3c_state_dnxt == L3C_RSPWR ? ~32'h0 : { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )) ) )
 	  )
 	| ( {32{l3c_state_qout == L3C_FENCE}} & db_addr_o )
 	| ( {32{l3c_state_qout == L3C_EVICT}} & ((MEM_WVALID & MEM_WREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
@@ -586,7 +586,7 @@ dirty_block # ( .DW(32-ADDR_LSB), .DP(16) ) i_dirty_block
 
 assign db_addr_o[ADDR_LSB-1:0] = 'd0;
 assign db_push = ( l3c_state_qout == L3C_CKTAG & l3c_state_dnxt == L3C_RSPWR );
-assign db_addr_i = tag_addr & ~32'h1ff;
+assign db_addr_i = tag_addr & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 assign db_pop = ( l3c_state_qout == L3C_EVICT & l3c_state_dnxt != L3C_EVICT );
 
 

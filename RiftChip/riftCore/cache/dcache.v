@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 10:22:39
+* @Last Modified time: 2021-03-04 12:03:53
 */
 
 
@@ -31,7 +31,7 @@
 `include "define.vh"
 
 
-module dcache 
+module dcache #
 (
 	parameter DW = 128,
 	parameter BK = 2,
@@ -84,34 +84,87 @@ module dcache
 
 
 	input dl1_fence,
-
-	input flush,
 	input CLK,
 	input RSTn
 );
 
+	localparam DL1_STATE_CFREE = 0;
+	localparam DL1_STATE_CREAD = 1;
+	localparam DL1_STATE_MWAIT = 2;
+	localparam DL1_STATE_CMISS = 3;
+	localparam DL1_STATE_FENCE = 4;
+	localparam DL1_STATE_WRITE = 5;
+
+	localparam ADDR_LSB = $clog2(DW*BK/8);
+	localparam LINE_W = $clog2(CL); 
+	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
+
+	wire dl1_awvalid_set, dl1_awvalid_rst, dl1_awvalid_qout;
+	wire dl1_wvalid_set, dl1_wvalid_rst, dl1_wvalid_qout;
+	wire dl1_bready_set, dl1_bready_rst, dl1_bready_qout;
+	wire dl1_arvalid_set, dl1_arvalid_rst, dl1_arvalid_qout;
+	wire dl1_rready_set, dl1_rready_rst, dl1_rready_qout;
+	wire dl1_aw_req, dl1_ar_req;
+	wire dl1_end_r, dl1_end_w;
+
+	wire cache_fence_set;
+	wire cache_fence_rst;
+	wire cache_fence_qout;
+
+	wire [2:0] dl1_state_dnxt;
+	wire [2:0] dl1_state_qout;
+
+	wire [2:0] dl1_state_mode_dir;
+
+	wire [31:0] cache_addr;
+	wire [CB-1:0] cache_en_w;
+	wire [CB-1:0] cache_en_r;
+	wire [7:0] cache_info_wstrb;
+	wire [63:0] cache_info_w;
+	wire [64*CB-1:0] cache_info_r;
+
+	wire [31:0] tag_addr;
+	wire [CB-1:0] tag_en_w;
+	wire [CB-1:0] tag_en_r;
+	wire [(TAG_W+7)/8-1:0] tag_info_wstrb;
+	wire [TAG_W-1:0] tag_info_w;
+	wire [TAG_W*CB-1:0] tag_info_r;
+
+	wire [31:0] cache_addr_dnxt;
+	wire [31:0] cache_addr_qout;
+
+	wire [CB-1:0] cb_vhit;
+	wire [CL-1:0] valid_cl_sel;
+	wire [63:0] cache_data_r;
+	wire [64*CB-1:0] cache_info_r_T;
+
+	wire [CL*CB-1:0] cache_valid_set;
+	wire [CL*CB-1:0] cache_valid_rst;
+	wire [CL*CB-1:0] cache_valid_qout;
+
+	wire isCacheBlockRunout;
+	wire [$clog2(CB)-1:0] cache_block_sel;
+	wire [15:0] random;
+	wire [CB-1:0] blockReplace;
+	
+	wire [31:0] chkAddr;
+	wire isHazard_r;
+	wire wtb_push;
+	wire wtb_pop;
+	wire [103:0] wtb_data_i;
+	wire [103:0] wtb_data_o;
+	wire wtb_full;
+	wire wtb_empty;
 
 
-wire dl1_awvalid_set, dl1_awvalid_rst, dl1_awvalid_qout;
-wire dl1_wvalid_set, dl1_wvalid_rst, dl1_wvalid_qout;
-wire dl1_wlast_set, dl1_wlast_rst, dl1_wlast_qout;
-wire dl1_bready_set, dl1_bready_rst, dl1_bready_qout;
-wire dl1_arvalid_set, dl1_arvalid_rst, dl1_arvalid_qout;
-wire dl1_rready_set, dl1_rready_rst, dl1_rready_qout;
-wire dl1_aw_req, dl1_ar_req;
-wire dl1_end_r, dl1_end_w;
-
-
-
-
-
+	assign DL1_ARADDR = lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 	assign DL1_AWLEN = 8'd0;
 	assign DL1_AWBURST = 2'b00;
 	assign DL1_AWVALID = dl1_awvalid_qout;
 
 
 	assign DL1_WSTRB = {8{1'b1}};
-	assign DL1_WLAST = dl1_wlast_qout;
+	assign DL1_WLAST = 1'b1;
 	assign DL1_WVALID = dl1_wvalid_qout;
 	assign DL1_BREADY = dl1_bready_qout;
 
@@ -129,25 +182,13 @@ wire dl1_end_r, dl1_end_w;
 	gen_rsffr # (.DW(1)) dl1_awvalid_rsffr (.set_in(dl1_awvalid_set), .rst_in(dl1_awvalid_rst), .qout(dl1_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign dl1_wvalid_set = (~dl1_wvalid_qout & dl1_aw_req);
-	assign dl1_wvalid_rst = (DL1_WREADY & dl1_wvalid_qout & dl1_wlast_qout) ;
+	assign dl1_wvalid_rst = (DL1_WREADY & dl1_wvalid_qout & DL1_WLAST) ;
 	gen_rsffr # (.DW(1)) dl1_wvalid_rsffr (.set_in(dl1_wvalid_set), .rst_in(dl1_wvalid_rst), .qout(dl1_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
-
-	assign dl1_wlast_set = ((write_index_qout == DL1_AWLEN - 1 ) & DL1_WREADY & dl1_wvalid_qout);
-	assign dl1_wlast_rst = ~dl1_wlast_set & ( DL1_WREADY & dl1_wvalid_qout | dl1_wlast_qout );
-	gen_rsffr # (.DW(1)) dl1_wlast_rsffr (.set_in(dl1_wlast_set), .rst_in(dl1_wlast_rst), .qout(dl1_wlast_qout), .CLK(CLK), .RSTn(RSTn));
-
-	assign write_index_dnxt = dl1_aw_req ? 8'd0 :
-								(
-									(DL1_WREADY & dl1_wvalid_qout & (write_index_qout != DL1_AWLEN)) ? (write_index_qout + 8'd1) : write_index_qout
-								);							
-	gen_dffr # (.DW(8)) write_index_dffr (.dnxt(write_index_dnxt), .qout(write_index_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign dl1_bready_set = (DL1_BVALID && ~dl1_bready_qout);
 	assign dl1_bready_rst = dl1_bready_qout;
 	gen_rsffr # (.DW(1)) dl1_bready_rsffr (.set_in(dl1_bready_set), .rst_in(dl1_bready_rst), .qout(dl1_bready_qout), .CLK(CLK), .RSTn(RSTn));
 	
-
-	assign write_resp_error = dl1_bready_qout & DL1_BVALID & DL1_BRESP[1]; 
 	assign dl1_arvalid_set = ~dl1_arvalid_qout & dl1_ar_req;
 	assign dl1_arvalid_rst = dl1_arvalid_qout & DL1_ARREADY ;
 	gen_rsffr # (.DW(1)) dl1_arvalid_rsffr (.set_in(dl1_arvalid_set), .rst_in(dl1_arvalid_rst), .qout(dl1_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
@@ -185,35 +226,15 @@ wire dl1_end_r, dl1_end_w;
 
 
 
+assign cache_fence_set = dl1_fence;
+assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE);
+gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
-	localparam DL1_STATE_CFREE = 0;
-	localparam DL1_STATE_CREAD = 1;
-	localparam DL1_STATE_MWAIT = 2;
-	localparam DL1_STATE_CMISS = 3;
-	localparam DL1_STATE_FENCE = 4;
-	localparam DL1_STATE_WRITE = 5;
-
-	localparam ADDR_LSB = $clog2(DW*BK/8);
-	localparam LINE_W = $clog2(CL); 
-	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
-
-	wire cache_fence_set;
-	wire cache_fence_rst;
-	wire cache_fence_qout;
-
-	assign cache_fence_set = dl1_fence;
-	assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE);
-	gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
-
-
-
-wire [2:0] dl1_state_dnxt;
-wire [2:0] dl1_state_qout;
 
 gen_dffr # (.DW(3)) dl1_state_dffr (.dnxt(dl1_state_dnxt), .qout(dl1_state_qout), .CLK(CLK), .RSTn(RSTn));
 
-wire [2:0] dl1_state_mode_dir;
+
 
 assign dl1_state_mode_dir = 
 	lsu_req_valid ?
@@ -229,12 +250,15 @@ assign dl1_state_dnxt =
 		|
 		( {3{dl1_state_qout == DL1_STATE_CREAD}} &
 			( (| cb_vhit ) ? dl1_state_mode_dir : ( isHazard_r ? DL1_STATE_MWAIT : DL1_STATE_CMISS)  )
+		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_MWAIT}} &
-			( ~isHazard_r) ? DL1_STATE_CMISS : DL1_STATE_MWAIT)  )
+			(( ~isHazard_r) ? DL1_STATE_CMISS : DL1_STATE_MWAIT)
+		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_CMISS}} & 
 			( dl1_end_r ? dl1_state_mode_dir : DL1_STATE_CMISS )
+		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_WRITE}} & 
 			dl1_state_mode_dir )
@@ -245,23 +269,9 @@ assign dl1_state_dnxt =
 
 
 assign lsu_req_ready = 
-	(
-		(dl1_state_qout == DL1_STATE_CFREE) & 
-			( (dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) )
-	)
-	|
-	( 
-		(dl1_state_qout == DL1_STATE_CREAD) &
-			( (dl1_state_dnxt == DL1_STATE_CREAD ) | (dl1_state_dnxt == DL1_STATE_WRITE) | (dl1_state_dnxt == DL1_STATE_CMISS) )
-	)
-	|
-		(dl1_state_qout == DL1_STATE_MWAIT}} & 
-			(dl1_state_dnxt == DL1_STATE_CMISS)
-	|
-	(
-		(dl1_state_qout == DL1_STATE_WRITE) & 
-			( (dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) )
-	);
+	  (dl1_state_qout == DL1_STATE_CREAD)
+	| (dl1_state_qout == DL1_STATE_WRITE)
+	;
 
 
 assign lsu_rsp_valid = 
@@ -272,8 +282,8 @@ assign lsu_rsp_valid =
 assign dl1_ar_req = 
 	(
 		  ((dl1_state_qout == DL1_STATE_CREAD) & (dl1_state_dnxt == DL1_STATE_CMISS))
-		| ((dl1_state_qout == DL1_STATE_MWAIT) & (dl1_state_dnxt == DL1_STATE_CMISS));			
-	)
+		| ((dl1_state_qout == DL1_STATE_MWAIT) & (dl1_state_dnxt == DL1_STATE_CMISS))
+	);
 
 
 
@@ -289,66 +299,44 @@ assign lsu_rdata_rsp =
 
 
 
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_addr_req;
+assign cache_en_w =
+	  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
+	| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}});
+
+assign cache_en_r = {CB{dl1_state_dnxt == DL1_STATE_CREAD}};
+assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb_req;
+assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_wdata_req;
 
 
 
-	wire [CB-1:0] cache_en_w;
-	wire [CB-1:0] cache_en_r;
-	wire [7:0] cache_info_wstrb;
-	wire [63:0] cache_info_w;
-	wire [64*CB-1:0] cache_info_r;
-
-	wire [31:0] tag_addr;
-	wire [CB-1:0] tag_en_w;
-	wire [CB-1:0] tag_en_r;
-	wire [(TAG_W+7)/8-1:0] tag_info_wstrb;
-	wire [TAG_W-1:0] tag_info_w;
-	wire [TAG_W*CB-1:0] tag_info_r;
-
-	wire [31:0] cache_addr_dnxt;
-	wire [31:0] cache_addr_qout;
+assign tag_addr = lsu_addr_req;
+assign tag_en_w = blockReplace &
+			{CB{
+				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
+				| (dl1_state_qout == DL1_STATE_MWAIT & dl1_state_dnxt == DL1_STATE_CMISS)
+			}};
+assign tag_en_r = {CB{(dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) | (dl1_state_qout == DL1_STATE_CMISS & DL1_ARVALID & DL1_ARREADY)}};
+assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
+assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
+assign cache_addr_dnxt = 
+	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	;
 
-
-	assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_addr_req;
-	assign cache_en_w =
-		  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
-		| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}});
-
-	assign cache_en_r = {CB{dl1_state_dnxt == DL1_STATE_CREAD}};./
-	assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb_req;
-	assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_wdata_req
-
-
-
-	assign tag_addr = lsu_addr_req;
-	assign tag_en_w = blockReplace &
-				{CB{
-					  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
-					| (dl1_state_qout == DL1_STATE_MWAIT & dl1_state_dnxt == DL1_STATE_CMISS)
-				}};
-	assign tag_en_r = {CB{(dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) | (dl1_state_qout == DL1_STATE_CMISS & DL1_ARVALID & DL1_ARREADY)}};
-	assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
-	assign tag_info_w = tag_addr[31 -: TAG_W];
-
-
-	assign cache_addr_dnxt = 
-		  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_addr_req )
-		| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_addr_req )
-		| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_addr_req )
-		| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_addr_req )
-		| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-		| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_addr_req )
-		;
-
-	gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
 
 
-cache_mem # ( .DW(DW), .BK(1), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
+cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 (
 	.cache_addr(cache_addr),
 	.cache_en_w(cache_en_w),
@@ -368,17 +356,6 @@ cache_mem # ( .DW(DW), .BK(1), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 	.RSTn(RSTn)
 );
 
-
-
-
-
-
-
-
-	wire [CB-1:0] cb_vhit;
-	wire [CL-1:0] valid_cl_sel;
-	wire [63:0] cache_data_r;
-	wire [64*CB-1:0] cache_info_r_T;
 
 
 
@@ -406,9 +383,7 @@ endgenerate
 
 
 
-	wire [CL*CB-1:0] cache_valid_set;
-	wire [CL*CB-1:0] cache_valid_rst;
-	wire [CL*CB-1:0] cache_valid_qout;
+
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
@@ -436,10 +411,6 @@ endgenerate
 
 
 
-	wire isCacheBlockRunout;
-	wire [$clog2(CB)-1:0] cache_block_sel;
-	wire [15:0] random;
-	wire [CB-1:0] blockReplace;
 
 
 
@@ -495,18 +466,7 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 
 
-wire [31:0] chkAddr;
-wire isHazard_r;
 
-wire wtb_push;
-
-
-wire wtb_pop;
-wire [103:0] wtb_data_i;
-wire [103:0] wtb_data_o;
-
-wire wtb_full;
-wire wtb_empty;
 
 
 
@@ -540,7 +500,6 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 	.empty(wtb_empty),
 	.full(wtb_full),
 
-	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );

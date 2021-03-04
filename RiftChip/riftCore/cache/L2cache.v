@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 10:30:05
+* @Last Modified time: 2021-03-04 12:04:41
 */
 
 
@@ -600,7 +600,7 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 assign IL1_RDATA = cache_data_r;
 assign DL1_RDATA = cache_data_r;
 assign MEM_WDATA = DL1_WDATA;
-assign MEM_ARADDR = tag_addr & ~32'h1ff;
+assign MEM_ARADDR = tag_addr & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 
 
 
