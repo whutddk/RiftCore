@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 16:20:01
+* @Last Modified time: 2021-03-04 17:55:45
 */
 
 
@@ -213,13 +213,13 @@ module L2cache #
 
 	wire [CB-1:0] cache_cl_valid;
 
-	localparam L2C_CFREE = 0;
-	localparam L2C_CKTAG = 1;
-	localparam L2C_FLASH = 2;
-	localparam L2C_RSPIR = 3;
-	localparam L2C_RSPDR = 4;
-	localparam L2C_RSPDW = 5;
-	localparam L2C_FENCE = 6;
+	localparam L2C_STATE_CFREE = 0;
+	localparam L2C_STATE_CKTAG = 1;
+	localparam L2C_STATE_FLASH = 2;
+	localparam L2C_STATE_RSPIR = 3;
+	localparam L2C_STATE_RSPDR = 4;
+	localparam L2C_STATE_RSPDW = 5;
+	localparam L2C_STATE_FENCE = 6;
 
 	localparam ADDR_LSB = $clog2(DW*BK/8);
 	localparam LINE_W = $clog2(CL); 
@@ -230,19 +230,19 @@ module L2cache #
 
 
 
-	assign DL1_AWREADY = (l2c_state_qout == L2C_RSPDW) & MEM_AWREADY;
-	assign DL1_WREADY = (l2c_state_qout == L2C_RSPDW) & MEM_WREADY;
+	assign DL1_AWREADY = (l2c_state_qout == L2C_STATE_RSPDW) & MEM_AWREADY;
+	assign DL1_WREADY = (l2c_state_qout == L2C_STATE_RSPDW) & MEM_WREADY;
 	assign DL1_BRESP = MEM_BRESP;
-	assign DL1_BVALID = (l2c_state_qout == L2C_RSPDW) & MEM_BVALID;
+	assign DL1_BVALID = (l2c_state_qout == L2C_STATE_RSPDW) & MEM_BVALID;
 	assign MEM_AWADDR = DL1_AWADDR;
 	assign MEM_AWLEN = DL1_AWLEN;
 	assign MEM_AWBURST = DL1_AWBURST;
-	assign MEM_AWVALID = (l2c_state_qout == L2C_RSPDW) & DL1_AWVALID;
+	assign MEM_AWVALID = (l2c_state_qout == L2C_STATE_RSPDW) & DL1_AWVALID;
 	assign MEM_WDATA = DL1_WDATA;
 	assign MEM_WSTRB = DL1_WSTRB;
-	assign MEM_WLAST = (l2c_state_qout == L2C_RSPDW) & DL1_WLAST;
-	assign MEM_WVALID = (l2c_state_qout == L2C_RSPDW) & DL1_WVALID;
-	assign MEM_BREADY = (l2c_state_qout == L2C_RSPDW) & DL1_BREADY;
+	assign MEM_WLAST = (l2c_state_qout == L2C_STATE_RSPDW) & DL1_WLAST;
+	assign MEM_WVALID = (l2c_state_qout == L2C_STATE_RSPDW) & DL1_WVALID;
+	assign MEM_BREADY = (l2c_state_qout == L2C_STATE_RSPDW) & DL1_BREADY;
 
 
 
@@ -302,8 +302,8 @@ module L2cache #
 	assign il1_arlen_dnxt = IL1_ARLEN;
 	gen_dffren # (.DW(8)) il1_arlen_dffren (.dnxt(il1_arlen_dnxt), .qout(il1_arlen_qout), .en(il1_arlen_en), .CLK(CLK), .RSTn(RSTn));
 
-	assign il1_rlast_set = ((il1_arlen_cnt_qout == il1_arlen_qout) & ~il1_rlast_qout & (l2c_state_qout == L2C_RSPIR) )  ;
-	assign il1_rlast_rst = il1_ar_rsp | (((il1_arlen_cnt_qout <= il1_arlen_qout) | il1_rlast_qout | ~(l2c_state_qout != L2C_RSPIR) ) & ( il1_rvalid_qout & IL1_RREADY));
+	assign il1_rlast_set = ((il1_arlen_cnt_qout == il1_arlen_qout) & ~il1_rlast_qout & (l2c_state_qout == L2C_STATE_RSPIR) )  ;
+	assign il1_rlast_rst = il1_ar_rsp | (((il1_arlen_cnt_qout <= il1_arlen_qout) | il1_rlast_qout | ~(l2c_state_qout != L2C_STATE_RSPIR) ) & ( il1_rvalid_qout & IL1_RREADY));
 	gen_rsffr # (.DW(1)) il1_rlast_rsffr (.set_in(il1_rlast_set), .rst_in(il1_rlast_rst), .qout(il1_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 	assign il1_arlen_cnt_dnxta = 8'd0;
@@ -312,7 +312,7 @@ module L2cache #
 	assign il1_arlen_cnt_enb = ((il1_arlen_cnt_qout <= il1_arlen_qout) & il1_rvalid_qout & IL1_RREADY);
 	gen_dpdffren # (.DW(8)) il1_arlen_cnt_dpdffren( .dnxta(il1_arlen_cnt_dnxta), .ena(il1_arlen_cnt_ena), .dnxtb(il1_arlen_cnt_dnxtb), .enb(il1_arlen_cnt_enb), .qout(il1_arlen_cnt_qout), .CLK(CLK), .RSTn(RSTn) );
 
-	assign il1_rvalid_set = ~il1_rvalid_qout & (l2c_state_qout == L2C_RSPIR);
+	assign il1_rvalid_set = ~il1_rvalid_qout & (l2c_state_qout == L2C_STATE_RSPIR);
 	assign il1_rvalid_rst =  il1_rvalid_qout & IL1_RREADY;
 	gen_rsffr # (.DW(1)) il1_rvalid_rsffr (.set_in(il1_rvalid_set), .rst_in(il1_rvalid_rst), .qout(il1_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
@@ -381,8 +381,8 @@ module L2cache #
 	gen_dffren # (.DW(8)) dl1_arlen_dffren (.dnxt(dl1_arlen_dnxt), .qout(dl1_arlen_qout), .en(dl1_arlen_en), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign dl1_rlast_set = ((dl1_arlen_cnt_qout == dl1_arlen_qout) & ~dl1_rlast_qout & (l2c_state_qout == L2C_RSPDR) )  ;
-	assign dl1_rlast_rst = dl1_ar_rsp | (((dl1_arlen_cnt_qout <= dl1_arlen_qout) | dl1_rlast_qout | (l2c_state_qout != L2C_RSPDR) ) & ( dl1_rvalid_qout & DL1_RREADY));
+	assign dl1_rlast_set = ((dl1_arlen_cnt_qout == dl1_arlen_qout) & ~dl1_rlast_qout & (l2c_state_qout == L2C_STATE_RSPDR) )  ;
+	assign dl1_rlast_rst = dl1_ar_rsp | (((dl1_arlen_cnt_qout <= dl1_arlen_qout) | dl1_rlast_qout | (l2c_state_qout != L2C_STATE_RSPDR) ) & ( dl1_rvalid_qout & DL1_RREADY));
 	gen_rsffr # (.DW(1)) dl1_rlast_rsffr (.set_in(dl1_rlast_set), .rst_in(dl1_rlast_rst), .qout(dl1_rlast_qout), .CLK(CLK), .RSTn(RSTn));
 
 
@@ -395,7 +395,7 @@ module L2cache #
 
 
 
-	assign dl1_rvalid_set = ~dl1_rvalid_qout & (l2c_state_qout == L2C_RSPDR);
+	assign dl1_rvalid_set = ~dl1_rvalid_qout & (l2c_state_qout == L2C_STATE_RSPDR);
 	assign dl1_rvalid_rst =  dl1_rvalid_qout & DL1_RREADY;
 	gen_rsffr # (.DW(1)) dl1_rvalid_rsffr (.set_in(dl1_rvalid_set), .rst_in(dl1_rvalid_rst), .qout(dl1_rvalid_qout), .CLK(CLK), .RSTn(RSTn));
 
@@ -474,7 +474,7 @@ module L2cache #
 
 
 assign cache_fence_set = l2c_fence;
-assign cache_fence_rst = (l2c_state_qout == L2C_FENCE);
+assign cache_fence_rst = (l2c_state_qout == L2C_STATE_FENCE);
 gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
@@ -485,26 +485,26 @@ gen_dffr # (.DW(3)) l2c_state_dffr (.dnxt(l2c_state_dnxt), .qout(l2c_state_qout)
 
 
 assign l2c_state_dnxt = 
-	  ( {3{l2c_state_qout == L2C_CFREE}} & ( cache_fence_qout ? L2C_FENCE : ( (IL1_ARVALID | DL1_ARVALID | DL1_AWVALID) ? L2C_CKTAG : L2C_CFREE) ) )
-	| ( {3{l2c_state_qout == L2C_FENCE}} & L2C_CFREE )
+	  ( {3{l2c_state_qout == L2C_STATE_CFREE}} & ( cache_fence_qout ? L2C_STATE_FENCE : ( (IL1_ARVALID | DL1_ARVALID | DL1_AWVALID) ? L2C_STATE_CKTAG : L2C_STATE_CFREE) ) )
+	| ( {3{l2c_state_qout == L2C_STATE_FENCE}} & L2C_STATE_CFREE )
 	| (
-		{3{l2c_state_qout == L2C_CKTAG}} & 
+		{3{l2c_state_qout == L2C_STATE_CKTAG}} & 
 		(
-			  ({3{( IL1_ARVALID)}} 								& ( (| cb_vhit ) ? L2C_RSPIR : L2C_FLASH))
-			| ({3{(~IL1_ARVALID &  DL1_ARVALID)}} 				& ( (| cb_vhit ) ? L2C_RSPDR : L2C_FLASH))
-			| ( {3{~IL1_ARVALID & ~DL1_ARVALID & DL1_AWVALID }} & L2C_RSPDW)
+			  ({3{( IL1_ARVALID)}} 								& ( (| cb_vhit ) ? L2C_STATE_RSPIR : L2C_STATE_FLASH))
+			| ({3{(~IL1_ARVALID &  DL1_ARVALID)}} 				& ( (| cb_vhit ) ? L2C_STATE_RSPDR : L2C_STATE_FLASH))
+			| ( {3{~IL1_ARVALID & ~DL1_ARVALID & DL1_AWVALID }} & L2C_STATE_RSPDW)
 		)
 	  )
-	| ( {3{l2c_state_qout == L2C_FLASH}} & ( mem_end_r ? L2C_CKTAG : L2C_FLASH ) )
-	| ( {3{l2c_state_qout == L2C_RSPIR}} & ( il1_end_r ? L2C_CFREE : L2C_RSPIR ) )	
-	| ( {3{l2c_state_qout == L2C_RSPDR}} & ( dl1_end_r ? L2C_CFREE : L2C_RSPDR ) )
-	| ( {3{l2c_state_qout == L2C_RSPDW}} & ( dl1_end_w ? L2C_CFREE : L2C_RSPDW ) )
+	| ( {3{l2c_state_qout == L2C_STATE_FLASH}} & ( mem_end_r ? L2C_STATE_CKTAG : L2C_STATE_FLASH ) )
+	| ( {3{l2c_state_qout == L2C_STATE_RSPIR}} & ( il1_end_r ? L2C_STATE_CFREE : L2C_STATE_RSPIR ) )	
+	| ( {3{l2c_state_qout == L2C_STATE_RSPDR}} & ( dl1_end_r ? L2C_STATE_CFREE : L2C_STATE_RSPDR ) )
+	| ( {3{l2c_state_qout == L2C_STATE_RSPDW}} & ( dl1_end_w ? L2C_STATE_CFREE : L2C_STATE_RSPDW ) )
 	;
 
 
-	assign il1_ar_rsp = ~il1_arready_qout & IL1_ARVALID & l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_RSPIR;
-	assign dl1_ar_rsp = ~dl1_arready_qout & DL1_ARVALID & l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_RSPDR;
-	assign mem_ar_req = l2c_state_qout == L2C_CKTAG & l2c_state_dnxt == L2C_FLASH;
+	assign il1_ar_rsp = ~il1_arready_qout & IL1_ARVALID & l2c_state_qout == L2C_STATE_CKTAG & l2c_state_dnxt == L2C_STATE_RSPIR;
+	assign dl1_ar_rsp = ~dl1_arready_qout & DL1_ARVALID & l2c_state_qout == L2C_STATE_CKTAG & l2c_state_dnxt == L2C_STATE_RSPDR;
+	assign mem_ar_req = l2c_state_qout == L2C_STATE_CKTAG & l2c_state_dnxt == L2C_STATE_FLASH;
 
 
 
@@ -546,50 +546,50 @@ gen_dffren #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(
 
 assign tag_addr_lock_dnxt = tag_addr_sel;
 assign tag_addr_sel = IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
-assign tag_addr_lock_en = (l2c_state_qout == L2C_CFREE) & (l2c_state_dnxt == L2C_CKTAG);
+assign tag_addr_lock_en = (l2c_state_qout == L2C_STATE_CFREE) & (l2c_state_dnxt == L2C_STATE_CKTAG);
 
 assign cache_addr = cache_addr_qout;
-assign tag_addr = (l2c_state_qout == L2C_CFREE) ? tag_addr_sel : tag_addr_lock_qout;
+assign tag_addr = (l2c_state_qout == L2C_STATE_CFREE) ? tag_addr_sel : tag_addr_lock_qout;
 
 
 assign cache_addr_dnxt = 
-	  ( {32{l2c_state_qout == L2C_CFREE}} & cache_addr_qout )
-	| ( {32{l2c_state_qout == L2C_CKTAG}} &	 
+	  ( {32{l2c_state_qout == L2C_STATE_CFREE}} & cache_addr_qout )
+	| ( {32{l2c_state_qout == L2C_STATE_CKTAG}} &	 
 		(
 			IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )
 		)
 	  )
-	| ( {32{l2c_state_qout == L2C_FENCE}} & cache_addr_qout )
-	| ( {32{l2c_state_qout == L2C_FLASH}} & ((MEM_RVALID & MEM_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{l2c_state_qout == L2C_RSPIR}} & ((IL1_RVALID & IL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{l2c_state_qout == L2C_RSPDR}} & ((DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{l2c_state_qout == L2C_RSPDW}} & cache_addr_qout) 
+	| ( {32{l2c_state_qout == L2C_STATE_FENCE}} & cache_addr_qout )
+	| ( {32{l2c_state_qout == L2C_STATE_FLASH}} & ((MEM_RVALID & MEM_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l2c_state_qout == L2C_STATE_RSPIR}} & ((IL1_RVALID & IL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l2c_state_qout == L2C_STATE_RSPDR}} & ((DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
+	| ( {32{l2c_state_qout == L2C_STATE_RSPDW}} & cache_addr_qout) 
 	;
 
 
 
 assign cache_en_w =  
-	(cb_vhit & {CB{(l2c_state_qout == L2C_FLASH) & MEM_RVALID & MEM_RREADY}})
+	(cb_vhit & {CB{(l2c_state_qout == L2C_STATE_FLASH) & MEM_RVALID & MEM_RREADY}})
 	| 
-	(cb_vhit & {CB{(l2c_state_qout == L2C_RSPDW) & MEM_WVALID & MEM_WREADY}});
+	(cb_vhit & {CB{(l2c_state_qout == L2C_STATE_RSPDW) & MEM_WVALID & MEM_WREADY}});
 
 assign cache_en_r = 
-	cb_vhit & {CB{(l2c_state_dnxt == L2C_RSPIR) | (l2c_state_dnxt == L2C_RSPDR)}};
+	cb_vhit & {CB{(l2c_state_dnxt == L2C_STATE_RSPIR) | (l2c_state_dnxt == L2C_STATE_RSPDR)}};
 
 assign cache_info_wstrb = 
-	  ( {8{l2c_state_qout == L2C_FLASH}} & {8{1'b1}})
-	| ( {8{l2c_state_qout == L2C_RSPDW}} & DL1_WSTRB);
+	  ( {8{l2c_state_qout == L2C_STATE_FLASH}} & {8{1'b1}})
+	| ( {8{l2c_state_qout == L2C_STATE_RSPDW}} & DL1_WSTRB);
 
 assign cache_info_w =
-	  ( {64{l2c_state_qout == L2C_FLASH}} & MEM_RDATA)
-	| ( {64{l2c_state_qout == L2C_RSPDW}} & DL1_WDATA);
+	  ( {64{l2c_state_qout == L2C_STATE_FLASH}} & MEM_RDATA)
+	| ( {64{l2c_state_qout == L2C_STATE_RSPDW}} & DL1_WDATA);
 
 
 assign tag_en_w = 
-	{CB{(l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH)}} &  
+	{CB{(l2c_state_qout == L2C_STATE_CKTAG) & (l2c_state_dnxt == L2C_STATE_FLASH)}} &  
 		( blockReplace );
 assign tag_en_r = 
-	{CB{l2c_state_dnxt == L2C_CKTAG}}
+	{CB{l2c_state_dnxt == L2C_STATE_CKTAG}}
 	|
 	{CB{MEM_ARVALID & MEM_ARREADY}}
 	;
@@ -632,8 +632,8 @@ endgenerate
 generate
 	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
 		for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-			assign cache_valid_set[CB*cl+cb] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
-			assign cache_valid_rst[CB*cl+cb] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
+			assign cache_valid_set[CB*cl+cb] = (l2c_state_qout == L2C_STATE_CKTAG) & (l2c_state_dnxt == L2C_STATE_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
+			assign cache_valid_rst[CB*cl+cb] = (l2c_state_qout == L2C_STATE_FENCE) & (l2c_state_dnxt == L2C_STATE_CFREE);
 
 			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CB*cl+cb]), .rst_in(cache_valid_rst[CB*cl+cb]), .qout(cache_valid_qout[CB*cl+cb]), .CLK(CLK), .RSTn(RSTn));
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-22 17:33:10
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-25 17:23:48
+* @Last Modified time: 2021-03-04 17:54:08
 */
 
 /*
@@ -127,7 +127,7 @@ lzp #( .CW(CW) ) buff_push
 );
 
 
-lzp #( .CW(CW)) ) buff_pop
+lzp #( .CW(CW) ) buff_pop
 (
 	.in_i(~valid),
 	.pos_o(index_pop),

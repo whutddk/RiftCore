@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-26 16:15:24
+* @Last Modified time: 2021-03-04 17:29:05
 */
 
 /*
@@ -32,49 +32,22 @@
 
 module cache (
 
-	//L1 I Cache
-	input [31:0] IL1_L2C_ARADDR,
-	input [7:0] IL1_L2C_ARLEN,
-	input [1:0] IL1_L2C_ARBURST,
-	input IL1_L2C_ARVALID,
-	output IL1_L2C_ARREADY,
+	input ifu_req_valid,
+	output ifu_req_ready,
+	input [31:0] ifu_addr_req,
+	output [63:0] ifu_data_rsp,
+	output ifu_rsp_valid,
+	input ifu_rsp_ready,
 
-	output [63:0] IL1_L2C_RDATA,
-	output [1:0] IL1_L2C_RRESP,
-	output IL1_L2C_RLAST,
-	output IL1_L2C_RVALID,
-	input IL1_L2C_RREADY,
-
-	//L1 D cache
-	input [31:0] DL1_L2C_AWADDR,
-	input [7:0] DL1_L2C_AWLEN,
-	input [1:0] DL1_L2C_AWBURST,
-	input DL1_L2C_AWVALID,
-	output DL1_L2C_AWREADY,
-
-	input [63:0] DL1_L2C_WDATA,
-	input [7:0] DL1_L2C_WSTRB,
-	input DL1_L2C_WLAST,
-	input DL1_L2C_WVALID,
-	output DL1_L2C_WREADY,
-
-	output [1:0] DL1_L2C_BRESP,
-	output DL1_L2C_BVALID,
-	input DL1_L2C_BREADY,
-
-	input [31:0] DL1_L2C_ARADDR,
-	input [7:0] DL1_L2C_ARLEN,
-	input [1:0] DL1_L2C_ARBURST,
-	input DL1_L2C_ARVALID,
-	output DL1_L2C_ARREADY,
-
-	output [63:0] DL1_L2C_RDATA,
-	output [1:0] DL1_L2C_RRESP,
-	output DL1_L2C_RLAST,
-	output DL1_L2C_RVALID,
-	input DL1_L2C_RREADY,
-
-
+	input lsu_req_valid,
+	output lsu_req_ready,
+	input [31:0] lsu_addr_req,
+	input [63:0] lsu_wdata_req,
+	input [7:0] lsu_wstrb_req,
+	input lsu_wen_req,
+	output [31:0] lsu_rdata_rsp,
+	output lsu_rsp_valid,
+	input lsu_rsp_ready,
 
 
 
@@ -125,8 +98,11 @@ module cache (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
-	input l3c_fence,
+	input il1_fence,
+	input dl1_fence,
 	input l2c_fence,
+	input l3c_fence,
+
 	input CLK,
 	input RSTn
 
@@ -137,11 +113,6 @@ module cache (
 
 
 
-
-
-
-
-	//L1 I Cache
 	wire [31:0] IL1_L2C_ARADDR;
 	wire [7:0] IL1_L2C_ARLEN;
 	wire [1:0] IL1_L2C_ARBURST;
@@ -213,7 +184,74 @@ module cache (
 	wire L2C_L3C_RREADY;
 
 
+icache i_icache(
+	.IL1_ARADDR(IL1_L2C_ARADDR),
+	.IL1_ARLEN(IL1_L2C_ARLEN),
+	.IL1_ARBURST(IL1_L2C_ARBURST),
+	.IL1_ARVALID(IL1_L2C_ARVALID),
+	.IL1_ARREADY(IL1_L2C_ARREADY),
 
+	.IL1_RDATA(IL1_L2C_RDATA),
+	.IL1_RRESP(IL1_L2C_RRESP),
+	.IL1_RLAST(IL1_L2C_RLAST),
+	.IL1_RVALID(IL1_L2C_RVALID),
+	.IL1_RREADY(IL1_L2C_RREADY),
+
+	.ifu_req_valid(ifu_req_valid),
+	.ifu_req_ready(ifu_req_ready),
+	.ifu_addr_req(ifu_addr_req),
+
+	.ifu_data_rsp(ifu_data_rsp),
+	.ifu_rsp_valid(ifu_rsp_valid),
+	.ifu_rsp_ready(ifu_rsp_ready),
+
+	.il1_fence(il1_fence),
+	.CLK(CLK),
+	.RSTn(RSTn)
+
+);
+
+dcache i_dcache(
+	.DL1_AWADDR(DL1_L2C_AWADDR),
+	.DL1_AWLEN(DL1_L2C_AWLEN),
+	.DL1_AWBURST(DL1_L2C_AWBURST),
+	.DL1_AWVALID(DL1_L2C_AWVALID),
+	.DL1_AWREADY(DL1_L2C_AWREADY),
+	.DL1_WDATA(DL1_L2C_WDATA),
+	.DL1_WSTRB(DL1_L2C_WSTRB),
+	.DL1_WLAST(DL1_L2C_WLAST),
+	.DL1_WVALID(DL1_L2C_WVALID),
+	.DL1_WREADY(DL1_L2C_WREADY),
+	.DL1_BRESP(DL1_L2C_BRESP),
+	.DL1_BVALID(DL1_L2C_BVALID),
+	.DL1_BREADY(DL1_L2C_BREADY),
+
+	.DL1_ARADDR(DL1_L2C_ARADDR),
+	.DL1_ARLEN(DL1_L2C_ARLEN),
+	.DL1_ARBURST(DL1_L2C_ARBURST),
+	.DL1_ARVALID(DL1_L2C_ARVALID),
+	.DL1_ARREADY(DL1_L2C_ARREADY),
+	.DL1_RDATA(DL1_L2C_RDATA),
+	.DL1_RRESP(DL1_L2C_RRESP),
+	.DL1_RLAST(DL1_L2C_RLAST),
+	.DL1_RVALID(DL1_L2C_RVALID),
+	.DL1_RREADY(DL1_L2C_RREADY),
+
+	.lsu_req_valid(lsu_req_valid),
+	.lsu_req_ready(lsu_req_ready),
+	.lsu_addr_req(lsu_addr_req),
+	.lsu_wdata_req(lsu_wdata_req),
+	.lsu_wstrb_req(lsu_wstrb_req),
+	.lsu_wen_req(lsu_wen_req),
+
+	.lsu_rdata_rsp(lsu_rdata_rsp),
+	.lsu_rsp_valid(lsu_rsp_valid),
+	.lsu_rsp_ready(lsu_rsp_ready),
+
+	.dl1_fence(dl1_fence),
+	.CLK(CLK),
+	.RSTn(RSTn)
+);
 
 
 L2cache i_L2cache(
@@ -255,7 +293,7 @@ L2cache i_L2cache(
 	.DL1_RREADY(DL1_L2C_RREADY),
 
 	.MEM_AWADDR(L2C_L3C_AWADDR),
-	. MEM_AWLEN(L2C_L3C_AWLEN),
+	.MEM_AWLEN(L2C_L3C_AWLEN),
 	.MEM_AWBURST(L2C_L3C_AWBURST),
 	.MEM_AWVALID(L2C_L3C_AWVALID),
 	.MEM_AWREADY(L2C_L3C_AWREADY),
