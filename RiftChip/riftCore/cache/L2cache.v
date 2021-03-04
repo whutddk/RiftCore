@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-01 16:29:01
+* @Last Modified time: 2021-03-04 16:20:01
 */
 
 
@@ -211,7 +211,7 @@ module L2cache #
 	wire [15:0] random;
 	wire [CB-1:0] blockReplace;
 
-
+	wire [CB-1:0] cache_cl_valid;
 
 	localparam L2C_CFREE = 0;
 	localparam L2C_CKTAG = 1;
@@ -230,19 +230,19 @@ module L2cache #
 
 
 
-	assign DL1_AWREADY = MEM_AWREADY;
-	assign DL1_WREADY = MEM_WREADY;
+	assign DL1_AWREADY = (l2c_state_qout == L2C_RSPDW) & MEM_AWREADY;
+	assign DL1_WREADY = (l2c_state_qout == L2C_RSPDW) & MEM_WREADY;
 	assign DL1_BRESP = MEM_BRESP;
-	assign DL1_BVALID = MEM_BVALID;
+	assign DL1_BVALID = (l2c_state_qout == L2C_RSPDW) & MEM_BVALID;
 	assign MEM_AWADDR = DL1_AWADDR;
 	assign MEM_AWLEN = DL1_AWLEN;
 	assign MEM_AWBURST = DL1_AWBURST;
-	assign MEM_AWVALID = DL1_AWVALID;
+	assign MEM_AWVALID = (l2c_state_qout == L2C_RSPDW) & DL1_AWVALID;
 	assign MEM_WDATA = DL1_WDATA;
 	assign MEM_WSTRB = DL1_WSTRB;
-	assign MEM_WLAST = DL1_WLAST;
-	assign MEM_WVALID = DL1_WVALID;
-	assign MEM_BREADY = DL1_BREADY;
+	assign MEM_WLAST = (l2c_state_qout == L2C_RSPDW) & DL1_WLAST;
+	assign MEM_WVALID = (l2c_state_qout == L2C_RSPDW) & DL1_WVALID;
+	assign MEM_BREADY = (l2c_state_qout == L2C_RSPDW) & DL1_BREADY;
 
 
 
@@ -594,13 +594,13 @@ assign tag_en_r =
 	{CB{MEM_ARVALID & MEM_ARREADY}}
 	;
 assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
-assign tag_info_w = tag_addr[31:ADDR_LSB];
+assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign IL1_RDATA = cache_data_r;
 assign DL1_RDATA = cache_data_r;
 assign MEM_WDATA = DL1_WDATA;
-assign MEM_ARADDR = tag_addr & ~32'h1ff;
+assign MEM_ARADDR = tag_addr & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 
 
 
@@ -609,7 +609,7 @@ assign valid_cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31:ADDR_LSB]) & cache_valid_qout[CL*cb+valid_cl_sel];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31 -: TAG_W]) & cache_valid_qout[CL*cb+valid_cl_sel];
 
 		for ( genvar i = 0; i < 64; i = i + 1) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
@@ -630,13 +630,12 @@ endgenerate
 
 
 generate
-	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+	for ( genvar cl = 0; cl < CL; cl = cl + 1) begin
+		for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
+			assign cache_valid_set[CB*cl+cb] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
+			assign cache_valid_rst[CB*cl+cb] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
 
-			assign cache_valid_set[CL*cb+cl] = (l2c_state_qout == L2C_CKTAG) & (l2c_state_dnxt == L2C_FLASH) & (cl == valid_cl_sel) & blockReplace[cb];
-			assign cache_valid_rst[CL*cb+cl] = (l2c_state_qout == L2C_FENCE) & (l2c_state_dnxt == L2C_CFREE);
-
-			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CL*cb+cl]), .rst_in(cache_valid_rst[CL*cb+cl]), .qout(cache_valid_qout[CL*cb+cl]), .CLK(CLK), .RSTn(RSTn));
+			gen_rsffr # (.DW(1)) cache_valid_rsffr (.set_in(cache_valid_set[CB*cl+cb]), .rst_in(cache_valid_rst[CB*cl+cb]), .qout(cache_valid_qout[CB*cl+cb]), .CLK(CLK), .RSTn(RSTn));
 
 		end
 
@@ -646,11 +645,11 @@ generate
 endgenerate
 
 
-
+assign cache_cl_valid = cache_valid_qout[CB*valid_cl_sel +:CB];
 
 lzp # ( .CW($clog2(CB)) ) l2c_malloc
 (
-	.in_i(cache_valid_qout[CB*valid_cl_sel +:CB]),
+	.in_i(cache_cl_valid),
 	.pos_o(cache_block_sel),
 	.all1(isCacheBlockRunout),
 	.all0()
