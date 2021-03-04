@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-03 16:51:18
+* @Last Modified time: 2021-03-04 10:30:05
 */
 
 
@@ -230,19 +230,19 @@ module L2cache #
 
 
 
-	// assign DL1_AWREADY = MEM_AWREADY;
-	// assign DL1_WREADY = MEM_WREADY;
-	// assign DL1_BRESP = MEM_BRESP;
-	// assign DL1_BVALID = MEM_BVALID;
-	// assign MEM_AWADDR = DL1_AWADDR;
-	// assign MEM_AWLEN = DL1_AWLEN;
-	// assign MEM_AWBURST = DL1_AWBURST;
-	// assign MEM_AWVALID = DL1_AWVALID;
-	// assign MEM_WDATA = DL1_WDATA;
-	// assign MEM_WSTRB = DL1_WSTRB;
-	// assign MEM_WLAST = DL1_WLAST;
-	// assign MEM_WVALID = DL1_WVALID;
-	// assign MEM_BREADY = DL1_BREADY;
+	assign DL1_AWREADY = (l2c_state_qout == L2C_RSPDW) & MEM_AWREADY;
+	assign DL1_WREADY = (l2c_state_qout == L2C_RSPDW) & MEM_WREADY;
+	assign DL1_BRESP = MEM_BRESP;
+	assign DL1_BVALID = (l2c_state_qout == L2C_RSPDW) & MEM_BVALID;
+	assign MEM_AWADDR = DL1_AWADDR;
+	assign MEM_AWLEN = DL1_AWLEN;
+	assign MEM_AWBURST = DL1_AWBURST;
+	assign MEM_AWVALID = (l2c_state_qout == L2C_RSPDW) & DL1_AWVALID;
+	assign MEM_WDATA = DL1_WDATA;
+	assign MEM_WSTRB = DL1_WSTRB;
+	assign MEM_WLAST = (l2c_state_qout == L2C_RSPDW) & DL1_WLAST;
+	assign MEM_WVALID = (l2c_state_qout == L2C_RSPDW) & DL1_WVALID;
+	assign MEM_BREADY = (l2c_state_qout == L2C_RSPDW) & DL1_BREADY;
 
 
 
