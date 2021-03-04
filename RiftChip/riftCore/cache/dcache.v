@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 12:03:53
+* @Last Modified time: 2021-03-04 14:29:57
 */
 
 
@@ -276,7 +276,7 @@ assign lsu_req_ready =
 
 assign lsu_rsp_valid = 
 	  ( (dl1_state_qout == DL1_STATE_CREAD) & (| cb_vhit) )
-	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_addr_req) )
+	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_addr_req) & DL1_RVALID & DL1_RREADY )
 	| ( (dl1_state_qout == DL1_STATE_WRITE) );
 
 assign dl1_ar_req = 

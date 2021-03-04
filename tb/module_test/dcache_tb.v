@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-04 10:38:19
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 11:52:08
+* @Last Modified time: 2021-03-04 14:27:37
 */
 
 
@@ -211,7 +211,7 @@ end
 
 initial begin
 
-	lsu_addr_req = 32'h3;
+	lsu_addr_req = 32'h18;
 	lsu_wdata_req = 8'haa;
 	lsu_wstrb_req = 8'hff;
 	lsu_wen_req = 1'b0;
@@ -231,6 +231,14 @@ initial begin
 #1000
 	lsu_req_valid = 1'b1;
 	lsu_wen_req = 1'b1;
+
+#10
+	lsu_req_valid = 1'b0;
+	lsu_wen_req = 1'b0;
+
+	#1000
+	lsu_req_valid = 1'b1;
+	lsu_wen_req = 1'b0;
 
 #10
 	lsu_req_valid = 1'b0;
