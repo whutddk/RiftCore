@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:35:39
+* @Last Modified time: 2021-03-05 17:02:28
 */
 
 /*
@@ -31,14 +31,14 @@ module frontEnd (
 
 	input lsu_fencei_valid,
 
-	output [63:0] IFU_ARADDR,
-	output [2:0] IFU_ARPROT,
-	output IFU_ARVALID,
-	input IFU_ARREADY,
-	input [63:0] IFU_RDATA,
-	input [1:0] IFU_RRESP,
-	input IFU_RVALID,
-	output IFU_RREADY,
+	//to ICACHE
+	output ifu_req_valid,
+	input ifu_req_ready,
+	output [31:0] ifu_addr_req,
+	input [63:0] ifu_data_rsp,
+	input ifu_rsp_valid,
+	output ifu_rsp_ready,
+	output il1_fence,
 
 	input instrFifo_reject,
 	output instrFifo_push,
@@ -93,14 +93,13 @@ pcGenerate i_pcGenerate(
 
 
 ifetch i_ifetch(
-	.IFU_ARADDR(IFU_ARADDR),
-	.IFU_ARPROT(IFU_ARPROT),
-	.IFU_ARVALID(IFU_ARVALID),
-	.IFU_ARREADY(IFU_ARREADY),
-	.IFU_RDATA(IFU_RDATA),
-	.IFU_RRESP(IFU_RRESP),
-	.IFU_RVALID(IFU_RVALID),
-	.IFU_RREADY(IFU_RREADY),
+	.ifu_req_valid(ifu_req_valid),
+	.ifu_req_ready(ifu_req_ready),
+	.ifu_addr_req (ifu_addr_req),
+	.ifu_data_rsp (ifu_data_rsp),
+	.ifu_rsp_valid(ifu_rsp_valid),
+	.ifu_rsp_ready(ifu_rsp_ready),
+	.il1_fence(il1_fence),
 
 	.fetch_addr_qout(fetch_addr_qout),
 	.pcGen_fetch_ready(pcGen_fetch_ready),

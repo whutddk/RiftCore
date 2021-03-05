@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 14:30:26
+* @Last Modified time: 2021-03-05 17:02:38
 */
 
 /*
@@ -36,14 +36,14 @@ module ifetch #
 )
 (
 
-	output [63:0] IFU_ARADDR,
-	output [2:0] IFU_ARPROT,
-	output IFU_ARVALID,
-	input IFU_ARREADY,
-	input [63:0] IFU_RDATA,
-	input [1:0] IFU_RRESP,
-	input IFU_RVALID,
-	output IFU_RREADY,
+	output ifu_req_valid,
+	input ifu_req_ready,
+	output [31:0] ifu_addr_req,
+	input [63:0] ifu_data_rsp,
+	input ifu_rsp_valid,
+	output ifu_rsp_ready,
+	output il1_fence,
+
 
 	//from pcGen
 	input [DW-1:0] fetch_addr_qout,
