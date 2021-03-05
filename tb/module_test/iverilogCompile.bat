@@ -1,12 +1,12 @@
 @REM @Author: Ruige Lee
 @REM @Date:   2020-11-02 11:29:57
 @REM @Last Modified by:   Ruige Lee
-@REM Modified time: 2021-03-04 15:04:38
+@REM Modified time: 2021-03-04 17:52:57
 
 
 
 
-iverilog.exe -W all -o ../build/icache_tb.iverilog ^
+iverilog.exe -W all -o ../build/axi_full_cache_tb.iverilog ^
 -y ../../RiftChip/ ^
 -y ../../RiftChip/riftCore/ ^
 -y ../../RiftChip/riftCore/backend  ^
@@ -22,11 +22,11 @@ iverilog.exe -W all -o ../build/icache_tb.iverilog ^
 -y ../../tb/module_test  ^
 -I ../../tb  ^
 -I ../../RiftChip ^
-./icache_tb.v 
+./axi_full_cache_tb.v 
 
 @pause
 
-vvp.exe  -N ../build/icache_tb.iverilog -lxt2
+vvp.exe  -N ../build/axi_full_cache_tb.iverilog -lxt2
 
 rem @pause
 
