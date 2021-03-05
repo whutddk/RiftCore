@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 16:19:38
+* @Last Modified time: 2021-03-05 15:03:01
 */
 
 
@@ -84,6 +84,7 @@ module dcache #
 
 
 	input dl1_fence,
+	output dl1_fence_end,
 	input CLK,
 	input RSTn
 );
@@ -228,7 +229,10 @@ module dcache #
 
 
 assign cache_fence_set = dl1_fence;
-assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE);
+assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
+
+assign dl1_fence_end = cache_fence_rst;
+
 gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
@@ -360,7 +364,7 @@ assign valid_cl_sel = lsu_addr_req[ADDR_LSB +: LINE_W];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == lsu_addr_req[31 -: TAG_W]) & cache_valid_qout[CL*cb+valid_cl_sel];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == lsu_addr_req[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
 
 		for ( genvar i = 0; i < 64; i = i + 1 ) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 17:53:30
+* @Last Modified time: 2021-03-05 14:48:28
 */
 
 
@@ -63,7 +63,8 @@ module axi_full_cache_tb
 	wire [31:0] lsu_rdata_rsp;
 	wire lsu_rsp_valid;
 
-
+	wire dl1_fence_end;
+	wire l3c_fence_end;
 
 
 
@@ -186,6 +187,8 @@ cache s_cache(
 	.dl1_fence(DL1_FENCE),
 	.l2c_fence(L2_FENCE),
 	.l3c_fence(L3_FENCE),
+	.dl1_fence_end(dl1_fence_end),
+	.l3c_fence_end(l3c_fence_end),
 
 	.CLK(CLK),
 	.RSTn(RSTn)
@@ -270,7 +273,7 @@ initial begin
 	lsu_req_valid = 1'd0;
 	lsu_addr_req = 32'd0;
 	lsu_wdata_req = 64'd0;
-	lsu_wstrb_req = 8'd0;
+	lsu_wstrb_req = 8'hff;
 	lsu_wen_req = 1'b0;
 	lsu_rsp_ready = 1'b1;
 
@@ -279,14 +282,37 @@ initial begin
 	L2_FENCE = 1'b0;
 	L3_FENCE = 1'b0;
 
+#23
+
+	ifu_req_valid = 1'b1;
+	lsu_req_valid = 1'd1;
+	lsu_wen_req = 1'b1;
+	lsu_wdata_req = 64'haa;
+	lsu_addr_req = 32'h18;
 
 
+#10
 
+	ifu_req_valid = 1'b0;
+	lsu_req_valid = 1'd0;
+	lsu_wen_req = 1'b0;
+
+
+#2000
+
+	ifu_req_valid = 1'b1;
+	ifu_addr_req = 32'h18;
+
+	lsu_req_valid = 1'd1;
+	lsu_wen_req = 1'b0;
+	lsu_wdata_req = 64'haa;
+	lsu_addr_req = 32'h80000018;
+#10
+
+	ifu_req_valid = 1'b0;
+	lsu_req_valid = 1'd0;
+	lsu_wen_req = 1'b0;
 end
-
-
-
-
 
 endmodule
 

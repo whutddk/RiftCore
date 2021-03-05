@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 17:29:05
+* @Last Modified time: 2021-03-05 14:44:59
 */
 
 /*
@@ -100,8 +100,10 @@ module cache (
 
 	input il1_fence,
 	input dl1_fence,
+	output dl1_fence_end,
 	input l2c_fence,
 	input l3c_fence,
+	output l3c_fence_end,
 
 	input CLK,
 	input RSTn
@@ -249,6 +251,7 @@ dcache i_dcache(
 	.lsu_rsp_ready(lsu_rsp_ready),
 
 	.dl1_fence(dl1_fence),
+	.dl1_fence_end(dl1_fence_end),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
@@ -401,6 +404,7 @@ L3cache i_L3cache(
 	.MEM_RREADY(MEM_RREADY),
 
 	.l3c_fence(l3c_fence),
+	.l3c_fence_end(l3c_fence_end),
 	.CLK(CLK),
 	.RSTn(RSTn)
 

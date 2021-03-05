@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 17:57:24
+* @Last Modified time: 2021-03-05 14:43:27
 */
 
 
@@ -119,6 +119,7 @@ module L3cache #
 	output MEM_RREADY,
 
 	input l3c_fence,
+	output l3c_fence_end,
 	input CLK,
 	input RSTn
 
@@ -440,7 +441,10 @@ wire cache_valid_en;
 
 
 assign cache_fence_set = l3c_fence;
-assign cache_fence_rst = (l3c_state_qout == L3C_STATE_FENCE) & db_empty;
+assign cache_fence_rst = (l3c_state_qout == L3C_STATE_FENCE) & (l3c_state_dnxt == L3C_STATE_CFREE);
+
+assign l3c_fence_end = cache_fence_rst;
+
 gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 gen_dffr #(.DW(3)) l3c_state_dffr (.dnxt(l3c_state_dnxt), .qout(l3c_state_qout), .CLK(CLK), .RSTn(RSTn));

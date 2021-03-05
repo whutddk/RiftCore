@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 17:55:45
+* @Last Modified time: 2021-03-05 15:01:50
 */
 
 
@@ -609,7 +609,7 @@ assign valid_cl_sel = tag_addr[ADDR_LSB +: $clog2(CL)];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31 -: TAG_W]) & cache_valid_qout[CL*cb+valid_cl_sel];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == tag_addr[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
 
 		for ( genvar i = 0; i < 64; i = i + 1) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
