@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:01:50
+* @Last Modified time: 2021-03-05 16:14:17
 */
 
 
@@ -113,6 +113,7 @@ module L2cache #
 	output MEM_RREADY,
 
 	input l2c_fence,
+	output l2c_fence_end,
 	input CLK,
 	input RSTn
 );
@@ -168,9 +169,9 @@ module L2cache #
 	wire [2:0] l2c_state_dnxt;
 	wire [2:0] l2c_state_qout;
 
-	wire cache_fence_set;
-	wire cache_fence_rst;
-	wire cache_fence_qout;
+	// wire cache_fence_set;
+	// wire cache_fence_rst;
+	// wire cache_fence_qout;
 
 	wire [31:0] cache_addr;
 
@@ -473,11 +474,11 @@ module L2cache #
 
 
 
-assign cache_fence_set = l2c_fence;
-assign cache_fence_rst = (l2c_state_qout == L2C_STATE_FENCE);
-gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
+// assign cache_fence_set = l2c_fence;
+// assign cache_fence_rst = (l2c_state_qout == L2C_STATE_FENCE);
+// gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
-
+assign l2c_fence_end = l2c_state_qout == L2C_STATE_FENCE;
 
 
 gen_dffr # (.DW(3)) l2c_state_dffr (.dnxt(l2c_state_dnxt), .qout(l2c_state_qout), .CLK(CLK), .RSTn(RSTn));
@@ -485,7 +486,7 @@ gen_dffr # (.DW(3)) l2c_state_dffr (.dnxt(l2c_state_dnxt), .qout(l2c_state_qout)
 
 
 assign l2c_state_dnxt = 
-	  ( {3{l2c_state_qout == L2C_STATE_CFREE}} & ( cache_fence_qout ? L2C_STATE_FENCE : ( (IL1_ARVALID | DL1_ARVALID | DL1_AWVALID) ? L2C_STATE_CKTAG : L2C_STATE_CFREE) ) )
+	  ( {3{l2c_state_qout == L2C_STATE_CFREE}} & ( l2c_fence ? L2C_STATE_FENCE : ( (IL1_ARVALID | DL1_ARVALID | DL1_AWVALID) ? L2C_STATE_CKTAG : L2C_STATE_CFREE) ) )
 	| ( {3{l2c_state_qout == L2C_STATE_FENCE}} & L2C_STATE_CFREE )
 	| (
 		{3{l2c_state_qout == L2C_STATE_CKTAG}} & 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:24:56
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 14:48:28
+* @Last Modified time: 2021-03-05 16:15:43
 */
 
 
@@ -51,10 +51,10 @@ module axi_full_cache_tb
 	reg lsu_wen_req;
 	reg lsu_rsp_ready;
 
-	reg IL1_FENCE;
-	reg DL1_FENCE;
-	reg L2_FENCE;
-	reg L3_FENCE;
+	wire il1_fence;
+	wire dl1_fence;
+	wire l2c_fence;
+	wire l3c_fence;
 
 	wire ifu_req_ready;
 	wire [63:0] ifu_data_rsp;
@@ -64,6 +64,7 @@ module axi_full_cache_tb
 	wire lsu_rsp_valid;
 
 	wire dl1_fence_end;
+	wire l2c_fence_end;
 	wire l3c_fence_end;
 
 
@@ -72,13 +73,38 @@ module axi_full_cache_tb
 
 
 
+	reg FENCE;
 
 
+	wire dl1_fence_set;
+	wire dl1_fence_rst;
+	wire dl1_fence_qout;
 
 
+	wire l2c_fence_set;
+	wire l2c_fence_rst;
+	wire l2c_fence_qout;
 
+	wire l3c_fence_set;
+	wire l3c_fence_rst;
+	wire l3c_fence_qout;
 
+	assign il1_fence = 1'b0;
+	assign dl1_fence_set = FENCE;
+	assign dl1_fence_rst = dl1_fence_end;
+	assign dl1_fence = dl1_fence_qout;
 
+	assign l2c_fence_set = dl1_fence;
+	assign l2c_fence_rst = l2c_fence_end;
+	assign l2c_fence = l2c_fence_qout;
+
+	assign l3c_fence_set = dl1_fence;
+	assign l3c_fence_rst = l3c_fence_end;
+	assign l3c_fence = l3c_fence_qout;
+
+	gen_rsffr #(.DW(1)) dl1_fence_rsffr (.set_in(dl1_fence_set), .rst_in(dl1_fence_rst), .qout(dl1_fence_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr #(.DW(1)) l2c_fence_rsffr (.set_in(l2c_fence_set), .rst_in(l2c_fence_rst), .qout(l2c_fence_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr #(.DW(1)) l3c_fence_rsffr (.set_in(l3c_fence_set), .rst_in(l3c_fence_rst), .qout(l3c_fence_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -183,11 +209,12 @@ cache s_cache(
 	.MEM_RVALID(S_AXI_RVALID),
 	.MEM_RREADY(S_AXI_RREADY),
 
-	.il1_fence(IL1_FENCE),
-	.dl1_fence(DL1_FENCE),
-	.l2c_fence(L2_FENCE),
-	.l3c_fence(L3_FENCE),
+	.il1_fence(il1_fence),
+	.dl1_fence(dl1_fence),
+	.l2c_fence(l2c_fence),
+	.l3c_fence(l3c_fence),
 	.dl1_fence_end(dl1_fence_end),
+	.l2c_fence_end(l2c_fence_end),
 	.l3c_fence_end(l3c_fence_end),
 
 	.CLK(CLK),
@@ -277,10 +304,7 @@ initial begin
 	lsu_wen_req = 1'b0;
 	lsu_rsp_ready = 1'b1;
 
-	IL1_FENCE = 1'b0;
-	DL1_FENCE = 1'b0;
-	L2_FENCE = 1'b0;
-	L3_FENCE = 1'b0;
+	FENCE = 1'b0;
 
 #23
 
@@ -312,6 +336,14 @@ initial begin
 	ifu_req_valid = 1'b0;
 	lsu_req_valid = 1'd0;
 	lsu_wen_req = 1'b0;
+
+
+#4000
+	FENCE = 1'b1;
+
+#10
+	FENCE = 1'b0;
+
 end
 
 endmodule

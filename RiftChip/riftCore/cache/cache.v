@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 14:44:59
+* @Last Modified time: 2021-03-05 16:14:39
 */
 
 /*
@@ -102,6 +102,7 @@ module cache (
 	input dl1_fence,
 	output dl1_fence_end,
 	input l2c_fence,
+	output l2c_fence_end,
 	input l3c_fence,
 	output l3c_fence_end,
 
@@ -320,6 +321,7 @@ L2cache i_L2cache(
 	.MEM_RREADY(L2C_L3C_RREADY),
 
 	.l2c_fence(l2c_fence),
+	.l2c_fence_end(l2c_fence_end),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );

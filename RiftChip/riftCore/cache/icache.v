@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:02:40
+* @Last Modified time: 2021-03-05 15:52:01
 */
 
 /*
@@ -82,9 +82,9 @@ module icache #
 	wire il1_ar_req;
 	wire il1_end_r;
 
-	wire cache_fence_set;
-	wire cache_fence_rst;
-	wire cache_fence_qout;
+	// wire cache_fence_set;
+	// wire cache_fence_rst;
+	// wire cache_fence_qout;
 
 	wire [1:0] il1_state_dnxt;
 	wire [1:0] il1_state_qout;
@@ -168,9 +168,9 @@ module icache #
 
 
 
-assign cache_fence_set = il1_fence;
-assign cache_fence_rst = (il1_state_qout == IL1_STATE_FENCE);
-gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
+// assign cache_fence_set = il1_fence;
+// assign cache_fence_rst = (il1_state_qout == IL1_STATE_FENCE);
+// gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
 
@@ -186,7 +186,7 @@ assign il1_state_mode_dir =
 
 
 assign il1_state_dnxt = 
-	( {2{il1_state_qout == IL1_STATE_CFREE}} & (cache_fence_qout ? IL1_STATE_FENCE : il1_state_mode_dir) )
+	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : il1_state_mode_dir) )
 	|
 	( {2{il1_state_qout == IL1_STATE_CKTAG}} & ((| cb_vhit ) ? il1_state_mode_dir : IL1_STATE_CMISS) )
 	|

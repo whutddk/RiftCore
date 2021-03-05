@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 14:43:27
+* @Last Modified time: 2021-03-05 15:49:50
 */
 
 
@@ -179,9 +179,6 @@ wire write_resp_error, read_resp_error;
 wire mem_aw_req, mem_ar_req;
 wire mem_end_r, mem_end_w;
 
-wire cache_fence_set;
-wire cache_fence_rst;
-wire cache_fence_qout;
 
 wire [2:0] l3c_state_dnxt;
 wire [2:0] l3c_state_qout;
@@ -440,17 +437,17 @@ wire cache_valid_en;
 
 
 
-assign cache_fence_set = l3c_fence;
-assign cache_fence_rst = (l3c_state_qout == L3C_STATE_FENCE) & (l3c_state_dnxt == L3C_STATE_CFREE);
+// assign cache_fence_set = l3c_fence;
+// assign cache_fence_rst = ;
 
-assign l3c_fence_end = cache_fence_rst;
+assign l3c_fence_end = (l3c_state_qout == L3C_STATE_FENCE) & (l3c_state_dnxt == L3C_STATE_CFREE);
 
-gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
+// gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 gen_dffr #(.DW(3)) l3c_state_dffr (.dnxt(l3c_state_dnxt), .qout(l3c_state_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign l3c_state_dnxt = 
-	  ( {3{l3c_state_qout == L3C_STATE_CFREE}} & ( cache_fence_qout ? L3C_STATE_FENCE : ( (L2C_AWVALID | L2C_ARVALID) ? L3C_STATE_CKTAG : L3C_STATE_CFREE) ) )
+	  ( {3{l3c_state_qout == L3C_STATE_CFREE}} & ( l3c_fence ? L3C_STATE_FENCE : ( (L2C_AWVALID | L2C_ARVALID) ? L3C_STATE_CKTAG : L3C_STATE_CFREE) ) )
 	| ( {3{l3c_state_qout == L3C_STATE_FENCE}} & ( ( db_empty ) ? L3C_STATE_CFREE : L3C_STATE_EVICT ) )
 	| (
 		{3{l3c_state_qout == L3C_STATE_CKTAG}} & 
@@ -461,7 +458,7 @@ assign l3c_state_dnxt =
 			| ({3{         ~cache_valid_qout[cl_sel]              }} & L3C_STATE_FLASH )
 		)
 	)
-	| ( {3{l3c_state_qout == L3C_STATE_EVICT}} & ( ~mem_end_w ? L3C_STATE_EVICT : ( cache_fence_qout ? L3C_STATE_FENCE : L3C_STATE_CKTAG) ))
+	| ( {3{l3c_state_qout == L3C_STATE_EVICT}} & ( ~mem_end_w ? L3C_STATE_EVICT : ( l3c_fence ? L3C_STATE_FENCE : L3C_STATE_CKTAG) ))
 	| ( {3{l3c_state_qout == L3C_STATE_FLASH}} & ( mem_end_r ? L3C_STATE_CKTAG : L3C_STATE_FLASH ) )
 	| ( {3{l3c_state_qout == L3C_STATE_RSPRD}} & ( l2c_end_r ? L3C_STATE_CFREE : L3C_STATE_RSPRD ) )
 	| ( {3{l3c_state_qout == L3C_STATE_RSPWR}} & ( l2c_end_w ? L3C_STATE_CFREE : L3C_STATE_RSPWR ) )

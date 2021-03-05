@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:03:01
+* @Last Modified time: 2021-03-05 15:53:09
 */
 
 
@@ -108,9 +108,9 @@ module dcache #
 	wire dl1_aw_req, dl1_ar_req;
 	wire dl1_end_r, dl1_end_w;
 
-	wire cache_fence_set;
-	wire cache_fence_rst;
-	wire cache_fence_qout;
+	// wire cache_fence_set;
+	// wire cache_fence_rst;
+	// wire cache_fence_qout;
 
 	wire [2:0] dl1_state_dnxt;
 	wire [2:0] dl1_state_qout;
@@ -228,12 +228,12 @@ module dcache #
 
 
 
-assign cache_fence_set = dl1_fence;
-assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
+// assign cache_fence_set = dl1_fence;
+// assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
 
-assign dl1_fence_end = cache_fence_rst;
+assign dl1_fence_end = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
 
-gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
+// gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
 
