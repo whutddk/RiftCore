@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-08 15:50:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 17:54:38
+* @Last Modified time: 2021-03-08 19:03:12
 */
 
 /*
@@ -416,6 +416,7 @@ assign s_axi_awaddr = {CACHE_AWADDR, SYS_AWADDR, DM_AWADDR};
 // assign s_axi_awprot = {CACHE_AWPROT, SYS_AWPROT, DM_ARPROT};
 assign s_axi_awvalid = {CACHE_AWVALID, SYS_AWVALID, DM_AWVALID};
 assign {CACHE_AWREADY, SYS_AWREADY, DM_AWREADY} = s_axi_awready;
+assign s_axi_wlast = { CACHE_WLAST, SYS_WLAST, DM_WLAST };
 assign s_axi_wdata = { CACHE_WDATA, SYS_WDATA, DM_WDATA };
 assign s_axi_wstrb = { CACHE_WSTRB, SYS_WSTRB, DM_WSTRB };
 assign s_axi_wvalid = {CACHE_WVALID, SYS_WVALID, DM_WVALID};
@@ -443,7 +444,7 @@ assign s_axi_awburst = {CACHE_AWBURST, SYS_AWBURST, DM_AWBURST};
 // assign s_axi_arid = {CACHE_ARID, SYS_ARID, DM_ARID};
 assign s_axi_arlen = {CACHE_ARLEN, SYS_ARLEN, DM_ARLEN};
 assign s_axi_arsize = {CACHE_ARSIZE, SYS_ARSIZE, DM_ARSIZE};
-// assign s_axi_arburst = {CACHE_ARBURST, SYS_ARBURST, DM_ARBURST};
+assign s_axi_arburst = {CACHE_ARBURST, SYS_ARBURST, DM_ARBURST};
 // assign s_axi_arlock = {CACHE_ARLOCK, SYS_ARLOCK, DM_ARLOCK};
 // assign s_axi_arcache = {CACHE_ARCACHE, SYS_ARCACHE, DM_ARCACHE};
 // assign s_axi_arqos = {CACHE_ARQOS, SYS_ARQOS, DM_ARQOS};

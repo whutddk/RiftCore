@@ -1,11 +1,13 @@
 /*
-* @File name: generic_baseblocks_v2_1_0_mux_enc
+* @File name: axi_crossbar_v2_1_22_splitter
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:23:04
+* @Date:   2021-03-08 19:40:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:40:26
+* @Last Modified time: 2021-03-08 19:40:51
 */
+
+
 
 
 // -- (c) Copyright 2010 - 2011 Xilinx, Inc. All rights reserved.
@@ -55,85 +57,59 @@
 // -- PART OF THIS FILE AT ALL TIMES.
 //-----------------------------------------------------------------------------
 //
-// Description: 
-//  Optimized Mux using MUXF7/8.
-//  Any generic_baseblocks_v2_1_0_mux ratio.
+// Description: AXI Splitter
+// Each transfer received on the AXI handshake slave port is replicated onto 
+//   each of the master ports, and is completed back to the slave (S_READY) 
+//   once all master ports have completed.
+//   
+// M_VALID is asserted combinatorially from S_VALID assertion.
+// Each M_VALID is masked off beginning the cycle after each M_READY is
+//   received (if S_READY remains low) until the cycle after both S_VALID
+//   and S_READY are asserted.
+// S_READY is asserted combinatorially when the last (or all) of the M_READY
+//   inputs have been received.
+// If all M_READYs are asserted when S_VALID is asserted, back-to-back
+//   handshakes can occur without bubble cycles.
 //
 // Verilog-standard:  Verilog 2001
 //--------------------------------------------------------------------------
 //
 // Structure:
-//   mux_enc
+//   splitter
 //
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-
-module generic_baseblocks_v2_1_0_mux_enc #
+module axi_crossbar_v2_1_22_splitter #
   (
-   parameter         C_FAMILY                       = "rtl",
-                       // FPGA Family. Current version: virtex6 or spartan6.
-   parameter integer C_RATIO                        = 4,
-                       // Mux select ratio. Can be any binary value (>= 1)
-   parameter integer C_SEL_WIDTH                    = 2,
-                       // Log2-ceiling of C_RATIO (>= 1)
-   parameter integer C_DATA_WIDTH                   = 1
-                       // Data width for generic_baseblocks_v2_1_0_comparator (>= 1)
+   parameter integer C_NUM_M = 2  // Number of master ports = [2:16]
    )
   (
-   input  wire [C_SEL_WIDTH-1:0]                    S,
-   input  wire [C_RATIO*C_DATA_WIDTH-1:0]           A,
-   output wire [C_DATA_WIDTH-1:0]                   O,
-   input  wire                                      OE
+   // Global Signals
+   input  wire                             ACLK,
+   input  wire                             ARESET,
+   // Slave  Port
+   input  wire                             S_VALID,
+   output wire                             S_READY,
+   // Master Ports
+   output wire [C_NUM_M-1:0]               M_VALID,
+   input  wire [C_NUM_M-1:0]               M_READY
    );
-  
-  wire [C_DATA_WIDTH-1:0] o_i;
-  genvar bit_cnt;
-  
-  function [C_DATA_WIDTH-1:0] f_mux
-    (
-     input [C_SEL_WIDTH-1:0] s,
-     input [C_RATIO*C_DATA_WIDTH-1:0] a
-     );
-    integer i;
-    reg [C_RATIO*C_DATA_WIDTH-1:0] carry;
-    begin
-      carry[C_DATA_WIDTH-1:0] = {C_DATA_WIDTH{(s==0)?1'b1:1'b0}} & a[C_DATA_WIDTH-1:0];
-      for (i=1;i<C_RATIO;i=i+1) begin : gen_carrychain_enc
-        carry[i*C_DATA_WIDTH +: C_DATA_WIDTH] = 
-          carry[(i-1)*C_DATA_WIDTH +: C_DATA_WIDTH] |
-          ({C_DATA_WIDTH{(s==i)?1'b1:1'b0}} & a[i*C_DATA_WIDTH +: C_DATA_WIDTH]);
-      end
-      f_mux = carry[C_DATA_WIDTH*C_RATIO-1:C_DATA_WIDTH*(C_RATIO-1)];
-    end
-  endfunction
-  
-  function [C_DATA_WIDTH-1:0] f_mux4
-    (
-     input [1:0] s,
-     input [4*C_DATA_WIDTH-1:0] a
-     );
-    integer i;
-    reg [4*C_DATA_WIDTH-1:0] carry;
-    begin
-      carry[C_DATA_WIDTH-1:0] = {C_DATA_WIDTH{(s==0)?1'b1:1'b0}} & a[C_DATA_WIDTH-1:0];
-      for (i=1;i<4;i=i+1) begin : gen_carrychain_enc
-        carry[i*C_DATA_WIDTH +: C_DATA_WIDTH] = 
-          carry[(i-1)*C_DATA_WIDTH +: C_DATA_WIDTH] |
-          ({C_DATA_WIDTH{(s==i)?1'b1:1'b0}} & a[i*C_DATA_WIDTH +: C_DATA_WIDTH]);
-      end
-      f_mux4 = carry[C_DATA_WIDTH*4-1:C_DATA_WIDTH*3];
-    end
-  endfunction
-  
-  assign O = o_i & {C_DATA_WIDTH{OE}};  // OE is gated AFTER any MUXF7/8 (can only optimize forward into downstream logic)
-  
-  generate
-    if ( C_RATIO < 2 ) begin : gen_bypass
-      assign o_i = A;
-    end else if ( C_FAMILY == "rtl" || C_RATIO < 5 ) begin : gen_rtl
-      assign o_i = f_mux(S, A);
-      
-    end 
-  endgenerate
+
+   reg  [C_NUM_M-1:0] m_ready_d = 0;
+   wire               s_ready_i;
+   wire [C_NUM_M-1:0] m_valid_i;
+
+   always @(posedge ACLK) begin
+      if (ARESET | s_ready_i) m_ready_d <= {C_NUM_M{1'b0}};
+      else                    m_ready_d <= m_ready_d | (m_valid_i & M_READY);
+   end
+
+   assign s_ready_i = &(m_ready_d | M_READY);
+   assign m_valid_i = {C_NUM_M{S_VALID}} & ~m_ready_d;
+   assign M_VALID = m_valid_i;
+   assign S_READY = s_ready_i;
+
 endmodule
+
+

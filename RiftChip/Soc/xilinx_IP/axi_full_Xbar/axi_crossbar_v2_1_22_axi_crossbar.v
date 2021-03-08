@@ -2,10 +2,12 @@
 * @File name: axi_crossbar_v2_1_22_axi_crossbar
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:14:19
+* @Date:   2021-03-08 19:31:51
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:37:32
+* @Last Modified time: 2021-03-08 19:35:43
 */
+
+
 
 
 
@@ -59,8 +61,7 @@
 // File name: axi_crossbar.v
 //-----------------------------------------------------------------------------
 `timescale 1ps/1ps
-
-
+ 
 module axi_crossbar_v2_1_22_axi_crossbar # (
    parameter         C_FAMILY                         = "rtl", 
                        // FPGA Base Family. Current version: virtex6 or spartan6.
@@ -706,14 +707,14 @@ generate
       assign cb_mi_rvalid[slot*1+:1]                                                     = (P_M_AXI_SUPPORTS_READ[slot]                                                                             ) ? m_axi_rvalid[slot*1+:1]                                                     : 0 ;
     end  // gen_mi_tieoff
 
-    if ((C_CONNECTIVITY_MODE==0) || (C_AXI_PROTOCOL==P_AXILITE)) begin : gen_sasd
-      axi_crossbar_v2_1_22_crossbar_sasd #
-      (
+
+    axi_crossbar_v2_1_22_crossbar # (
         .C_FAMILY                         (P_FAMILY),
         .C_NUM_SLAVE_SLOTS                (C_NUM_SLAVE_SLOTS),
         .C_NUM_MASTER_SLOTS               (C_NUM_MASTER_SLOTS),
         .C_NUM_ADDR_RANGES                (C_NUM_ADDR_RANGES),
         .C_AXI_ID_WIDTH                   (C_AXI_ID_WIDTH),
+        .C_S_AXI_THREAD_ID_WIDTH          (C_S_AXI_THREAD_ID_WIDTH),
         .C_AXI_ADDR_WIDTH                 (C_AXI_ADDR_WIDTH),
         .C_AXI_DATA_WIDTH                 (C_AXI_DATA_WIDTH),
         .C_AXI_PROTOCOL                   (C_AXI_PROTOCOL),
@@ -731,113 +732,126 @@ generate
         .C_S_AXI_SUPPORTS_READ            (P_S_AXI_SUPPORTS_READ),
         .C_M_AXI_SUPPORTS_WRITE           (P_M_AXI_SUPPORTS_WRITE),
         .C_M_AXI_SUPPORTS_READ            (P_M_AXI_SUPPORTS_READ),
+        .C_M_AXI_WRITE_CONNECTIVITY       (C_M_AXI_WRITE_CONNECTIVITY),
+        .C_M_AXI_READ_CONNECTIVITY        (C_M_AXI_READ_CONNECTIVITY),
+        .C_S_AXI_SINGLE_THREAD            (C_S_AXI_SINGLE_THREAD),
+        .C_S_AXI_WRITE_ACCEPTANCE         (C_S_AXI_WRITE_ACCEPTANCE),
+        .C_S_AXI_READ_ACCEPTANCE          (C_S_AXI_READ_ACCEPTANCE),
+        .C_M_AXI_WRITE_ISSUING            (C_M_AXI_WRITE_ISSUING),
+        .C_M_AXI_READ_ISSUING             (C_M_AXI_READ_ISSUING),
         .C_S_AXI_ARB_PRIORITY             (C_S_AXI_ARB_PRIORITY),
         .C_M_AXI_SECURE                   (C_M_AXI_SECURE),
-        .C_R_REGISTER                     (C_R_REGISTER),
         .C_RANGE_CHECK                    (P_RANGE_CHECK),
         .C_ADDR_DECODE                    (P_ADDR_DECODE),
+        .C_W_ISSUE_WIDTH                  (f_write_issue_width_vec(0) ),
+        .C_R_ISSUE_WIDTH                  (f_read_issue_width_vec(0) ),
+        .C_W_ACCEPT_WIDTH                 (f_write_accept_width_vec(0)),
+        .C_R_ACCEPT_WIDTH                 (f_read_accept_width_vec(0)),
         .C_M_AXI_ERR_MODE                 (P_M_AXI_ERR_MODE),
         .C_DEBUG                          (C_DEBUG)
       )
-        crossbar_sasd_0
+        crossbar_samd 
       (
           .ACLK                             (aclk),
           .ARESETN                          (aresetn),
-          .S_AXI_AWID                       (si_cb_awid           ),
-          .S_AXI_AWADDR                     (si_cb_awaddr         ),
-          .S_AXI_AWLEN                      (si_cb_awlen          ),
-          .S_AXI_AWSIZE                     (si_cb_awsize         ),
-          .S_AXI_AWBURST                    (si_cb_awburst        ),
-          .S_AXI_AWLOCK                     (si_cb_awlock         ),
-          .S_AXI_AWCACHE                    (si_cb_awcache        ),
-          .S_AXI_AWPROT                     (si_cb_awprot         ),
+          .S_AXI_AWID                       (si_cb_awid             ),
+          .S_AXI_AWADDR                     (si_cb_awaddr           ),
+          .S_AXI_AWLEN                      (si_cb_awlen            ),
+          .S_AXI_AWSIZE                     (si_cb_awsize           ),
+          .S_AXI_AWBURST                    (si_cb_awburst          ),
+          .S_AXI_AWLOCK                     (si_cb_awlock           ),
+          .S_AXI_AWCACHE                    (si_cb_awcache          ),
+          .S_AXI_AWPROT                     (si_cb_awprot           ),
 //          .S_AXI_AWREGION                   (si_cb_awregion       ),
-          .S_AXI_AWQOS                      (si_cb_awqos          ),
-          .S_AXI_AWUSER                     (si_cb_awuser         ),
-          .S_AXI_AWVALID                    (si_cb_awvalid        ),
-          .S_AXI_AWREADY                    (si_cb_awready        ),
+          .S_AXI_AWQOS                      (si_cb_awqos            ),
+          .S_AXI_AWUSER                     (si_cb_awuser           ),
+          .S_AXI_AWVALID                    (si_cb_awvalid          ),
+          .S_AXI_AWREADY                    (si_cb_awready          ),
           .S_AXI_WID                        (si_cb_wid             ),
-          .S_AXI_WDATA                      (si_cb_wdata          ),
-          .S_AXI_WSTRB                      (si_cb_wstrb          ),
-          .S_AXI_WLAST                      (si_cb_wlast          ),
-          .S_AXI_WUSER                      (si_cb_wuser          ),
-          .S_AXI_WVALID                     (si_cb_wvalid         ),
-          .S_AXI_WREADY                     (si_cb_wready         ),
-          .S_AXI_BID                        (si_cb_bid            ),
-          .S_AXI_BRESP                      (si_cb_bresp          ),
-          .S_AXI_BUSER                      (si_cb_buser          ),
-          .S_AXI_BVALID                     (si_cb_bvalid         ),
-          .S_AXI_BREADY                     (si_cb_bready         ),
-          .S_AXI_ARID                       (si_cb_arid           ),
-          .S_AXI_ARADDR                     (si_cb_araddr         ),
-          .S_AXI_ARLEN                      (si_cb_arlen          ),
-          .S_AXI_ARSIZE                     (si_cb_arsize         ),
-          .S_AXI_ARBURST                    (si_cb_arburst        ),
-          .S_AXI_ARLOCK                     (si_cb_arlock         ),
-          .S_AXI_ARCACHE                    (si_cb_arcache        ),
-          .S_AXI_ARPROT                     (si_cb_arprot         ),
+          .S_AXI_WDATA                      (si_cb_wdata            ),
+          .S_AXI_WSTRB                      (si_cb_wstrb            ),
+          .S_AXI_WLAST                      (si_cb_wlast            ),
+          .S_AXI_WUSER                      (si_cb_wuser            ),
+          .S_AXI_WVALID                     (si_cb_wvalid           ),
+          .S_AXI_WREADY                     (si_cb_wready           ),
+          .S_AXI_BID                        (si_cb_bid              ),
+          .S_AXI_BRESP                      (si_cb_bresp            ),
+          .S_AXI_BUSER                      (si_cb_buser            ),
+          .S_AXI_BVALID                     (si_cb_bvalid           ),
+          .S_AXI_BREADY                     (si_cb_bready           ),
+          .S_AXI_ARID                       (si_cb_arid             ),
+          .S_AXI_ARADDR                     (si_cb_araddr           ),
+          .S_AXI_ARLEN                      (si_cb_arlen            ),
+          .S_AXI_ARSIZE                     (si_cb_arsize           ),
+          .S_AXI_ARBURST                    (si_cb_arburst          ),
+          .S_AXI_ARLOCK                     (si_cb_arlock           ),
+          .S_AXI_ARCACHE                    (si_cb_arcache          ),
+          .S_AXI_ARPROT                     (si_cb_arprot           ),
 //          .S_AXI_ARREGION                   (si_cb_arregion       ),
-          .S_AXI_ARQOS                      (si_cb_arqos          ),
-          .S_AXI_ARUSER                     (si_cb_aruser         ),
-          .S_AXI_ARVALID                    (si_cb_arvalid        ),
-          .S_AXI_ARREADY                    (si_cb_arready        ),
-          .S_AXI_RID                        (si_cb_rid            ),
-          .S_AXI_RDATA                      (si_cb_rdata          ),
-          .S_AXI_RRESP                      (si_cb_rresp          ),
-          .S_AXI_RLAST                      (si_cb_rlast          ),
-          .S_AXI_RUSER                      (si_cb_ruser          ),
-          .S_AXI_RVALID                     (si_cb_rvalid         ),
-          .S_AXI_RREADY                     (si_cb_rready         ),
-          .M_AXI_AWID                       (cb_mi_awid           ),
-          .M_AXI_AWADDR                     (cb_mi_awaddr         ),
-          .M_AXI_AWLEN                      (cb_mi_awlen          ),
-          .M_AXI_AWSIZE                     (cb_mi_awsize         ),
-          .M_AXI_AWBURST                    (cb_mi_awburst        ),
-          .M_AXI_AWLOCK                     (cb_mi_awlock         ),
-          .M_AXI_AWCACHE                    (cb_mi_awcache        ),
-          .M_AXI_AWPROT                     (cb_mi_awprot         ),
-          .M_AXI_AWREGION                   (cb_mi_awregion       ),
-          .M_AXI_AWQOS                      (cb_mi_awqos          ),
-          .M_AXI_AWUSER                     (cb_mi_awuser         ),
-          .M_AXI_AWVALID                    (cb_mi_awvalid        ),
-          .M_AXI_AWREADY                    (cb_mi_awready        ),
+          .S_AXI_ARQOS                      (si_cb_arqos            ),
+          .S_AXI_ARUSER                     (si_cb_aruser           ),
+          .S_AXI_ARVALID                    (si_cb_arvalid          ),
+          .S_AXI_ARREADY                    (si_cb_arready          ),
+          .S_AXI_RID                        (si_cb_rid              ),
+          .S_AXI_RDATA                      (si_cb_rdata            ),
+          .S_AXI_RRESP                      (si_cb_rresp            ),
+          .S_AXI_RLAST                      (si_cb_rlast            ),
+          .S_AXI_RUSER                      (si_cb_ruser            ),
+          .S_AXI_RVALID                     (si_cb_rvalid           ),
+          .S_AXI_RREADY                     (si_cb_rready           ),
+          .M_AXI_AWID                       (cb_mi_awid             ),
+          .M_AXI_AWADDR                     (cb_mi_awaddr           ),
+          .M_AXI_AWLEN                      (cb_mi_awlen            ),
+          .M_AXI_AWSIZE                     (cb_mi_awsize           ),
+          .M_AXI_AWBURST                    (cb_mi_awburst          ),
+          .M_AXI_AWLOCK                     (cb_mi_awlock           ),
+          .M_AXI_AWCACHE                    (cb_mi_awcache          ),
+          .M_AXI_AWPROT                     (cb_mi_awprot           ),
+          .M_AXI_AWREGION                   (cb_mi_awregion         ),
+          .M_AXI_AWQOS                      (cb_mi_awqos            ),
+          .M_AXI_AWUSER                     (cb_mi_awuser           ),
+          .M_AXI_AWVALID                    (cb_mi_awvalid          ),
+          .M_AXI_AWREADY                    (cb_mi_awready          ),
           .M_AXI_WID                        (cb_mi_wid             ),
-          .M_AXI_WDATA                      (cb_mi_wdata          ),
-          .M_AXI_WSTRB                      (cb_mi_wstrb          ),
-          .M_AXI_WLAST                      (cb_mi_wlast          ),
-          .M_AXI_WUSER                      (cb_mi_wuser          ),
-          .M_AXI_WVALID                     (cb_mi_wvalid         ),
-          .M_AXI_WREADY                     (cb_mi_wready         ),
-          .M_AXI_BID                        (cb_mi_bid            ),
-          .M_AXI_BRESP                      (cb_mi_bresp          ),
-          .M_AXI_BUSER                      (cb_mi_buser          ),
-          .M_AXI_BVALID                     (cb_mi_bvalid         ),
-          .M_AXI_BREADY                     (cb_mi_bready         ),
-          .M_AXI_ARID                       (cb_mi_arid           ),
-          .M_AXI_ARADDR                     (cb_mi_araddr         ),
-          .M_AXI_ARLEN                      (cb_mi_arlen          ),
-          .M_AXI_ARSIZE                     (cb_mi_arsize         ),
-          .M_AXI_ARBURST                    (cb_mi_arburst        ),
-          .M_AXI_ARLOCK                     (cb_mi_arlock         ),
-          .M_AXI_ARCACHE                    (cb_mi_arcache        ),
-          .M_AXI_ARPROT                     (cb_mi_arprot         ),
-          .M_AXI_ARREGION                   (cb_mi_arregion       ),
-          .M_AXI_ARQOS                      (cb_mi_arqos          ),
-          .M_AXI_ARUSER                     (cb_mi_aruser         ),
-          .M_AXI_ARVALID                    (cb_mi_arvalid        ),
-          .M_AXI_ARREADY                    (cb_mi_arready        ),
-          .M_AXI_RID                        (cb_mi_rid            ),
-          .M_AXI_RDATA                      (cb_mi_rdata          ),
-          .M_AXI_RRESP                      (cb_mi_rresp          ),
-          .M_AXI_RLAST                      (cb_mi_rlast          ),
-          .M_AXI_RUSER                      (cb_mi_ruser          ),
-          .M_AXI_RVALID                     (cb_mi_rvalid         ),
-          .M_AXI_RREADY                     (cb_mi_rready         )
+          .M_AXI_WDATA                      (cb_mi_wdata            ),
+          .M_AXI_WSTRB                      (cb_mi_wstrb            ),
+          .M_AXI_WLAST                      (cb_mi_wlast            ),
+          .M_AXI_WUSER                      (cb_mi_wuser            ),
+          .M_AXI_WVALID                     (cb_mi_wvalid           ),
+          .M_AXI_WREADY                     (cb_mi_wready           ),
+          .M_AXI_BID                        (cb_mi_bid              ),
+          .M_AXI_BRESP                      (cb_mi_bresp            ),
+          .M_AXI_BUSER                      (cb_mi_buser            ),
+          .M_AXI_BVALID                     (cb_mi_bvalid           ),
+          .M_AXI_BREADY                     (cb_mi_bready           ),
+          .M_AXI_ARID                       (cb_mi_arid             ),
+          .M_AXI_ARADDR                     (cb_mi_araddr           ),
+          .M_AXI_ARLEN                      (cb_mi_arlen            ),
+          .M_AXI_ARSIZE                     (cb_mi_arsize           ),
+          .M_AXI_ARBURST                    (cb_mi_arburst          ),
+          .M_AXI_ARLOCK                     (cb_mi_arlock           ),
+          .M_AXI_ARCACHE                    (cb_mi_arcache          ),
+          .M_AXI_ARPROT                     (cb_mi_arprot           ),
+          .M_AXI_ARREGION                   (cb_mi_arregion         ),
+          .M_AXI_ARQOS                      (cb_mi_arqos            ),
+          .M_AXI_ARUSER                     (cb_mi_aruser           ),
+          .M_AXI_ARVALID                    (cb_mi_arvalid          ),
+          .M_AXI_ARREADY                    (cb_mi_arready          ),
+          .M_AXI_RID                        (cb_mi_rid              ),
+          .M_AXI_RDATA                      (cb_mi_rdata            ),
+          .M_AXI_RRESP                      (cb_mi_rresp            ),
+          .M_AXI_RLAST                      (cb_mi_rlast            ),
+          .M_AXI_RUSER                      (cb_mi_ruser            ),
+          .M_AXI_RVALID                     (cb_mi_rvalid           ),
+          .M_AXI_RREADY                     (cb_mi_rready           )
       );
-    end 
+
+//  end  // gen_crossbar
 endgenerate
 
 endmodule
+
+
 
 
 

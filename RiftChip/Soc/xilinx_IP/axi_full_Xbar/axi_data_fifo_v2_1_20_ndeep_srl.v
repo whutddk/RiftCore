@@ -1,13 +1,26 @@
 /*
-* @File name: axi_crossbar_v2_1_22_splitter
+* @File name: axi_data_fifo_v2_1_20_ndeep_srl
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:22:21
+* @Date:   2021-03-08 19:46:01
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:31:23
+* @Last Modified time: 2021-03-08 19:53:43
 */
 
-// -- (c) Copyright 2010 - 2011 Xilinx, Inc. All rights reserved.
+
+
+
+
+
+
+
+
+
+
+
+
+
+// -- (c) Copyright 2008 - 2014 Xilinx, Inc. All rights reserved.
 // --
 // -- This file contains confidential and proprietary information
 // -- of Xilinx, Inc. and is protected under U.S. and 
@@ -54,58 +67,89 @@
 // -- PART OF THIS FILE AT ALL TIMES.
 //-----------------------------------------------------------------------------
 //
-// Description: AXI Splitter
-// Each transfer received on the AXI handshake slave port is replicated onto 
-//   each of the master ports, and is completed back to the slave (S_READY) 
-//   once all master ports have completed.
-//   
-// M_VALID is asserted combinatorially from S_VALID assertion.
-// Each M_VALID is masked off beginning the cycle after each M_READY is
-//   received (if S_READY remains low) until the cycle after both S_VALID
-//   and S_READY are asserted.
-// S_READY is asserted combinatorially when the last (or all) of the M_READY
-//   inputs have been received.
-// If all M_READYs are asserted when S_VALID is asserted, back-to-back
-//   handshakes can occur without bubble cycles.
-//
+// Description: This is a generic n-deep SRL instantiation
 // Verilog-standard:  Verilog 2001
-//--------------------------------------------------------------------------
+// $Revision: 
+// $Date: 
 //
-// Structure:
-//   splitter
-//
-//--------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-module axi_crossbar_v2_1_22_splitter #
+module axi_data_fifo_v2_1_20_ndeep_srl #
   (
-   parameter integer C_NUM_M = 2  // Number of master ports = [2:16]
+   parameter         C_FAMILY  = "rtl", // FPGA Family
+   parameter         C_A_WIDTH = 1          // Address Width (>= 1)
    )
   (
-   // Global Signals
-   input  wire                             ACLK,
-   input  wire                             ARESET,
-   // Slave  Port
-   input  wire                             S_VALID,
-   output wire                             S_READY,
-   // Master Ports
-   output wire [C_NUM_M-1:0]               M_VALID,
-   input  wire [C_NUM_M-1:0]               M_READY
+   input  wire                 CLK, // Clock
+   input  wire [C_A_WIDTH-1:0] A,   // Address
+   input  wire                 CE,  // Clock Enable
+   input  wire                 D,   // Input Data
+   output wire                 Q    // Output Data
    );
 
-   reg  [C_NUM_M-1:0] m_ready_d = 0;
-   wire               s_ready_i;
-   wire [C_NUM_M-1:0] m_valid_i;
+  localparam integer P_SRLASIZE = 5;
+  localparam integer P_SRLDEPTH = 32;
+  localparam integer P_NUMSRLS  = (C_A_WIDTH>P_SRLASIZE) ? (2**(C_A_WIDTH-P_SRLASIZE)) : 1;
+  localparam integer P_SHIFT_DEPTH  = 2**C_A_WIDTH;
+  
+  wire [P_NUMSRLS:0]   d_i;
+  wire [P_NUMSRLS-1:0] q_i;
+  wire [(C_A_WIDTH>P_SRLASIZE) ? (C_A_WIDTH-1) : (P_SRLASIZE-1) : 0] a_i;
+  
+  genvar i;
+  
+  // Instantiate SRLs in carry chain format
+  assign d_i[0] = D;
+  assign a_i = A;
+  
+  generate
+					
+    if (C_FAMILY == "rtl") begin : gen_rtl_shifter
+      if (C_A_WIDTH <= P_SRLASIZE) begin : gen_inferred_srl
+        reg [P_SRLDEPTH-1:0] shift_reg = {P_SRLDEPTH{1'b0}};
+        always @(posedge CLK)
+          if (CE)
+            shift_reg <= {shift_reg[P_SRLDEPTH-2:0], D};
+        assign Q = shift_reg[a_i];
+      end else begin : gen_logic_shifter  // Very wasteful
+        reg [P_SHIFT_DEPTH-1:0] shift_reg = {P_SHIFT_DEPTH{1'b0}};
+        always @(posedge CLK)
+          if (CE)
+            shift_reg <= {shift_reg[P_SHIFT_DEPTH-2:0], D};
+        assign Q = shift_reg[a_i];
+      end
+    end else begin : gen_primitive_shifter
+      for (i=0;i<P_NUMSRLS;i=i+1) begin : gen_srls
+        SRLC32E
+          srl_inst
+            (
+             .CLK (CLK),
+             .A   (a_i[P_SRLASIZE-1:0]),
+             .CE  (CE),
+             .D   (d_i[i]),
+             .Q   (q_i[i]),
+             .Q31 (d_i[i+1])
+             );
+      end
+      
 
-   always @(posedge ACLK) begin
-      if (ARESET | s_ready_i) m_ready_d <= {C_NUM_M{1'b0}};
-      else                    m_ready_d <= m_ready_d | (m_valid_i & M_READY);
-   end
+      assign Q = q_i[0];
 
-   assign s_ready_i = &(m_ready_d | M_READY);
-   assign m_valid_i = {C_NUM_M{S_VALID}} & ~m_ready_d;
-   assign M_VALID = m_valid_i;
-   assign S_READY = s_ready_i;
+    end
+  endgenerate
 
 endmodule
+
+
+
+
+
+
+
+
+
+
+
+
 

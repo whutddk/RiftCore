@@ -2,16 +2,13 @@
 * @File name: axi_register_slice_v2_1_21_axic_register_slice
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:23:51
+* @Date:   2021-03-08 19:58:00
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:30:38
+* @Last Modified time: 2021-03-08 19:58:39
 */
 
 
-
-
 `timescale 1ps/1ps
-
 module axi_register_slice_v2_1_21_axic_register_slice #
   (
    parameter C_FAMILY     = "virtex6",
@@ -43,6 +40,8 @@ module axi_register_slice_v2_1_21_axic_register_slice #
    output wire M_VALID,
    input  wire M_READY
    );
+
+
 
   generate
   ////////////////////////////////////////////////////////////////////

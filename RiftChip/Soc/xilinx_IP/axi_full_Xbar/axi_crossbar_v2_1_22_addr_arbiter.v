@@ -1,11 +1,13 @@
 /*
-* @File name: axi_crossbar_v2_1_22_addr_arbiter_sasd
+* @File name: axi_crossbar_v2_1_22_addr_arbiter
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:21:43
+* @Date:   2021-03-08 19:39:53
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:37:46
+* @Last Modified time: 2021-03-08 19:40:11
 */
+
+
 
 // -- (c) Copyright 2009 - 2011 Xilinx, Inc. All rights reserved.
 // --
@@ -54,28 +56,28 @@
 // -- PART OF THIS FILE AT ALL TIMES.
 //-----------------------------------------------------------------------------
 //
-// File name: addr_arbiter_sasd.v
+// File name: addr_arbiter.v
 //
 // Description: 
-//   Hybrid priority + round-robin arbiter.
-//   Read & write requests combined (read preferred) at each slot
-//   Muxes AR and AW channel payload inputs based on arbitration results.
+//   Instantiates generic priority encoder.
+//   Each request is qualified if its target has not reached its issuing limit.
+//   Muxes mesg and target inputs based on arbitration results.
 //-----------------------------------------------------------------------------
 //
 // Structure:
-//    addr_arbiter_sasd
+//    addr_arbiter
 //      mux_enc
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
 
-module axi_crossbar_v2_1_22_addr_arbiter_sasd #
+module axi_crossbar_v2_1_22_addr_arbiter #
   (
    parameter         C_FAMILY                         = "none", 
    parameter integer C_NUM_S                = 1, 
    parameter integer C_NUM_S_LOG                = 1, 
-   parameter integer C_AMESG_WIDTH                 = 1, 
-   parameter         C_GRANT_ENC        = 0,
+   parameter integer C_NUM_M               = 1, 
+   parameter integer C_MESG_WIDTH                 = 1, 
    parameter [C_NUM_S*32-1:0] C_ARB_PRIORITY             = {C_NUM_S{32'h00000000}}
                        // Arbitration priority among each SI slot. 
                        // Higher values indicate higher priority.
@@ -87,22 +89,19 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
    input  wire                                      ACLK,
    input  wire                                      ARESET,
    // Slave Ports
-   input  wire [C_NUM_S*C_AMESG_WIDTH-1:0]  S_AWMESG,
-   input  wire [C_NUM_S*C_AMESG_WIDTH-1:0]  S_ARMESG,
-   input  wire [C_NUM_S-1:0]                S_AWVALID,
-   output wire [C_NUM_S-1:0]                S_AWREADY,
-   input  wire [C_NUM_S-1:0]                S_ARVALID,
-   output wire [C_NUM_S-1:0]                S_ARREADY,
+   input  wire [C_NUM_S*C_MESG_WIDTH-1:0]  S_MESG,
+   input  wire [C_NUM_S*C_NUM_M-1:0]                S_TARGET_HOT,
+   input  wire [C_NUM_S-1:0]                S_VALID,
+   input  wire [C_NUM_S-1:0]                S_VALID_QUAL,
+   output wire [C_NUM_S-1:0]                S_READY,
    // Master Ports
-   output wire [C_AMESG_WIDTH-1:0]          M_AMESG,
-   output wire [C_NUM_S_LOG-1:0]            M_GRANT_ENC,
-   output wire [C_NUM_S-1:0]                M_GRANT_HOT,
-   output wire                              M_GRANT_RNW,
-   output wire                              M_GRANT_ANY,
-   output wire                              M_AWVALID,
-   input  wire                              M_AWREADY,
-   output wire                              M_ARVALID,
-   input  wire                              M_ARREADY
+   output wire [C_MESG_WIDTH-1:0]                    M_MESG,
+   output wire [C_NUM_M-1:0]                           M_TARGET_HOT,
+   output wire [C_NUM_S_LOG-1:0]                      M_GRANT_ENC,
+   output wire                                        M_VALID,
+   input  wire                                        M_READY,
+   // Sideband input
+   input  wire [C_NUM_M-1:0]                ISSUING_LIMIT
    );
    
   // Generates a mask for all input slots that are priority based
@@ -138,23 +137,17 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
 
   reg                     m_valid_i = 1'b0;
   reg [C_NUM_S-1:0]       s_ready_i = 0;
-  reg [C_NUM_S-1:0]       s_awvalid_reg = 0;
-  reg [C_NUM_S-1:0]       s_arvalid_reg = 0;
-  wire [15:0]             s_avalid;
-  wire                    m_aready;
-  wire [C_NUM_S-1:0]      rnw;
-  reg                     grant_rnw;
-  reg [C_NUM_S_LOG-1:0]   m_grant_enc_i;
-  reg [C_NUM_S-1:0]       m_grant_hot_i; 
+  reg [C_NUM_S-1:0]       qual_reg;
+  reg [C_NUM_S-1:0]       grant_hot; 
   reg [C_NUM_S-1:0]       last_rr_hot;
   reg                     any_grant;
   reg                     any_prio;
-  reg [C_NUM_S-1:0]       which_prio_hot;
-  reg [C_NUM_S_LOG-1:0]   which_prio_enc;          
-  reg [4:0]               current_highest;
-  reg [15:0]              next_prio_hot;
-  reg [C_NUM_S_LOG-1:0]   next_prio_enc;    
   reg                     found_prio;
+  reg [C_NUM_S-1:0]       which_prio_hot;
+  reg [C_NUM_S-1:0]       next_prio_hot;
+  reg [C_NUM_S_LOG-1:0]   which_prio_enc;          
+  reg [C_NUM_S_LOG-1:0]   next_prio_enc;    
+  reg [4:0]               current_highest;
   wire [C_NUM_S-1:0]      valid_rr;
   reg [15:0]              next_rr_hot;
   reg [C_NUM_S_LOG-1:0]   next_rr_enc;    
@@ -163,50 +156,42 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
   reg                     found_rr;
   wire [C_NUM_S-1:0]      next_hot;
   wire [C_NUM_S_LOG-1:0]  next_enc;    
+  reg                     prio_stall;
   integer                 i;
-  wire  [C_AMESG_WIDTH-1:0] amesg_mux;
-  reg   [C_AMESG_WIDTH-1:0] m_amesg_i;
-  wire [C_NUM_S*C_AMESG_WIDTH-1:0] s_amesg;
+  wire [C_NUM_S-1:0]      valid_qual_i;
+  reg  [C_NUM_S_LOG-1:0]  m_grant_enc_i;
+  reg  [C_NUM_M-1:0]      m_target_hot_i;
+  wire [C_NUM_M-1:0]      m_target_hot_mux;
+  reg  [C_MESG_WIDTH-1:0] m_mesg_i;
+  wire [C_MESG_WIDTH-1:0] m_mesg_mux;
   genvar                  gen_si;
 
-  always @(posedge ACLK) begin
-    if (ARESET) begin
-      s_awvalid_reg <= 0;
-      s_arvalid_reg <= 0;
-    end else if (|s_ready_i) begin
-      s_awvalid_reg <= 0;
-      s_arvalid_reg <= 0;
-    end else begin
-      s_arvalid_reg <= S_ARVALID & ~s_awvalid_reg;
-      s_awvalid_reg <= S_AWVALID & ~s_arvalid_reg & (~S_ARVALID | s_awvalid_reg);
-    end
-  end
-  
-  assign s_avalid = S_AWVALID | S_ARVALID;
-  assign M_AWVALID = m_valid_i & ~grant_rnw;
-  assign M_ARVALID = m_valid_i & grant_rnw;
-  assign S_AWREADY = s_ready_i & {C_NUM_S{~grant_rnw}};
-  assign S_ARREADY = s_ready_i & {C_NUM_S{grant_rnw}};
-  assign M_GRANT_ENC = C_GRANT_ENC ? m_grant_enc_i : 0;
-  assign M_GRANT_HOT = m_grant_hot_i;
-  assign M_GRANT_RNW = grant_rnw;
-  assign rnw = S_ARVALID & ~s_awvalid_reg;
-  assign M_AMESG = m_amesg_i;
-  assign m_aready = grant_rnw ? M_ARREADY : M_AWREADY;
+  assign M_VALID = m_valid_i;
+  assign S_READY = s_ready_i;
+  assign M_GRANT_ENC = m_grant_enc_i;
+  assign M_MESG = m_mesg_i;
+  assign M_TARGET_HOT = m_target_hot_i;
   
   generate
-    for (gen_si=0; gen_si<C_NUM_S; gen_si=gen_si+1) begin : gen_mesg_mux
-      assign s_amesg[C_AMESG_WIDTH*gen_si +: C_AMESG_WIDTH] = rnw[gen_si] ? S_ARMESG[C_AMESG_WIDTH*gen_si +: C_AMESG_WIDTH] : S_AWMESG[C_AMESG_WIDTH*gen_si +: C_AMESG_WIDTH];
-    end  // gen_mesg_mux
-         
     if (C_NUM_S>1) begin : gen_arbiter
+      
+      always @(posedge ACLK) begin
+        if (ARESET) begin
+          qual_reg <= 0;
+        end else begin 
+          qual_reg <= valid_qual_i | ~S_VALID; // Don't disqualify when bus not VALID (valid_qual_i would be garbage)
+        end
+      end
+    
+      for (gen_si=0; gen_si<C_NUM_S; gen_si=gen_si+1) begin : gen_req_qual
+        assign valid_qual_i[gen_si] = S_VALID_QUAL[gen_si] & (|(S_TARGET_HOT[gen_si*C_NUM_M+:C_NUM_M] & ~ISSUING_LIMIT));
+      end
     
       /////////////////////////////////////////////////////////////////////////////
       // Grant a new request when there is none still pending.
       // If no qualified requests found, de-assert M_VALID.
       /////////////////////////////////////////////////////////////////////////////
       
-      assign M_GRANT_ANY = any_grant;
       assign next_hot = found_prio ? next_prio_hot : next_rr_hot;
       assign next_enc = found_prio ? next_prio_enc : next_rr_enc;
       
@@ -214,31 +199,34 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
         if (ARESET) begin
           m_valid_i <= 0;
           s_ready_i <= 0;
-          m_grant_hot_i <= 0;
-          m_grant_enc_i <= 0;
+          grant_hot <= 0;
           any_grant <= 1'b0;
+          m_grant_enc_i <= 0;
           last_rr_hot <= {1'b1, {C_NUM_S-1{1'b0}}};
-          grant_rnw <= 1'b0;
+          m_target_hot_i <= 0;
         end else begin
           s_ready_i <= 0;
           if (m_valid_i) begin
             // Stall 1 cycle after each master-side completion.
-            if (m_aready) begin  // Master-side completion
+            if (M_READY) begin  // Master-side completion
               m_valid_i <= 1'b0;
-              m_grant_hot_i <= 0;
+              grant_hot <= 0;
               any_grant <= 1'b0;
             end
           end else if (any_grant) begin
             m_valid_i <= 1'b1;
-            s_ready_i <= m_grant_hot_i;  // Assert S_AW/READY for 1 cycle to complete SI address transfer
+            s_ready_i <= grant_hot;  // Assert S_AW/READY for 1 cycle to complete SI address transfer (regardless of M_AREADY)
           end else begin
-            if (found_prio | found_rr) begin
-              m_grant_hot_i <= next_hot;
-              m_grant_enc_i <= next_enc;
-              any_grant <= 1'b1;
-              grant_rnw <= |(rnw & next_hot);
-              if (~found_prio) begin
-                last_rr_hot <= next_rr_hot;
+            if ((found_prio | found_rr) & ~prio_stall) begin
+              // Waste 1 cycle and re-arbitrate if target of highest prio hit issuing limit in previous cycle (valid_qual_i).
+              if (|(next_hot & valid_qual_i)) begin  
+                grant_hot <= next_hot;
+                m_grant_enc_i <= next_enc;
+                any_grant <= 1'b1;
+                if (~found_prio) begin
+                  last_rr_hot <= next_rr_hot;
+                end
+                m_target_hot_i <= m_target_hot_mux;
               end
             end
           end
@@ -249,20 +237,31 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
       // Fixed Priority arbiter
       // Selects next request to grant from among inputs with PRIO > 0, if any.
       /////////////////////////////////////////////////////////////////////////////
-      
+          
       always @ * begin : ALG_PRIO
         integer ip;
         any_prio = 1'b0;
+        prio_stall = 1'b0;
         which_prio_hot = 0;        
         which_prio_enc = 0;    
         current_highest = 0;    
         for (ip=0; ip < C_NUM_S; ip=ip+1) begin
-          if (P_PRIO_MASK[ip] & ({1'b0, C_ARB_PRIORITY[ip*32+:4]} > current_highest)) begin
-            if (s_avalid[ip]) begin
+          // Disqualify slot if target hit issuing limit (pass to lower prio slot).
+          if (P_PRIO_MASK[ip] & S_VALID[ip] & qual_reg[ip]) begin
+            if ({1'b0, C_ARB_PRIORITY[ip*32+:4]} > current_highest) begin
               current_highest[0+:4] = C_ARB_PRIORITY[ip*32+:4];
-              any_prio = 1'b1;
-              which_prio_hot = 1'b1 << ip;
-              which_prio_enc = ip;
+              // Stall 1 cycle when highest prio is recovering from SI-side handshake.
+              // (Do not allow lower-prio slot to win arbitration.)
+              if (s_ready_i[ip]) begin
+                any_prio = 1'b0;
+                prio_stall = 1'b1;
+                which_prio_hot = 0;
+                which_prio_enc = 0;
+              end else begin
+                any_prio = 1'b1;
+                which_prio_hot = 1'b1 << ip;
+                which_prio_enc = ip;
+              end
             end
           end   
         end
@@ -276,7 +275,10 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
       // Selects next request to grant from among inputs with PRIO = 0, if any.
       /////////////////////////////////////////////////////////////////////////////
       
-      assign valid_rr = ~P_PRIO_MASK & s_avalid;
+      // Disqualify slot if target hit issuing limit 2 or more cycles earlier (pass to next RR slot).
+      // Disqualify for 1 cycle a slot that is recovering from SI-side handshake (s_ready_i),
+      //   and allow arbitration to pass to any other RR requester.
+      assign valid_rr = ~P_PRIO_MASK & S_VALID & ~s_ready_i & qual_reg;
       
       always @ * begin : ALG_RR
         integer ir, jr, nr;
@@ -303,60 +305,72 @@ module axi_crossbar_v2_1_22_addr_arbiter_sasd #
          .C_FAMILY      ("rtl"),
          .C_RATIO       (C_NUM_S),
          .C_SEL_WIDTH   (C_NUM_S_LOG),
-         .C_DATA_WIDTH  (C_AMESG_WIDTH)
+         .C_DATA_WIDTH  (C_MESG_WIDTH)
+        ) mux_mesg 
+        (
+         .S   (m_grant_enc_i),
+         .A   (S_MESG),
+         .O   (m_mesg_mux),
+         .OE  (1'b1)
+        ); 
+        
+      generic_baseblocks_v2_1_0_mux_enc # 
+        (
+         .C_FAMILY      ("rtl"),
+         .C_RATIO       (C_NUM_S),
+         .C_SEL_WIDTH   (C_NUM_S_LOG),
+         .C_DATA_WIDTH  (C_NUM_M)
         ) si_amesg_mux_inst 
         (
          .S   (next_enc),
-         .A   (s_amesg),
-         .O   (amesg_mux),
+         .A   (S_TARGET_HOT),
+         .O   (m_target_hot_mux),
          .OE  (1'b1)
         ); 
         
       always @(posedge ACLK) begin
         if (ARESET) begin
-          m_amesg_i <= 0;
-        end else if (~any_grant) begin
-          m_amesg_i <= amesg_mux;
+          m_mesg_i <= 0;
+        end else if (~m_valid_i) begin
+          m_mesg_i <= m_mesg_mux;
         end
       end
     
     end else begin : gen_no_arbiter
       
-      assign M_GRANT_ANY = m_grant_hot_i;
-
+      assign valid_qual_i = S_VALID_QUAL & |(S_TARGET_HOT & ~ISSUING_LIMIT);
+      
       always @ (posedge ACLK) begin
         if (ARESET) begin
           m_valid_i <= 1'b0;
           s_ready_i <= 1'b0;
           m_grant_enc_i <= 0;
-          m_grant_hot_i <= 1'b0;
-          grant_rnw <= 1'b0;
         end else begin
           s_ready_i <= 1'b0;
           if (m_valid_i) begin
-            if (m_aready) begin
+            if (M_READY) begin
               m_valid_i <= 1'b0;
-              m_grant_hot_i <= 1'b0;
             end
-          end else if (m_grant_hot_i) begin
+          end else if (S_VALID[0] & valid_qual_i[0] & ~s_ready_i) begin
             m_valid_i <= 1'b1;
-            s_ready_i[0] <= 1'b1;  // Assert S_AW/READY for 1 cycle to complete SI address transfer
-          end else if (s_avalid[0]) begin
-            m_grant_hot_i <= 1'b1;
-            grant_rnw <= rnw[0];
+            s_ready_i <= 1'b1;
+            m_target_hot_i <= S_TARGET_HOT;
           end
         end
       end
-      
-      always @ (posedge ACLK) begin
+      always @(posedge ACLK) begin
         if (ARESET) begin
-          m_amesg_i <= 0;
-        end else if (~m_grant_hot_i) begin
-          m_amesg_i <= s_amesg;
+          m_mesg_i <= 0;
+        end else if (~m_valid_i) begin
+          m_mesg_i <= S_MESG;
         end
       end
-    
+      
+      
     end  // gen_arbiter
   endgenerate
 endmodule
+
+
+
 

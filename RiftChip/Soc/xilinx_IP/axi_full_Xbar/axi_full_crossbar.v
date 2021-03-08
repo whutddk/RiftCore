@@ -213,7 +213,7 @@ input wire [3 : 0] m_axi_rlast;
 input wire [3 : 0] m_axi_rvalid;
 output wire [3 : 0] m_axi_rready;
 
-  axi_crossbar_v2_1_22_axi_crossbar #(
+axi_crossbar_v2_1_22_axi_crossbar # (
     .C_FAMILY("rtl"),
     .C_NUM_SLAVE_SLOTS(3),
     .C_NUM_MASTER_SLOTS(4),
