@@ -54,9 +54,7 @@
 //
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_infrastructure_v1_1_0_axi2vector #
 (
 ///////////////////////////////////////////////////////////////////////////////
@@ -286,9 +284,7 @@ endmodule
 //
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_infrastructure_v1_1_0_vector2axi #
 (
 ///////////////////////////////////////////////////////////////////////////////

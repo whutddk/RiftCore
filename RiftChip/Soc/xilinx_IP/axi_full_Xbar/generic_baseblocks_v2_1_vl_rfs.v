@@ -58,7 +58,6 @@
 `timescale 1ps/1ps
 
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module generic_baseblocks_v2_1_0_carry_and #
   (
    parameter         C_FAMILY                         = "virtex6"
@@ -171,7 +170,7 @@ endmodule
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module generic_baseblocks_v2_1_0_comparator_static #
   (
    parameter         C_FAMILY                         = "virtex6", 
@@ -333,7 +332,6 @@ endmodule
 `timescale 1ps/1ps
 
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module generic_baseblocks_v2_1_0_mux_enc #
   (
    parameter         C_FAMILY                       = "rtl",

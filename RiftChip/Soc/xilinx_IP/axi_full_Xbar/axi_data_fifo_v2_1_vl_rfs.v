@@ -60,9 +60,7 @@
 //--------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_data_fifo_v2_1_20_axic_srl_fifo #
   (
    parameter         C_FAMILY   = "none", // FPGA Family
@@ -95,8 +93,8 @@ module axi_data_fifo_v2_1_20_axic_srl_fifo #
                              (C_FIFO_WIDTH+1)/C_MAX_CTRL_FANOUT :
                              ((C_FIFO_WIDTH+1)/C_MAX_CTRL_FANOUT)+1;
 
-  (* syn_keep = "1" *) reg [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0]  fifoaddr;
-  (* syn_keep = "1" *) wire [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0] fifoaddr_i;
+reg [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0]  fifoaddr;
+wire [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0] fifoaddr_i;
 
   genvar i;
   genvar j;
@@ -251,9 +249,8 @@ endmodule
 
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module axi_data_fifo_v2_1_20_axic_reg_srl_fifo #
   (
    parameter         C_FAMILY   = "none", // FPGA Family
@@ -286,8 +283,8 @@ module axi_data_fifo_v2_1_20_axic_reg_srl_fifo #
                              (C_FIFO_WIDTH+1)/C_MAX_CTRL_FANOUT :
                              ((C_FIFO_WIDTH+1)/C_MAX_CTRL_FANOUT)+1;
 
-  (* syn_keep = "1" *) reg [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0]  fifoaddr;
-  (* syn_keep = "1" *) wire [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0] fifoaddr_i;
+reg [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0]  fifoaddr;
+wire [P_NUM_REPS*P_FIFO_DEPTH_LOG-1:0] fifoaddr_i;
 
   genvar i;
   genvar j;
@@ -497,9 +494,7 @@ endmodule
 //
 //-----------------------------------------------------------------------------
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_data_fifo_v2_1_20_ndeep_srl #
   (
    parameter         C_FAMILY  = "rtl", // FPGA Family

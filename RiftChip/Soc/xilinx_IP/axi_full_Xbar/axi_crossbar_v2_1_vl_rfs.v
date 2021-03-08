@@ -61,9 +61,7 @@
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_addr_arbiter #
   (
    parameter         C_FAMILY                         = "none", 
@@ -434,7 +432,6 @@ endmodule
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_addr_decoder #
   (
    parameter         C_FAMILY          = "none",
@@ -697,9 +694,7 @@ endmodule
 //      
 //-----------------------------------------------------------------------------
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_crossbar #
   (
    parameter         C_FAMILY                       = "none", 
@@ -1959,9 +1954,7 @@ endmodule
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_decerr_slave #
   (
    parameter integer C_AXI_ID_WIDTH           = 1,
@@ -2258,9 +2251,7 @@ endmodule
 //      
 //-----------------------------------------------------------------------------
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_si_transactor #
   (
    parameter         C_FAMILY                       = "none", 
@@ -2661,7 +2652,6 @@ endmodule
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_splitter #
   (
    parameter integer C_NUM_M = 2  // Number of master ports = [2:16]
@@ -2759,9 +2749,7 @@ endmodule
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_wdata_mux #
   (
    parameter         C_FAMILY       = "none", // FPGA Family.
@@ -2934,9 +2922,7 @@ endmodule
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-`default_nettype none
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_crossbar_v2_1_22_wdata_router #
   (
    parameter         C_FAMILY       = "none", // FPGA Family.
@@ -3082,9 +3068,7 @@ endmodule
 // File name: axi_crossbar.v
 //-----------------------------------------------------------------------------
 `timescale 1ps/1ps
-`default_nettype none
-
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+ 
 module axi_crossbar_v2_1_22_axi_crossbar # (
    parameter         C_FAMILY                         = "rtl", 
                        // FPGA Base Family. Current version: virtex6 or spartan6.

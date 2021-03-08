@@ -69,50 +69,50 @@ module axi_register_slice_v2_1_21_test_master #
    )
   (
   /**************** Write Address Channel Signals ****************/
-  (* dont_touch="true" *) output wire [C_AXI_ADDR_WIDTH-1:0]       m_axi_awaddr,
-  (* dont_touch="true" *) output reg [3-1:0]                     m_axi_awprot = 3'b0,
-  (* dont_touch="true" *) output wire                             m_axi_awvalid,
+  output wire [C_AXI_ADDR_WIDTH-1:0]       m_axi_awaddr,
+  output reg [3-1:0]                     m_axi_awprot = 3'b0,
+  output wire                             m_axi_awvalid,
   input  wire                            m_axi_awready,
-  (* dont_touch="true" *) output reg [3-1:0]                     m_axi_awsize = 3'b0,
-  (* dont_touch="true" *) output reg [2-1:0]                     m_axi_awburst = 2'b01,
-  (* dont_touch="true" *) output reg [4-1:0]                     m_axi_awcache = 4'b0,
-  (* dont_touch="true" *) output wire [(C_AXI_PROTOCOL==1?4:8)-1:0]        m_axi_awlen,
-  (* dont_touch="true" *) output reg [(C_AXI_PROTOCOL==1?2:1)-1:0]       m_axi_awlock = 1'b0,
-  (* dont_touch="true" *) output reg [4-1:0]                     m_axi_awqos = 4'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_awid = 'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_AWUSER_WIDTH==0?1:C_AXI_AWUSER_WIDTH)-1:0]    m_axi_awuser = 'b0,
+  output reg [3-1:0]                     m_axi_awsize = 3'b0,
+  output reg [2-1:0]                     m_axi_awburst = 2'b01,
+  output reg [4-1:0]                     m_axi_awcache = 4'b0,
+  output wire [(C_AXI_PROTOCOL==1?4:8)-1:0]        m_axi_awlen,
+  output reg [(C_AXI_PROTOCOL==1?2:1)-1:0]       m_axi_awlock = 1'b0,
+  output reg [4-1:0]                     m_axi_awqos = 4'b0,
+  output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_awid = 'b0,
+  output reg [(C_AXI_AWUSER_WIDTH==0?1:C_AXI_AWUSER_WIDTH)-1:0]    m_axi_awuser = 'b0,
   /**************** Write Data Channel Signals ****************/
-  (* dont_touch="true" *) output wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_wid,
-  (* dont_touch="true" *) output wire [C_AXI_DATA_WIDTH-1:0]      m_axi_wdata,
-  (* dont_touch="true" *) output reg [C_AXI_DATA_WIDTH/8-1:0]     m_axi_wstrb = {(C_AXI_DATA_WIDTH/8){1'b1}},
-  (* dont_touch="true" *) output wire                             m_axi_wvalid,
+  output wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_wid,
+  output wire [C_AXI_DATA_WIDTH-1:0]      m_axi_wdata,
+  output reg [C_AXI_DATA_WIDTH/8-1:0]     m_axi_wstrb = {(C_AXI_DATA_WIDTH/8){1'b1}},
+  output wire                             m_axi_wvalid,
   input  wire                            m_axi_wready,
-  (* dont_touch="true" *) output wire                             m_axi_wlast,
-  (* dont_touch="true" *) output reg [(C_AXI_WUSER_WIDTH==0?1:C_AXI_WUSER_WIDTH)-1:0]     m_axi_wuser = 'b0,
+  output wire                             m_axi_wlast,
+  output reg [(C_AXI_WUSER_WIDTH==0?1:C_AXI_WUSER_WIDTH)-1:0]     m_axi_wuser = 'b0,
   /**************** Write Response Channel Signals ****************/
   input  wire [2-1:0]                    m_axi_bresp,
   input  wire                            m_axi_bvalid,
-  (* dont_touch="true" *) output wire                             m_axi_bready,
+  output wire                             m_axi_bready,
   input  wire [(C_AXI_BUSER_WIDTH==0?1:C_AXI_BUSER_WIDTH)-1:0]     m_axi_buser,
   input  wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        m_axi_bid,
   /**************** Read Address Channel Signals ****************/
-  (* dont_touch="true" *) output wire [C_AXI_ADDR_WIDTH-1:0]       m_axi_araddr,
-  (* dont_touch="true" *) output reg [3-1:0]                     m_axi_arprot = 3'b0,
-  (* dont_touch="true" *) output wire                             m_axi_arvalid,
+  output wire [C_AXI_ADDR_WIDTH-1:0]       m_axi_araddr,
+  output reg [3-1:0]                     m_axi_arprot = 3'b0,
+  output wire                             m_axi_arvalid,
   input  wire                            m_axi_arready,
-  (* dont_touch="true" *) output reg [3-1:0]                     m_axi_arsize = 3'b0,
-  (* dont_touch="true" *) output reg [2-1:0]                     m_axi_arburst = 2'b01,
-  (* dont_touch="true" *) output reg [4-1:0]                     m_axi_arcache = 4'b0,
-  (* dont_touch="true" *) output wire [(C_AXI_PROTOCOL==1?4:8)-1:0]        m_axi_arlen,
-  (* dont_touch="true" *) output reg [(C_AXI_PROTOCOL==1?2:1)-1:0]       m_axi_arlock = 1'b0,
-  (* dont_touch="true" *) output reg [4-1:0]                     m_axi_arqos = 4'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_arid = 'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_ARUSER_WIDTH==0?1:C_AXI_ARUSER_WIDTH)-1:0]    m_axi_aruser = 'b0,
+  output reg [3-1:0]                     m_axi_arsize = 3'b0,
+  output reg [2-1:0]                     m_axi_arburst = 2'b01,
+  output reg [4-1:0]                     m_axi_arcache = 4'b0,
+  output wire [(C_AXI_PROTOCOL==1?4:8)-1:0]        m_axi_arlen,
+  output reg [(C_AXI_PROTOCOL==1?2:1)-1:0]       m_axi_arlock = 1'b0,
+  output reg [4-1:0]                     m_axi_arqos = 4'b0,
+  output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]         m_axi_arid = 'b0,
+  output reg [(C_AXI_ARUSER_WIDTH==0?1:C_AXI_ARUSER_WIDTH)-1:0]    m_axi_aruser = 'b0,
   /**************** Read Data Channel Signals ****************/
   input  wire [C_AXI_DATA_WIDTH-1:0]      m_axi_rdata,
   input  wire [2-1:0]                    m_axi_rresp,
   input  wire                            m_axi_rvalid,
-  (* dont_touch="true" *) output wire                             m_axi_rready,
+  output wire                             m_axi_rready,
   input  wire                            m_axi_rlast,
   input  wire [(C_AXI_RUSER_WIDTH==0?1:C_AXI_RUSER_WIDTH)-1:0]     m_axi_ruser,
   input  wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        m_axi_rid,
@@ -588,7 +588,7 @@ module axi_register_slice_v2_1_21_test_slave #
   input  wire [C_AXI_ADDR_WIDTH-1:0]     s_axi_awaddr,
   input  wire [3-1:0]                   s_axi_awprot,
   input  wire                           s_axi_awvalid,
-  (* dont_touch="true" *) output wire                            s_axi_awready,
+  output wire                            s_axi_awready,
   input  wire [3-1:0]                   s_axi_awsize,
   input  wire [2-1:0]                   s_axi_awburst,
   input  wire [4-1:0]                   s_axi_awcache,
@@ -602,21 +602,21 @@ module axi_register_slice_v2_1_21_test_slave #
   input  wire [C_AXI_DATA_WIDTH-1:0]     s_axi_wdata,
   input  wire [C_AXI_DATA_WIDTH/8-1:0]   s_axi_wstrb,
   input  wire                           s_axi_wvalid,
-  (* dont_touch="true" *) output wire                            s_axi_wready,
+  output wire                            s_axi_wready,
   input  wire                           s_axi_wlast,
   input  wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]       s_axi_wid,
   input  wire [(C_AXI_WUSER_WIDTH==0?1:C_AXI_WUSER_WIDTH)-1:0]    s_axi_wuser,
   /**************** Write Response Channel Signals ****************/
-  (* dont_touch="true" *) output reg [2-1:0]                    s_axi_bresp = 2'b0,
-  (* dont_touch="true" *) output wire                            s_axi_bvalid,
+  output reg [2-1:0]                    s_axi_bresp = 2'b0,
+  output wire                            s_axi_bvalid,
   input  wire                           s_axi_bready,
-  (* dont_touch="true" *) output reg [(C_AXI_BUSER_WIDTH==0?1:C_AXI_BUSER_WIDTH)-1:0]    s_axi_buser = 'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        s_axi_bid = 'b0,
+  output reg [(C_AXI_BUSER_WIDTH==0?1:C_AXI_BUSER_WIDTH)-1:0]    s_axi_buser = 'b0,
+  output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        s_axi_bid = 'b0,
   /**************** Read Address Channel Signals ****************/
   input  wire [C_AXI_ADDR_WIDTH-1:0]     s_axi_araddr,
   input  wire [3-1:0]                   s_axi_arprot,
   input  wire                           s_axi_arvalid,
-  (* dont_touch="true" *) output wire                            s_axi_arready,
+  output wire                            s_axi_arready,
   input  wire [3-1:0]                   s_axi_arsize,
   input  wire [2-1:0]                   s_axi_arburst,
   input  wire [4-1:0]                   s_axi_arcache,
@@ -627,13 +627,13 @@ module axi_register_slice_v2_1_21_test_slave #
   input  wire [(C_AXI_ARUSER_WIDTH==0?1:C_AXI_ARUSER_WIDTH)-1:0]   s_axi_aruser,
   input  wire [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]       s_axi_arid,
   /**************** Read Data Channel Signals ****************/
-  (* dont_touch="true" *) output wire [C_AXI_DATA_WIDTH-1:0]     s_axi_rdata,
-  (* dont_touch="true" *) output reg [2-1:0]                    s_axi_rresp = 2'b0,
-  (* dont_touch="true" *) output wire                            s_axi_rvalid,
+  output wire [C_AXI_DATA_WIDTH-1:0]     s_axi_rdata,
+  output reg [2-1:0]                    s_axi_rresp = 2'b0,
+  output wire                            s_axi_rvalid,
   input  wire                           s_axi_rready,
-  (* dont_touch="true" *) output wire                            s_axi_rlast,
-  (* dont_touch="true" *) output reg [(C_AXI_RUSER_WIDTH==0?1:C_AXI_RUSER_WIDTH)-1:0]    s_axi_ruser = 'b0,
-  (* dont_touch="true" *) output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        s_axi_rid = 'b0,
+  output wire                            s_axi_rlast,
+  output reg [(C_AXI_RUSER_WIDTH==0?1:C_AXI_RUSER_WIDTH)-1:0]    s_axi_ruser = 'b0,
+  output reg [(C_AXI_ID_WIDTH==0?1:C_AXI_ID_WIDTH)-1:0]        s_axi_rid = 'b0,
   /**************** System Signals ****************/
   input  wire                           aclk,
   input  wire                           aresetn
@@ -1046,7 +1046,7 @@ reg                posedge_finder_second;
 wire               first_edge;
 wire               second_edge;
 reg                sample_cycle_d;
-(* shreg_extract = "no" *) reg                sample_cycle_r;
+reg                sample_cycle_r;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1130,8 +1130,7 @@ endmodule // tdm_sample
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
-(* autopipeline_module="yes" *)
+
 module axi_register_slice_v2_1_21_auto_slr #
   (
    parameter integer C_DATA_WIDTH = 32
@@ -1155,14 +1154,14 @@ module axi_register_slice_v2_1_21_auto_slr #
     wire                    handshake_pipe;
     wire                    ready_pipe;
     wire [C_DATA_WIDTH-1:0] payload_pipe;
-    (* keep="true" *)                                                                reg  s_aclear = 1'b0;
-    (* autopipeline_group="fwd",autopipeline_limit=24,autopipeline_include="resp" *) reg  s_areset_fwd   = 1'b0;
-    (* autopipeline_group="resp" *)                                                  reg  s_areset_resp  = 1'b0;
-    (* keep="true" *)                                                                reg  s_areset_resp2 = 1'b0;
-    (* keep="true" *)                                                                reg  m_aclear = 1'b0;
-    (* autopipeline_group="fwd",autopipeline_limit=24,autopipeline_include="resp" *) reg  m_areset_fwd   = 1'b0;
-    (* autopipeline_group="resp" *)                                                  reg  m_areset_resp  = 1'b0;
-    (* keep="true" *)                                                                reg  m_areset_resp2 = 1'b0;
+    reg  s_aclear = 1'b0;
+    reg  s_areset_fwd   = 1'b0;
+    reg  s_areset_resp  = 1'b0;
+    reg  s_areset_resp2 = 1'b0;
+    reg  m_aclear = 1'b0;
+    reg  m_areset_fwd   = 1'b0;
+    reg  m_areset_resp  = 1'b0;
+    reg  m_areset_resp2 = 1'b0;
     
   // Global Reset pipelining
   
@@ -1236,8 +1235,8 @@ module axi_register_slice_v2_1_21_auto_src #
    input  wire [C_DATA_WIDTH-1:0] S_PAYLOAD_DATA
    );
     
-   (* autopipeline_group="fwd",autopipeline_limit=24,autopipeline_include="resp" *) reg  [C_DATA_WIDTH-1:0] payload_pipe_r;
-    (* keep="true" *) reg [2:0] s_aresetn_resp4 = 3'b000;
+    reg  [C_DATA_WIDTH-1:0] payload_pipe_r;
+    reg [2:0] s_aresetn_resp4 = 3'b000;
     wire s_aresetn_resp3;
     wire s_aresetn_d;
     wire s_aresetn_q;
@@ -1282,7 +1281,7 @@ module axi_register_slice_v2_1_21_auto_src #
         .D   (s_aresetn_d)
      );
     
-    (* autopipeline_group="fwd",autopipeline_limit=24,autopipeline_include="resp" *)
+    
     FDCE #(
         .INIT(1'b0)
      ) handshake_asyncclear (
@@ -1321,7 +1320,7 @@ module axi_register_slice_v2_1_21_auto_dest #
    output wire [C_DATA_WIDTH-1:0] M_PAYLOAD_DATA
    );
     
-    (* keep="true" *) reg [2:0] m_aresetn_resp4 = 3'b000;
+    reg [2:0] m_aresetn_resp4 = 3'b000;
     wire m_aresetn_resp3;
     wire m_aresetn_d;
     wire m_aresetn_q;
@@ -1379,7 +1378,7 @@ module axi_register_slice_v2_1_21_auto_dest #
         .D   (handshake_pipe)
      );
     
-    (* autopipeline_group="resp" *)
+    
     FDCE #(
         .INIT(1'b0)
      ) ready_asyncclear (
@@ -1470,7 +1469,7 @@ endmodule  // auto_dest
 //--------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module axi_register_slice_v2_1_21_srl_rtl #
   (
    parameter         C_A_WIDTH = 2          // Address Width (>= 1)
@@ -1526,7 +1525,7 @@ module axi_register_slice_v2_1_21_axic_register_slice #
    input  wire M_READY
    );
 
-  (* use_clock_enable = "yes" *)
+
 
   generate
   ////////////////////////////////////////////////////////////////////
@@ -2196,7 +2195,7 @@ endmodule // axic_register_slice
 //--------------------------------------------------------------------------
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module axi_register_slice_v2_1_21_multi_slr #
   (
    parameter C_FAMILY     = "virtex6",
@@ -2708,7 +2707,7 @@ endgenerate
 endmodule  // multi_slr
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module axi_register_slice_v2_1_21_middle_region_slr #
   (
    parameter C_FAMILY     = "virtex6",
@@ -2747,12 +2746,12 @@ module axi_register_slice_v2_1_21_middle_region_slr #
    
   generate
 
-  (* keep="true" *) reg s_reset_dd = 1'b0;
-  (* keep="true" *) reg m_reset_dd = 1'b0;
-  (* USER_SLL_REG="true", keep="true" *) reg laguna_s_reset_in_d = 1'b0;
-  (* USER_SLL_REG="true", keep="true" *) reg laguna_m_reset_in_d = 1'b0;
-  (* USER_SLL_REG="true", keep="true" *) reg laguna_s_reset_out_i = 1'b0;
-  (* USER_SLL_REG="true", keep="true" *) reg laguna_m_reset_out_i = 1'b0;
+  reg s_reset_dd = 1'b0;
+  reg m_reset_dd = 1'b0;
+  reg laguna_s_reset_in_d = 1'b0;
+  reg laguna_m_reset_in_d = 1'b0;
+  reg laguna_s_reset_out_i = 1'b0;
+  reg laguna_m_reset_out_i = 1'b0;
   
   assign laguna_s_reset_out = laguna_s_reset_out_i;
   assign laguna_m_reset_out = laguna_m_reset_out_i;
@@ -2770,13 +2769,13 @@ module axi_register_slice_v2_1_21_middle_region_slr #
   assign ACLEAR = ~ARESETN;
   
   if (1) begin : common
-    (* USER_SLL_REG="true", shreg_extract="no" *) reg [C_DATA_WIDTH-1:0] laguna_s_payload_d;
-    (* USER_SLL_REG="true", shreg_extract="no" *) reg [C_DATA_WIDTH-1:0] laguna_m_payload_i;
+    reg [C_DATA_WIDTH-1:0] laguna_s_payload_d;
+    reg [C_DATA_WIDTH-1:0] laguna_m_payload_i;
     wire laguna_s_handshake_q;
     wire m_handshake_d;
-    (* USER_SLL_REG="true", keep="true" *)  reg laguna_m_ready_d = 1'b0;
-    (* USER_SLL_REG="true", keep="true" *)  reg laguna_s_ready_i = 1'b0;
-    (* keep="true" *)  reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
+    reg laguna_m_ready_d = 1'b0;
+    reg laguna_s_ready_i = 1'b0;
+    reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
     wire [(C_PIPELINES+2)*C_DATA_WIDTH-1:0] payload_i;
     wire [(C_PIPELINES+2)-1:0] handshake_i;
     genvar p;
@@ -2791,7 +2790,7 @@ module axi_register_slice_v2_1_21_middle_region_slr #
     end
 
     for (p=0; p<=(C_PIPELINES+1); p=p+1) begin : pipe
-      (* shreg_extract="no" *) reg [C_DATA_WIDTH-1:0]  payload_data;
+      reg [C_DATA_WIDTH-1:0]  payload_data;
       wire payload_valid_d;
       wire payload_valid_q;
       
@@ -2822,7 +2821,7 @@ module axi_register_slice_v2_1_21_middle_region_slr #
     
     assign m_handshake_d = handshake_i[C_PIPELINES];
     
-    (* USER_SLL_REG="true" *)
+
     FDCE #(
         .INIT(1'b0)
      ) laguna_m_handshake_asyncclear_inst (
@@ -2833,7 +2832,7 @@ module axi_register_slice_v2_1_21_middle_region_slr #
         .D   (m_handshake_d)
      );
     
-    (* USER_SLL_REG="true" *)
+
     FDCE #(
         .INIT(1'b0)
      ) laguna_s_handshake_asyncclear_inst (
@@ -2849,7 +2848,7 @@ module axi_register_slice_v2_1_21_middle_region_slr #
 endmodule  // middle_region_slr
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
+
 module axi_register_slice_v2_1_21_source_region_slr #
   (
    parameter C_FAMILY     = "virtex6",
@@ -2881,7 +2880,7 @@ module axi_register_slice_v2_1_21_source_region_slr #
   generate
 
   if (C_REG_CONFIG == 13) begin : tdm
-    (* keep="true" *) reg areset_d = 1'b0;
+    reg areset_d = 1'b0;
     always @(posedge ACLK) begin
       areset_d <= ~ARESETN;
     end
@@ -2889,10 +2888,10 @@ module axi_register_slice_v2_1_21_source_region_slr #
   
     localparam integer P_EVEN_WIDTH = C_DATA_WIDTH[0] ? (C_DATA_WIDTH+1) : C_DATA_WIDTH;
     
-    (* shreg_extract = "no" *) reg [P_EVEN_WIDTH-1:0] payload_d1;
-    (* shreg_extract = "no" *) reg [C_SLR_WIDTH-1:0]  laguna_m_payload_i;
-    (* keep="true" *)    reg laguna_m_handshake_i = 1'b0;
-    (* shreg_extract = "no" *) reg laguna_m_ready_d = 1'b0;
+    reg [P_EVEN_WIDTH-1:0] payload_d1;
+    reg [C_SLR_WIDTH-1:0]  laguna_m_payload_i;
+    reg laguna_m_handshake_i = 1'b0;
+    reg laguna_m_ready_d = 1'b0;
     wire sample_cycle;
     integer i;
 
@@ -2944,11 +2943,11 @@ module axi_register_slice_v2_1_21_source_region_slr #
     localparam integer P_FORWARD = 0;
     localparam integer P_RESPONSE = 1;
      
-    (* keep="true" *)    reg aresetn_d = 1'b1;
-    (* keep="true" *) reg areset_d = 1'b0;
-    (* USER_SLL_REG="true", keep="true" *) reg laguna_m_reset_in_d = 1'b0;
-    (* USER_SLL_REG="true", keep="true" *) reg laguna_m_reset_out_i = 1'b0;
-                               reg [15:0] areset_dly = 16'b0;
+    reg aresetn_d = 1'b1;
+    reg areset_d = 1'b0;
+    reg laguna_m_reset_in_d = 1'b0;
+    reg laguna_m_reset_out_i = 1'b0;
+    reg [15:0] areset_dly = 16'b0;
     
     assign laguna_m_reset_out = laguna_m_reset_out_i;
     
@@ -2963,11 +2962,11 @@ module axi_register_slice_v2_1_21_source_region_slr #
     wire ACLEAR;
     assign ACLEAR = C_REG_CONFIG == 12 ? 1'b0 : ~ARESETN;
   
-    (* USER_SLL_REG="true", shreg_extract="no" *) reg [C_DATA_WIDTH-1:0] laguna_m_payload_i;
+    reg [C_DATA_WIDTH-1:0] laguna_m_payload_i;
     wire m_handshake_d;
-    (* USER_SLL_REG="true", keep="true" *)  reg laguna_m_ready_d = 1'b0;
-    (* keep="true" *)  reg s_ready_i = 1'b0;
-    (* keep="true" *)  reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
+    reg laguna_m_ready_d = 1'b0;
+    reg s_ready_i = 1'b0;
+    reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
     wire [(C_PIPELINES+1)*C_DATA_WIDTH-1:0] payload_i;
     wire [(C_PIPELINES+1)-1:0] handshake_i;
     genvar p;
@@ -2986,7 +2985,7 @@ module axi_register_slice_v2_1_21_source_region_slr #
     end
     
     for (p=0; p<=C_PIPELINES; p=p+1) begin : pipe
-      (* shreg_extract="no" *) reg [C_DATA_WIDTH-1:0] payload_data;
+      reg [C_DATA_WIDTH-1:0] payload_data;
       wire payload_valid_d;
       wire payload_valid_q;
       
@@ -3017,7 +3016,6 @@ module axi_register_slice_v2_1_21_source_region_slr #
     
     assign m_handshake_d = C_PIPELINES==0 ? (S_VALID & s_ready_i) : handshake_i[P_PIPE_WIDTH-1];
     
-    (* USER_SLL_REG="true" *)
     FDCE #(
         .INIT(1'b0)
      ) laguna_m_handshake_asyncclear_inst (
@@ -3033,7 +3031,7 @@ module axi_register_slice_v2_1_21_source_region_slr #
 endmodule  // source_region_slr
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *)
+
 module axi_register_slice_v2_1_21_dest_region_slr #
   (
    parameter C_FAMILY     = "virtex6",
@@ -3067,7 +3065,7 @@ module axi_register_slice_v2_1_21_dest_region_slr #
   generate
 
   if (C_REG_CONFIG == 13) begin : tdm
-    (* keep="true" *) reg areset_d = 1'b0;
+    reg areset_d = 1'b0;
     always @(posedge ACLK) begin
       areset_d <= ~ARESETN;
     end
@@ -3075,13 +3073,13 @@ module axi_register_slice_v2_1_21_dest_region_slr #
   
     localparam integer P_EVEN_WIDTH = C_DATA_WIDTH[0] ? (C_DATA_WIDTH+1) : C_DATA_WIDTH;
     
-    (* shreg_extract = "no" *) reg [C_SLR_WIDTH-1:0]  laguna_s_payload_d;
-    (* shreg_extract = "no" *) reg [C_SLR_WIDTH-1:0]  payload_tdm_d4;
-    (* shreg_extract = "no" *) reg [C_DATA_WIDTH-1:0] fifo_out;
-    (* shreg_extract = "no" *) reg [C_DATA_WIDTH-1:0] fifo_out_n1;
-    (* shreg_extract = "no" *) reg laguna_s_handshake_d = 1'b0;
-    (* keep="true" *)    reg laguna_s_ready_i = 1'b0;
-    (* shreg_extract = "no" *) reg s_ready_d2 = 1'b0;
+    reg [C_SLR_WIDTH-1:0]  laguna_s_payload_d;
+    reg [C_SLR_WIDTH-1:0]  payload_tdm_d4;
+    reg [C_DATA_WIDTH-1:0] fifo_out;
+    reg [C_DATA_WIDTH-1:0] fifo_out_n1;
+    reg laguna_s_handshake_d = 1'b0;
+    reg laguna_s_ready_i = 1'b0;
+    reg s_ready_d2 = 1'b0;
     reg [P_EVEN_WIDTH-1:0] payload_demux;
     reg m_valid_r = 1'b0;
     wire push;
@@ -3174,11 +3172,11 @@ module axi_register_slice_v2_1_21_dest_region_slr #
     localparam integer P_FORWARD = 0;
     localparam integer P_RESPONSE = 1;
      
-    (* keep="true" *)    reg aresetn_d = 1'b1;
-    (* keep="true" *) reg areset_d = 1'b0;
-    (* USER_SLL_REG="true", keep="true" *) reg laguna_s_reset_in_d = 1'b0;
-    (* USER_SLL_REG="true", keep="true" *) reg laguna_s_reset_out_i = 1'b0;
-                               reg [15:0] areset_dly = 16'b0;
+    reg aresetn_d = 1'b1;
+    reg areset_d = 1'b0;
+    reg laguna_s_reset_in_d = 1'b0;
+    reg laguna_s_reset_out_i = 1'b0;
+    reg [15:0] areset_dly = 16'b0;
     
     assign laguna_s_reset_out = laguna_s_reset_out_i;
     
@@ -3193,10 +3191,10 @@ module axi_register_slice_v2_1_21_dest_region_slr #
     wire ACLEAR;
     assign ACLEAR = C_REG_CONFIG == 12 ? 1'b0 : ~ARESETN;
   
-    (* USER_SLL_REG="true", shreg_extract="no" *) reg [C_DATA_WIDTH-1:0] laguna_s_payload_d;
+    reg [C_DATA_WIDTH-1:0] laguna_s_payload_d;
     wire laguna_s_handshake_q;
-    (* USER_SLL_REG="true", keep="true" *)  reg laguna_s_ready_i = 1'b0;
-    (* keep="true" *)  reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
+    reg laguna_s_ready_i = 1'b0;
+    reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
     wire [(C_PIPELINES+1)*C_DATA_WIDTH-1:0] payload_i;
     wire [(C_PIPELINES+1)-1:0] handshake_i;
     wire m_valid_i;
@@ -3215,7 +3213,7 @@ module axi_register_slice_v2_1_21_dest_region_slr #
     end
     
     for (p=0; p<=C_PIPELINES; p=p+1) begin : pipe
-      (* shreg_extract="no" *) reg [C_DATA_WIDTH-1:0]  payload_data;
+      reg [C_DATA_WIDTH-1:0]  payload_data;
       wire payload_valid_d;
       wire payload_valid_q;
       
@@ -3242,7 +3240,7 @@ module axi_register_slice_v2_1_21_dest_region_slr #
        );
     end  // loop p
     
-    (* USER_SLL_REG="true" *)
+
     FDCE #(
         .INIT(1'b0)
      ) laguna_s_handshake_asyncclear_inst (
@@ -3275,7 +3273,7 @@ module axi_register_slice_v2_1_21_dest_region_slr #
 endmodule  // dest_region_slr
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *)
+
 module axi_register_slice_v2_1_21_single_slr #
   (
    parameter C_FAMILY     = "virtex6",
@@ -3313,7 +3311,7 @@ module axi_register_slice_v2_1_21_single_slr #
   
   if (1) begin : common
     reg s_ready_i = 1'b0;
-    (* keep="true" *)  reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
+    reg [P_PIPE_WIDTH-1:0] ready_d = {P_PIPE_WIDTH{1'b0}};
     wire [(C_PIPELINES+1)*C_DATA_WIDTH-1:0] payload_i;
     wire [(C_PIPELINES+1)-1:0] handshake_i;
     wire m_valid_i;
@@ -3339,8 +3337,8 @@ module axi_register_slice_v2_1_21_single_slr #
     assign handshake_i[0] = S_VALID & s_ready_i;
     
     for (p=1; p<=C_PIPELINES; p=p+1) begin : pipe
-      (* shreg_extract="no" *) reg [C_DATA_WIDTH-1:0]  payload_data;
-      (* keep="true" *)  reg payload_valid = 1'b0;
+      reg [C_DATA_WIDTH-1:0]  payload_data;
+      reg payload_valid = 1'b0;
       
       assign payload_i[p*C_DATA_WIDTH +: C_DATA_WIDTH] = payload_data;
       assign handshake_i[p] = payload_valid;
@@ -3358,9 +3356,9 @@ module axi_register_slice_v2_1_21_single_slr #
     
     if (C_PIPELINES==0) begin : ff_fifo
 
-      (* shreg_extract = "no" *) reg [C_DATA_WIDTH-1:0] fifo_out;
-      (* shreg_extract = "no" *) reg [C_DATA_WIDTH-1:0] fifo_out_n1;
-      (* shreg_extract = "no" *) reg [C_DATA_WIDTH-1:0] fifo_out_n2;
+      reg [C_DATA_WIDTH-1:0] fifo_out;
+      reg [C_DATA_WIDTH-1:0] fifo_out_n1;
+      reg [C_DATA_WIDTH-1:0] fifo_out_n2;
       reg [1:0] fifo_cnt = 2'h0;
       reg m_valid_r = 1'b0;
       
@@ -3437,7 +3435,6 @@ module axi_register_slice_v2_1_21_single_slr #
   endgenerate
 endmodule  // single_slr
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_register_slice_v2_1_21_axic_reg_srl_fifo #
   // FIFO with no s_ready back-pressure; must guarantee parent will never push beyond full
   (
@@ -3641,7 +3638,7 @@ module axi_register_slice_v2_1_21_axic_reg_srl_fifo #
     // Instantiate SRLs
     //---------------------------------------------------------------------------
     for (i=0;i<C_FIFO_WIDTH;i=i+1) begin : srl
-      (* keep_hierarchy = "yes" *) axi_register_slice_v2_1_21_srl_rtl #
+      axi_register_slice_v2_1_21_srl_rtl #
         (
          .C_A_WIDTH (C_FIFO_SIZE)
         )
