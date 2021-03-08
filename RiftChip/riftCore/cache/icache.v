@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:52:01
+* @Last Modified time: 2021-03-08 10:43:52
 */
 
 /*
@@ -62,6 +62,7 @@ module icache #
 
 
 	input il1_fence,
+	output il1_fence_end,
 	input CLK,
 	input RSTn
 
@@ -175,7 +176,7 @@ module icache #
 
 
 
-
+assign il1_fence_end = (il1_state_qout == IL1_STATE_FENCE) & (il1_state_dnxt == IL1_STATE_CFREE);
 
 
 gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout), .CLK(CLK), .RSTn(RSTn));
