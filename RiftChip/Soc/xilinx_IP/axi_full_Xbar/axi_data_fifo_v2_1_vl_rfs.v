@@ -558,22 +558,7 @@ module axi_data_fifo_v2_1_20_ndeep_srl #
              );
       end
       
-      if (C_A_WIDTH>P_SRLASIZE) begin : gen_srl_mux
-        generic_baseblocks_v2_1_0_nto1_mux #
-        (
-          .C_RATIO         (2**(C_A_WIDTH-P_SRLASIZE)),
-          .C_SEL_WIDTH     (C_A_WIDTH-P_SRLASIZE),
-          .C_DATAOUT_WIDTH (1),
-          .C_ONEHOT        (0)
-        )
-        srl_q_mux_inst
-        (
-          .SEL_ONEHOT ({2**(C_A_WIDTH-P_SRLASIZE){1'b0}}),
-          .SEL        (a_i[C_A_WIDTH-1:P_SRLASIZE]),
-          .IN         (q_i),
-          .OUT        (Q)
-        );
-      end else begin : gen_no_srl_mux
+      begin : gen_no_srl_mux
         assign Q = q_i[0];
       end
     end

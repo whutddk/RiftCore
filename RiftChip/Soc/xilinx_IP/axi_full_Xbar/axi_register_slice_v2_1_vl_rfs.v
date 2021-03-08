@@ -1494,7 +1494,6 @@ module axi_register_slice_v2_1_21_srl_rtl #
 endmodule  // srl_rtl
 
 `timescale 1ps/1ps
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_register_slice_v2_1_21_axic_register_slice #
   (
    parameter C_FAMILY     = "virtex6",
@@ -3722,7 +3721,6 @@ endmodule  // axic_reg_srl_fifo
 
 `timescale 1ps/1ps
 
-(* DowngradeIPIdentifiedWarnings="yes" *) 
 module axi_register_slice_v2_1_21_axi_register_slice #
   (
    parameter C_FAMILY                            = "virtex6",
