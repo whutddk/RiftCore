@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 17:02:28
+* @Last Modified time: 2021-03-08 10:52:54
 */
 
 /*
@@ -38,7 +38,6 @@ module frontEnd (
 	input [63:0] ifu_data_rsp,
 	input ifu_rsp_valid,
 	output ifu_rsp_ready,
-	output il1_fence,
 
 	input instrFifo_reject,
 	output instrFifo_push,
@@ -61,8 +60,8 @@ module frontEnd (
 
 	wire branch_pc_valid;
 	wire [63:0] branch_pc;
-	wire [63:0] fetch_addr_qout;
-	wire pcGen_fetch_ready;
+	wire [63:0] pc_if_addr;
+	wire pc_if_ready;
 	wire [63:0] if_iq_pc;
 	wire [63:0] if_iq_instr;
 	wire if_iq_valid;
@@ -83,8 +82,8 @@ pcGenerate i_pcGenerate(
 	.branch_pc_valid(branch_pc_valid),
 	.branch_pc(branch_pc),
 
-	.fetch_addr_qout(fetch_addr_qout),
-	.pcGen_fetch_ready(pcGen_fetch_ready),
+	.fetch_addr_qout(pc_if_addr),
+	.pcGen_fetch_ready(pc_if_ready),
 
 	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
@@ -99,10 +98,9 @@ ifetch i_ifetch(
 	.ifu_data_rsp (ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
 	.ifu_rsp_ready(ifu_rsp_ready),
-	.il1_fence(il1_fence),
 
-	.fetch_addr_qout(fetch_addr_qout),
-	.pcGen_fetch_ready(pcGen_fetch_ready),
+	.pc_if_addr(pc_if_addr),
+	.pc_if_ready(pc_if_ready),
 
 	.if_iq_pc(if_iq_pc),
 	.if_iq_instr(if_iq_instr),

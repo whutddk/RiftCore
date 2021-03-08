@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 16:14:39
+* @Last Modified time: 2021-03-08 10:54:59
 */
 
 /*
@@ -99,6 +99,7 @@ module cache (
 	output MEM_RREADY,
 
 	input il1_fence,
+	output il1_fence_end,
 	input dl1_fence,
 	output dl1_fence_end,
 	input l2c_fence,
@@ -209,6 +210,7 @@ icache i_icache(
 	.ifu_rsp_ready(ifu_rsp_ready),
 
 	.il1_fence(il1_fence),
+	.il1_fence_end(il1_fence_end),
 	.CLK(CLK),
 	.RSTn(RSTn)
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 17:05:46
+* @Last Modified time: 2021-03-08 10:56:00
 */
 
 
@@ -160,7 +160,7 @@ wire [31:0] ifu_addr_req;
 wire [63:0] ifu_data_rsp;
 wire ifu_rsp_valid;
 wire ifu_rsp_ready;
-wire il1_fence;
+
 
 
 
@@ -173,7 +173,6 @@ frontEnd i_frontEnd(
 	.ifu_data_rsp (ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
 	.ifu_rsp_ready(ifu_rsp_ready),
-	.il1_fence(il1_fence),
 
 	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
@@ -285,7 +284,7 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 	wire lsu_rsp_valid;
 	wire lsu_rsp_ready = 1'b1;
 
-
+	wire il1_fence = 1'b0;
 	wire dl1_fence = 1'b0;
 	wire dl1_fence_end;
 	wire l2c_fence = 1'b0;
@@ -359,6 +358,7 @@ cache i_cache
 	.MEM_RREADY   (MEM_RREADY),
 
 	.il1_fence    (il1_fence),
+	.il1_fence_end(il1_fence_end),
 	.dl1_fence    (dl1_fence),
 	.dl1_fence_end(dl1_fence_end),
 	.l2c_fence    (l2c_fence),

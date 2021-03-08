@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-20 16:49:45
+* @Last Modified time: 2021-03-08 11:05:51
 */
 
 
@@ -34,25 +34,48 @@ module riftChip (
 	input RSTn
 );
 
-	wire [63:0] IFU_AWADDR;
-	wire [2:0] IFU_AWPROT;
-	wire IFU_AWVALID;
-	wire IFU_AWREADY;
-	wire [63:0] IFU_WDATA;
-	wire [7:0] IFU_WSTRB;
-	wire IFU_WVALID;
-	wire IFU_WREADY;
-	wire [1:0] IFU_BRESP;
-	wire IFU_BVALID;
-	wire IFU_BREADY;
-	wire [63:0] IFU_ARADDR;
-	wire [2:0] IFU_ARPROT;
-	wire IFU_ARVALID;
-	wire IFU_ARREADY;
-	wire [63:0] IFU_RDATA;
-	wire [1:0] IFU_RRESP;
-	wire IFU_RVALID;
-	wire IFU_RREADY;
+	output [0:0] MEM_AWID,
+	output [63:0] MEM_AWADDR,
+	output [7:0] MEM_AWLEN,
+	output [2:0] MEM_AWSIZE,
+	output [1:0] MEM_AWBURST,
+	output MEM_AWLOCK,
+	output [3:0] MEM_AWCACHE,
+	output [2:0] MEM_AWPROT,
+	output [3:0] MEM_AWQOS,
+	output [0:0] MEM_AWUSER,
+	output MEM_AWVALID,
+	input MEM_AWREADY,
+	output [63:0] MEM_WDATA,
+	output [7:0] MEM_WSTRB,
+	output MEM_WLAST,
+	output [0:0] MEM_WUSER,
+	output MEM_WVALID,
+	input MEM_WREADY,
+	input [0:0] MEM_BID,
+	input [1:0] MEM_BRESP,
+	input [0:0] MEM_BUSER,
+	input MEM_BVALID,
+	output MEM_BREADY,
+	output [0:0] MEM_ARID,
+	output [63:0] MEM_ARADDR,
+	output [7:0] MEM_ARLEN,
+	output [2:0] MEM_ARSIZE,
+	output [1:0] MEM_ARBURST,
+	output MEM_ARLOCK,
+	output [3:0] MEM_ARCACHE,
+	output [2:0] MEM_ARPROT,
+	output [3:0] MEM_ARQOS,
+	output [0:0] MEM_ARUSER,
+	output MEM_ARVALID,
+	input MEM_ARREADY,
+	input [0:0] MEM_RID,
+	input [63:0] MEM_RDATA,
+	input [1:0] MEM_RRESP,
+	input MEM_RLAST,
+	input [0:0] MEM_RUSER,
+	input MEM_RVALID,
+	output MEM_RREADY,
 
 	wire [63:0] LSU_AWADDR;
 	wire [2:0] LSU_AWPROT;
@@ -99,25 +122,48 @@ riftCore i_riftCore(
 	.isRTimerInterrupt(1'b0),
 	.isSoftwvInterrupt(1'b0),
 
-	.IFU_AWADDR(IFU_AWADDR),
-	.IFU_AWPROT(IFU_AWPROT),
-	.IFU_AWVALID(IFU_AWVALID),
-	.IFU_AWREADY(IFU_AWREADY),
-	.IFU_WDATA(IFU_WDATA),
-	.IFU_WSTRB(IFU_WSTRB),
-	.IFU_WVALID(IFU_WVALID),
-	.IFU_WREADY(IFU_WREADY),
-	.IFU_BRESP(IFU_BRESP),
-	.IFU_BVALID(IFU_BVALID),
-	.IFU_BREADY(IFU_BREADY),
-	.IFU_ARADDR(IFU_ARADDR),
-	.IFU_ARPROT(IFU_ARPROT),
-	.IFU_ARVALID(IFU_ARVALID),
-	.IFU_ARREADY(IFU_ARREADY),
-	.IFU_RDATA(IFU_RDATA),
-	.IFU_RRESP(IFU_RRESP),
-	.IFU_RVALID(IFU_RVALID),
-	.IFU_RREADY(IFU_RREADY),
+	.MEM_AWID         (MEM_AWID),
+	.MEM_AWADDR       (MEM_AWADDR),
+	.MEM_AWLEN        (MEM_AWLEN),
+	.MEM_AWSIZE       (MEM_AWSIZE),
+	.MEM_AWBURST      (MEM_AWBURST),
+	.MEM_AWLOCK       (MEM_AWLOCK),
+	.MEM_AWCACHE      (MEM_AWCACHE),
+	.MEM_AWPROT       (MEM_AWPROT),
+	.MEM_AWQOS        (MEM_AWQOS),
+	.MEM_AWUSER       (MEM_AWUSER),
+	.MEM_AWVALID      (MEM_AWVALID),
+	.MEM_AWREADY      (MEM_AWREADY),
+	.MEM_WDATA        (MEM_WDATA),
+	.MEM_WSTRB        (MEM_WSTRB),
+	.MEM_WLAST        (MEM_WLAST),
+	.MEM_WUSER        (MEM_WUSER),
+	.MEM_WVALID       (MEM_WVALID),
+	.MEM_WREADY       (MEM_WREADY),
+	.MEM_BID          (MEM_BID),
+	.MEM_BRESP        (MEM_BRESP),
+	.MEM_BUSER        (MEM_BUSER),
+	.MEM_BVALID       (MEM_BVALID),
+	.MEM_BREADY       (MEM_BREADY),
+	.MEM_ARID         (MEM_ARID),
+	.MEM_ARADDR       (MEM_ARADDR),
+	.MEM_ARLEN        (MEM_ARLEN),
+	.MEM_ARSIZE       (MEM_ARSIZE),
+	.MEM_ARBURST      (MEM_ARBURST),
+	.MEM_ARLOCK       (MEM_ARLOCK),
+	.MEM_ARCACHE      (MEM_ARCACHE),
+	.MEM_ARPROT       (MEM_ARPROT),
+	.MEM_ARQOS        (MEM_ARQOS),
+	.MEM_ARUSER       (MEM_ARUSER),
+	.MEM_ARVALID      (MEM_ARVALID),
+	.MEM_ARREADY      (MEM_ARREADY),
+	.MEM_RID          (MEM_RID),
+	.MEM_RDATA        (MEM_RDATA),
+	.MEM_RRESP        (MEM_RRESP),
+	.MEM_RLAST        (MEM_RLAST),
+	.MEM_RUSER        (MEM_RUSER),
+	.MEM_RVALID       (MEM_RVALID),
+	.MEM_RREADY       (MEM_RREADY),
 
 	.LSU_AWADDR(LSU_AWADDR),
 	.LSU_AWPROT(LSU_AWPROT),
