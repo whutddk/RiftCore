@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:47:09
+* @Last Modified time: 2021-03-08 10:29:20
 */
 
 /*
@@ -146,7 +146,8 @@ module iqueue (
 
 	
 
-	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000);
+	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000)
+							& ~fencei_stall & ~jalr_stall & ~bht_stall;
 
 
 
