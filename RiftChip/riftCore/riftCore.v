@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:56:00
+* @Last Modified time: 2021-03-08 17:45:20
 */
 
 
@@ -285,6 +285,7 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 	wire lsu_rsp_ready = 1'b1;
 
 	wire il1_fence = 1'b0;
+	wire il1_fence_end;
 	wire dl1_fence = 1'b0;
 	wire dl1_fence_end;
 	wire l2c_fence = 1'b0;
