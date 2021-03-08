@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-08 19:37:32
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 19:38:05
+* @Last Modified time: 2021-03-08 20:09:33
 */
 
 
@@ -983,6 +983,7 @@ module axi_crossbar_v2_1_22_crossbar #
         (
           .aresetn                          (ARESETN),
           .aclk                             (ACLK),
+          .aclk2x        (1'b0),
           .s_axi_awid                       ({C_AXI_ID_WIDTH{1'b0}}),
           .s_axi_awaddr                     ({1{1'b0}}),
           .s_axi_awlen                      ({((C_AXI_PROTOCOL == P_AXI3) ? 4 : 8){1'b0}}),
