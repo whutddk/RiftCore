@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-08 15:50:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 19:03:12
+* @Last Modified time: 2021-03-09 09:48:06
 */
 
 /*
@@ -496,7 +496,7 @@ assign m_axi_rdata = {MEM_RDATA, PERPH_RDATA, PLIC_RDATA, CLINT_RDATA};
 assign m_axi_rresp = {MEM_RRESP, PERPH_RRESP, PLIC_RRESP, CLINT_RRESP};
 assign m_axi_rvalid = {MEM_RVALID, PERPH_RVALID, PLIC_RVALID, CLINT_RVALID};
 assign {MEM_RREADY, PERPH_RREADY, PLIC_RREADY, CLINT_RREADY} = m_axi_rready;
-
+assign m_axi_rlast = { MEM_RLAST, PERPH_RLAST, PLIC_RLAST, CLINT_RLAST };
 
 
 
@@ -593,6 +593,7 @@ axi_full_crossbar i_axi_full_crossbar
 	.m_axi_rresp   (m_axi_rresp),
 	.m_axi_rlast   (m_axi_rlast),
 	.m_axi_rvalid  (m_axi_rvalid),
+	.m_axi_rready  (m_axi_rready),
 
 	.aclk          (CLK),
 	.aresetn       (RSTn)
