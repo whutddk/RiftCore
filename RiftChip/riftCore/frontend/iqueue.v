@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-09 14:59:06
+* @Last Modified time: 2021-03-09 16:15:06
 */
 
 /*
@@ -146,7 +146,7 @@ module iqueue (
 
 	
 
-	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000);
+	assign if_iq_ready = (iq_instr_mask_qout[7:4] == 4'b0000);
 
 
 

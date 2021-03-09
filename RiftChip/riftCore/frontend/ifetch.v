@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:51:16
+* @Last Modified time: 2021-03-09 17:04:55
 */
 
 /*
@@ -91,10 +91,12 @@ gen_rsffr # ( .DW(1))   invalid_outstanding_rsffr ( .set_in(invalid_outstanding_
 
 gen_dffren # ( .DW(64)) if_iq_pc_dffren    ( .dnxt(pending_addr),   .qout(if_iq_pc),    .en(cache_rsp), .CLK(CLK), .RSTn(RSTn));
 gen_dffren # ( .DW(64)) if_iq_instr_dffren ( .dnxt(ifu_data_rsp), .qout(if_iq_instr), .en(cache_rsp), .CLK(CLK), .RSTn(RSTn));
-gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(cache_rsp & ~invalid_outstanding_qout & (~flush)), .rst_in(if_iq_ready | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(cache_rsp & ~invalid_outstanding_qout & (~flush)), .rst_in(if_iq_valid | flush), .qout(if_iq_valid), .CLK(CLK), .RSTn(RSTn));
 
 
-
+// assign if_iq_pc = pending_addr;
+// assign if_iq_instr = ifu_data_rsp;
+// assign if_iq_valid = cache_rsp & ~invalid_outstanding_qout & (~flush);
 
 
 
@@ -114,8 +116,15 @@ gen_rsffr # ( .DW(1))   if_iq_valid_rsffr  ( .set_in(cache_rsp & ~invalid_outsta
 	assign ifu_rsp_ready = 1'b1;
 
 
+	wire isIFU_busy_set, isIFU_busy_rst, isIFU_busy_qout;
 
-	assign ifu_req_valid_set = (if_iq_ready | boot) & ~flush;
+	assign isIFU_busy_set = ifu_req_valid_set;
+	assign isIFU_busy_rst = cache_rsp;
+
+	gen_rsffr # (.DW(1)) isIFU_busy_rsffr (.set_in(isIFU_busy_set), .rst_in(isIFU_busy_rst), .qout(isIFU_busy_qout), .CLK(CLK), .RSTn(RSTn) );
+
+
+	assign ifu_req_valid_set = ~isIFU_busy_qout & (if_iq_ready | boot) & ~flush;
 	assign ifu_req_valid_rst = cache_req;
 	assign ifu_req_valid = ifu_req_valid_qout;
 	gen_rsffr # ( .DW(1)) ifu_req_valid_rsffr
