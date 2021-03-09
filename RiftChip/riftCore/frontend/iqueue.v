@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:29:20
+* @Last Modified time: 2021-03-09 14:59:06
 */
 
 /*
@@ -146,8 +146,7 @@ module iqueue (
 
 	
 
-	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000)
-							& ~fencei_stall & ~jalr_stall & ~bht_stall;
+	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000);
 
 
 
@@ -220,7 +219,10 @@ assign iq_stall = fencei_stall | jalr_stall | bht_stall | ~iq_id_ready | instr_b
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
-assign iq_instr_mask_dnxt = flush ? 1'b0 : ((~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load);
+assign iq_instr_mask_dnxt = flush ? 8'b0 : 
+										((~iq_stall) ? 
+											( (branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : 
+											iq_instr_mask_load);
 
 
 
