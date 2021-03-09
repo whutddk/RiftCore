@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:43:52
+* @Last Modified time: 2021-03-09 11:41:01
 */
 
 /*
@@ -203,7 +203,7 @@ assign ifu_req_ready = il1_state_qout == IL1_STATE_CKTAG;
 
 assign ifu_rsp_valid = 
 	  ( (il1_state_qout == IL1_STATE_CKTAG) & (| cb_vhit ) )
-	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == ifu_addr_req) & IL1_RVALID & IL1_RREADY );
+	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == addr_req_qout) & IL1_RVALID & IL1_RREADY );
 
 assign ifu_data_rsp = 
 	  ( {64{il1_state_qout == IL1_STATE_CKTAG}} & cache_data_r )
@@ -223,7 +223,7 @@ assign il1_ar_req = (il1_state_qout == IL1_STATE_CKTAG) & (il1_state_dnxt == IL1
 	assign cache_info_wstrb = 8'b11111111;
 	assign cache_info_w = IL1_RDATA;
 
-	assign tag_addr = ifu_addr_req;
+	assign tag_addr = (il1_state_qout == IL1_STATE_CMISS) ? addr_req_qout : ifu_addr_req;
 	assign tag_en_w = blockReplace & {CB{il1_state_qout == IL1_STATE_CKTAG & il1_state_dnxt == IL1_STATE_CMISS}};
 	assign tag_en_r = {CB{(il1_state_dnxt == IL1_STATE_CKTAG) | (il1_state_qout == IL1_STATE_CMISS & IL1_ARVALID & IL1_ARREADY)}};
 	assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
@@ -237,6 +237,13 @@ assign il1_ar_req = (il1_state_qout == IL1_STATE_CKTAG) & (il1_state_dnxt == IL1
 		| ( {32{il1_state_qout == IL1_STATE_FENCE}} & ifu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 		;
 
+		wire [31:0] addr_req_dnxt;
+		wire [31:0] addr_req_qout;
+		
+	assign addr_req_dnxt = (il1_state_qout == IL1_STATE_CKTAG & il1_state_dnxt == IL1_STATE_CMISS) ? ifu_addr_req : addr_req_qout;
+
+
+	gen_dffr #(.DW(32)) addr_req_dffr ( .dnxt(addr_req_dnxt), .qout(addr_req_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
 
 
