@@ -2,10 +2,14 @@
 * @File name: axi_crossbar_v2_1_22_decerr_slave
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:26:47
+* @Date:   2021-03-09 10:55:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:38:18
+* @Last Modified time: 2021-03-09 10:55:47
 */
+
+
+`default_nettype wire
+
 
 // -- (c) Copyright 2009 - 2011 Xilinx, Inc. All rights reserved.
 // --
@@ -67,6 +71,7 @@
 //-----------------------------------------------------------------------------
 
 `timescale 1ps/1ps
+
 
 module axi_crossbar_v2_1_22_decerr_slave #
   (
@@ -283,3 +288,6 @@ module axi_crossbar_v2_1_22_decerr_slave #
   endgenerate
 
 endmodule
+
+
+
