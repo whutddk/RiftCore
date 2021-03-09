@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-08 15:50:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-09 11:04:22
+* @Last Modified time: 2021-03-09 11:15:52
 */
 
 /*
@@ -432,6 +432,7 @@ assign {CACHE_RDATA, SYS_RDATA, DM_RDATA} = s_axi_rdata;
 assign {CACHE_RRESP, SYS_RRESP, DM_RRESP} = s_axi_rresp;
 assign {CACHE_RVALID, SYS_RVALID, DM_RVALID} = s_axi_rvalid;
 assign s_axi_rready = {CACHE_RREADY, SYS_RREADY, DM_RREADY};
+assign {CACHE_RLAST, SYS_RLAST, DM_RLAST} = s_axi_rlast;
 
 // assign s_axi_awid = {CACHE_AWID, SYS_AWID, DM_AWID};
 assign s_axi_awlen = {CACHE_AWLEN, SYS_AWLEN, DM_AWLEN};
