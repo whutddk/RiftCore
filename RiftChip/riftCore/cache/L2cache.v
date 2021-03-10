@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 16:20:05
+* @Last Modified time: 2021-03-10 19:47:07
 */
 
 
@@ -559,7 +559,10 @@ assign cache_addr_dnxt =
 	  ( {32{l2c_state_qout == L2C_STATE_CFREE}} & cache_addr_qout )
 	| ( {32{l2c_state_qout == L2C_STATE_CKTAG}} &	 
 		(
-			IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )
+			(IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) &
+				(
+					(l2c_state_dnxt == L2C_STATE_FLASH) ? { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } : {32{1'b1}}
+				)
 		)
 	  )
 	| ( {32{l2c_state_qout == L2C_STATE_FENCE}} & cache_addr_qout )

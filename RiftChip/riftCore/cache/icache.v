@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 17:26:54
+* @Last Modified time: 2021-03-10 19:57:33
 */
 
 /*
@@ -146,7 +146,7 @@ module icache #
 	wire [31:0] cache_addr_qout;
 
 	wire [CB-1:0] cb_vhit;
-	wire [CL-1:0] valid_cl_sel;
+	wire [LINE_W-1:0] valid_cl_sel;
 	wire [63:0] cache_data_r;
 	wire [64*CB-1:0] cache_info_r_T;
 
@@ -226,7 +226,7 @@ gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout)
 
 
 assign il1_state_dnxt = 
-	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : (ic_iq_ready ? IL1_STATE_CKTAG : IL1_STATE_CFREE)) ) 
+	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : (ic_iq_ready&(~flush) ? IL1_STATE_CKTAG : IL1_STATE_CFREE)) ) 
 	|
 	( {2{il1_state_qout == IL1_STATE_CKTAG}} & ((| cb_vhit ) ? IL1_STATE_CFREE : IL1_STATE_CMISS) )
 	|
@@ -320,10 +320,11 @@ cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 assign valid_cl_sel = addr_req_qout[ADDR_LSB +: LINE_W];
+wire [TAG_W-1:0] chk_tag = addr_req_qout[31 -: TAG_W];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == addr_req_qout[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == chk_tag) & cache_valid_qout[CB*valid_cl_sel+cb];
 
 		for ( genvar i = 0; i < 64; i = i + 1 ) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
