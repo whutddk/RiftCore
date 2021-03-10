@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 10:39:59
+* @Last Modified time: 2021-03-10 16:46:03
 */
 
 
@@ -154,11 +154,16 @@ assign isMisPredict_set = feflush & ~beflush;
 wire lsu_fencei_valid;
 
 
-wire ifu_req_valid;
-wire [31:0] ifu_addr_req;
-wire [63:0] ifu_data_rsp;
-wire ifu_rsp_valid;
-wire icache_trans_kill;
+wire [31:0] IL1_ARADDR;
+wire [7:0] IL1_ARLEN;
+wire [1:0] IL1_ARBURST;
+wire IL1_ARVALID;
+wire IL1_ARREADY;
+wire [63:0] IL1_RDATA;
+wire [1:0] IL1_RRESP;
+wire IL1_RLAST;
+wire IL1_RVALID;
+wire IL1_RREADY;
 
 
 
@@ -166,11 +171,16 @@ wire icache_trans_kill;
 frontEnd i_frontEnd(
 	.lsu_fencei_valid(lsu_fencei_valid),
 
-	.ifu_req_valid(ifu_req_valid),
-	.ifu_addr_req (ifu_addr_req),
-	.ifu_data_rsp (ifu_data_rsp),
-	.ifu_rsp_valid(ifu_rsp_valid),
-	.icache_trans_kill(icache_trans_kill),
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
 
 	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
@@ -296,10 +306,16 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 
 cache i_cache
 (
-	.ifu_req_valid(ifu_req_valid),
-	.ifu_addr_req (ifu_addr_req),
-	.ifu_data_rsp (ifu_data_rsp),
-	.ifu_rsp_valid(ifu_rsp_valid),
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
 
 	.lsu_req_valid(lsu_req_valid),
 	.lsu_req_ready(lsu_req_ready),
@@ -354,8 +370,6 @@ cache i_cache
 	.MEM_RVALID   (MEM_RVALID),
 	.MEM_RREADY   (MEM_RREADY),
 
-
-	.icache_trans_kill(icache_trans_kill),
 	.il1_fence    (il1_fence),
 	.il1_fence_end(il1_fence_end),
 	.dl1_fence    (dl1_fence),

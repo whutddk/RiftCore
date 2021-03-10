@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 10:37:55
+* @Last Modified time: 2021-03-10 16:56:19
 */
 
 /*
@@ -32,10 +32,17 @@
 
 module cache (
 
-	input ifu_req_valid,
-	input [31:0] ifu_addr_req,
-	output [63:0] ifu_data_rsp,
-	output ifu_rsp_valid,
+	input [31:0] IL1_ARADDR,
+	input [7:0] IL1_ARLEN,
+	input [1:0] IL1_ARBURST,
+	input IL1_ARVALID,
+	output IL1_ARREADY,
+
+	output [63:0] IL1_RDATA,
+	output [1:0] IL1_RRESP,
+	output IL1_RLAST,
+	output IL1_RVALID,
+	input IL1_RREADY,
 
 	input lsu_req_valid,
 	output lsu_req_ready,
@@ -96,7 +103,6 @@ module cache (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
-	input icache_trans_kill,
 	input il1_fence,
 	output il1_fence_end,
 	input dl1_fence,
@@ -113,20 +119,6 @@ module cache (
 
 
 
-
-
-
-	wire [31:0] IL1_L2C_ARADDR;
-	wire [7:0] IL1_L2C_ARLEN;
-	wire [1:0] IL1_L2C_ARBURST;
-	wire IL1_L2C_ARVALID;
-	wire IL1_L2C_ARREADY;
-
-	wire [63:0] IL1_L2C_RDATA;
-	wire [1:0] IL1_L2C_RRESP;
-	wire IL1_L2C_RLAST;
-	wire IL1_L2C_RVALID;
-	wire IL1_L2C_RREADY;
 
 	//L1 D cache
 	wire [31:0] DL1_L2C_AWADDR;
@@ -187,33 +179,6 @@ module cache (
 	wire L2C_L3C_RREADY;
 
 
-icache i_icache(
-	.IL1_ARADDR(IL1_L2C_ARADDR),
-	.IL1_ARLEN(IL1_L2C_ARLEN),
-	.IL1_ARBURST(IL1_L2C_ARBURST),
-	.IL1_ARVALID(IL1_L2C_ARVALID),
-	.IL1_ARREADY(IL1_L2C_ARREADY),
-
-	.IL1_RDATA(IL1_L2C_RDATA),
-	.IL1_RRESP(IL1_L2C_RRESP),
-	.IL1_RLAST(IL1_L2C_RLAST),
-	.IL1_RVALID(IL1_L2C_RVALID),
-	.IL1_RREADY(IL1_L2C_RREADY),
-
-	.ifu_req_valid(ifu_req_valid),
-	.ifu_addr_req(ifu_addr_req),
-
-	.ifu_data_rsp(ifu_data_rsp),
-	.ifu_rsp_valid(ifu_rsp_valid),
-
-	.icache_trans_kill(icache_trans_kill),
-	.il1_fence(il1_fence),
-	.il1_fence_end(il1_fence_end),
-	.CLK(CLK),
-	.RSTn(RSTn)
-
-);
-
 dcache i_dcache(
 	.DL1_AWADDR(DL1_L2C_AWADDR),
 	.DL1_AWLEN(DL1_L2C_AWLEN),
@@ -261,16 +226,16 @@ dcache i_dcache(
 L2cache i_L2cache(
 
 	//L1 I Cache
-	.IL1_ARADDR(IL1_L2C_ARADDR),
-	.IL1_ARLEN(IL1_L2C_ARLEN),
-	.IL1_ARBURST(IL1_L2C_ARBURST),
-	.IL1_ARVALID(IL1_L2C_ARVALID),
-	.IL1_ARREADY(IL1_L2C_ARREADY),
-	.IL1_RDATA(IL1_L2C_RDATA),
-	.IL1_RRESP(IL1_L2C_RRESP),
-	.IL1_RLAST(IL1_L2C_RLAST),
-	.IL1_RVALID(IL1_L2C_RVALID),
-	.IL1_RREADY(IL1_L2C_RREADY),
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
 
 	.DL1_AWADDR(DL1_L2C_AWADDR),
 	.DL1_AWLEN(DL1_L2C_AWLEN),
