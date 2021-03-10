@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 15:32:49
+* @Last Modified time: 2021-03-10 16:20:05
 */
 
 
@@ -434,6 +434,7 @@ module L2cache #
 
 
 	assign MEM_ARLEN = 8'd15;
+	assign MEM_ARBURST = 2'b01;
 	assign MEM_ARVALID = mem_arvalid_qout;
 	assign MEM_RREADY = mem_rready_qout;
 
