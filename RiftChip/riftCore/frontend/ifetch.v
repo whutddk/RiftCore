@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 10:38:35
+* @Last Modified time: 2021-03-10 12:13:13
 */
 
 /*
@@ -54,6 +54,8 @@ module ifetch (
 
 );
 
+
+
 	assign ifu_addr_req = pc_if_addr[31:0] & (~32'b111);
 
 	assign ifu_req_valid = if_iq_ready & ~flush;
@@ -70,7 +72,15 @@ module ifetch (
 
 
 
+	// assign ifu_addr_req = 32'b0;
 
+	// assign ifu_req_valid = 1'b1;
+	// assign pc_if_ready = if_iq_valid;
+	// assign if_iq_valid = if_iq_ready;
+
+	// assign if_iq_pc = pc_if_addr;
+	// assign if_iq_instr = pc_if_addr;
+	// assign icache_trans_kill = 1'b0;
 
 
 

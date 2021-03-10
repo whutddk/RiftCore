@@ -1,12 +1,12 @@
 @REM @Author: Ruige Lee
 @REM @Date:   2020-11-02 11:29:57
 @REM @Last Modified by:   Ruige Lee
-@REM Modified time: 2021-03-08 19:54:42
+@REM Modified time: 2021-03-10 14:18:03
 
 
 
 
-iverilog.exe -W all ^
+iverilog.exe -Wall ^
 -o ./build/wave.iverilog  ^
 -y ../RiftChip/ ^
 -y ../RiftChip/riftCore/ ^
