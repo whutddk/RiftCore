@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-09 16:15:06
+* @Last Modified time: 2021-03-10 17:29:53
 */
 
 /*
@@ -32,10 +32,10 @@ module iqueue (
 
 
 	//form ifetch
-	input [63:0] if_iq_pc,
-	input [63:0] if_iq_instr,
-	input if_iq_valid,
-	output if_iq_ready,
+	input [63:0] ic_iq_pc,
+	input [63:0] ic_iq_instr,
+	input ic_iq_valid,
+	output ic_iq_ready,
 
 	//to pcGen
 	output branch_pc_valid,
@@ -91,8 +91,8 @@ module iqueue (
 
 	iAlign i_align(
 
-		.if_iq_pc(if_iq_pc),
-		.if_iq_instr(if_iq_instr),
+		.ic_iq_pc(ic_iq_pc),
+		.ic_iq_instr(ic_iq_instr),
 
 		.align_instr(align_instr),
 		.align_instr_mask(align_instr_mask)
@@ -104,15 +104,15 @@ module iqueue (
 
 	//if un-align onlu happen when flush,but will also check
 	assign instr_load = 
-			({128{iq_instr_mask_qout == 16'b0}} & {64'b0, (if_iq_valid ? align_instr : 64'b0) })
+			({128{iq_instr_mask_qout == 16'b0}} & {64'b0, (ic_iq_valid ? align_instr : 64'b0) })
 			|
-			({128{iq_instr_mask_qout == 16'b1}} & {48'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[15:0]})
+			({128{iq_instr_mask_qout == 16'b1}} & {48'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[15:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b11}} & {32'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[31:0]})
+			({128{iq_instr_mask_qout == 16'b11}} & {32'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[31:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b111}} & {16'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[47:0]})
+			({128{iq_instr_mask_qout == 16'b111}} & {16'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[47:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b1111}} & { (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[63:0]})
+			({128{iq_instr_mask_qout == 16'b1111}} & { (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[63:0]})
 			|
 			({128{iq_instr_mask_qout == 16'b11111}} & { 48'b0, iq_instr_buf_qout[79:0]})
 			|
@@ -124,17 +124,17 @@ module iqueue (
 
 
 	//only when iq_instr_buf is empty (flush) can iq use new pc fetch
-	assign pc_load = (iq_instr_mask_qout == 16'b0 & if_iq_valid) ? if_iq_pc : iq_pc_buf_qout;
+	assign pc_load = (iq_instr_mask_qout == 16'b0 & ic_iq_valid) ? ic_iq_pc : iq_pc_buf_qout;
 	assign iq_instr_mask_load = 
-			({8{iq_instr_mask_qout == 8'b0}} & (if_iq_valid ? align_instr_mask : 8'b0 ) )
+			({8{iq_instr_mask_qout == 8'b0}} & (ic_iq_valid ? align_instr_mask : 8'b0 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1}} & (if_iq_valid ? {align_instr_mask,1'b1} : 8'b1 ) )
+			({8{iq_instr_mask_qout == 8'b1}} & (ic_iq_valid ? {align_instr_mask,1'b1} : 8'b1 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b11}} & (if_iq_valid ? {align_instr_mask,2'b11} : 8'b11 ) )
+			({8{iq_instr_mask_qout == 8'b11}} & (ic_iq_valid ? {align_instr_mask,2'b11} : 8'b11 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b111}} & (if_iq_valid ? {align_instr_mask,3'b111} : 8'b111 ) )
+			({8{iq_instr_mask_qout == 8'b111}} & (ic_iq_valid ? {align_instr_mask,3'b111} : 8'b111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1111}} & (if_iq_valid ? {align_instr_mask,4'b1111} : 8'b1111 ) )
+			({8{iq_instr_mask_qout == 8'b1111}} & (ic_iq_valid ? {align_instr_mask,4'b1111} : 8'b1111 ) )
 			|
 			({8{iq_instr_mask_qout == 8'b11111}} & 8'b11111 )
 			|
@@ -146,7 +146,7 @@ module iqueue (
 
 	
 
-	assign if_iq_ready = (iq_instr_mask_qout[7:4] == 4'b0000);
+	assign ic_iq_ready = (iq_instr_mask_qout[7:4] == 4'b0000);
 
 
 

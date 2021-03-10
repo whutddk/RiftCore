@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 16:42:06
+* @Last Modified time: 2021-03-10 17:28:33
 */
 
 /*
@@ -65,12 +65,12 @@ module frontEnd (
 
 	wire branch_pc_valid;
 	wire [63:0] branch_pc;
-	wire [63:0] pc_if_addr;
-	wire pc_if_ready;
-	wire [63:0] if_iq_pc;
-	wire [63:0] if_iq_instr;
-	wire if_iq_valid;
-	wire if_iq_ready;
+	wire [63:0] pc_ic_addr;
+	wire pc_ic_ready;
+	wire [63:0] ic_iq_pc;
+	wire [63:0] ic_iq_instr;
+	wire ic_iq_valid;
+	wire ic_iq_ready;
 	wire iq_id_valid;
 	wire [32+64+1-1:0] iq_id_info;
 	wire iq_id_ready;
@@ -87,34 +87,14 @@ pcGenerate i_pcGenerate(
 	.branch_pc_valid(branch_pc_valid),
 	.branch_pc(branch_pc),
 
-	.fetch_addr_qout(pc_if_addr),
-	.pcGen_fetch_ready(pc_if_ready),
+	.fetch_addr_qout(pc_ic_addr),
+	.pcGen_fetch_ready(pc_ic_ready),
 
 	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
 
-
-// ifetch i_ifetch(
-// 	.ifu_req_valid(ifu_req_valid),
-// 	.ifu_addr_req (ifu_addr_req),
-// 	.ifu_data_rsp (ifu_data_rsp),
-// 	.ifu_rsp_valid(ifu_rsp_valid),
-// 	.icache_trans_kill(icache_trans_kill),
-
-// 	.pc_if_addr(pc_if_addr),
-// 	.pc_if_ready(pc_if_ready),
-
-// 	.if_iq_pc(if_iq_pc),
-// 	.if_iq_instr(if_iq_instr),
-// 	.if_iq_valid(if_iq_valid),
-// 	.if_iq_ready(if_iq_ready),
-
-// 	.flush(flush|branch_pc_valid),
-// 	.CLK(CLK),
-// 	.RSTn(RSTn)
-// );
 
 
 icache i_cache
@@ -130,13 +110,13 @@ icache i_cache
 	.IL1_RVALID   (IL1_RVALID),
 	.IL1_RREADY   (IL1_RREADY),
 
-	.pc_if_addr(pc_if_addr),
-	.pc_if_ready(pc_if_ready),
+	.pc_ic_addr(pc_ic_addr),
+	.pc_ic_ready(pc_ic_ready),
 
-	.if_iq_pc(if_iq_pc),
-	.if_iq_instr(if_iq_instr),
-	.if_iq_valid(if_iq_valid),
-	.if_iq_ready(if_iq_ready),
+	.ic_iq_pc(ic_iq_pc),
+	.ic_iq_instr(ic_iq_instr),
+	.ic_iq_valid(ic_iq_valid),
+	.ic_iq_ready(ic_iq_ready),
 
 
 	.il1_fence(1'b0),
@@ -155,10 +135,10 @@ iqueue i_iqueue(
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
-	.if_iq_pc(if_iq_pc),
-	.if_iq_instr(if_iq_instr),
-	.if_iq_valid(if_iq_valid),
-	.if_iq_ready(if_iq_ready),
+	.ic_iq_pc(ic_iq_pc),
+	.ic_iq_instr(ic_iq_instr),
+	.ic_iq_valid(ic_iq_valid),
+	.ic_iq_ready(ic_iq_ready),
 
 	.branch_pc_valid(branch_pc_valid),
 	.branch_pc(branch_pc),
