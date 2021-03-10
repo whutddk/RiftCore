@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-09 15:31:05
+* @Last Modified time: 2021-03-10 10:50:12
 */
 
 /*
@@ -53,14 +53,14 @@ module icache #
 
 	//from ifu
 	input ifu_req_valid,
-	output ifu_req_ready,
+	// output ifu_req_ready,
 	input [31:0] ifu_addr_req,
 
 	output [63:0] ifu_data_rsp,
 	output ifu_rsp_valid,
-	input ifu_rsp_ready,
+	// input ifu_rsp_ready,
 
-
+	input icache_trans_kill,
 	input il1_fence,
 	output il1_fence_end,
 	input CLK,
@@ -163,10 +163,13 @@ module icache #
 // B::::::::::::::::B  R::::::R     R:::::R A:::::A                 A:::::A M::::::M               M::::::M
 // BBBBBBBBBBBBBBBBB   RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAAMMMMMMMM               MMMMMMMM
 
+wire trans_kill_set, trans_kill_rst, trans_kill_qout;
 
 
+assign trans_kill_set = (icache_trans_kill & il1_state_dnxt == IL1_STATE_CMISS);
+assign trans_kill_rst = il1_state_dnxt != IL1_STATE_CMISS;
 
-
+gen_rsffr #(.DW(1)) trans_kill_rsffr (.set_in(trans_kill_set), .rst_in(trans_kill_rst), .qout(trans_kill_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 // assign cache_fence_set = il1_fence;
@@ -198,12 +201,11 @@ assign il1_state_dnxt =
 
 
 
-assign ifu_req_ready = il1_state_qout == IL1_STATE_CKTAG;
 
 
 assign ifu_rsp_valid = 
-	  ( (il1_state_qout == IL1_STATE_CKTAG) & (| cb_vhit ) )
-	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == addr_req_qout) & IL1_RVALID & IL1_RREADY );
+	  ( (il1_state_qout == IL1_STATE_CKTAG) & (| cb_vhit ) & ~icache_trans_kill) 
+	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == addr_req_qout) & IL1_RVALID & IL1_RREADY & ~trans_kill_qout );
 
 assign ifu_data_rsp = 
 	  ( {64{il1_state_qout == IL1_STATE_CKTAG}} & cache_data_r )

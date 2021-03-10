@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:52:54
+* @Last Modified time: 2021-03-10 10:39:25
 */
 
 /*
@@ -33,11 +33,10 @@ module frontEnd (
 
 	//to ICACHE
 	output ifu_req_valid,
-	input ifu_req_ready,
 	output [31:0] ifu_addr_req,
 	input [63:0] ifu_data_rsp,
 	input ifu_rsp_valid,
-	output ifu_rsp_ready,
+	output icache_trans_kill,
 
 	input instrFifo_reject,
 	output instrFifo_push,
@@ -93,11 +92,10 @@ pcGenerate i_pcGenerate(
 
 ifetch i_ifetch(
 	.ifu_req_valid(ifu_req_valid),
-	.ifu_req_ready(ifu_req_ready),
 	.ifu_addr_req (ifu_addr_req),
 	.ifu_data_rsp (ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
-	.ifu_rsp_ready(ifu_rsp_ready),
+	.icache_trans_kill(icache_trans_kill),
 
 	.pc_if_addr(pc_if_addr),
 	.pc_if_ready(pc_if_ready),

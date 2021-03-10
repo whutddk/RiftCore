@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:53:09
+* @Last Modified time: 2021-03-10 11:11:20
 */
 
 
@@ -165,7 +165,6 @@ module dcache #
 	assign DL1_AWVALID = dl1_awvalid_qout;
 
 
-	assign DL1_WSTRB = {8{1'b1}};
 	assign DL1_WLAST = 1'b1;
 	assign DL1_WVALID = dl1_wvalid_qout;
 	assign DL1_BREADY = dl1_bready_qout;

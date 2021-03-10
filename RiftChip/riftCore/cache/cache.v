@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 10:54:59
+* @Last Modified time: 2021-03-10 10:37:55
 */
 
 /*
@@ -33,11 +33,9 @@
 module cache (
 
 	input ifu_req_valid,
-	output ifu_req_ready,
 	input [31:0] ifu_addr_req,
 	output [63:0] ifu_data_rsp,
 	output ifu_rsp_valid,
-	input ifu_rsp_ready,
 
 	input lsu_req_valid,
 	output lsu_req_ready,
@@ -98,6 +96,7 @@ module cache (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
+	input icache_trans_kill,
 	input il1_fence,
 	output il1_fence_end,
 	input dl1_fence,
@@ -202,13 +201,12 @@ icache i_icache(
 	.IL1_RREADY(IL1_L2C_RREADY),
 
 	.ifu_req_valid(ifu_req_valid),
-	.ifu_req_ready(ifu_req_ready),
 	.ifu_addr_req(ifu_addr_req),
 
 	.ifu_data_rsp(ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
-	.ifu_rsp_ready(ifu_rsp_ready),
 
+	.icache_trans_kill(icache_trans_kill),
 	.il1_fence(il1_fence),
 	.il1_fence_end(il1_fence_end),
 	.CLK(CLK),

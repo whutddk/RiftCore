@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 17:45:20
+* @Last Modified time: 2021-03-10 10:39:59
 */
 
 
@@ -155,11 +155,10 @@ wire lsu_fencei_valid;
 
 
 wire ifu_req_valid;
-wire ifu_req_ready;
 wire [31:0] ifu_addr_req;
 wire [63:0] ifu_data_rsp;
 wire ifu_rsp_valid;
-wire ifu_rsp_ready;
+wire icache_trans_kill;
 
 
 
@@ -168,11 +167,10 @@ frontEnd i_frontEnd(
 	.lsu_fencei_valid(lsu_fencei_valid),
 
 	.ifu_req_valid(ifu_req_valid),
-	.ifu_req_ready(ifu_req_ready),
 	.ifu_addr_req (ifu_addr_req),
 	.ifu_data_rsp (ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
-	.ifu_rsp_ready(ifu_rsp_ready),
+	.icache_trans_kill(icache_trans_kill),
 
 	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
@@ -299,11 +297,9 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 cache i_cache
 (
 	.ifu_req_valid(ifu_req_valid),
-	.ifu_req_ready(ifu_req_ready),
 	.ifu_addr_req (ifu_addr_req),
 	.ifu_data_rsp (ifu_data_rsp),
 	.ifu_rsp_valid(ifu_rsp_valid),
-	.ifu_rsp_ready(ifu_rsp_ready),
 
 	.lsu_req_valid(lsu_req_valid),
 	.lsu_req_ready(lsu_req_ready),
@@ -358,6 +354,8 @@ cache i_cache
 	.MEM_RVALID   (MEM_RVALID),
 	.MEM_RREADY   (MEM_RREADY),
 
+
+	.icache_trans_kill(icache_trans_kill),
 	.il1_fence    (il1_fence),
 	.il1_fence_end(il1_fence_end),
 	.dl1_fence    (dl1_fence),
