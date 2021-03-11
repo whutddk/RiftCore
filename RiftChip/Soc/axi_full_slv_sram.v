@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-24 09:25:27
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-08 17:58:51
+* @Last Modified time: 2021-03-11 14:48:28
 */
 
 
@@ -266,14 +266,7 @@ gen_sram # ( .DW(64), .AW(14) ) i_sram
 
 );
 
-localparam SRAM_ADDR = 2**14;
-integer i;
-initial begin
-	for ( i = 0; i < SRAM_ADDR; i = i + 1 ) begin
-		i_sram.ram[i] = i;
-	end
 
-end
 
 
 endmodule
