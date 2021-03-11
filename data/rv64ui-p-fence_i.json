@@ -1,6 +1,6 @@
 {
 "schemaVersion": 1,
 "label": "rv64ui-p-fence_i",
-"message": "PASS",
-"color": "blue"
+"message": "FAIL",
+"color": "red"
 }
