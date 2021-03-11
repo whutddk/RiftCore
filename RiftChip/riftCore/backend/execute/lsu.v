@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-07 10:02:50
+* @Last Modified time: 2021-03-11 14:22:02
 */
 
 /*
@@ -251,7 +251,7 @@ gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu
 
 
 
-	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush & ~accessFault;
+	assign axi_awvalid_set = lsu_wen & lsu_exeparam_valid & ~flush;
 	assign axi_awvalid_rst = ~axi_awvalid_set & (LSU_AWREADY & axi_awvalid_qout);
 	assign axi_wvalid_set = axi_awvalid_set;
 	assign axi_wvalid_rst = ~axi_wvalid_set & (LSU_WREADY & axi_wvalid_qout);	
@@ -275,7 +275,9 @@ gen_rsffr # (.DW(1)) lsu_wb_valid_rsffr ( .set_in(lsu_wb_valid_set), .rst_in(lsu
 
 
 	assign accessFault = (| lsu_op1[63:32]);
-	gen_dffren # (.DW(1)) AccessFault_dffren ( .dnxt(accessFault), .qout(isLsuAccessFault), .en(lsu_exeparam_valid), .CLK (CLK), .RSTn(RSTn));
+
+	gen_rsffr # (.DW(1)) AccessFault_rsffr ( .set_in(accessFault & lsu_exeparam_valid), .rst_in(flush), .qout(isLsuAccessFault), .CLK (CLK), .RSTn(RSTn));
+	// gen_dffren # (.DW(1)) AccessFault_dffren ( .dnxt(accessFault), .qout(isLsuAccessFault), .en(lsu_exeparam_valid), .CLK (CLK), .RSTn(RSTn));
 
 
 
