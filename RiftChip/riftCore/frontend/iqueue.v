@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 11:07:42
+* @Last Modified time: 2021-03-11 16:14:46
 */
 
 /*
@@ -122,13 +122,13 @@ module iqueue (
 			|
 			({256{iq_instr_mask_qout == 16'b11111111}} & { 64'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[127:0]})
 			|
-			({256{iq_instr_mask_qout == 16'b111111111}} & { 112'b0, iq_instr_buf_qout[143:0]})
+			({256{iq_instr_mask_qout == 16'b111111111}} & { 48'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[143:0]})
 			|
-			({256{iq_instr_mask_qout == 16'b1111111111}} & { 96'b0, iq_instr_buf_qout[159:0]})
+			({256{iq_instr_mask_qout == 16'b1111111111}} & { 32'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[159:0]})
 			|
-			({256{iq_instr_mask_qout == 16'b11111111111}} & { 80'b0, iq_instr_buf_qout[175:0]})
+			({256{iq_instr_mask_qout == 16'b11111111111}} & { 16'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[175:0]})
 			|
-			({256{iq_instr_mask_qout == 16'b111111111111}} & { 64'b0, iq_instr_buf_qout[191:0]})
+			({256{iq_instr_mask_qout == 16'b111111111111}} & { (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[191:0]})
 			|
 			({256{iq_instr_mask_qout == 16'b1111111111111}} & { 48'b0, iq_instr_buf_qout[207:0]})
 			|

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 12:03:09
+* @Last Modified time: 2021-03-11 15:50:06
 */
 
 /*
@@ -225,11 +225,11 @@ end
 
 
 
-// initial
-// begin
-// 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-// 	$dumpvars(0, riftChip_DS);//tb模块名称
-// end
+initial
+begin
+	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
+	$dumpvars(0, riftChip_DS);//tb模块名称
+end
 
 endmodule
 
