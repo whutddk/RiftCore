@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-29 17:31:40
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 14:22:02
+* @Last Modified time: 2021-03-11 17:57:40
 */
 
 /*
@@ -196,7 +196,7 @@ wire lsu_busy_set;
 wire lsu_busy_rst;
 wire lsu_busy_qout;
 
-assign lsu_busy_set = lsu_exeparam_valid & (~rv64zi_fence_i & ~rv64i_fence);
+assign lsu_busy_set = lsu_exeparam_valid & (~rv64zi_fence_i & ~rv64i_fence) & ~flush;
 assign lsu_busy_rst = axi_rsp_ready;
 
 gen_rsffr #(.DW(1)) lsu_busy_rsffr (.set_in(lsu_busy_set), .rst_in(lsu_busy_rst), .qout(lsu_busy_qout), .CLK(CLK), .RSTn(RSTn));
