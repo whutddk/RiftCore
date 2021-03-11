@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 18:03:42
+* @Last Modified time: 2021-03-10 16:46:03
 */
 
 
@@ -39,27 +39,54 @@
 
 module riftCore (
 
+	output [0:0] MEM_AWID,
+	output [63:0] MEM_AWADDR,
+	output [7:0] MEM_AWLEN,
+	output [2:0] MEM_AWSIZE,
+	output [1:0] MEM_AWBURST,
+	output MEM_AWLOCK,
+	output [3:0] MEM_AWCACHE,
+	output [2:0] MEM_AWPROT,
+	output [3:0] MEM_AWQOS,
+	output [0:0] MEM_AWUSER,
+	output MEM_AWVALID,
+	input MEM_AWREADY,
 
-	output [63:0] IFU_AWADDR,
-	output [2:0] IFU_AWPROT,
-	output IFU_AWVALID,
-	input IFU_AWREADY,
-	output [63:0] IFU_WDATA,
-	output [7:0] IFU_WSTRB,
-	output IFU_WVALID,
-	input IFU_WREADY,
-	input [1:0] IFU_BRESP,
-	input IFU_BVALID,
-	output IFU_BREADY,
+	output [63:0] MEM_WDATA,
+	output [7:0] MEM_WSTRB,
+	output MEM_WLAST,
+	output [0:0] MEM_WUSER,
+	output MEM_WVALID,
+	input MEM_WREADY,
 
-	output [63:0] IFU_ARADDR,
-	output [2:0] IFU_ARPROT,
-	output IFU_ARVALID,
-	input IFU_ARREADY,
-	input [63:0] IFU_RDATA,
-	input [1:0] IFU_RRESP,
-	input IFU_RVALID,
-	output IFU_RREADY,
+	input [0:0] MEM_BID,
+	input [1:0] MEM_BRESP,
+	input [0:0] MEM_BUSER,
+	input MEM_BVALID,
+	output MEM_BREADY,
+
+	output [0:0] MEM_ARID,
+	output [63:0] MEM_ARADDR,
+	output [7:0] MEM_ARLEN,
+	output [2:0] MEM_ARSIZE,
+	output [1:0] MEM_ARBURST,
+	output MEM_ARLOCK,
+	output [3:0] MEM_ARCACHE,
+	output [2:0] MEM_ARPROT,
+	output [3:0] MEM_ARQOS,
+	output [0:0] MEM_ARUSER,
+	output MEM_ARVALID,
+	input MEM_ARREADY,
+
+	input [0:0] MEM_RID,
+	input [63:0] MEM_RDATA,
+	input [1:0] MEM_RRESP,
+	input MEM_RLAST,
+	input [0:0] MEM_RUSER,
+	input MEM_RVALID,
+	output MEM_RREADY,
+
+
 
 	output [63:0] LSU_AWADDR,
 	output [2:0] LSU_AWPROT,
@@ -80,7 +107,7 @@ module riftCore (
 	input [1:0] LSU_RRESP,
 	input LSU_RVALID,
 	output LSU_RREADY,
-	
+
 	input isExternInterrupt,
 	input isRTimerInterrupt,
 	input isSoftwvInterrupt,
@@ -92,13 +119,6 @@ module riftCore (
 	
 );
 
-	assign IFU_AWADDR = 64'b0;
-	assign IFU_AWPROT = 3'b001;
-	assign IFU_AWVALID = 1'b0;
-	assign IFU_WDATA = 64'b0;
-	assign IFU_WSTRB = 8'b0;
-	assign IFU_WVALID = 1'b0;
-	assign IFU_BREADY = 1'b1;
 
 
 
@@ -121,10 +141,7 @@ wire takenBranch_valid;
 wire [63:0] privileged_pc;
 wire privileged_valid;
 
-// wire isMisPredict_dnxt = (feflush & beflush & 1'b0)
-// 						| (~feflush & beflush & 1'b0)
-// 						| (feflush & ~beflush & 1'b1)
-// 						| (~feflush & ~beflush & isMisPredict_qout);
+
 
 wire isMisPredict_set;
 wire isMisPredict_rst;
@@ -137,18 +154,33 @@ assign isMisPredict_set = feflush & ~beflush;
 wire lsu_fencei_valid;
 
 
+wire [31:0] IL1_ARADDR;
+wire [7:0] IL1_ARLEN;
+wire [1:0] IL1_ARBURST;
+wire IL1_ARVALID;
+wire IL1_ARREADY;
+wire [63:0] IL1_RDATA;
+wire [1:0] IL1_RRESP;
+wire IL1_RLAST;
+wire IL1_RVALID;
+wire IL1_RREADY;
+
+
+
 
 frontEnd i_frontEnd(
 	.lsu_fencei_valid(lsu_fencei_valid),
 
-	.IFU_ARADDR(IFU_ARADDR),
-	.IFU_ARPROT(IFU_ARPROT),
-	.IFU_ARVALID(IFU_ARVALID),
-	.IFU_ARREADY(IFU_ARREADY),
-	.IFU_RDATA(IFU_RDATA),
-	.IFU_RRESP(IFU_RRESP),
-	.IFU_RVALID(IFU_RVALID),
-	.IFU_RREADY(IFU_RREADY),
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
 
 	.instrFifo_reject(instrFifo_reject),
 	.instrFifo_push(instrFifo_push),
@@ -243,7 +275,130 @@ backEnd i_backEnd(
 
 
 
-gen_rsffr # (.DW(1)) isFlush_rs ( .set_in(isMisPredict_set), .rst_in(isMisPredict_rst), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPredict_rst), .qout(isMisPredict_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+	wire lsu_req_valid = 1'b0;
+	wire lsu_req_ready;
+	wire [31:0] lsu_addr_req = 32'h0;
+	wire [63:0] lsu_wdata_req = 64'h0;
+	wire [7:0] lsu_wstrb_req = 8'h0;
+	wire lsu_wen_req = 1'b0;
+	wire [31:0] lsu_rdata_rsp;
+	wire lsu_rsp_valid;
+	wire lsu_rsp_ready = 1'b1;
+
+	wire il1_fence = 1'b0;
+	wire il1_fence_end;
+	wire dl1_fence = 1'b0;
+	wire dl1_fence_end;
+	wire l2c_fence = 1'b0;
+	wire l2c_fence_end;
+	wire l3c_fence = 1'b0;
+	wire l3c_fence_end;
+
+
+
+
+cache i_cache
+(
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
+
+	.lsu_req_valid(lsu_req_valid),
+	.lsu_req_ready(lsu_req_ready),
+	.lsu_addr_req (lsu_addr_req),
+	.lsu_wdata_req(lsu_wdata_req),
+	.lsu_wstrb_req(lsu_wstrb_req),
+	.lsu_wen_req  (lsu_wen_req),
+	.lsu_rdata_rsp(lsu_rdata_rsp),
+	.lsu_rsp_valid(lsu_rsp_valid),
+	.lsu_rsp_ready(lsu_rsp_ready),
+
+	.MEM_AWID     (MEM_AWID),
+	.MEM_AWADDR   (MEM_AWADDR),
+	.MEM_AWLEN    (MEM_AWLEN),
+	.MEM_AWSIZE   (MEM_AWSIZE),
+	.MEM_AWBURST  (MEM_AWBURST),
+	.MEM_AWLOCK   (MEM_AWLOCK),
+	.MEM_AWCACHE  (MEM_AWCACHE),
+	.MEM_AWPROT   (MEM_AWPROT),
+	.MEM_AWQOS    (MEM_AWQOS),
+	.MEM_AWUSER   (MEM_AWUSER),
+	.MEM_AWVALID  (MEM_AWVALID),
+	.MEM_AWREADY  (MEM_AWREADY),
+	.MEM_WDATA    (MEM_WDATA),
+	.MEM_WSTRB    (MEM_WSTRB),
+	.MEM_WLAST    (MEM_WLAST),
+	.MEM_WUSER    (MEM_WUSER),
+	.MEM_WVALID   (MEM_WVALID),
+	.MEM_WREADY   (MEM_WREADY),
+	.MEM_BID      (MEM_BID),
+	.MEM_BRESP    (MEM_BRESP),
+	.MEM_BUSER    (MEM_BUSER),
+	.MEM_BVALID   (MEM_BVALID),
+	.MEM_BREADY   (MEM_BREADY),
+	.MEM_ARID     (MEM_ARID),
+	.MEM_ARADDR   (MEM_ARADDR),
+	.MEM_ARLEN    (MEM_ARLEN),
+	.MEM_ARSIZE   (MEM_ARSIZE),
+	.MEM_ARBURST  (MEM_ARBURST),
+	.MEM_ARLOCK   (MEM_ARLOCK),
+	.MEM_ARCACHE  (MEM_ARCACHE),
+	.MEM_ARPROT   (MEM_ARPROT),
+	.MEM_ARQOS    (MEM_ARQOS),
+	.MEM_ARUSER   (MEM_ARUSER),
+	.MEM_ARVALID  (MEM_ARVALID),
+	.MEM_ARREADY  (MEM_ARREADY),
+	.MEM_RID      (MEM_RID),
+	.MEM_RDATA    (MEM_RDATA),
+	.MEM_RRESP    (MEM_RRESP),
+	.MEM_RLAST    (MEM_RLAST),
+	.MEM_RUSER    (MEM_RUSER),
+	.MEM_RVALID   (MEM_RVALID),
+	.MEM_RREADY   (MEM_RREADY),
+
+	.il1_fence    (il1_fence),
+	.il1_fence_end(il1_fence_end),
+	.dl1_fence    (dl1_fence),
+	.dl1_fence_end(dl1_fence_end),
+	.l2c_fence    (l2c_fence),
+	.l2c_fence_end(l2c_fence_end),
+	.l3c_fence    (l3c_fence),
+	.l3c_fence_end(l3c_fence_end),
+
+	.CLK          (CLK),
+	.RSTn         (RSTn)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 endmodule
 

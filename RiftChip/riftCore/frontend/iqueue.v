@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:47:09
+* @Last Modified time: 2021-03-11 16:14:46
 */
 
 /*
@@ -32,10 +32,10 @@ module iqueue (
 
 
 	//form ifetch
-	input [63:0] if_iq_pc,
-	input [63:0] if_iq_instr,
-	input if_iq_valid,
-	output if_iq_ready,
+	input [63:0] ic_iq_pc,
+	input [63:0] ic_iq_instr,
+	input ic_iq_valid,
+	output ic_iq_ready,
 
 	//to pcGen
 	output branch_pc_valid,
@@ -60,8 +60,8 @@ module iqueue (
 );
 
 
-	wire [127:0] instr_load;
-	wire [7:0] iq_instr_mask_load;
+	wire [255:0] instr_load;
+	wire [15:0] iq_instr_mask_load;
 
 	wire [63:0] pc_load;
 
@@ -79,20 +79,20 @@ module iqueue (
 	wire [32+64+1-1:0] iq_id_info_qout;
 	wire iq_id_valid_dnxt;
 	wire iq_id_valid_qout;
-	wire [127:0] iq_instr_buf_dnxt;
-	wire [127:0] iq_instr_buf_qout;
+	wire [255:0] iq_instr_buf_dnxt;
+	wire [255:0] iq_instr_buf_qout;
 	wire [63:0] iq_pc_buf_dnxt;
 	wire [63:0] iq_pc_buf_qout;
-	wire [7:0] iq_instr_mask_dnxt;
-	wire [7:0] iq_instr_mask_qout;
+	wire [15:0] iq_instr_mask_dnxt;
+	wire [15:0] iq_instr_mask_qout;
 
 
 
 
 	iAlign i_align(
 
-		.if_iq_pc(if_iq_pc),
-		.if_iq_instr(if_iq_instr),
+		.ic_iq_pc(ic_iq_pc),
+		.ic_iq_instr(ic_iq_instr),
 
 		.align_instr(align_instr),
 		.align_instr_mask(align_instr_mask)
@@ -104,49 +104,80 @@ module iqueue (
 
 	//if un-align onlu happen when flush,but will also check
 	assign instr_load = 
-			({128{iq_instr_mask_qout == 16'b0}} & {64'b0, (if_iq_valid ? align_instr : 64'b0) })
+			({256{iq_instr_mask_qout == 16'b0}} & {192'b0, (ic_iq_valid ? align_instr : 64'b0) })
 			|
-			({128{iq_instr_mask_qout == 16'b1}} & {48'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[15:0]})
+			({256{iq_instr_mask_qout == 16'b1}} & {176'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[15:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b11}} & {32'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[31:0]})
+			({256{iq_instr_mask_qout == 16'b11}} & {160'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[31:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b111}} & {16'b0, (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[47:0]})
+			({256{iq_instr_mask_qout == 16'b111}} & {144'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[47:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b1111}} & { (if_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[63:0]})
+			({256{iq_instr_mask_qout == 16'b1111}} & {128'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[63:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b11111}} & { 48'b0, iq_instr_buf_qout[79:0]})
+			({256{iq_instr_mask_qout == 16'b11111}} & { 112'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[79:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b111111}} & { 32'b0, iq_instr_buf_qout[95:0]})
+			({256{iq_instr_mask_qout == 16'b111111}} & { 96'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[95:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b1111111}} & { 16'b0, iq_instr_buf_qout[111:0]})
+			({256{iq_instr_mask_qout == 16'b1111111}} & { 80'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[111:0]})
 			|
-			({128{iq_instr_mask_qout == 16'b11111111}} &  iq_instr_buf_qout[127:0]);
+			({256{iq_instr_mask_qout == 16'b11111111}} & { 64'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[127:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b111111111}} & { 48'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[143:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b1111111111}} & { 32'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[159:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b11111111111}} & { 16'b0, (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[175:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b111111111111}} & { (ic_iq_valid ? align_instr : 64'b0), iq_instr_buf_qout[191:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b1111111111111}} & { 48'b0, iq_instr_buf_qout[207:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b11111111111111}} & { 32'b0, iq_instr_buf_qout[223:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b111111111111111}} & { 16'b0, iq_instr_buf_qout[239:0]})
+			|
+			({256{iq_instr_mask_qout == 16'b1111111111111111}} & iq_instr_buf_qout[255:0]);
 
 
 	//only when iq_instr_buf is empty (flush) can iq use new pc fetch
-	assign pc_load = (iq_instr_mask_qout == 16'b0 & if_iq_valid) ? if_iq_pc : iq_pc_buf_qout;
+	assign pc_load = (iq_instr_mask_qout == 16'b0 & ic_iq_valid) ? ic_iq_pc : iq_pc_buf_qout;
 	assign iq_instr_mask_load = 
-			({8{iq_instr_mask_qout == 8'b0}} & (if_iq_valid ? align_instr_mask : 8'b0 ) )
+			({16{iq_instr_mask_qout == 16'b0}} & (ic_iq_valid ? align_instr_mask : 16'b0 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1}} & (if_iq_valid ? {align_instr_mask,1'b1} : 8'b1 ) )
+			({16{iq_instr_mask_qout == 16'b1}} & (ic_iq_valid ? {align_instr_mask, 1'b1} : 16'b1 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b11}} & (if_iq_valid ? {align_instr_mask,2'b11} : 8'b11 ) )
+			({16{iq_instr_mask_qout == 16'b11}} & (ic_iq_valid ? {align_instr_mask, 2'b11} : 16'b11 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b111}} & (if_iq_valid ? {align_instr_mask,3'b111} : 8'b111 ) )
+			({16{iq_instr_mask_qout == 16'b111}} & (ic_iq_valid ? {align_instr_mask, 3'b111} : 16'b111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1111}} & (if_iq_valid ? {align_instr_mask,4'b1111} : 8'b1111 ) )
+			({16{iq_instr_mask_qout == 16'b1111}} & (ic_iq_valid ? {align_instr_mask, 4'b1111} : 16'b1111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b11111}} & 8'b11111 )
+			({16{iq_instr_mask_qout == 16'b11111}} & (ic_iq_valid ? {align_instr_mask, 5'b11111} : 16'b11111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b111111}} & 8'b111111 )
+			({16{iq_instr_mask_qout == 16'b111111}} & (ic_iq_valid ? {align_instr_mask, 6'b111111} : 16'b111111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b1111111}} & 8'b1111111 )
+			({16{iq_instr_mask_qout == 16'b1111111}} & (ic_iq_valid ? {align_instr_mask, 7'b1111111} : 16'b1111111 ) )
 			|
-			({8{iq_instr_mask_qout == 8'b11111111}} & 8'b11111111 );
+			({16{iq_instr_mask_qout == 16'b11111111}} & (ic_iq_valid ? {align_instr_mask, 8'b11111111} : 16'b11111111 ) )
 
-	
+			|
+			({16{iq_instr_mask_qout == 16'b111111111}} & (ic_iq_valid ? {align_instr_mask, 9'b111111111} : 16'b111111111 ) )
+			|
+			({16{iq_instr_mask_qout == 16'b1111111111}} & (ic_iq_valid ? {align_instr_mask, 10'b1111111111} : 16'b1111111111 ) )
+			|
+			({16{iq_instr_mask_qout == 16'b11111111111}} & (ic_iq_valid ? {align_instr_mask, 11'b11111111111} : 16'b11111111111 ) )
+			|
+			({16{iq_instr_mask_qout == 16'b111111111111}} & (ic_iq_valid ? {align_instr_mask, 12'b111111111111} : 16'b111111111111 ) )
+			|
+			({16{iq_instr_mask_qout == 16'b1111111111111}} & 16'b1111111111111 )
+			|
+			({16{iq_instr_mask_qout == 16'b11111111111111}} & 16'b11111111111111 )
+			|
+			({16{iq_instr_mask_qout == 16'b111111111111111}} & 16'b111111111111111 )
+			|
+			({16{iq_instr_mask_qout == 16'b1111111111111111}} & 16'b1111111111111111 );
 
-	assign if_iq_ready = if_iq_valid & (iq_instr_mask_qout[7:4] == 4'b0000);
+	assign ic_iq_ready = (iq_instr_mask_qout[15:8] == 8'b00000000);
 
 
 
@@ -210,16 +241,22 @@ module iqueue (
 
 	);
 
+wire [255:0] iq_instr_buf_shift;
+wire [63:0] iq_pc_buf_shift;
+wire [15:0] iq_instr_mask_shift;
 
-wire [127:0] iq_instr_buf_shift = instr_load >> (~isRVC ? 32 : 16);
-wire [63:0] iq_pc_buf_shift = pc_load + (~isRVC ? 64'd4 : 64'd2) ;
-wire [7:0] iq_instr_mask_shift =  iq_instr_mask_load >> (~isRVC ? 2 : 1);
+assign iq_instr_buf_shift = instr_load >> (~isRVC ? 32 : 16);
+assign iq_pc_buf_shift = pc_load + (~isRVC ? 64'd4 : 64'd2) ;
+assign iq_instr_mask_shift =  iq_instr_mask_load >> (~isRVC ? 2 : 1);
 
 assign iq_stall = fencei_stall | jalr_stall | bht_stall | ~iq_id_ready | instr_buf_empty;
 
 assign iq_instr_buf_dnxt = (~iq_stall) ? iq_instr_buf_shift : instr_load ;
 assign iq_pc_buf_dnxt = (~iq_stall) ? iq_pc_buf_shift : pc_load;
-assign iq_instr_mask_dnxt = flush ? 1'b0 : ((~iq_stall) ? ((branch_pc_valid) ? 8'b0 : iq_instr_mask_shift) : iq_instr_mask_load);
+assign iq_instr_mask_dnxt = flush ? 16'b0 : 
+										((~iq_stall) ? 
+											( (branch_pc_valid) ? 16'b0 : iq_instr_mask_shift) : 
+											iq_instr_mask_load);
 
 
 
@@ -255,9 +292,9 @@ gen_dffr # (.DW(1), .rstValue(1'b0)) iq_id_valid_dffr ( .dnxt(iq_id_valid_dnxt),
 
 
 
-gen_dffr # (.DW(128)) iq_instr_buf_dffr ( .dnxt(iq_instr_buf_dnxt),   .qout(iq_instr_buf_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(256)) iq_instr_buf_dffr ( .dnxt(iq_instr_buf_dnxt),   .qout(iq_instr_buf_qout), .CLK(CLK), .RSTn(RSTn));
 gen_dffr # (.DW(64))  iq_pc_buf_dffr    ( .dnxt(iq_pc_buf_dnxt),      .qout(iq_pc_buf_qout),    .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(8))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(16))  iq_instr_mask_dffr ( .dnxt(iq_instr_mask_dnxt), .qout(iq_instr_mask_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

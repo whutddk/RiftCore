@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-02-07 10:43:28
+# @Last Modified time: 2021-03-10 17:34:34
 
 
 import sys
@@ -91,7 +91,7 @@ testList = [
 
 
 
-res = os.system("iverilog -W all -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/Soc/xilinx_IP/axi_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  ../tb/riftChip_CI.v  ")
+res = os.system("iverilog.exe -Wall -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/cache  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/SoC/xilinx_IP/axi_full_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  -I ../RiftChip/SoC/xilinx_IP/axi_full_Xbar ../tb/riftChip_CI.v  ")
 
 if ( res == 0 ):
 	print ("compile pass!")

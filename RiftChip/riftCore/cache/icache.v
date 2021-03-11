@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 15:52:01
+* @Last Modified time: 2021-03-11 10:42:54
 */
 
 /*
@@ -51,17 +51,21 @@ module icache #
 	input IL1_RVALID,
 	output IL1_RREADY,
 
-	//from ifu
-	input ifu_req_valid,
-	output ifu_req_ready,
-	input [31:0] ifu_addr_req,
+	//from pcGen
+	input [63:0] pc_ic_addr,
+	output pc_ic_ready,
 
-	output [63:0] ifu_data_rsp,
-	output ifu_rsp_valid,
-	input ifu_rsp_ready,
+	//to iqueue
+	output [63:0] ic_iq_pc,
+	output [63:0] ic_iq_instr,
+	output ic_iq_valid,
+	input ic_iq_ready,
 
 
 	input il1_fence,
+	output il1_fence_end,
+
+	input flush,
 	input CLK,
 	input RSTn
 
@@ -77,18 +81,50 @@ module icache #
 	localparam LINE_W = $clog2(CL); 
 	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
 
+	wire [31:0] ic_addr_req;
+	wire [63:0] ic_data_rsp;
+
+	wire [63:0] ic_iq_pc_dnxt;
+	wire [63:0] ic_iq_pc_qout;
+	wire [63:0] ic_iq_instr_dnxt;
+	wire [63:0] ic_iq_instr_qout;	
+	wire ic_iq_valid_dnxt, ic_iq_valid_qout;
+
+	assign ic_addr_req = pc_ic_addr[31:0] & (~32'b111);
+
+	assign ic_iq_pc_dnxt = pc_ic_ready ? pc_ic_addr : ic_iq_pc_qout;
+	assign ic_iq_instr_dnxt = pc_ic_ready ? ic_data_rsp : ic_iq_instr_qout;
+	assign ic_iq_valid_dnxt = pc_ic_ready & ~flush;
+
+	assign ic_iq_pc = ic_iq_pc_qout;
+	assign ic_iq_instr = ic_iq_instr_qout;
+	assign ic_iq_valid = ic_iq_valid_qout;
+
+
+	gen_dffr # (.DW(64)) ic_iq_pc_dffr (.dnxt(ic_iq_pc_dnxt), .qout(ic_iq_pc_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(64)) ic_iq_instr_dffr (.dnxt(ic_iq_instr_dnxt), .qout(ic_iq_instr_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) ic_iq_valid_dffr (.dnxt(ic_iq_valid_dnxt), .qout(ic_iq_valid_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
 	wire il1_arvalid_set, il1_arvalid_rst, il1_arvalid_qout;
 	wire il1_rready_set, il1_rready_rst, il1_rready_qout;
 	wire il1_ar_req;
 	wire il1_end_r;
 
-	// wire cache_fence_set;
-	// wire cache_fence_rst;
-	// wire cache_fence_qout;
 
 	wire [1:0] il1_state_dnxt;
 	wire [1:0] il1_state_qout;
-	wire [1:0] il1_state_mode_dir;
+	// wire [1:0] il1_state_mode_dir;
 
 	wire [31:0] cache_addr;
 
@@ -109,7 +145,7 @@ module icache #
 	wire [31:0] cache_addr_qout;
 
 	wire [CB-1:0] cb_vhit;
-	wire [CL-1:0] valid_cl_sel;
+	wire [LINE_W-1:0] valid_cl_sel;
 	wire [63:0] cache_data_r;
 	wire [64*CB-1:0] cache_info_r_T;
 
@@ -125,7 +161,7 @@ module icache #
 	wire [CB-1:0] cache_cl_valid;
 
 	assign IL1_ARBURST = 2'b01;
-	assign IL1_ARADDR = ifu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
+	assign IL1_ARADDR = addr_req_qout & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 	assign IL1_ARLEN = 8'd3;
 	assign IL1_ARVALID = il1_arvalid_qout;
 	assign IL1_RREADY = il1_rready_qout;
@@ -162,10 +198,13 @@ module icache #
 // B::::::::::::::::B  R::::::R     R:::::R A:::::A                 A:::::A M::::::M               M::::::M
 // BBBBBBBBBBBBBBBBB   RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAAMMMMMMMM               MMMMMMMM
 
+wire trans_kill_set, trans_kill_rst, trans_kill_qout;
 
 
+assign trans_kill_set = (flush & il1_state_dnxt == IL1_STATE_CMISS);
+assign trans_kill_rst = il1_state_dnxt != IL1_STATE_CMISS;
 
-
+gen_rsffr #(.DW(1)) trans_kill_rsffr (.set_in(trans_kill_set), .rst_in(trans_kill_rst), .qout(trans_kill_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 // assign cache_fence_set = il1_fence;
@@ -175,36 +214,35 @@ module icache #
 
 
 
-
+assign il1_fence_end = (il1_state_qout == IL1_STATE_FENCE) & (il1_state_dnxt == IL1_STATE_CFREE);
 
 
 gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-assign il1_state_mode_dir = 
-	ifu_req_valid ? IL1_STATE_CKTAG : IL1_STATE_CFREE;
+// assign il1_state_mode_dir = 
+// 	ifu_req_valid ? IL1_STATE_CKTAG : IL1_STATE_CFREE;
 
 
 assign il1_state_dnxt = 
-	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : il1_state_mode_dir) )
+	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : (ic_iq_ready&(~flush) ? IL1_STATE_CKTAG : IL1_STATE_CFREE)) ) 
 	|
-	( {2{il1_state_qout == IL1_STATE_CKTAG}} & ((| cb_vhit ) ? il1_state_mode_dir : IL1_STATE_CMISS) )
+	( {2{il1_state_qout == IL1_STATE_CKTAG}} & ((| cb_vhit ) ? IL1_STATE_CFREE : IL1_STATE_CMISS) )
 	|
-	( {2{il1_state_qout == IL1_STATE_CMISS}} & (il1_end_r ? il1_state_mode_dir : IL1_STATE_CMISS) )
+	( {2{il1_state_qout == IL1_STATE_CMISS}} & (il1_end_r ? IL1_STATE_CFREE : IL1_STATE_CMISS) )
 	|
 	( {2{il1_state_qout == IL1_STATE_FENCE}} & IL1_STATE_CFREE )
 	;
 
 
 
-assign ifu_req_ready = il1_state_qout == IL1_STATE_CKTAG;
 
 
-assign ifu_rsp_valid = 
-	  ( (il1_state_qout == IL1_STATE_CKTAG) & (| cb_vhit ) )
-	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == ifu_addr_req) & IL1_RVALID & IL1_RREADY );
+assign pc_ic_ready = 
+	  ( (il1_state_qout == IL1_STATE_CKTAG) & (| cb_vhit ) & ~flush) 
+	| ( (il1_state_qout == IL1_STATE_CMISS) & (cache_addr_qout == addr_req_qout) & IL1_RVALID & IL1_RREADY & ~trans_kill_qout );
 
-assign ifu_data_rsp = 
+assign ic_data_rsp = 
 	  ( {64{il1_state_qout == IL1_STATE_CKTAG}} & cache_data_r )
 	| ( {64{il1_state_qout == IL1_STATE_CMISS}} & IL1_RDATA );
 
@@ -222,7 +260,7 @@ assign il1_ar_req = (il1_state_qout == IL1_STATE_CKTAG) & (il1_state_dnxt == IL1
 	assign cache_info_wstrb = 8'b11111111;
 	assign cache_info_w = IL1_RDATA;
 
-	assign tag_addr = ifu_addr_req;
+	assign tag_addr = (il1_state_qout == IL1_STATE_CMISS) ? addr_req_qout : ic_addr_req;
 	assign tag_en_w = blockReplace & {CB{il1_state_qout == IL1_STATE_CKTAG & il1_state_dnxt == IL1_STATE_CMISS}};
 	assign tag_en_r = {CB{(il1_state_dnxt == IL1_STATE_CKTAG) | (il1_state_qout == IL1_STATE_CMISS & IL1_ARVALID & IL1_ARREADY)}};
 	assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
@@ -230,16 +268,23 @@ assign il1_ar_req = (il1_state_qout == IL1_STATE_CKTAG) & (il1_state_dnxt == IL1
 
 
 	assign cache_addr_dnxt = 
-		  ( {32{il1_state_qout == IL1_STATE_CFREE}} & ifu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-		| ( {32{il1_state_qout == IL1_STATE_CKTAG}} & ifu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+		  ( {32{il1_state_qout == IL1_STATE_CFREE}} & ic_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+		| ( {32{il1_state_qout == IL1_STATE_CKTAG}} & ic_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 		| ( {32{il1_state_qout == IL1_STATE_CMISS}} & ( (IL1_RVALID & IL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-		| ( {32{il1_state_qout == IL1_STATE_FENCE}} & ifu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+		| ( {32{il1_state_qout == IL1_STATE_FENCE}} & ic_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 		;
 
+		wire [31:0] addr_req_dnxt;
+		wire [31:0] addr_req_qout;
+		
+	assign addr_req_dnxt = (il1_state_qout == IL1_STATE_CFREE) ? ic_addr_req : addr_req_qout;
+
+
+	gen_dffr #(.DW(32)) addr_req_dffr ( .dnxt(addr_req_dnxt), .qout(addr_req_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-	assign cache_addr = (il1_state_qout == IL1_STATE_CMISS) ? cache_addr_qout : ifu_addr_req;
+	assign cache_addr = (il1_state_qout == IL1_STATE_CMISS) ? cache_addr_qout : ic_addr_req;
 
 
 cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
@@ -273,11 +318,12 @@ cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 
-assign valid_cl_sel = ifu_addr_req[ADDR_LSB +: LINE_W];
+assign valid_cl_sel = addr_req_qout[ADDR_LSB +: LINE_W];
+wire [TAG_W-1:0] chk_tag = addr_req_qout[31 -: TAG_W];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == ifu_addr_req[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == chk_tag) & cache_valid_qout[CB*valid_cl_sel+cb];
 
 		for ( genvar i = 0; i < 64; i = i + 1 ) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];

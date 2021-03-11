@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-05 16:14:17
+* @Last Modified time: 2021-03-10 19:47:07
 */
 
 
@@ -118,6 +118,17 @@ module L2cache #
 	input RSTn
 );
 
+	localparam L2C_STATE_CFREE = 0;
+	localparam L2C_STATE_CKTAG = 1;
+	localparam L2C_STATE_FLASH = 2;
+	localparam L2C_STATE_RSPIR = 3;
+	localparam L2C_STATE_RSPDR = 4;
+	localparam L2C_STATE_RSPDW = 5;
+	localparam L2C_STATE_FENCE = 6;
+
+	localparam ADDR_LSB = $clog2(DW*BK/8);
+	localparam LINE_W = $clog2(CL); 
+	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
 
 	wire il1_wready_set, il1_wready_rst, il1_wready_qout;
 	wire il1_bvalid_set, il1_bvalid_rst, il1_bvalid_qout;
@@ -214,17 +225,7 @@ module L2cache #
 
 	wire [CB-1:0] cache_cl_valid;
 
-	localparam L2C_STATE_CFREE = 0;
-	localparam L2C_STATE_CKTAG = 1;
-	localparam L2C_STATE_FLASH = 2;
-	localparam L2C_STATE_RSPIR = 3;
-	localparam L2C_STATE_RSPDR = 4;
-	localparam L2C_STATE_RSPDW = 5;
-	localparam L2C_STATE_FENCE = 6;
 
-	localparam ADDR_LSB = $clog2(DW*BK/8);
-	localparam LINE_W = $clog2(CL); 
-	localparam TAG_W = 32 - ADDR_LSB - LINE_W;
 
 
 
@@ -433,6 +434,7 @@ module L2cache #
 
 
 	assign MEM_ARLEN = 8'd15;
+	assign MEM_ARBURST = 2'b01;
 	assign MEM_ARVALID = mem_arvalid_qout;
 	assign MEM_RREADY = mem_rready_qout;
 
@@ -557,7 +559,10 @@ assign cache_addr_dnxt =
 	  ( {32{l2c_state_qout == L2C_STATE_CFREE}} & cache_addr_qout )
 	| ( {32{l2c_state_qout == L2C_STATE_CKTAG}} &	 
 		(
-			IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )
+			(IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) &
+				(
+					(l2c_state_dnxt == L2C_STATE_FLASH) ? { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } : {32{1'b1}}
+				)
 		)
 	  )
 	| ( {32{l2c_state_qout == L2C_STATE_FENCE}} & cache_addr_qout )

@@ -1,12 +1,11 @@
 /*
-* @File name: generic_baseblocks_v2_1_0_mux_enc
+* @File name: generic_baseblocks_v2_1_0_carry_and
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
-* @Date:   2021-01-19 15:23:04
+* @Date:   2021-03-09 11:00:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 15:40:26
+* @Last Modified time: 2021-03-09 11:01:12
 */
-
 
 // -- (c) Copyright 2010 - 2011 Xilinx, Inc. All rights reserved.
 // --
@@ -56,84 +55,72 @@
 //-----------------------------------------------------------------------------
 //
 // Description: 
-//  Optimized Mux using MUXF7/8.
-//  Any generic_baseblocks_v2_1_0_mux ratio.
+//  Optimized AND with generic_baseblocks_v2_1_0_carry logic.
 //
 // Verilog-standard:  Verilog 2001
 //--------------------------------------------------------------------------
 //
 // Structure:
-//   mux_enc
+//   
 //
 //--------------------------------------------------------------------------
 `timescale 1ps/1ps
 
 
-module generic_baseblocks_v2_1_0_mux_enc #
+(* DowngradeIPIdentifiedWarnings="yes" *) 
+module generic_baseblocks_v2_1_0_carry_and #
   (
-   parameter         C_FAMILY                       = "rtl",
+   parameter         C_FAMILY                         = "virtex6"
                        // FPGA Family. Current version: virtex6 or spartan6.
-   parameter integer C_RATIO                        = 4,
-                       // Mux select ratio. Can be any binary value (>= 1)
-   parameter integer C_SEL_WIDTH                    = 2,
-                       // Log2-ceiling of C_RATIO (>= 1)
-   parameter integer C_DATA_WIDTH                   = 1
-                       // Data width for generic_baseblocks_v2_1_0_comparator (>= 1)
    )
   (
-   input  wire [C_SEL_WIDTH-1:0]                    S,
-   input  wire [C_RATIO*C_DATA_WIDTH-1:0]           A,
-   output wire [C_DATA_WIDTH-1:0]                   O,
-   input  wire                                      OE
+   input  wire        CIN,
+   input  wire        S,
+   output wire        COUT
    );
   
-  wire [C_DATA_WIDTH-1:0] o_i;
-  genvar bit_cnt;
   
-  function [C_DATA_WIDTH-1:0] f_mux
-    (
-     input [C_SEL_WIDTH-1:0] s,
-     input [C_RATIO*C_DATA_WIDTH-1:0] a
-     );
-    integer i;
-    reg [C_RATIO*C_DATA_WIDTH-1:0] carry;
-    begin
-      carry[C_DATA_WIDTH-1:0] = {C_DATA_WIDTH{(s==0)?1'b1:1'b0}} & a[C_DATA_WIDTH-1:0];
-      for (i=1;i<C_RATIO;i=i+1) begin : gen_carrychain_enc
-        carry[i*C_DATA_WIDTH +: C_DATA_WIDTH] = 
-          carry[(i-1)*C_DATA_WIDTH +: C_DATA_WIDTH] |
-          ({C_DATA_WIDTH{(s==i)?1'b1:1'b0}} & a[i*C_DATA_WIDTH +: C_DATA_WIDTH]);
-      end
-      f_mux = carry[C_DATA_WIDTH*C_RATIO-1:C_DATA_WIDTH*(C_RATIO-1)];
-    end
-  endfunction
+  /////////////////////////////////////////////////////////////////////////////
+  // Variables for generating parameter controlled instances.
+  /////////////////////////////////////////////////////////////////////////////
   
-  function [C_DATA_WIDTH-1:0] f_mux4
-    (
-     input [1:0] s,
-     input [4*C_DATA_WIDTH-1:0] a
-     );
-    integer i;
-    reg [4*C_DATA_WIDTH-1:0] carry;
-    begin
-      carry[C_DATA_WIDTH-1:0] = {C_DATA_WIDTH{(s==0)?1'b1:1'b0}} & a[C_DATA_WIDTH-1:0];
-      for (i=1;i<4;i=i+1) begin : gen_carrychain_enc
-        carry[i*C_DATA_WIDTH +: C_DATA_WIDTH] = 
-          carry[(i-1)*C_DATA_WIDTH +: C_DATA_WIDTH] |
-          ({C_DATA_WIDTH{(s==i)?1'b1:1'b0}} & a[i*C_DATA_WIDTH +: C_DATA_WIDTH]);
-      end
-      f_mux4 = carry[C_DATA_WIDTH*4-1:C_DATA_WIDTH*3];
-    end
-  endfunction
   
-  assign O = o_i & {C_DATA_WIDTH{OE}};  // OE is gated AFTER any MUXF7/8 (can only optimize forward into downstream logic)
+  /////////////////////////////////////////////////////////////////////////////
+  // Local params
+  /////////////////////////////////////////////////////////////////////////////
+  
+  
+  /////////////////////////////////////////////////////////////////////////////
+  // Functions
+  /////////////////////////////////////////////////////////////////////////////
+  
+  
+  /////////////////////////////////////////////////////////////////////////////
+  // Internal signals
+  /////////////////////////////////////////////////////////////////////////////
+
+  
+  /////////////////////////////////////////////////////////////////////////////
+  // Instantiate or use RTL code
+  /////////////////////////////////////////////////////////////////////////////
   
   generate
-    if ( C_RATIO < 2 ) begin : gen_bypass
-      assign o_i = A;
-    end else if ( C_FAMILY == "rtl" || C_RATIO < 5 ) begin : gen_rtl
-      assign o_i = f_mux(S, A);
+    if ( C_FAMILY == "rtl" ) begin : USE_RTL
+      assign COUT = CIN & S;
       
-    end 
+    end else begin : USE_FPGA
+      MUXCY and_inst 
+      (
+       .O (COUT), 
+       .CI (CIN), 
+       .DI (1'b0), 
+       .S (S)
+      ); 
+      
+    end
   endgenerate
+  
+  
 endmodule
+
+

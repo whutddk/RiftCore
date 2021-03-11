@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-02 14:32:44
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-04 11:52:32
+* @Last Modified time: 2021-03-10 16:21:25
 */
 
 
@@ -59,7 +59,7 @@ wire [DP-1:0] isAddrHit_r;
 generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
 		wire [31:0] wtb_addr_qout = wtb_info_qout[ DW*dp +: 32];
-		assign isAddrHit_r = ( chkAddr[31 -: TAG_W] == wtb_addr_qout[31 -: TAG_W] ) & valid_qout[dp];
+		assign isAddrHit_r[dp] = ( chkAddr[31 -: TAG_W] == wtb_addr_qout[31 -: TAG_W] ) & valid_qout[dp];
 	end
 endgenerate
 
