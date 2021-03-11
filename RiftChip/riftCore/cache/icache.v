@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 19:57:33
+* @Last Modified time: 2021-03-11 10:00:28
 */
 
 /*
@@ -95,7 +95,7 @@ module icache #
 
 	assign ic_iq_pc_dnxt = pc_ic_ready ? pc_ic_addr : ic_iq_pc_qout;
 	assign ic_iq_instr_dnxt = pc_ic_ready ? ic_data_rsp : ic_iq_instr_qout;
-	assign ic_iq_valid_dnxt = pc_ic_ready;
+	assign ic_iq_valid_dnxt = pc_ic_ready & ~flush;
 
 	assign ic_iq_pc = ic_iq_pc_qout;
 	assign ic_iq_instr = ic_iq_instr_qout;
