@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-05 16:23:28
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:30:41
+* @Last Modified time: 2021-03-11 11:04:35
 */
 
 
@@ -32,8 +32,8 @@
 
 
 module preDecode (
-	input [127:0] instr_load,
-	input [7:0] iq_instr_mask_load,
+	input [255:0] instr_load,
+	input [15:0] iq_instr_mask_load,
 
 	output instr_buf_empty,
 	output isJal,

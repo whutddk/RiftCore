@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 10:00:28
+* @Last Modified time: 2021-03-11 10:42:54
 */
 
 /*
@@ -89,7 +89,6 @@ module icache #
 	wire [63:0] ic_iq_instr_dnxt;
 	wire [63:0] ic_iq_instr_qout;	
 	wire ic_iq_valid_dnxt, ic_iq_valid_qout;
-	wire icu_req_valid, icu_rsp_valid;
 
 	assign ic_addr_req = pc_ic_addr[31:0] & (~32'b111);
 
