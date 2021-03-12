@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 11:11:20
+* @Last Modified time: 2021-03-12 18:04:14
 */
 
 
@@ -69,17 +69,69 @@ module dcache #
 	input DL1_RVALID,
 	output DL1_RREADY,
 
-	//from lsu
-	input lsu_req_valid,
-	output lsu_req_ready,
-	input [31:0] lsu_addr_req,
-	input [63:0] lsu_wdata_req,
-	input [7:0] lsu_wstrb_req,
-	input lsu_wen_req,
 
-	output [31:0] lsu_rdata_rsp,
-	output lsu_rsp_valid,
-	input lsu_rsp_ready,
+
+
+	output [63:0] PERI_AWADDR,
+	output PERI_AWVALID,
+	input PERI_AWREADY,
+
+	output [63:0] PERI_WDATA,
+	output [7:0] PERI_WSTRB,
+	output PERI_WVALID,
+	input PERI_WREADY,
+
+	input [1:0] PERI_BRESP,
+	input PERI_BVALID,
+	output PERI_BREADY,
+
+	output [63:0] PERI_ARADDR,
+	output PERI_ARVALID,
+	input PERI_ARREADY,
+
+	input [63:0] PERI_RDATA,
+	input [1:0] PERI_RRESP,
+	input PERI_RVALID,
+	output PERI_RREADY,
+
+
+
+
+
+
+
+
+
+
+
+	// //from lsu
+	// input lsu_req_valid,
+	// output lsu_req_ready,
+	// input [31:0] lsu_addr_req,
+	// input [63:0] lsu_wdata_req,
+	// input [7:0] lsu_wstrb_req,
+	// input lsu_wen_req,
+
+	// output [31:0] lsu_rdata_rsp,
+	// output lsu_rsp_valid,
+	// input lsu_rsp_ready,
+
+	output lsu_fencei_valid,
+
+	output issue_lsu_ready,
+	input issue_lsu_valid,
+	input [DW-1:0] issue_lsu_info,
+	
+	output lsu_wb_valid,
+	output [63:0] lsu_wb_res,
+	output [(5+`RB-1):0] lsu_wb_rd0,
+
+	//from commit
+	input suCommited,
+	output isLsuAccessFault,
+
+	input flush,
+
 
 
 
@@ -95,6 +147,8 @@ module dcache #
 	localparam DL1_STATE_CMISS = 3;
 	localparam DL1_STATE_FENCE = 4;
 	localparam DL1_STATE_WRITE = 5;
+	localparam DL1_STATE_PACCE = 6;
+
 
 	localparam ADDR_LSB = $clog2(DW*BK/8);
 	localparam LINE_W = $clog2(CL); 
@@ -159,17 +213,272 @@ module dcache #
 
 	wire [CB-1:0] cache_cl_valid;
 
-	assign DL1_ARADDR = lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
+
+
+
+
+// hhhhhhh                                                            d::::::d                hhhhhhh                               kkkkkkkk                            
+// h:::::h                                                            d::::::d                h:::::h                               k::::::k                            
+// h:::::h                                                            d::::::d                h:::::h                               k::::::k                            
+// h:::::h                                                            d:::::d                 h:::::h                               k::::::k                            
+//  h::::h hhhhh         aaaaaaaaaaaaa  nnnn  nnnnnnnn        ddddddddd:::::d     ssssssssss   h::::h hhhhh         aaaaaaaaaaaaa    k:::::k    kkkkkkk eeeeeeeeeeee    
+//  h::::hh:::::hhh      a::::::::::::a n:::nn::::::::nn    dd::::::::::::::d   ss::::::::::s  h::::hh:::::hhh      a::::::::::::a   k:::::k   k:::::kee::::::::::::ee  
+//  h::::::::::::::hh    aaaaaaaaa:::::an::::::::::::::nn  d::::::::::::::::d ss:::::::::::::s h::::::::::::::hh    aaaaaaaaa:::::a  k:::::k  k:::::ke::::::eeeee:::::ee
+//  h:::::::hhh::::::h            a::::ann:::::::::::::::nd:::::::ddddd:::::d s::::::ssss:::::sh:::::::hhh::::::h            a::::a  k:::::k k:::::ke::::::e     e:::::e
+//  h::::::h   h::::::h    aaaaaaa:::::a  n:::::nnnn:::::nd::::::d    d:::::d  s:::::s  ssssss h::::::h   h::::::h    aaaaaaa:::::a  k::::::k:::::k e:::::::eeeee::::::e
+//  h:::::h     h:::::h  aa::::::::::::a  n::::n    n::::nd:::::d     d:::::d    s::::::s      h:::::h     h:::::h  aa::::::::::::a  k:::::::::::k  e:::::::::::::::::e 
+//  h:::::h     h:::::h a::::aaaa::::::a  n::::n    n::::nd:::::d     d:::::d       s::::::s   h:::::h     h:::::h a::::aaaa::::::a  k:::::::::::k  e::::::eeeeeeeeeee  
+//  h:::::h     h:::::ha::::a    a:::::a  n::::n    n::::nd:::::d     d:::::d ssssss   s:::::s h:::::h     h:::::ha::::a    a:::::a  k::::::k:::::k e:::::::e           
+//  h:::::h     h:::::ha::::a    a:::::a  n::::n    n::::nd::::::ddddd::::::dds:::::ssss::::::sh:::::h     h:::::ha::::a    a:::::a k::::::k k:::::ke::::::::e          
+//  h:::::h     h:::::ha:::::aaaa::::::a  n::::n    n::::n d:::::::::::::::::ds::::::::::::::s h:::::h     h:::::ha:::::aaaa::::::a k::::::k  k:::::ke::::::::eeeeeeee  
+//  h:::::h     h:::::h a::::::::::aa:::a n::::n    n::::n  d:::::::::ddd::::d s:::::::::::ss  h:::::h     h:::::h a::::::::::aa:::ak::::::k   k:::::kee:::::::::::::e  
+//  hhhhhhh     hhhhhhh  aaaaaaaaaa  aaaa nnnnnn    nnnnnn   ddddddddd   ddddd  sssssssssss    hhhhhhh     hhhhhhh  aaaaaaaaaa  aaaakkkkkkkk    kkkkkkk eeeeeeeeeeeeee  
+
+	wire lsu_lb, lsu_lh, lsu_lw, lsu_ld, lsu_lbu, lsu_lhu, lsu_lwu, lsu_sb, lsu_sh, lsu_sw, lsu_sd, lsu_fence_i, lsu_fence;
+	wire isUsi;
+	wire [(5+`RB)-1:0] lsu_rd0;
+	wire [63:0] lsu_op1;
+	wire [63:0] lsu_op2;
+	wire lsu_wen;
+	wire lsu_ren;
+	wire [7:0] lsu_wstrb;
+	wire io_access;
+	wire mem_access;
+	wire accessFault;
+	
+	// output lsu_wb_valid,
+	// output [63:0] lsu_wb_res,
+	// output [(5+`RB-1):0] lsu_wb_rd0,
+
+	assign issue_lsu_ready = (dl1_state_dnxt == DL1_STATE_CFREE) & (~wtb_full);
+
+
+
+	assign { 
+			lsu_lb, lsu_lh, lsu_lw, lsu_ld, lsu_lbu, lsu_lhu, lsu_lwu,
+			lsu_sb, lsu_sh, lsu_sw, lsu_sd,
+			lsu_fence_i, lsu_fence,
+			lsu_rd0,
+			lsu_op1,
+			lsu_op2
+			} = issue_lsu_info;
+	assign isUsi = rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	assign lsu_ren = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	assign lsu_wen = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
+	assign lsu_wstrb =    ({8{rv64i_sb}} & 8'b1  )
+						| ({8{rv64i_sh}} & 8'b11 )
+						| ({8{rv64i_sw}} & 8'b1111 )
+						| ({8{rv64i_sd}} & 8'b11111111 );
+
+	assign io_access = (& (~lsu_op1[63:32]) ) & ~lsu_op1[31] & ~lsu_op1[30];
+	assign mem_access = (& (~lsu_op1[63:32]) ) & lsu_op1[31];
+	assign accessFault = ~io_access & ~mem_access;
+
+
+
+	wire [(5+`RB)-1:0] lsu_wb_rd0_dnxt;
+	wire [(5+`RB)-1:0] lsu_wb_rd0_qout;
+	wire [63:0] lsu_wb_res_dnxt;
+	wire [63:0] lsu_wb_res_qout;
+	wire lsu_wb_valid_dnxt, lsu_wb_valid_qout;
+
+	assign lsu_wb_valid_dnxt = issue_lsu_ready & ~flush;
+	assign lsu_wb_valid = lsu_wb_valid_qout;
+
+	assign lsu_wb_rd0_dnxt = issue_lsu_ready ? lsu_rd0 : lsu_wb_rd0_qout;
+	assign lsu_wb_rd0 = lsu_wb_rd0_qout;
+
+	assign lsu_wb_res_dnxt =
+				issue_lsu_ready ?
+				(
+					({64{lsu_lb}} & ( isUsi ? {56'b0, LSU_RDATA[7:0]} : {{56{LSU_RDATA[7]}}, LSU_RDATA[7:0]} ))
+					|
+					({64{lsu_lh}} & ( isUsi ? {48'b0, LSU_RDATA[15:0]} : {{48{LSU_RDATA[15]}}, LSU_RDATA[15:0]} ))
+					|
+					({64{lsu_lw}} & ( isUsi ? {32'b0, LSU_RDATA[31:0]} : {{32{LSU_RDATA[31]}}, LSU_RDATA[31:0]} ))
+					|
+					({64{lsu_ld}} & LSU_RDATA)			
+				)
+				: lsu_wb_res_qout;
+	assign lsu_wb_res = lsu_wb_res_qout;
+
+	gen_dffr # (.DW((5+`RB))) lsu_wb_rd0_dffr ( .dnxt(lsu_wb_rd0_dnxt), .qout(lsu_wb_rd0_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(64)) lsu_wb_res_dffr (.dnxt(lsu_wb_res_dnxt), .qout(lsu_wb_res_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_dffr # (.DW(1)) lsu_wb_valid_rsffr ( .dnxt(lsu_wb_valid_dnxt), .qout(lsu_wb_valid_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// PPPPPPPPPPPPPPPPP   EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   IIIIIIIIII
+// P::::::::::::::::P  E::::::::::::::::::::ER::::::::::::::::R  I::::::::I
+// P::::::PPPPPP:::::P E::::::::::::::::::::ER::::::RRRRRR:::::R I::::::::I
+// PP:::::P     P:::::PEE::::::EEEEEEEEE::::ERR:::::R     R:::::RII::::::II
+//   P::::P     P:::::P  E:::::E       EEEEEE  R::::R     R:::::R  I::::I  
+//   P::::P     P:::::P  E:::::E               R::::R     R:::::R  I::::I  
+//   P::::PPPPPP:::::P   E::::::EEEEEEEEEE     R::::RRRRRR:::::R   I::::I  
+//   P:::::::::::::PP    E:::::::::::::::E     R:::::::::::::RR    I::::I  
+//   P::::PPPPPPPPP      E:::::::::::::::E     R::::RRRRRR:::::R   I::::I  
+//   P::::P              E::::::EEEEEEEEEE     R::::R     R:::::R  I::::I  
+//   P::::P              E:::::E               R::::R     R:::::R  I::::I  
+//   P::::P              E:::::E       EEEEEE  R::::R     R:::::R  I::::I  
+// PP::::::PP          EE::::::EEEEEEEE:::::ERR:::::R     R:::::RII::::::II
+// P::::::::P          E::::::::::::::::::::ER::::::R     R:::::RI::::::::I
+// P::::::::P          E::::::::::::::::::::ER::::::R     R:::::RI::::::::I
+// PPPPPPPPPP          EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRRIIIIIIIIII
+
+
+
+	wire peri_awvalid_set, peri_awvalid_rst, peri_awvalid_qout;
+	wire peri_wvalid_set, peri_wvalid_rst, peri_wvalid_qout;
+	wire peri_bready_set, peri_bready_rst, peri_bready_qout;
+
+	wire peri_arvalid_set, peri_arvalid_rst, peri_arvalid_qout;
+	wire peri_rready_set, peri_rready_rst, peri_rready_qout;
+
+	wire peri_ar_req, peri_aw_req;
+	wire peri_end_r, peri_end_w;
+	wire peri_end;
+
+	assign peri_end_r = PERI_RVALID & PERI_RREADY;
+	assign peri_end_w = PERI_WVALID & PERI_WREADY;
+	assign peri_end = peri_end_r | peri_end_w;
+
+
+	assign PERI_AWADDR	= ;
+	assign PERI_WDATA	= ;
+	assign PERI_AWVALID = peri_awvalid_qout;
+
+	assign PERI_WVALID	= peri_wvalid_qout;
+	assign PERI_WSTRB = ;
+
+	assign PERI_BREADY	= peri_bready_qout;
+	assign PERI_ARADDR	= ;
+	assign PERI_ARVALID = peri_arvalid_qout;
+	assign PERI_RREADY	= peri_rready_qout;
+
+
+
+	assign peri_awvalid_set = peri_aw_req;
+	assign peri_awvalid_rst = ~peri_awvalid_set & (PERI_AWREADY & peri_awvalid_qout);
+	assign peri_wvalid_set = peri_aw_req;
+	assign peri_wvalid_rst = ~peri_wvalid_set & (PERI_WREADY & peri_wvalid_qout);	
+	assign peri_bready_set = PERI_BVALID & ~peri_bready_qout;
+	assign peri_bready_rst = peri_bready_qout;
+
+	gen_rsffr # (.DW(1)) peri_awvalid_rsffr (.set_in(peri_awvalid_set), .rst_in(peri_awvalid_rst), .qout(peri_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) peri_wvalid_rsffr (.set_in(peri_wvalid_set), .rst_in(peri_wvalid_rst), .qout(peri_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) peri_bready_rsffr (.set_in(peri_bready_set), .rst_in(peri_bready_rst), .qout(peri_bready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+	assign peri_arvalid_set = peri_ar_req;
+	assign peri_arvalid_rst = ~peri_arvalid_set & (PERI_ARREADY & peri_arvalid_qout);
+	assign peri_rready_set = PERI_RVALID & ~peri_rready_qout;
+	assign peri_rready_rst = peri_rready_qout;
+
+
+	gen_rsffr # (.DW(1)) peri_arvalid_rsffr (.set_in(peri_arvalid_set), .rst_in(peri_arvalid_rst), .qout(peri_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) peri_rready_rsffr (.set_in(peri_rready_set), .rst_in(peri_rready_rst), .qout(peri_rready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MMMMMMMM               MMMMMMMMEEEEEEEEEEEEEEEEEEEEEEMMMMMMMM               MMMMMMMM
+// M:::::::M             M:::::::ME::::::::::::::::::::EM:::::::M             M:::::::M
+// M::::::::M           M::::::::ME::::::::::::::::::::EM::::::::M           M::::::::M
+// M:::::::::M         M:::::::::MEE::::::EEEEEEEEE::::EM:::::::::M         M:::::::::M
+// M::::::::::M       M::::::::::M  E:::::E       EEEEEEM::::::::::M       M::::::::::M
+// M:::::::::::M     M:::::::::::M  E:::::E             M:::::::::::M     M:::::::::::M
+// M:::::::M::::M   M::::M:::::::M  E::::::EEEEEEEEEE   M:::::::M::::M   M::::M:::::::M
+// M::::::M M::::M M::::M M::::::M  E:::::::::::::::E   M::::::M M::::M M::::M M::::::M
+// M::::::M  M::::M::::M  M::::::M  E:::::::::::::::E   M::::::M  M::::M::::M  M::::::M
+// M::::::M   M:::::::M   M::::::M  E::::::EEEEEEEEEE   M::::::M   M:::::::M   M::::::M
+// M::::::M    M:::::M    M::::::M  E:::::E             M::::::M    M:::::M    M::::::M
+// M::::::M     MMMMM     M::::::M  E:::::E       EEEEEEM::::::M     MMMMM     M::::::M
+// M::::::M               M::::::MEE::::::EEEEEEEE:::::EM::::::M               M::::::M
+// M::::::M               M::::::ME::::::::::::::::::::EM::::::M               M::::::M
+// M::::::M               M::::::ME::::::::::::::::::::EM::::::M               M::::::M
+// MMMMMMMM               MMMMMMMMEEEEEEEEEEEEEEEEEEEEEEMMMMMMMM               MMMMMMMM
+
+
+
+
+
 	assign DL1_AWLEN = 8'd0;
 	assign DL1_AWBURST = 2'b00;
 	assign DL1_AWVALID = dl1_awvalid_qout;
-
-
 	assign DL1_WLAST = 1'b1;
 	assign DL1_WVALID = dl1_wvalid_qout;
 	assign DL1_BREADY = dl1_bready_qout;
 
 
+	assign DL1_ARADDR = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
 	assign DL1_ARLEN = 8'd3;
 	assign DL1_ARBURST = 2'b01;
 	assign DL1_ARVALID = dl1_arvalid_qout;
@@ -227,12 +536,9 @@ module dcache #
 
 
 
-// assign cache_fence_set = dl1_fence;
-// assign cache_fence_rst = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
 
 assign dl1_fence_end = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
 
-// gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 
 
@@ -241,9 +547,14 @@ gen_dffr # (.DW(3)) dl1_state_dffr (.dnxt(dl1_state_dnxt), .qout(dl1_state_qout)
 
 
 assign dl1_state_mode_dir = 
-	lsu_req_valid ?
-		( (~lsu_wen_req) ? DL1_STATE_CREAD : (~wtb_full ? DL1_STATE_WRITE : DL1_STATE_CFREE) ) :
-		 DL1_STATE_CFREE;
+		(issue_lsu_valid & ~accessFault) ? 
+			(
+				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
+				| ({3{lsu_wen & mem_access}} & DL1_STATE_WRITE)
+				| ({3{io_access}} & DL1_STATE_PACCE)
+			)
+			: DL1_STATE_CFREE
+			;
 
 
 
@@ -253,24 +564,22 @@ assign dl1_state_dnxt =
 		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_CREAD}} &
-			( (| cb_vhit ) ? dl1_state_mode_dir : ( isHazard_r ? DL1_STATE_MWAIT : DL1_STATE_CMISS)  )
+			( (| cb_vhit ) ? DL1_STATE_CFREE : ( isHazard_r ? DL1_STATE_MWAIT : DL1_STATE_CMISS)  )
 		)
 		|
-		( {3{dl1_state_qout == DL1_STATE_MWAIT}} &
-			(( ~isHazard_r) ? DL1_STATE_CMISS : DL1_STATE_MWAIT)
-		)
+		( {3{dl1_state_qout == DL1_STATE_MWAIT}} & ( ~isHazard_r ? DL1_STATE_CMISS : DL1_STATE_MWAIT) )
 		|
-		( {3{dl1_state_qout == DL1_STATE_CMISS}} & 
-			( dl1_end_r ? dl1_state_mode_dir : DL1_STATE_CMISS )
-		)
+		( {3{dl1_state_qout == DL1_STATE_CMISS}} & ( dl1_end_r ? DL1_STATE_CFREE : DL1_STATE_CMISS ) )
 		|
-		( {3{dl1_state_qout == DL1_STATE_WRITE}} & 
-			dl1_state_mode_dir )
+		( {3{dl1_state_qout == DL1_STATE_WRITE}} & DL1_STATE_CFREE )
+		|
+		( {3{dl1_state_qout == DL1_STATE_PACCE}} & ( peri_end ? DL1_STATE_PACCE : DL1_STATE_CFREE) )
 		|
 		( {3{dl1_state_qout == DL1_STATE_FENCE}} & (wtb_empty ? DL1_STATE_CFREE : DL1_STATE_FENCE) )		
 		;
 
-
+assign peri_ar_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_ren;
+assign peri_aw_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_wen;
 
 assign lsu_req_ready = 
 	  (dl1_state_qout == DL1_STATE_CREAD)
@@ -280,7 +589,7 @@ assign lsu_req_ready =
 
 assign lsu_rsp_valid = 
 	  ( (dl1_state_qout == DL1_STATE_CREAD) & (| cb_vhit) )
-	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_addr_req) & DL1_RVALID & DL1_RREADY )
+	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_WRITE) );
 
 assign dl1_ar_req = 
@@ -297,7 +606,7 @@ assign lsu_rdata_rsp =
 
 
 
-assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_addr_req;
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1;
 assign cache_en_w =
 	  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
 	| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}});
@@ -308,7 +617,7 @@ assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_wdat
 
 
 
-assign tag_addr = lsu_addr_req;
+assign tag_addr = lsu_op1;
 assign tag_en_w = blockReplace &
 			{CB{
 				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
@@ -320,12 +629,12 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign cache_addr_dnxt = 
-	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 	| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_addr_req & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 	;
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
@@ -359,11 +668,11 @@ cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 
-assign valid_cl_sel = lsu_addr_req[ADDR_LSB +: LINE_W];
+assign valid_cl_sel = lsu_op1[ADDR_LSB +: LINE_W];
 
 generate
 	for ( genvar cb = 0; cb < CB; cb = cb + 1 ) begin
-		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == lsu_addr_req[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
+		assign cb_vhit[cb] = (tag_info_r[TAG_W*cb +: TAG_W] == lsu_op1[31 -: TAG_W]) & cache_valid_qout[CB*valid_cl_sel+cb];
 
 		for ( genvar i = 0; i < 64; i = i + 1 ) begin
 			assign cache_info_r_T[CB*i+cb] = cache_info_r[64*cb+i];
@@ -467,7 +776,7 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 
 
-assign chkAddr = lsu_addr_req;
+assign chkAddr = lsu_op1;
 assign wtb_push = (dl1_state_qout == DL1_STATE_WRITE);
 assign wtb_pop = dl1_end_w;
 		
@@ -481,7 +790,7 @@ localparam WTB_AW = 3;
 localparam WTB_DP = 2**WTB_AW;
 
 
-assign wtb_data_i = { lsu_wdata_req, lsu_wstrb_req, lsu_addr_req };
+assign wtb_data_i = { lsu_wdata_req, lsu_wstrb_req, lsu_op1 };
 
 wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 (
@@ -513,7 +822,7 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 //ASSERT
 always @( negedge CLK ) begin
 
-	if ( 0 ) begin
+	if ( issue_lsu_valid & ( dl1_state_qout != DL1_STATE_CFREE | wtb_full ) ) begin
 		$display("Assert Fail at L1-Dcache");
 		$stop;
 	end
