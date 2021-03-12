@@ -158,6 +158,9 @@ jobs:
 
       - name: Test ISA
         run: |
+          export PATH=$PATH:~/bin
+          export RISCV=~/RISCV
+          export PATH=$PATH:$RISCV/bin
           cd ~/riscv-tests/isa
           cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
           cd /home/runner/work/RiftCore/RiftCore/tb

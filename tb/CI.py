@@ -91,7 +91,7 @@ testList = [
 
 
 
-res = os.system("iverilog.exe -Wall -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/cache  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/SoC/xilinx_IP/axi_full_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  -I ../RiftChip/SoC/xilinx_IP/axi_full_Xbar ../tb/riftChip_CI.v  ")
+res = os.system("iverilog -Wall -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/cache  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/SoC -y ../RiftChip/SoC/xilinx_IP/axi_full_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  -I ../RiftChip/SoC/xilinx_IP/axi_full_Xbar ../tb/riftChip_CI.v  ")
 
 if ( res == 0 ):
 	print ("compile pass!")
