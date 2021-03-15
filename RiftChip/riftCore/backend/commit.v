@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 12:07:09
+* @Last Modified time: 2021-03-15 16:39:37
 */
 
 /*
@@ -44,9 +44,11 @@ module commit (
 
 	input isMisPredict,
 	input isLsuAccessFault,
+	input isLsuMisAlign,
 	output commit_abort,
 	output [63:0] commit_pc,
-	output suILP_ready,
+	// output suILP_ready,
+	output isSuCommited,
 	output bruILP_ready,
 
 	output [63:0] privileged_pc,
@@ -84,16 +86,20 @@ module commit (
 	wire isIlleage;
 	wire isLoadAccessFault;
 	wire isStoreAccessFault;
+	wire isLoadMisAlign;
+	wire isStoreMisAlign;
 
 	wire csrILP_ready = isCsr;
 
 	wire commit_wb;
 	wire commit_comfirm;
 
-	assign suILP_ready = isSu;
+	assign isSuCommited = isSu & commit_wb;
 	assign bruILP_ready = isBranch;
-	assign isLoadAccessFault = isLsuAccessFault & isLu & commit_wb;
-	assign isStoreAccessFault =  isLsuAccessFault & isSu & commit_wb;
+	assign isLoadAccessFault = isLsuAccessFault & isLu & ~commit_wb;
+	assign isStoreAccessFault = isLsuAccessFault & isSu & ~commit_wb;
+	assign isLoadMisAlign;
+	assign isStoreMisAlign;
 
 	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
 
