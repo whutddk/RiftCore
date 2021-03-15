@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-26 15:39:04
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 16:56:19
+* @Last Modified time: 2021-03-15 17:32:49
 */
 
 /*
@@ -44,15 +44,33 @@ module cache (
 	output IL1_RVALID,
 	input IL1_RREADY,
 
-	input lsu_req_valid,
-	output lsu_req_ready,
-	input [31:0] lsu_addr_req,
-	input [63:0] lsu_wdata_req,
-	input [7:0] lsu_wstrb_req,
-	input lsu_wen_req,
-	output [31:0] lsu_rdata_rsp,
-	output lsu_rsp_valid,
-	input lsu_rsp_ready,
+	input [31:0] DL1_AWADDR,
+	input [7:0] DL1_AWLEN,
+	input [1:0] DL1_AWBURST,
+	input DL1_AWVALID,
+	output DL1_AWREADY,
+
+	input [63:0] DL1_WDATA,
+	input [7:0] DL1_WSTRB,
+	input DL1_WLAST,
+	input DL1_WVALID,
+	output DL1_WREADY,
+
+	output [1:0] DL1_BRESP,
+	output DL1_BVALID,
+	input DL1_BREADY,
+
+	input [31:0] DL1_ARADDR,
+	input [7:0] DL1_ARLEN,
+	input [1:0] DL1_ARBURST,
+	input DL1_ARVALID,
+	output DL1_ARREADY,
+
+	output [63:0] DL1_RDATA,
+	output [1:0] DL1_RRESP,
+	output DL1_RLAST,
+	output DL1_RVALID,
+	input DL1_RREADY,
 
 
 
@@ -103,10 +121,7 @@ module cache (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
-	input il1_fence,
-	output il1_fence_end,
-	input dl1_fence,
-	output dl1_fence_end,
+
 	input l2c_fence,
 	output l2c_fence_end,
 	input l3c_fence,
@@ -120,34 +135,7 @@ module cache (
 
 
 
-	//L1 D cache
-	wire [31:0] DL1_L2C_AWADDR;
-	wire [7:0] DL1_L2C_AWLEN;
-	wire [1:0] DL1_L2C_AWBURST;
-	wire DL1_L2C_AWVALID;
-	wire DL1_L2C_AWREADY;
 
-	wire [63:0] DL1_L2C_WDATA;
-	wire [7:0] DL1_L2C_WSTRB;
-	wire DL1_L2C_WLAST;
-	wire DL1_L2C_WVALID;
-	wire DL1_L2C_WREADY;
-
-	wire [1:0] DL1_L2C_BRESP;
-	wire DL1_L2C_BVALID;
-	wire DL1_L2C_BREADY;
-
-	wire [31:0] DL1_L2C_ARADDR;
-	wire [7:0] DL1_L2C_ARLEN;
-	wire [1:0] DL1_L2C_ARBURST;
-	wire DL1_L2C_ARVALID;
-	wire DL1_L2C_ARREADY;
-
-	wire [63:0] DL1_L2C_RDATA;
-	wire [1:0] DL1_L2C_RRESP;
-	wire DL1_L2C_RLAST;
-	wire DL1_L2C_RVALID;
-	wire DL1_L2C_RREADY;
 
 
 	//L3Cache
@@ -179,49 +167,6 @@ module cache (
 	wire L2C_L3C_RREADY;
 
 
-dcache i_dcache(
-	.DL1_AWADDR(DL1_L2C_AWADDR),
-	.DL1_AWLEN(DL1_L2C_AWLEN),
-	.DL1_AWBURST(DL1_L2C_AWBURST),
-	.DL1_AWVALID(DL1_L2C_AWVALID),
-	.DL1_AWREADY(DL1_L2C_AWREADY),
-	.DL1_WDATA(DL1_L2C_WDATA),
-	.DL1_WSTRB(DL1_L2C_WSTRB),
-	.DL1_WLAST(DL1_L2C_WLAST),
-	.DL1_WVALID(DL1_L2C_WVALID),
-	.DL1_WREADY(DL1_L2C_WREADY),
-	.DL1_BRESP(DL1_L2C_BRESP),
-	.DL1_BVALID(DL1_L2C_BVALID),
-	.DL1_BREADY(DL1_L2C_BREADY),
-
-	.DL1_ARADDR(DL1_L2C_ARADDR),
-	.DL1_ARLEN(DL1_L2C_ARLEN),
-	.DL1_ARBURST(DL1_L2C_ARBURST),
-	.DL1_ARVALID(DL1_L2C_ARVALID),
-	.DL1_ARREADY(DL1_L2C_ARREADY),
-	.DL1_RDATA(DL1_L2C_RDATA),
-	.DL1_RRESP(DL1_L2C_RRESP),
-	.DL1_RLAST(DL1_L2C_RLAST),
-	.DL1_RVALID(DL1_L2C_RVALID),
-	.DL1_RREADY(DL1_L2C_RREADY),
-
-	.lsu_req_valid(lsu_req_valid),
-	.lsu_req_ready(lsu_req_ready),
-	.lsu_addr_req(lsu_addr_req),
-	.lsu_wdata_req(lsu_wdata_req),
-	.lsu_wstrb_req(lsu_wstrb_req),
-	.lsu_wen_req(lsu_wen_req),
-
-	.lsu_rdata_rsp(lsu_rdata_rsp),
-	.lsu_rsp_valid(lsu_rsp_valid),
-	.lsu_rsp_ready(lsu_rsp_ready),
-
-	.dl1_fence(dl1_fence),
-	.dl1_fence_end(dl1_fence_end),
-	.CLK(CLK),
-	.RSTn(RSTn)
-);
-
 
 L2cache i_L2cache(
 
@@ -237,29 +182,29 @@ L2cache i_L2cache(
 	.IL1_RVALID   (IL1_RVALID),
 	.IL1_RREADY   (IL1_RREADY),
 
-	.DL1_AWADDR(DL1_L2C_AWADDR),
-	.DL1_AWLEN(DL1_L2C_AWLEN),
-	.DL1_AWBURST(DL1_L2C_AWBURST),
-	.DL1_AWVALID(DL1_L2C_AWVALID),
-	.DL1_AWREADY(DL1_L2C_AWREADY),
-	.DL1_WDATA(DL1_L2C_WDATA),
-	.DL1_WSTRB(DL1_L2C_WSTRB),
-	.DL1_WLAST(DL1_L2C_WLAST),
-	.DL1_WVALID(DL1_L2C_WVALID),
-	.DL1_WREADY(DL1_L2C_WREADY),
-	.DL1_BRESP(DL1_L2C_BRESP),
-	.DL1_BVALID(DL1_L2C_BVALID),
-	.DL1_BREADY(DL1_L2C_BREADY),
-	.DL1_ARADDR(DL1_L2C_ARADDR),
-	.DL1_ARLEN(DL1_L2C_ARLEN),
-	.DL1_ARBURST(DL1_L2C_ARBURST),
-	.DL1_ARVALID(DL1_L2C_ARVALID),
-	.DL1_ARREADY(DL1_L2C_ARREADY),
-	.DL1_RDATA(DL1_L2C_RDATA),
-	.DL1_RRESP(DL1_L2C_RRESP),
-	.DL1_RLAST(DL1_L2C_RLAST),
-	.DL1_RVALID(DL1_L2C_RVALID),
-	.DL1_RREADY(DL1_L2C_RREADY),
+	.DL1_AWADDR   (DL1_AWADDR),
+	.DL1_AWLEN    (DL1_AWLEN),
+	.DL1_AWBURST  (DL1_AWBURST),
+	.DL1_AWVALID  (DL1_AWVALID),
+	.DL1_AWREADY  (DL1_AWREADY),
+	.DL1_WDATA    (DL1_WDATA),
+	.DL1_WSTRB    (DL1_WSTRB),
+	.DL1_WLAST    (DL1_WLAST),
+	.DL1_WVALID   (DL1_WVALID),
+	.DL1_WREADY   (DL1_WREADY),
+	.DL1_BRESP    (DL1_BRESP),
+	.DL1_BVALID   (DL1_BVALID),
+	.DL1_BREADY   (DL1_BREADY),
+	.DL1_ARADDR   (DL1_ARADDR),
+	.DL1_ARLEN    (DL1_ARLEN),
+	.DL1_ARBURST  (DL1_ARBURST),
+	.DL1_ARVALID  (DL1_ARVALID),
+	.DL1_ARREADY  (DL1_ARREADY),
+	.DL1_RDATA    (DL1_RDATA),
+	.DL1_RRESP    (DL1_RRESP),
+	.DL1_RLAST    (DL1_RLAST),
+	.DL1_RVALID   (DL1_RVALID),
+	.DL1_RREADY   (DL1_RREADY),
 
 	.MEM_AWADDR(L2C_L3C_AWADDR),
 	.MEM_AWLEN(L2C_L3C_AWLEN),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 16:29:01
+* @Last Modified time: 2021-03-15 17:50:36
 */
 
 /*
@@ -52,23 +52,23 @@ module backEnd (
 	input DL1_RVALID,
 	output DL1_RREADY,
 
-	output [63:0] PERI_AWADDR,
-	output PERI_AWVALID,
-	input PERI_AWREADY,
-	output [63:0] PERI_WDATA,
-	output [7:0] PERI_WSTRB,
-	output PERI_WVALID,
-	input PERI_WREADY,
-	input [1:0] PERI_BRESP,
-	input PERI_BVALID,
-	output PERI_BREADY,
-	output [63:0] PERI_ARADDR,
-	output PERI_ARVALID,
-	input PERI_ARREADY,
-	input [63:0] PERI_RDATA,
-	input [1:0] PERI_RRESP,
-	input PERI_RVALID,
-	output PERI_RREADY,
+	output [63:0] SYS_AWADDR,
+	output SYS_AWVALID,
+	input SYS_AWREADY,
+	output [63:0] SYS_WDATA,
+	output [7:0] SYS_WSTRB,
+	output SYS_WVALID,
+	input SYS_WREADY,
+	input [1:0] SYS_BRESP,
+	input SYS_BVALID,
+	output SYS_BREADY,
+	output [63:0] SYS_ARADDR,
+	output SYS_ARVALID,
+	input SYS_ARREADY,
+	input [63:0] SYS_RDATA,
+	input [1:0] SYS_RRESP,
+	input SYS_RVALID,
+	output SYS_RREADY,
 
 	output lsu_fencei_valid,
 
@@ -93,6 +93,11 @@ module backEnd (
 	output [63:0] privileged_pc,
 	output privileged_valid,
 
+
+	output l2c_fence,
+	input l2c_fence_end,
+	output l3c_fence,
+	input l3c_fence_end,
 
 	input CLK,
 	input RSTn
@@ -225,8 +230,10 @@ module backEnd (
 	wire isTrap;
 	wire isXRet;
 
-	wire isLsuAccessFault;
-	wire isLsuMisAlign;
+	wire isLoadAccessFault;
+	wire isStoreAccessFault;
+	wire isLoadMisAlign;
+	wire isStoreMisAlign;
 
 
 dispatch i_dispatch(
@@ -577,23 +584,23 @@ lsu i_lsu
 	.DL1_RVALID      (DL1_RVALID),
 	.DL1_RREADY      (DL1_RREADY),
 
-	.PERI_AWADDR     (PERI_AWADDR),
-	.PERI_AWVALID    (PERI_AWVALID),
-	.PERI_AWREADY    (PERI_AWREADY),
-	.PERI_WDATA      (PERI_WDATA),
-	.PERI_WSTRB      (PERI_WSTRB),
-	.PERI_WVALID     (PERI_WVALID),
-	.PERI_WREADY     (PERI_WREADY),
-	.PERI_BRESP      (PERI_BRESP),
-	.PERI_BVALID     (PERI_BVALID),
-	.PERI_BREADY     (PERI_BREADY),
-	.PERI_ARADDR     (PERI_ARADDR),
-	.PERI_ARVALID    (PERI_ARVALID),
-	.PERI_ARREADY    (PERI_ARREADY),
-	.PERI_RDATA      (PERI_RDATA),
-	.PERI_RRESP      (PERI_RRESP),
-	.PERI_RVALID     (PERI_RVALID),
-	.PERI_RREADY     (PERI_RREADY),
+	.SYS_AWADDR     (SYS_AWADDR),
+	.SYS_AWVALID    (SYS_AWVALID),
+	.SYS_AWREADY    (SYS_AWREADY),
+	.SYS_WDATA      (SYS_WDATA),
+	.SYS_WSTRB      (SYS_WSTRB),
+	.SYS_WVALID     (SYS_WVALID),
+	.SYS_WREADY     (SYS_WREADY),
+	.SYS_BRESP      (SYS_BRESP),
+	.SYS_BVALID     (SYS_BVALID),
+	.SYS_BREADY     (SYS_BREADY),
+	.SYS_ARADDR     (SYS_ARADDR),
+	.SYS_ARVALID    (SYS_ARVALID),
+	.SYS_ARREADY    (SYS_ARREADY),
+	.SYS_RDATA      (SYS_RDATA),
+	.SYS_RRESP      (SYS_RRESP),
+	.SYS_RVALID     (SYS_RVALID),
+	.SYS_RREADY     (SYS_RREADY),
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
@@ -605,8 +612,10 @@ lsu i_lsu
 	.lsu_wb_rd0      (lsu_wb_rd0),
 
 	.isSuCommited    (isSuCommited),
-	.isLsuAccessFault(isLsuAccessFault),
-	.isLsuMisAlign   (isLsuMisAlign),
+	.isLoadAccessFault (isLoadAccessFault),
+	.isStoreAccessFault(isStoreAccessFault),
+	.isLoadMisAlign    (isLoadMisAlign),
+	.isStoreMisAlign   (isStoreMisAlign),
 
 	.flush           (flush),
 	.l2c_fence       (l2c_fence),
@@ -688,7 +697,10 @@ commit i_commit(
 	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
-	.isLsuAccessFault(isLsuAccessFault),
+	.isLoadAccessFault (isLoadAccessFault),
+	.isStoreAccessFault(isStoreAccessFault),
+	.isLoadMisAlign    (isLoadMisAlign),
+	.isStoreMisAlign   (isStoreMisAlign),
 
 	.commit_abort(commit_abort),
 	.commit_pc(commit_pc),

@@ -30,7 +30,7 @@
 
 
 `define DECODE_INFO_DW (53+13+1+6+13+2+1+64+64+6+5+5+5) 
-`define REORDER_INFO_DW (64+(5+`RB)+9)
+`define REORDER_INFO_DW (64+(5+`RB)+8)
 
 `define ALU_ISSUE_INFO_DW (30+64+6+64+(5+`RB)+(5+`RB)+(5+`RB))
 `define ALU_ISSUE_INFO_DP 2

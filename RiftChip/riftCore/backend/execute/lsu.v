@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 16:52:06
+* @Last Modified time: 2021-03-15 17:52:18
 */
 
 
@@ -72,27 +72,27 @@ module lsu #
 
 
 
-	output [63:0] PERI_AWADDR,
-	output PERI_AWVALID,
-	input PERI_AWREADY,
+	output [63:0] SYS_AWADDR,
+	output SYS_AWVALID,
+	input SYS_AWREADY,
 
-	output [63:0] PERI_WDATA,
-	output [7:0] PERI_WSTRB,
-	output PERI_WVALID,
-	input PERI_WREADY,
+	output [63:0] SYS_WDATA,
+	output [7:0] SYS_WSTRB,
+	output SYS_WVALID,
+	input SYS_WREADY,
 
-	input [1:0] PERI_BRESP,
-	input PERI_BVALID,
-	output PERI_BREADY,
+	input [1:0] SYS_BRESP,
+	input SYS_BVALID,
+	output SYS_BREADY,
 
-	output [63:0] PERI_ARADDR,
-	output PERI_ARVALID,
-	input PERI_ARREADY,
+	output [63:0] SYS_ARADDR,
+	output SYS_ARVALID,
+	input SYS_ARREADY,
 
-	input [63:0] PERI_RDATA,
-	input [1:0] PERI_RRESP,
-	input PERI_RVALID,
-	output PERI_RREADY,
+	input [63:0] SYS_RDATA,
+	input [1:0] SYS_RRESP,
+	input SYS_RVALID,
+	output SYS_RREADY,
 
 
 
@@ -233,13 +233,7 @@ module lsu #
 	wire [7:0] lsu_wstrb;
 	wire io_access;
 	wire mem_access;
-	wire isLoadAccessFault_dnxt, isLoadAccessFault_qout;
-	wire isStoreAccessFault_dnxt, isStoreAccessFault_qout;	
-	wire isLoadMisAlign_dnxt, isLoadMisAlign_qout;
-	wire isStoreMisAlign_dnxt, isStoreMisAlign_qout;	
-	// output lsu_wb_valid,
-	// output [63:0] lsu_wb_res,
-	// output [(5+`RB-1):0] lsu_wb_rd0,
+
 
 	assign issue_lsu_ready = (dl1_state_qout != DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_CFREE);
 
@@ -266,50 +260,25 @@ module lsu #
 	assign mem_access = (& (~lsu_op1[63:32]) ) & lsu_op1[31];
 
 
-	// output isLoadAccessFault,
-	// output isStoreAccessFault,
-	// output isLoadMisAlign,
-	// output isStoreMisAlign,
 
 
+	assign isLoadAccessFault = (~io_access & ~mem_access) & lsu_ren;
+	assign isStoreAccessFault = (~io_access & ~mem_access) & lsu_wen;
 
-
-	assign isLoadAccessFault_set = (~io_access & ~mem_access) & lsu_ren & issue_lsu_valid & (dl1_state_qout == DL1_STATE_CFREE) & ~flush;
-	assign isLoadAccessFault_rst = flush;
-
-	assign isStoreAccessFault_set = (~io_access & ~mem_access) & lsu_wen & issue_lsu_valid & (dl1_state_qout == DL1_STATE_CFREE) & ~flush;
-	assign isStoreAccessFault_rst = flush;
-
-	assign isLoadAccessFault = isLoadAccessFault_qout;
-	assign isStoreAccessFault = isStoreAccessFault_qout;
-
-
-	assign isLoadMisAlign_set = 
-				issue_lsu_valid & (dl1_state_qout == DL1_STATE_CFREE) & ~flush &
+	assign isLoadMisAlign = 
 				(
 					  ( (lsu_lh | lsu_lhu ) & (lsu_op1[0] != 1'b0) )
 					| ( (lsu_lw | lsu_lwu ) & (lsu_op1[1:0] != 2'b0 ) )
 					| ( (lsu_ld) & (lsu_op1[2:0] != 3'b0) )				
 				);
 
-	assign isStoreMisAlign_set = 
-				issue_lsu_valid & (dl1_state_qout == DL1_STATE_CFREE) & ~flush &
+	assign isStoreMisAlign = 
 				(
-					  (  lsu_sh & (lsu_op1[0] != 1'b0) )
-					| (  lsu_sw & (lsu_op1[1:0] != 2'b0 ) )
-					| (  lsu_sd & (lsu_op1[2:0] != 3'b0) )				
+					  ( lsu_sh & (lsu_op1[0] != 1'b0) )
+					| ( lsu_sw & (lsu_op1[1:0] != 2'b0 ) )
+					| ( lsu_sd & (lsu_op1[2:0] != 3'b0) )				
 				);
 
-	assign isLoadMisAlign_rst = flush;
-	assign isStoreMisAlign_rst = flush;
-
-	assign isLoadMisAlign = isLoadMisAlign_qout;
-	assign isStoreMisAlign = isStoreMisAlign_qout;
-
-	gen_rsffr #(.DW(1)) isLoadAccessFault_rsffr (.set_in(isLoadAccessFault_set), .rst_in(isLoadAccessFault_rst), .qout(isLoadAccessFault_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr #(.DW(1)) isStoreAccessFault_rsffr (.set_in(isStoreAccessFault_set), .rst_in(isStoreAccessFault_rst), .qout(isStoreAccessFault_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr #(.DW(1)) isLoadMisAlign_rsffr (.set_in(isLoadMisAlign_set), .rst_in(isLoadMisAlign_rst), .qout(isLoadMisAlign_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr #(.DW(1)) isStoreMisAlign_rsffr (.set_in(isStoreMisAlign_set), .rst_in(isStoreMisAlign_rst), .qout(isStoreMisAlign_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	wire [(5+`RB)-1:0] lsu_wb_rd0_dnxt;
@@ -368,6 +337,22 @@ module lsu #
 
 
 
+//    SSSSSSSSSSSSSSS YYYYYYY       YYYYYYY   SSSSSSSSSSSSSSS 
+//  SS:::::::::::::::SY:::::Y       Y:::::Y SS:::::::::::::::S
+// S:::::SSSSSS::::::SY:::::Y       Y:::::YS:::::SSSSSS::::::S
+// S:::::S     SSSSSSSY::::::Y     Y::::::YS:::::S     SSSSSSS
+// S:::::S            YYY:::::Y   Y:::::YYYS:::::S            
+// S:::::S               Y:::::Y Y:::::Y   S:::::S            
+//  S::::SSSS             Y:::::Y:::::Y     S::::SSSS         
+//   SS::::::SSSSS         Y:::::::::Y       SS::::::SSSSS    
+//     SSS::::::::SS        Y:::::::Y          SSS::::::::SS  
+//        SSSSSS::::S        Y:::::Y              SSSSSS::::S 
+//             S:::::S       Y:::::Y                   S:::::S
+//             S:::::S       Y:::::Y                   S:::::S
+// SSSSSSS     S:::::S       Y:::::Y       SSSSSSS     S:::::S
+// S::::::SSSSSS:::::S    YYYY:::::YYYY    S::::::SSSSSS:::::S
+// S:::::::::::::::SS     Y:::::::::::Y    S:::::::::::::::SS 
+//  SSSSSSSSSSSSSSS       YYYYYYYYYYYYY     SSSSSSSSSSSSSSS 
 
 
 
@@ -380,64 +365,48 @@ module lsu #
 
 
 
-// PPPPPPPPPPPPPPPPP   EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   IIIIIIIIII
-// P::::::::::::::::P  E::::::::::::::::::::ER::::::::::::::::R  I::::::::I
-// P::::::PPPPPP:::::P E::::::::::::::::::::ER::::::RRRRRR:::::R I::::::::I
-// PP:::::P     P:::::PEE::::::EEEEEEEEE::::ERR:::::R     R:::::RII::::::II
-//   P::::P     P:::::P  E:::::E       EEEEEE  R::::R     R:::::R  I::::I  
-//   P::::P     P:::::P  E:::::E               R::::R     R:::::R  I::::I  
-//   P::::PPPPPP:::::P   E::::::EEEEEEEEEE     R::::RRRRRR:::::R   I::::I  
-//   P:::::::::::::PP    E:::::::::::::::E     R:::::::::::::RR    I::::I  
-//   P::::PPPPPPPPP      E:::::::::::::::E     R::::RRRRRR:::::R   I::::I  
-//   P::::P              E::::::EEEEEEEEEE     R::::R     R:::::R  I::::I  
-//   P::::P              E:::::E               R::::R     R:::::R  I::::I  
-//   P::::P              E:::::E       EEEEEE  R::::R     R:::::R  I::::I  
-// PP::::::PP          EE::::::EEEEEEEE:::::ERR:::::R     R:::::RII::::::II
-// P::::::::P          E::::::::::::::::::::ER::::::R     R:::::RI::::::::I
-// P::::::::P          E::::::::::::::::::::ER::::::R     R:::::RI::::::::I
-// PPPPPPPPPP          EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRRIIIIIIIIII
 
 
 
-	wire peri_awvalid_set, peri_awvalid_rst, peri_awvalid_qout;
-	wire peri_wvalid_set, peri_wvalid_rst, peri_wvalid_qout;
-	wire peri_bready_set, peri_bready_rst, peri_bready_qout;
+	wire sys_awvalid_set, sys_awvalid_rst, sys_awvalid_qout;
+	wire sys_wvalid_set, sys_wvalid_rst, sys_wvalid_qout;
+	wire sys_bready_set, sys_bready_rst, sys_bready_qout;
 
-	wire peri_arvalid_set, peri_arvalid_rst, peri_arvalid_qout;
-	wire peri_rready_set, peri_rready_rst, peri_rready_qout;
+	wire sys_arvalid_set, sys_arvalid_rst, sys_arvalid_qout;
+	wire sys_rready_set, sys_rready_rst, sys_rready_qout;
 
-	wire peri_ar_req, peri_aw_req;
-	wire peri_end_r, peri_end_w;
-	wire peri_end;
+	wire sys_ar_req, sys_aw_req;
+	wire sys_end_r, sys_end_w;
+	wire sys_end;
 
-	assign peri_end_r = PERI_RVALID & PERI_RREADY;
-	assign peri_end_w = PERI_WVALID & PERI_WREADY;
-	assign peri_end = peri_end_r | peri_end_w;
-
-
-	assign PERI_AWADDR	= lsu_op1[31:0];
-	assign PERI_WDATA	= lsu_op2;
-	assign PERI_AWVALID = peri_awvalid_qout;
-	assign PERI_WVALID  = peri_wvalid_qout;
-	assign PERI_WSTRB   = lsu_wstrb;
-	assign PERI_BREADY	= peri_bready_qout;
-
-	assign PERI_ARADDR	= lsu_op1[31:0];
-	assign PERI_ARVALID = peri_arvalid_qout;
-	assign PERI_RREADY	= peri_rready_qout;
+	assign sys_end_r = SYS_RVALID & SYS_RREADY;
+	assign sys_end_w = SYS_WVALID & SYS_WREADY;
+	assign sys_end = sys_end_r | sys_end_w;
 
 
+	assign SYS_AWADDR	= lsu_op1[31:0];
+	assign SYS_WDATA	= lsu_op2;
+	assign SYS_AWVALID = sys_awvalid_qout;
+	assign SYS_WVALID  = sys_wvalid_qout;
+	assign SYS_WSTRB   = lsu_wstrb;
+	assign SYS_BREADY	= sys_bready_qout;
 
-	assign peri_awvalid_set = peri_aw_req;
-	assign peri_awvalid_rst = ~peri_awvalid_set & (PERI_AWREADY & peri_awvalid_qout);
-	assign peri_wvalid_set = peri_aw_req;
-	assign peri_wvalid_rst = ~peri_wvalid_set & (PERI_WREADY & peri_wvalid_qout);	
-	assign peri_bready_set = PERI_BVALID & ~peri_bready_qout;
-	assign peri_bready_rst = peri_bready_qout;
+	assign SYS_ARADDR	= lsu_op1[31:0];
+	assign SYS_ARVALID = sys_arvalid_qout;
+	assign SYS_RREADY	= sys_rready_qout;
 
-	gen_rsffr # (.DW(1)) peri_awvalid_rsffr (.set_in(peri_awvalid_set), .rst_in(peri_awvalid_rst), .qout(peri_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr # (.DW(1)) peri_wvalid_rsffr (.set_in(peri_wvalid_set), .rst_in(peri_wvalid_rst), .qout(peri_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr # (.DW(1)) peri_bready_rsffr (.set_in(peri_bready_set), .rst_in(peri_bready_rst), .qout(peri_bready_qout), .CLK(CLK), .RSTn(RSTn));
+
+
+	assign sys_awvalid_set = sys_aw_req;
+	assign sys_awvalid_rst = ~sys_awvalid_set & (SYS_AWREADY & sys_awvalid_qout);
+	assign sys_wvalid_set = sys_aw_req;
+	assign sys_wvalid_rst = ~sys_wvalid_set & (SYS_WREADY & sys_wvalid_qout);	
+	assign sys_bready_set = SYS_BVALID & ~sys_bready_qout;
+	assign sys_bready_rst = sys_bready_qout;
+
+	gen_rsffr # (.DW(1)) sys_awvalid_rsffr (.set_in(sys_awvalid_set), .rst_in(sys_awvalid_rst), .qout(sys_awvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) sys_wvalid_rsffr (.set_in(sys_wvalid_set), .rst_in(sys_wvalid_rst), .qout(sys_wvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) sys_bready_rsffr (.set_in(sys_bready_set), .rst_in(sys_bready_rst), .qout(sys_bready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -446,14 +415,14 @@ module lsu #
 
 
 
-	assign peri_arvalid_set = peri_ar_req;
-	assign peri_arvalid_rst = ~peri_arvalid_set & (PERI_ARREADY & peri_arvalid_qout);
-	assign peri_rready_set = PERI_RVALID & ~peri_rready_qout;
-	assign peri_rready_rst = peri_rready_qout;
+	assign sys_arvalid_set = sys_ar_req;
+	assign sys_arvalid_rst = ~sys_arvalid_set & (SYS_ARREADY & sys_arvalid_qout);
+	assign sys_rready_set = SYS_RVALID & ~sys_rready_qout;
+	assign sys_rready_rst = sys_rready_qout;
 
 
-	gen_rsffr # (.DW(1)) peri_arvalid_rsffr (.set_in(peri_arvalid_set), .rst_in(peri_arvalid_rst), .qout(peri_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
-	gen_rsffr # (.DW(1)) peri_rready_rsffr (.set_in(peri_rready_set), .rst_in(peri_rready_rst), .qout(peri_rready_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) sys_arvalid_rsffr (.set_in(sys_arvalid_set), .rst_in(sys_arvalid_rst), .qout(sys_arvalid_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1)) sys_rready_rsffr (.set_in(sys_rready_set), .rst_in(sys_rready_rst), .qout(sys_rready_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -581,7 +550,7 @@ gen_dffr # (.DW(3)) dl1_state_dffr (.dnxt(dl1_state_dnxt), .qout(dl1_state_qout)
 
 
 assign dl1_state_mode_dir = 
-		(issue_lsu_valid & ~isLoadAccessFault_set & ~isLoadMisAlign_set & ~isStoreAccessFault_set & ~isStoreMisAlign_set & ~flush) ? 
+		(issue_lsu_valid & ~isLoadAccessFault & ~isLoadMisAlign & ~isStoreAccessFault & ~isStoreMisAlign & ~flush) ? 
 			(
 				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
 				| ({3{lsu_wen}} & DL1_STATE_WRITE)
@@ -610,12 +579,12 @@ assign dl1_state_dnxt =
 		|
 		( {3{dl1_state_qout == DL1_STATE_PWAIT}} & ( ~isHazard_r ? DL1_STATE_PREAD : DL1_STATE_PWAIT ) )
 		|
-		( {3{dl1_state_qout == DL1_STATE_PREAD}} & ( peri_end_r ? DL1_STATE_CFREE : DL1_STATE_PREAD ) )
+		( {3{dl1_state_qout == DL1_STATE_PREAD}} & ( sys_end_r ? DL1_STATE_CFREE : DL1_STATE_PREAD ) )
 		|
 		( {3{dl1_state_qout == DL1_STATE_FENCE}} & ( fence_end_qout ) )		
 		;
 
-assign peri_ar_req = (dl1_state_qout != DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_PREAD);
+assign sys_ar_req = (dl1_state_qout != DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_PREAD);
 
 
 
@@ -637,7 +606,7 @@ assign dl1_ar_req =
 assign lsu_rdata_rsp = 
 	  ( {64{dl1_state_qout == DL1_STATE_CREAD}} & cache_data_r )
 	| ( {64{dl1_state_qout == DL1_STATE_CMISS}} & DL1_RDATA )
-	| ( {64{dl1_state_qout == DL1_STATE_PREAD}} & PERI_RDATA );
+	| ( {64{dl1_state_qout == DL1_STATE_PREAD}} & SYS_RDATA );
 
 
 
@@ -817,14 +786,14 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 assign chkAddr = lsu_op1[31:0];
 assign wtb_push = (dl1_state_qout == DL1_STATE_WRITE);
-assign wtb_pop = dl1_end_w | peri_end_w;
+assign wtb_pop = dl1_end_w | sys_end_w;
 		
 assign dl1_aw_req = ~wtb_empty & (~DL1_AWVALID & ~DL1_WVALID) & DL1_AWADDR[31];
-assign peri_aw_req = ~wtb_empty & (~PERI_AWVALID & ~PERI_WVALID) & ~DL1_AWADDR[31] & ~DL1_AWADDR[30];
+assign sys_aw_req = ~wtb_empty & (~SYS_AWVALID & ~SYS_WVALID) & ~DL1_AWADDR[31] & ~DL1_AWADDR[30];
 
 
 assign {DL1_WDATA,  DL1_WSTRB,  DL1_AWADDR}  = wtb_data_o;
-assign {PERI_WDATA, PERI_WSTRB, PERI_AWADDR} = wtb_data_o;
+assign {SYS_WDATA, SYS_WSTRB, SYS_AWADDR} = wtb_data_o;
 
 
 localparam WTB_AW = 3;
