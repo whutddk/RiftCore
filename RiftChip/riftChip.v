@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-04 16:48:50
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 17:48:37
+* @Last Modified time: 2021-03-15 18:15:09
 */
 
 
@@ -91,7 +91,7 @@ module riftChip (
 	wire MEM_RREADY;
 
 
-	wire [63:0] SYS_AWADDR;
+	wire [31:0] SYS_AWADDR;
 	wire SYS_AWVALID;
 	wire SYS_AWREADY;
 	wire [63:0] SYS_WDATA;
@@ -101,7 +101,7 @@ module riftChip (
 	wire [1:0] SYS_BRESP;
 	wire SYS_BVALID;
 	wire SYS_BREADY;
-	wire [63:0] SYS_ARADDR;
+	wire [31:0] SYS_ARADDR;
 	wire SYS_ARVALID;
 	wire SYS_ARREADY;
 	wire [63:0] SYS_RDATA;

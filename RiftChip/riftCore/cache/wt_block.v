@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-12 10:33:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 11:06:25
+* @Last Modified time: 2021-03-15 18:04:37
 */
 
 
@@ -30,7 +30,7 @@
 
 
 
-module wt_block
+module wt_block #
 (
 	parameter DW = 64 + 8 + 32,
 	parameter DP = 8,

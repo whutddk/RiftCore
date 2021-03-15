@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 17:52:18
+* @Last Modified time: 2021-03-15 18:14:20
 */
 
 
@@ -72,7 +72,7 @@ module lsu #
 
 
 
-	output [63:0] SYS_AWADDR,
+	output [31:0] SYS_AWADDR,
 	output SYS_AWVALID,
 	input SYS_AWREADY,
 
@@ -85,7 +85,7 @@ module lsu #
 	input SYS_BVALID,
 	output SYS_BREADY,
 
-	output [63:0] SYS_ARADDR,
+	output [31:0] SYS_ARADDR,
 	output SYS_ARVALID,
 	input SYS_ARREADY,
 
@@ -104,7 +104,7 @@ module lsu #
 
 	output issue_lsu_ready,
 	input issue_lsu_valid,
-	input [DW-1:0] issue_lsu_info,
+	input [`LSU_EXEPARAM_DW-1:0] issue_lsu_info,
 	
 	output lsu_wb_valid,
 	output [63:0] lsu_wb_res,
@@ -286,8 +286,13 @@ module lsu #
 	wire [63:0] lsu_wb_res_dnxt;
 	wire [63:0] lsu_wb_res_qout;
 	wire lsu_wb_valid_dnxt, lsu_wb_valid_qout;
+	wire lsu_rsp_valid;
+	wire [63:0] lsu_rdata_rsp;
 
-	assign lsu_wb_valid_dnxt = issue_lsu_ready & ~flush;
+	wire trans_kill_set, trans_kill_rst, trans_kill_qout;
+
+
+	assign lsu_wb_valid_dnxt = lsu_rsp_valid & ~flush; 
 	assign lsu_wb_valid = lsu_wb_valid_qout;
 
 	assign lsu_wb_rd0_dnxt = issue_lsu_ready ? lsu_rd0 : lsu_wb_rd0_qout;
@@ -296,21 +301,25 @@ module lsu #
 	assign lsu_wb_res_dnxt =
 				issue_lsu_ready ?
 				(
-					({64{lsu_lb}} & ( isUsi ? {56'b0, LSU_RDATA[7:0]} : {{56{LSU_RDATA[7]}}, LSU_RDATA[7:0]} ))
+					({64{lsu_lb}} & ( isUsi ? {56'b0, lsu_rdata_rsp[7:0]} : {{56{lsu_rdata_rsp[7]}}, lsu_rdata_rsp[7:0]} ))
 					|
-					({64{lsu_lh}} & ( isUsi ? {48'b0, LSU_RDATA[15:0]} : {{48{LSU_RDATA[15]}}, LSU_RDATA[15:0]} ))
+					({64{lsu_lh}} & ( isUsi ? {48'b0, lsu_rdata_rsp[15:0]} : {{48{lsu_rdata_rsp[15]}}, lsu_rdata_rsp[15:0]} ))
 					|
-					({64{lsu_lw}} & ( isUsi ? {32'b0, LSU_RDATA[31:0]} : {{32{LSU_RDATA[31]}}, LSU_RDATA[31:0]} ))
+					({64{lsu_lw}} & ( isUsi ? {32'b0, lsu_rdata_rsp[31:0]} : {{32{lsu_rdata_rsp[31]}}, lsu_rdata_rsp[31:0]} ))
 					|
-					({64{lsu_ld}} & LSU_RDATA)			
+					({64{lsu_ld}} & lsu_rdata_rsp)			
 				)
 				: lsu_wb_res_qout;
 	assign lsu_wb_res = lsu_wb_res_qout;
 
+	assign trans_kill_set = flush;
+	assign trans_kill_rst = ((dl1_state_dnxt == DL1_STATE_CFREE) | (dl1_state_qout == DL1_STATE_CFREE)) & ~flush;
+
+
 	gen_dffr # (.DW((5+`RB))) lsu_wb_rd0_dffr ( .dnxt(lsu_wb_rd0_dnxt), .qout(lsu_wb_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) lsu_wb_res_dffr (.dnxt(lsu_wb_res_dnxt), .qout(lsu_wb_res_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(1)) lsu_wb_valid_rsffr ( .dnxt(lsu_wb_valid_dnxt), .qout(lsu_wb_valid_qout), .CLK(CLK), .RSTn(RSTn));
-
+	gen_rsffr # (.DW(1)) trans_kill_rsffr (.set_in(trans_kill_set), .rst_in(trans_kill_rst), .qout(trans_kill_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 

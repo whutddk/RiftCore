@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 17:47:31
+* @Last Modified time: 2021-03-15 18:14:43
 */
 
 
@@ -86,7 +86,7 @@ module riftCore (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
-	output [63:0] SYS_AWADDR,
+	output [31:0] SYS_AWADDR,
 	output SYS_AWVALID,
 	input SYS_AWREADY,
 	output [63:0] SYS_WDATA,
@@ -96,7 +96,7 @@ module riftCore (
 	input [1:0] SYS_BRESP,
 	input SYS_BVALID,
 	output SYS_BREADY,
-	output [63:0] SYS_ARADDR,
+	output [31:0] SYS_ARADDR,
 	output SYS_ARVALID,
 	input SYS_ARREADY,
 	input [63:0] SYS_RDATA,
@@ -160,17 +160,13 @@ wire [1:0] IL1_RRESP;
 wire IL1_RLAST;
 wire IL1_RVALID;
 wire IL1_RREADY;
-wire [63:0] IL1_RDATA;
-wire [1:0] IL1_RRESP;
-wire IL1_RLAST;
-wire IL1_RVALID;
-wire IL1_RREADY;
+
 
 wire [31:0] DL1_AWADDR;
 wire [7:0] DL1_AWLEN;
 wire [1:0] DL1_AWBURST;
 wire DL1_AWVALID;
-wire DL1_AWREADY,
+wire DL1_AWREADY;
 wire [63:0] DL1_WDATA;
 wire [7:0] DL1_WSTRB;
 wire DL1_WLAST;
@@ -190,6 +186,10 @@ wire DL1_RLAST;
 wire DL1_RVALID;
 wire DL1_RREADY;
 
+wire l2c_fence;
+wire l2c_fence_end;
+wire l3c_fence;
+wire l3c_fence_end;
 
 frontEnd i_frontEnd(
 	.lsu_fencei_valid(lsu_fencei_valid),
@@ -332,10 +332,7 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 
 
 
-	wire l2c_fence;
-	wire l2c_fence_end;
-	wire l3c_fence;
-	wire l3c_fence_end;
+
 
 
 

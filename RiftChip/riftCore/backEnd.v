@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 17:50:36
+* @Last Modified time: 2021-03-15 18:14:33
 */
 
 /*
@@ -52,7 +52,7 @@ module backEnd (
 	input DL1_RVALID,
 	output DL1_RREADY,
 
-	output [63:0] SYS_AWADDR,
+	output [31:0] SYS_AWADDR,
 	output SYS_AWVALID,
 	input SYS_AWREADY,
 	output [63:0] SYS_WDATA,
@@ -62,7 +62,7 @@ module backEnd (
 	input [1:0] SYS_BRESP,
 	input SYS_BVALID,
 	output SYS_BREADY,
-	output [63:0] SYS_ARADDR,
+	output [31:0] SYS_ARADDR,
 	output SYS_ARVALID,
 	input SYS_ARREADY,
 	input [63:0] SYS_RDATA,

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-27 10:51:21
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-12 16:42:22
+* @Last Modified time: 2021-03-15 17:58:39
 */
 
 /*
@@ -148,7 +148,7 @@ module lsu_issue #
 
 
 	assign issue_lsu_valid_set = ~flush & (lsu_isClearRAW & ~issue_lsu_valid_qout);
-	assign issue_lsu_valid_rst = flush | (issue_lsu_ready & issue_lsu_valid_qout)
+	assign issue_lsu_valid_rst = flush | (issue_lsu_ready & issue_lsu_valid_qout);
 	assign issue_lsu_valid = issue_lsu_valid_qout;
 
 	assign lsu_fifo_pop = issue_lsu_valid_set;
