@@ -1,10 +1,10 @@
 /*
-* @File name: stp_blcok
+* @File name: wt_blcok
 * @Author: Ruige Lee
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-12 10:33:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-12 11:16:47
+* @Last Modified time: 2021-03-15 10:37:54
 */
 
 
@@ -30,7 +30,7 @@
 
 
 
-module stp_blcok
+module wt_blcok
 (
 	parameter DW = 64 + 8 + 32,
 	parameter DP = 8,
@@ -68,15 +68,15 @@ wire [DP-1:0] isAddrHit_r;
 
 generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
-		wire [31:0] stpb_addr_qout = stpb_info_qout[ DW*dp +: 32];
-		assign isAddrHit_r[dp] = ( chkAddr[31 -: TAG_W] == stpb_addr_qout[31 -: TAG_W] ) & valid_qout[dp];
+		wire [31:0] wtb_addr_qout = wtb_info_qout[ DW*dp +: 32];
+		assign isAddrHit_r[dp] = ( chkAddr[31 -: TAG_W] == wtb_addr_qout[31 -: TAG_W] ) & valid_qout[dp];
 	end
 endgenerate
 
 assign isHazard_r = | isAddrHit_r;
 
 
-assign data_o = stpb_info_qout[DW*rdp_qout+:DW];
+assign data_o = wtb_info_qout[DW*rdp_qout+:DW];
 
 
 
@@ -84,9 +84,9 @@ assign data_o = stpb_info_qout[DW*rdp_qout+:DW];
 
 
 
-wire [DW*DP-1:0] stpb_info_dnxt;
-wire [DW*DP-1:0] stpb_info_qout;
-wire [DP-1:0] stpb_info_en;
+wire [DW*DP-1:0] wtb_info_dnxt;
+wire [DW*DP-1:0] wtb_info_qout;
+wire [DP-1:0] wtb_info_en;
 
 wire [DP-1:0] valid_dnxt;
 wire [DP-1:0] valid_qout;
@@ -103,7 +103,7 @@ localparam AW = $clog2(DP);
 
 
 
-assign stpb_info_en = {DP{push}} & ((1 << wrp_qout[AW-1:0]));
+assign wtb_info_en = {DP{push}} & ((1 << wrp_qout[AW-1:0]));
 
 
 assign valid_en =
@@ -122,17 +122,17 @@ generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
 
 
-		assign stpb_info_dnxt[DW*dp+:DW] = data_i;
+		assign wtb_info_dnxt[DW*dp+:DW] = data_i;
 	assign valid_dnxt[dp] = flush ? commit_qout[dp] : (push & wrp_qout[AW-1:0] == dp );
 	assign commit_dnxt[dp] = commit & (ccp_qout[AW-1:0] == dp);
 
 
 
-		gen_dffren # (.DW(DW)) stpb_info_dffren 
+		gen_dffren # (.DW(DW)) wtb_info_dffren 
 		(
-			.dnxt(stpb_info_dnxt[DW*dp +: DW]),
-			.qout(stpb_info_qout[DW*dp +: DW]),
-			.en(stpb_info_en[dp]),
+			.dnxt(wtb_info_dnxt[DW*dp +: DW]),
+			.qout(wtb_info_qout[DW*dp +: DW]),
+			.en(wtb_info_en[dp]),
 			.CLK(CLK),
 			.RSTn(RSTn)
 		);
@@ -197,7 +197,7 @@ assign empty = ccp_qout == rdp_qout;
 always @( negedge CLK ) begin
 
 	if (0) begin
-		$display("Assert Fail at stpb_block");
+		$display("Assert Fail at wtb_block");
 		$stop;
 	end
 

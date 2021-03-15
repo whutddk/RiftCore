@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-12 18:04:14
+* @Last Modified time: 2021-03-15 10:32:10
 */
 
 
@@ -244,7 +244,8 @@ module dcache #
 	wire [7:0] lsu_wstrb;
 	wire io_access;
 	wire mem_access;
-	wire accessFault;
+	wire isAccessFault_dnxt, isAccessFault_qout;
+	wire isMisAlign_dnxt, isMisAlign_qout;
 	
 	// output lsu_wb_valid,
 	// output [63:0] lsu_wb_res,
@@ -262,18 +263,36 @@ module dcache #
 			lsu_op1,
 			lsu_op2
 			} = issue_lsu_info;
-	assign isUsi = rv64i_lbu | rv64i_lhu | rv64i_lwu;
-	assign lsu_ren = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
-	assign lsu_wen = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
-	assign lsu_wstrb =    ({8{rv64i_sb}} & 8'b1  )
-						| ({8{rv64i_sh}} & 8'b11 )
-						| ({8{rv64i_sw}} & 8'b1111 )
-						| ({8{rv64i_sd}} & 8'b11111111 );
+	assign isUsi = lsu_lbu | lsu_lhu | lsu_lwu;
+	assign lsu_ren = lsu_lb | lsu_lh | lsu_lw | lsu_ld | lsu_lbu | lsu_lhu | lsu_lwu;
+	assign lsu_wen = lsu_sb | lsu_sh | lsu_sw | lsu_sd;
+	assign lsu_wstrb =    ({8{lsu_sb}} & 8'b1  )
+						| ({8{lsu_sh}} & 8'b11 )
+						| ({8{lsu_sw}} & 8'b1111 )
+						| ({8{lsu_sd}} & 8'b11111111 );
+
 
 	assign io_access = (& (~lsu_op1[63:32]) ) & ~lsu_op1[31] & ~lsu_op1[30];
 	assign mem_access = (& (~lsu_op1[63:32]) ) & lsu_op1[31];
-	assign accessFault = ~io_access & ~mem_access;
 
+
+	assign isAccessFault_set = ~io_access & ~mem_access & issue_lsu_valid & ~flush;
+	assign isAccessFault_rst = flush;
+	assign isAccessFault = isAccessFault_qout;
+
+	assign isMisAlign_set = 
+			(~flush) & 
+			(
+				  ( (lsu_lh | lsu_lhu | lsu_sh) & (lsu_op1[0] != 1'b0) )
+				| ( (lsu_lw | lsu_lwu | lsu_sw) & (lsu_op1[1:0] != 2'b0 ) )
+				| ( (lsu_ld | lsu_sd) & (lsu_op1[2:0] != 3'b0) )				
+			);
+
+	assign isMisAlign_rst = flush;
+	assign isMisAlign = isMisAlign_qout;
+
+	gen_rsffr #(.DW(1)) isAccessFault_rsffr (.set_in(isAccessFault_set), .rst_in(isAccessFault_rst), .qout(isAccessFault_qout), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr #(.DW(1)) isMisAlign_rsffr (.set_in(isMisAlign_set), .rst_in(isMisAlign_rst), .qout(isMisAlign_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 	wire [(5+`RB)-1:0] lsu_wb_rd0_dnxt;
@@ -379,15 +398,15 @@ module dcache #
 	assign peri_end = peri_end_r | peri_end_w;
 
 
-	assign PERI_AWADDR	= ;
-	assign PERI_WDATA	= ;
+	assign PERI_AWADDR	= lsu_op1[31:0];
+	assign PERI_WDATA	= lsu_op2;
 	assign PERI_AWVALID = peri_awvalid_qout;
 
-	assign PERI_WVALID	= peri_wvalid_qout;
-	assign PERI_WSTRB = ;
+	assign PERI_WVALID  = peri_wvalid_qout;
+	assign PERI_WSTRB   = lsu_wstrb;
 
 	assign PERI_BREADY	= peri_bready_qout;
-	assign PERI_ARADDR	= ;
+	assign PERI_ARADDR	= lsu_op1[31:0];
 	assign PERI_ARVALID = peri_arvalid_qout;
 	assign PERI_RREADY	= peri_rready_qout;
 
@@ -547,7 +566,7 @@ gen_dffr # (.DW(3)) dl1_state_dffr (.dnxt(dl1_state_dnxt), .qout(dl1_state_qout)
 
 
 assign dl1_state_mode_dir = 
-		(issue_lsu_valid & ~accessFault) ? 
+		(issue_lsu_valid & ~isAccessFault_set & ~isMisAlign_set & ~flush) ? 
 			(
 				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
 				| ({3{lsu_wen & mem_access}} & DL1_STATE_WRITE)
@@ -581,16 +600,18 @@ assign dl1_state_dnxt =
 assign peri_ar_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_ren;
 assign peri_aw_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_wen;
 
-assign lsu_req_ready = 
-	  (dl1_state_qout == DL1_STATE_CREAD)
-	| (dl1_state_qout == DL1_STATE_WRITE)
-	;
+// assign lsu_req_ready = 
+// 	  (dl1_state_qout == DL1_STATE_CREAD)
+// 	| (dl1_state_qout == DL1_STATE_WRITE)
+// 	;
 
 
 assign lsu_rsp_valid = 
-	  ( (dl1_state_qout == DL1_STATE_CREAD) & (| cb_vhit) )
-	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
-	| ( (dl1_state_qout == DL1_STATE_WRITE) );
+	  ( (dl1_state_qout == DL1_STATE_CREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) )
+	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1[31:0]) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
+	| ( (dl1_state_qout == DL1_STATE_WRITE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
+	| ( (dl1_state_qout == DL1_STATE_FENCE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
+	| ( (dl1_state_qout == DL1_STATE_PACCE) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout );
 
 assign dl1_ar_req = 
 	(
@@ -606,18 +627,18 @@ assign lsu_rdata_rsp =
 
 
 
-assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1;
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1[31:0];
 assign cache_en_w =
 	  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
 	| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}});
 
 assign cache_en_r = {CB{dl1_state_dnxt == DL1_STATE_CREAD}};
-assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb_req;
-assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_wdata_req;
+assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb;
+assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_op2;
 
 
 
-assign tag_addr = lsu_op1;
+assign tag_addr = lsu_op1[31:0];
 assign tag_en_w = blockReplace &
 			{CB{
 				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
@@ -629,12 +650,12 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign cache_addr_dnxt = 
-	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 	| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1 & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
 	;
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
@@ -776,7 +797,7 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 
 
-assign chkAddr = lsu_op1;
+assign chkAddr = lsu_op1[31:0];
 assign wtb_push = (dl1_state_qout == DL1_STATE_WRITE);
 assign wtb_pop = dl1_end_w;
 		
@@ -790,7 +811,7 @@ localparam WTB_AW = 3;
 localparam WTB_DP = 2**WTB_AW;
 
 
-assign wtb_data_i = { lsu_wdata_req, lsu_wstrb_req, lsu_op1 };
+assign wtb_data_i = { lsu_op2, lsu_wstrb, lsu_op1[31:0] };
 
 wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 (
@@ -822,7 +843,7 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 //ASSERT
 always @( negedge CLK ) begin
 
-	if ( issue_lsu_valid & ( dl1_state_qout != DL1_STATE_CFREE | wtb_full ) ) begin
+	if ( issue_lsu_valid & ( (dl1_state_qout != DL1_STATE_CFREE) | wtb_full ) ) begin
 		$display("Assert Fail at L1-Dcache");
 		$stop;
 	end
