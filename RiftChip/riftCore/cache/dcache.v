@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 10:32:10
+* @Last Modified time: 2021-03-15 16:00:56
 */
 
 
@@ -129,14 +129,17 @@ module dcache #
 	//from commit
 	input suCommited,
 	output isLsuAccessFault,
+	output isLsuMisAlign,
 
 	input flush,
 
+	output l2c_fence,
+	input l2c_fence_end,
+
+	output l3c_fence,
+	input l3c_fence_end,
 
 
-
-	input dl1_fence,
-	output dl1_fence_end,
 	input CLK,
 	input RSTn
 );
@@ -147,8 +150,8 @@ module dcache #
 	localparam DL1_STATE_CMISS = 3;
 	localparam DL1_STATE_FENCE = 4;
 	localparam DL1_STATE_WRITE = 5;
-	localparam DL1_STATE_PACCE = 6;
-
+	localparam DL1_STATE_PWAIT = 6;
+	localparam DL1_STATE_PREAD = 7;
 
 	localparam ADDR_LSB = $clog2(DW*BK/8);
 	localparam LINE_W = $clog2(CL); 
@@ -251,7 +254,7 @@ module dcache #
 	// output [63:0] lsu_wb_res,
 	// output [(5+`RB-1):0] lsu_wb_rd0,
 
-	assign issue_lsu_ready = (dl1_state_dnxt == DL1_STATE_CFREE) & (~wtb_full);
+	assign issue_lsu_ready = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_CFREE);
 
 
 
@@ -278,7 +281,7 @@ module dcache #
 
 	assign isAccessFault_set = ~io_access & ~mem_access & issue_lsu_valid & ~flush;
 	assign isAccessFault_rst = flush;
-	assign isAccessFault = isAccessFault_qout;
+	assign isLsuAccessFault = isAccessFault_qout;
 
 	assign isMisAlign_set = 
 			(~flush) & 
@@ -289,7 +292,7 @@ module dcache #
 			);
 
 	assign isMisAlign_rst = flush;
-	assign isMisAlign = isMisAlign_qout;
+	assign isLsuMisAlign = isMisAlign_qout;
 
 	gen_rsffr #(.DW(1)) isAccessFault_rsffr (.set_in(isAccessFault_set), .rst_in(isAccessFault_rst), .qout(isAccessFault_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_rsffr #(.DW(1)) isMisAlign_rsffr (.set_in(isMisAlign_set), .rst_in(isMisAlign_rst), .qout(isMisAlign_qout), .CLK(CLK), .RSTn(RSTn));
@@ -401,11 +404,10 @@ module dcache #
 	assign PERI_AWADDR	= lsu_op1[31:0];
 	assign PERI_WDATA	= lsu_op2;
 	assign PERI_AWVALID = peri_awvalid_qout;
-
 	assign PERI_WVALID  = peri_wvalid_qout;
 	assign PERI_WSTRB   = lsu_wstrb;
-
 	assign PERI_BREADY	= peri_bready_qout;
+
 	assign PERI_ARADDR	= lsu_op1[31:0];
 	assign PERI_ARVALID = peri_arvalid_qout;
 	assign PERI_RREADY	= peri_rready_qout;
@@ -556,7 +558,6 @@ module dcache #
 
 
 
-assign dl1_fence_end = (dl1_state_qout == DL1_STATE_FENCE) & ( dl1_state_dnxt == DL1_STATE_CFREE );
 
 
 
@@ -569,8 +570,9 @@ assign dl1_state_mode_dir =
 		(issue_lsu_valid & ~isAccessFault_set & ~isMisAlign_set & ~flush) ? 
 			(
 				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
-				| ({3{lsu_wen & mem_access}} & DL1_STATE_WRITE)
-				| ({3{io_access}} & DL1_STATE_PACCE)
+				| ({3{lsu_wen}} & DL1_STATE_WRITE)
+				| ({3{lsu_ren & io_access &  isHazard_r}} & DL1_STATE_PWAIT)
+				| ({3{lsu_ren & io_access & ~isHazard_r}} & DL1_STATE_PREAD)
 			)
 			: DL1_STATE_CFREE
 			;
@@ -579,7 +581,7 @@ assign dl1_state_mode_dir =
 
 assign dl1_state_dnxt = 
 		( {3{dl1_state_qout == DL1_STATE_CFREE}} & 
-			( dl1_fence ? DL1_STATE_FENCE : dl1_state_mode_dir )
+			( (issue_lsu_valid & (lsu_fence_i | lsu_fence) ) ? DL1_STATE_FENCE : dl1_state_mode_dir )
 		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_CREAD}} &
@@ -592,13 +594,15 @@ assign dl1_state_dnxt =
 		|
 		( {3{dl1_state_qout == DL1_STATE_WRITE}} & DL1_STATE_CFREE )
 		|
-		( {3{dl1_state_qout == DL1_STATE_PACCE}} & ( peri_end ? DL1_STATE_PACCE : DL1_STATE_CFREE) )
+		( {3{dl1_state_qout == DL1_STATE_PWAIT}} & ( ~isHazard_r ? DL1_STATE_PREAD : DL1_STATE_PWAIT ) )
 		|
-		( {3{dl1_state_qout == DL1_STATE_FENCE}} & (wtb_empty ? DL1_STATE_CFREE : DL1_STATE_FENCE) )		
+		( {3{dl1_state_qout == DL1_STATE_PREAD}} & ( peri_end_r ? DL1_STATE_CFREE : DL1_STATE_PREAD ) )
+		|
+		( {3{dl1_state_qout == DL1_STATE_FENCE}} & (  ) )		
 		;
 
-assign peri_ar_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_ren;
-assign peri_aw_req = (dl1_state_qout == DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_PACCE) & lsu_wen;
+assign peri_ar_req = (dl1_state_qout != DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_PREAD);
+
 
 // assign lsu_req_ready = 
 // 	  (dl1_state_qout == DL1_STATE_CREAD)
@@ -611,7 +615,7 @@ assign lsu_rsp_valid =
 	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1[31:0]) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_WRITE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
 	| ( (dl1_state_qout == DL1_STATE_FENCE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
-	| ( (dl1_state_qout == DL1_STATE_PACCE) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout );
+	| ( (dl1_state_qout == DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout );
 
 assign dl1_ar_req = 
 	(
@@ -623,16 +627,21 @@ assign dl1_ar_req =
 
 assign lsu_rdata_rsp = 
 	  ( {64{dl1_state_qout == DL1_STATE_CREAD}} & cache_data_r )
-	| ( {64{dl1_state_qout == DL1_STATE_CMISS}} & DL1_RDATA );
+	| ( {64{dl1_state_qout == DL1_STATE_CMISS}} & DL1_RDATA )
+	| ( {64{dl1_state_qout == DL1_STATE_PREAD}} & PERI_RDATA );
 
 
 
 assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1[31:0];
 assign cache_en_w =
-	  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
-	| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}});
+		{CB{mem_access}} &
+		(
+			  (cb_vhit & {CB{dl1_state_qout == DL1_STATE_CMISS & DL1_RVALID & DL1_RREADY}})
+			| (cb_vhit & {CB{dl1_state_qout == DL1_STATE_WRITE}})
+		);
 
-assign cache_en_r = {CB{dl1_state_dnxt == DL1_STATE_CREAD}};
+
+assign cache_en_r = {CB{mem_access}} & {CB{dl1_state_dnxt == DL1_STATE_CREAD}};
 assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb;
 assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_op2;
 
@@ -644,7 +653,7 @@ assign tag_en_w = blockReplace &
 				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
 				| (dl1_state_qout == DL1_STATE_MWAIT & dl1_state_dnxt == DL1_STATE_CMISS)
 			}};
-assign tag_en_r = {CB{(dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) | (dl1_state_qout == DL1_STATE_CMISS & DL1_ARVALID & DL1_ARREADY)}};
+assign tag_en_r = {CB{mem_access}} & {CB{(dl1_state_dnxt == DL1_STATE_CREAD) | (dl1_state_dnxt == DL1_STATE_WRITE) | (dl1_state_qout == DL1_STATE_CMISS & DL1_ARVALID & DL1_ARREADY)}};
 assign tag_info_wstrb = {((TAG_W+7)/8){1'b1}};
 assign tag_info_w = tag_addr[31 -: TAG_W];
 
@@ -799,12 +808,14 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 assign chkAddr = lsu_op1[31:0];
 assign wtb_push = (dl1_state_qout == DL1_STATE_WRITE);
-assign wtb_pop = dl1_end_w;
+assign wtb_pop = dl1_end_w | peri_end_w;
 		
-assign dl1_aw_req = ~wtb_empty & (~DL1_AWVALID & ~DL1_WVALID);
+assign dl1_aw_req = ~wtb_empty & (~DL1_AWVALID & ~DL1_WVALID) & DL1_AWADDR[31];
+assign peri_aw_req = ~wtb_empty & (~PERI_AWVALID & ~PERI_WVALID) & ~DL1_AWADDR[31] & ~DL1_AWADDR[30];
 
-assign {DL1_WDATA, DL1_WSTRB, DL1_AWADDR} = wtb_data_o;
 
+assign {DL1_WDATA,  DL1_WSTRB,  DL1_AWADDR}  = wtb_data_o;
+assign {PERI_WDATA, PERI_WSTRB, PERI_AWADDR} = wtb_data_o;
 
 
 localparam WTB_AW = 3;
@@ -824,9 +835,13 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 	.pop(wtb_pop),
 	.data_o(wtb_data_o),
 
+	.commit(suCommited),
+	.isOpin_O(),
+	.isOpin_W(),
 	.empty(wtb_empty),
 	.full(wtb_full),
 
+	.flush(flush),
 	.CLK(CLK),
 	.RSTn(RSTn)
 );
@@ -834,8 +849,61 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 
 
 
+// FFFFFFFFFFFFFFFFFFFFFFEEEEEEEEEEEEEEEEEEEEEENNNNNNNN        NNNNNNNN        CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE
+// F::::::::::::::::::::FE::::::::::::::::::::EN:::::::N       N::::::N     CCC::::::::::::CE::::::::::::::::::::E
+// F::::::::::::::::::::FE::::::::::::::::::::EN::::::::N      N::::::N   CC:::::::::::::::CE::::::::::::::::::::E
+// FF::::::FFFFFFFFF::::FEE::::::EEEEEEEEE::::EN:::::::::N     N::::::N  C:::::CCCCCCCC::::CEE::::::EEEEEEEEE::::E
+//   F:::::F       FFFFFF  E:::::E       EEEEEEN::::::::::N    N::::::N C:::::C       CCCCCC  E:::::E       EEEEEE
+//   F:::::F               E:::::E             N:::::::::::N   N::::::NC:::::C                E:::::E             
+//   F::::::FFFFFFFFFF     E::::::EEEEEEEEEE   N:::::::N::::N  N::::::NC:::::C                E::::::EEEEEEEEEE   
+//   F:::::::::::::::F     E:::::::::::::::E   N::::::N N::::N N::::::NC:::::C                E:::::::::::::::E   
+//   F:::::::::::::::F     E:::::::::::::::E   N::::::N  N::::N:::::::NC:::::C                E:::::::::::::::E   
+//   F::::::FFFFFFFFFF     E::::::EEEEEEEEEE   N::::::N   N:::::::::::NC:::::C                E::::::EEEEEEEEEE   
+//   F:::::F               E:::::E             N::::::N    N::::::::::NC:::::C                E:::::E             
+//   F:::::F               E:::::E       EEEEEEN::::::N     N:::::::::N C:::::C       CCCCCC  E:::::E       EEEEEE
+// FF:::::::FF           EE::::::EEEEEEEE:::::EN::::::N      N::::::::N  C:::::CCCCCCCC::::CEE::::::EEEEEEEE:::::E
+// F::::::::FF           E::::::::::::::::::::EN::::::N       N:::::::N   CC:::::::::::::::CE::::::::::::::::::::E
+// F::::::::FF           E::::::::::::::::::::EN::::::N        N::::::N     CCC::::::::::::CE::::::::::::::::::::E
+// FFFFFFFFFFF           EEEEEEEEEEEEEEEEEEEEEENNNNNNNN         NNNNNNN        CCCCCCCCCCCCCEEEEEEEEEEEEEEEEEEEEEE
+
+	// output l2c_fence,
+	// input l2c_fence_end,
+
+	// output l3c_fence,
+	// input l3c_fence_end,
+
+wire dl1_fence_end;
 
 
+wire fence_end_set;
+wire fence_end_rst;
+wire fence_end_qout;
+
+wire l2c_fence_set;
+wire l2c_fence_rst;
+wire l2c_fence_qout;
+
+wire l3c_fence_set;
+wire l3c_fence_rst;
+wire l3c_fence_qout;
+
+
+
+
+assign l2c_fence_set = dl1_fence_end & lsu_fence;
+assign l3c_fence_set = dl1_fence_end & lsu_fence;
+
+assign l2c_fence_rst = l2c_fence_end;
+assign l3c_fence_rst = l3c_fence_end;
+
+assign dl1_fence_end = wtb_empty;
+assign fence_end_set = (lsu_fence_i & dl1_fence_end) | (lsu_fence & l3c_fence_end);
+assign fence_end_rst = dl1_state_dnxt == DL1_STATE_CFREE;
+
+
+gen_rsffr # (.DW(1)) l2c_fence_rsffr (.set_in(l2c_fence_set), .rst_in(l2c_fence_rst), .qout(l2c_fence_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) l3c_fence_rsffr (.set_in(l3c_fence_set), .rst_in(l3c_fence_rst), .qout(l3c_fence_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) fence_end_rsffr (.set_in(fence_end_set), .rst_in(fence_end_rst), .qout(fence_end_qout), .CLK(CLK), .RSTn(RSTn));
 
 
 
@@ -843,19 +911,13 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 //ASSERT
 always @( negedge CLK ) begin
 
-	if ( issue_lsu_valid & ( (dl1_state_qout != DL1_STATE_CFREE) | wtb_full ) ) begin
+	if ( 0 ) begin
 		$display("Assert Fail at L1-Dcache");
 		$stop;
 	end
 
 
 end
-
-
-initial begin 
-	$info("Cache Miss should operate after no tag hit in dirty buff");
-end
-
 
 
 endmodule
