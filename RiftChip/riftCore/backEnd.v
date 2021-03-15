@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 18:14:33
+* @Last Modified time: 2021-03-15 19:23:50
 */
 
 /*
@@ -230,10 +230,8 @@ module backEnd (
 	wire isTrap;
 	wire isXRet;
 
-	wire isLoadAccessFault;
-	wire isStoreAccessFault;
-	wire isLoadMisAlign;
-	wire isStoreMisAlign;
+	wire isLSUAccessFault;
+	wire isLSUMisAlign;
 
 
 dispatch i_dispatch(
@@ -612,10 +610,9 @@ lsu i_lsu
 	.lsu_wb_rd0      (lsu_wb_rd0),
 
 	.isSuCommited    (isSuCommited),
-	.isLoadAccessFault (isLoadAccessFault),
-	.isStoreAccessFault(isStoreAccessFault),
-	.isLoadMisAlign    (isLoadMisAlign),
-	.isStoreMisAlign   (isStoreMisAlign),
+	.isLSUAccessFault (isLSUAccessFault),
+	.isLSUMisAlign    (isLSUMisAlign),
+
 
 	.flush           (flush),
 	.l2c_fence       (l2c_fence),
@@ -697,10 +694,8 @@ commit i_commit(
 	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
-	.isLoadAccessFault (isLoadAccessFault),
-	.isStoreAccessFault(isStoreAccessFault),
-	.isLoadMisAlign    (isLoadMisAlign),
-	.isStoreMisAlign   (isStoreMisAlign),
+	.isLSUAccessFault (isLSUAccessFault),
+	.isLSUMisAlign    (isLSUMisAlign),
 
 	.commit_abort(commit_abort),
 	.commit_pc(commit_pc),

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 17:05:08
+* @Last Modified time: 2021-03-15 19:25:18
 */
 
 /*
@@ -43,10 +43,9 @@ module commit (
 	output reOrder_fifo_pop,
 
 	input isMisPredict,
-	input isLoadAccessFault,
-	input isStoreAccessFault,
-	input isLoadMisAlign,
-	input isStoreMisAlign,
+	input isLSUAccessFault,
+	input isLSUMisAlign,
+
 	output commit_abort,
 	output [63:0] commit_pc,
 	// output suILP_ready,
@@ -77,8 +76,8 @@ module commit (
 	wire [5+`RB-1:0] commit_rd0;
 	wire isBranch;
 
-	wire isLS;
-
+	wire isSu;
+	wire isLu;
 	wire isCsr;
 
 	wire isEcall;
@@ -98,12 +97,12 @@ module commit (
 
 	assign isSuCommited = isSu & commit_wb;
 	assign bruILP_ready = isBranch;
-	assign isLoadAccessFault_ACK = isLoadAccessFault & isLS & ~commit_wb;
-	assign isStoreAccessFault_ACK = isStoreAccessFault & isLS & ~commit_wb;
-	assign isLoadMisAlign_ACK = isLoadMisAlign & isLS & ~commit_wb;
-	assign isStoreMisAlign_ACK = isStoreMisAlign & isLS & ~commit_wb;
+	assign isLoadAccessFault_ACK = isLSUAccessFault & isLu & ~commit_wb;
+	assign isStoreAccessFault_ACK = isLSUAccessFault & isSu & ~commit_wb;
+	assign isLoadMisAlign_ACK = isLSUMisAlign & isLu & ~commit_wb;
+	assign isStoreMisAlign_ACK = isLSUMisAlign & isSu & ~commit_wb;
 
-	assign {commit_pc, commit_rd0, isBranch, isLS, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
+	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
 
 	assign commit_abort = (~reOrder_fifo_empty) & 
 							((isBranch & isMisPredict) 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 18:14:20
+* @Last Modified time: 2021-03-15 19:26:11
 */
 
 
@@ -112,10 +112,8 @@ module lsu #
 
 	//from commit
 	input isSuCommited,
-	output isLoadAccessFault,
-	output isStoreAccessFault,
-	output isLoadMisAlign,
-	output isStoreMisAlign,
+	output isLSUAccessFault,
+	output isLSUMisAlign,
 
 	input flush,
 
@@ -262,23 +260,14 @@ module lsu #
 
 
 
-	assign isLoadAccessFault = (~io_access & ~mem_access) & lsu_ren;
-	assign isStoreAccessFault = (~io_access & ~mem_access) & lsu_wen;
+	assign isLSUAccessFault = (~io_access & ~mem_access) & (lsu_ren | lsu_wen);
 
-	assign isLoadMisAlign = 
+	assign isLSUMisAlign = 
 				(
-					  ( (lsu_lh | lsu_lhu ) & (lsu_op1[0] != 1'b0) )
-					| ( (lsu_lw | lsu_lwu ) & (lsu_op1[1:0] != 2'b0 ) )
-					| ( (lsu_ld) & (lsu_op1[2:0] != 3'b0) )				
+					  ( (lsu_lh | lsu_lhu | lsu_sh ) & (lsu_op1[0] != 1'b0) )
+					| ( (lsu_lw | lsu_lwu | lsu_sw ) & (lsu_op1[1:0] != 2'b0 ) )
+					| ( (lsu_ld | lsu_sd)            & (lsu_op1[2:0] != 3'b0) )				
 				);
-
-	assign isStoreMisAlign = 
-				(
-					  ( lsu_sh & (lsu_op1[0] != 1'b0) )
-					| ( lsu_sw & (lsu_op1[1:0] != 2'b0 ) )
-					| ( lsu_sd & (lsu_op1[2:0] != 3'b0) )				
-				);
-
 
 
 	wire [(5+`RB)-1:0] lsu_wb_rd0_dnxt;
@@ -559,7 +548,7 @@ gen_dffr # (.DW(3)) dl1_state_dffr (.dnxt(dl1_state_dnxt), .qout(dl1_state_qout)
 
 
 assign dl1_state_mode_dir = 
-		(issue_lsu_valid & ~isLoadAccessFault & ~isLoadMisAlign & ~isStoreAccessFault & ~isStoreMisAlign & ~flush) ? 
+		(issue_lsu_valid & ~isLSUAccessFault & ~isLSUMisAlign & ~flush) ? 
 			(
 				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
 				| ({3{lsu_wen}} & DL1_STATE_WRITE)
