@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 16:14:04
+* @Last Modified time: 2021-03-16 17:00:50
 */
 
 
@@ -509,8 +509,10 @@ assign cache_addr_dnxt =
 			|
 			(
 				{32{L2C_AWVALID}} & 
-				 ( {32{ db_full}} & db_addr_o )
-				|( {32{~db_full}} & L2C_AWADDR & ( l3c_state_dnxt == L3C_STATE_RSPWR ? ~32'h0 : { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } ) )
+				(
+					 ( {32{ db_full}} & db_addr_o )
+					|( {32{~db_full}} & L2C_AWADDR & ( l3c_state_dnxt == L3C_STATE_RSPWR ? ~32'h0 : { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } ) )		
+				)
 			)			
 		)
 	  )
