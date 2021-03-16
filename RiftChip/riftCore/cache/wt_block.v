@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-12 10:33:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 18:04:37
+* @Last Modified time: 2021-03-16 17:20:07
 */
 
 
@@ -90,7 +90,7 @@ assign isHazard_r = | isAddrHit_r;
 assign isOpin_O = | Op_O;
 assign isOpin_W = | Op_W;
 
-assign data_o = wtb_info_qout[DW*rdp_qout+:DW];
+assign data_o = wtb_info_qout[DW*rdp_qout[AW-1:0]+:DW];
 
 
 
