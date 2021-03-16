@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 12:04:09
+* @Last Modified time: 2021-03-16 14:25:39
 */
 
 
@@ -303,25 +303,25 @@ module lsu #
 
 
 	assign lsu_rsp_data_reAlign8 =
-			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[7:0])
-			| ((lsu_op1_2_0 == 3'b001) & lsu_rdata_rsp[15:8])
-			| ((lsu_op1_2_0 == 3'b010) & lsu_rdata_rsp[23:16])
-			| ((lsu_op1_2_0 == 3'b011) & lsu_rdata_rsp[31:24])
-			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[39:32])
-			| ((lsu_op1_2_0 == 3'b101) & lsu_rdata_rsp[47:40])
-			| ((lsu_op1_2_0 == 3'b110) & lsu_rdata_rsp[55:48])
-			| ((lsu_op1_2_0 == 3'b111) & lsu_rdata_rsp[63:56]);
+			  ({8{lsu_op1_2_0 == 3'b000}} & lsu_rdata_rsp[7:0])
+			| ({8{lsu_op1_2_0 == 3'b001}} & lsu_rdata_rsp[15:8])
+			| ({8{lsu_op1_2_0 == 3'b010}} & lsu_rdata_rsp[23:16])
+			| ({8{lsu_op1_2_0 == 3'b011}} & lsu_rdata_rsp[31:24])
+			| ({8{lsu_op1_2_0 == 3'b100}} & lsu_rdata_rsp[39:32])
+			| ({8{lsu_op1_2_0 == 3'b101}} & lsu_rdata_rsp[47:40])
+			| ({8{lsu_op1_2_0 == 3'b110}} & lsu_rdata_rsp[55:48])
+			| ({8{lsu_op1_2_0 == 3'b111}} & lsu_rdata_rsp[63:56]);
 
 	assign lsu_rsp_data_reAlign16 = 
-			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[15:0])
-			| ((lsu_op1_2_0 == 3'b010) & lsu_rdata_rsp[31:16])
-			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[47:32])
-			| ((lsu_op1_2_0 == 3'b110) & lsu_rdata_rsp[63:48]);
+			  ({16{lsu_op1_2_0 == 3'b000}} & lsu_rdata_rsp[15:0])
+			| ({16{lsu_op1_2_0 == 3'b010}} & lsu_rdata_rsp[31:16])
+			| ({16{lsu_op1_2_0 == 3'b100}} & lsu_rdata_rsp[47:32])
+			| ({16{lsu_op1_2_0 == 3'b110}} & lsu_rdata_rsp[63:48]);
 
 
 	assign lsu_rsp_data_reAlign32 = 
-			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[31:0])
-			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[63:32]);
+			  ({32{lsu_op1_2_0 == 3'b000}} & lsu_rdata_rsp[31:0])
+			| ({32{lsu_op1_2_0 == 3'b100}} & lsu_rdata_rsp[63:32]);
 
 	assign lsu_rsp_data_reAlign64 = lsu_rdata_rsp;
 
