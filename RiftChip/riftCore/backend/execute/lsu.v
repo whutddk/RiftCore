@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 15:40:37
+* @Last Modified time: 2021-03-16 16:51:44
 */
 
 
@@ -229,21 +229,27 @@ module lsu #
 	wire lsu_wen;
 	wire lsu_ren;
 	wire [7:0] lsu_wstrb;
+	wire [7:0] lsu_wstrb_align;
 	wire io_access;
 	wire mem_access;
 
 	wire [31:0] lsu_op1_align64;
 	wire [31:0] lsu_op1_alignCache;
 	wire [2:0] lsu_op1_2_0;
+	wire [5:0] lsu_op1_2_0_000;
 
 	wire [7:0] lsu_rsp_data_reAlign8;
 	wire [15:0] lsu_rsp_data_reAlign16;
 	wire [31:0] lsu_rsp_data_reAlign32;
 	wire [63:0] lsu_rsp_data_reAlign64;
 
+
+	wire [63:0] lsu_wdata_align;
+
 	assign lsu_op1_align64 = lsu_op1[31:0] & (~32'b111);
 	assign lsu_op1_alignCache = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}}};
 	assign lsu_op1_2_0 = lsu_op1[2:0];
+	assign lsu_op1_2_0_000 = {lsu_op1_2_0, 3'b000};
 
 	assign issue_lsu_ready = (dl1_state_qout != DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_CFREE);
 
@@ -259,10 +265,15 @@ module lsu #
 			} = issue_lsu_info;
 	assign lsu_ren = lsu_lb | lsu_lh | lsu_lw | lsu_ld | lsu_lbu | lsu_lhu | lsu_lwu;
 	assign lsu_wen = lsu_sb | lsu_sh | lsu_sw | lsu_sd;
+
 	assign lsu_wstrb =    ({8{lsu_sb}} & 8'b1  )
 						| ({8{lsu_sh}} & 8'b11 )
 						| ({8{lsu_sw}} & 8'b1111 )
 						| ({8{lsu_sd}} & 8'b11111111 );
+	assign lsu_wstrb_align = lsu_wstrb << lsu_op1_2_0;
+
+	assign lsu_wdata_align = lsu_op2 << lsu_op1_2_0_000;
+
 
 
 	assign io_access = (& (~lsu_op1[63:32]) ) & ~lsu_op1[31] & ~lsu_op1[30];
@@ -658,8 +669,8 @@ assign cache_en_w =
 
 
 assign cache_en_r = {CB{mem_access}} & {CB{dl1_state_dnxt == DL1_STATE_CREAD}};
-assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb;
-assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_op2;
+assign cache_info_wstrb = (dl1_state_qout == DL1_STATE_CMISS) ? 8'b11111111 : lsu_wstrb_align;
+assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_wdata_align;
 
 
 
@@ -838,7 +849,7 @@ localparam WTB_AW = 3;
 localparam WTB_DP = 2**WTB_AW;
 
 
-assign wtb_data_i = { lsu_op2, lsu_wstrb, lsu_op1_align64 };
+assign wtb_data_i = { lsu_wdata_align, lsu_wstrb_align, lsu_op1_align64 };
 
 wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 (
