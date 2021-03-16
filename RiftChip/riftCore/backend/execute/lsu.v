@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 09:24:56
+* @Last Modified time: 2021-03-16 09:41:15
 */
 
 
@@ -579,7 +579,7 @@ assign dl1_state_dnxt =
 		|
 		( {3{dl1_state_qout == DL1_STATE_PREAD}} & ( sys_end_r ? DL1_STATE_CFREE : DL1_STATE_PREAD ) )
 		|
-		( {3{dl1_state_qout == DL1_STATE_FENCE}} & ( fence_end_qout ) )		
+		( {3{dl1_state_qout == DL1_STATE_FENCE}} & ( fence_end_qout ? DL1_STATE_CFREE : DL1_STATE_FENCE ) )		
 		;
 
 assign sys_ar_req = (dl1_state_qout != DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_PREAD);
