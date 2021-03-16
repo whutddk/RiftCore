@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 11:28:33
+* @Last Modified time: 2021-03-16 12:04:09
 */
 
 
@@ -234,7 +234,17 @@ module lsu #
 	wire mem_access;
 
 	wire [31:0] lsu_op1_align64;
-	assign lsu_op1_align64 = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}}};
+	wire [31:0] lsu_op1_alignCache;
+	wire [2:0] lsu_op1_2_0;
+
+	wire [7:0] lsu_rsp_data_reAlign8;
+	wire [15:0] lsu_rsp_data_reAlign16;
+	wire [31:0] lsu_rsp_data_reAlign32;
+	wire [63:0] lsu_rsp_data_reAlign64;
+
+	assign lsu_op1_align64 = lsu_op1[31:0] & (~32'b111);
+	assign lsu_op1_alignCache = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}}};
+	assign lsu_op1_2_0 = lsu_op1[2:0];
 
 	assign issue_lsu_ready = (dl1_state_qout != DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_CFREE);
 
@@ -291,16 +301,40 @@ module lsu #
 	assign lsu_wb_rd0_dnxt = lsu_rsp_valid ? lsu_rd0 : lsu_wb_rd0_qout;
 	assign lsu_wb_rd0 = lsu_wb_rd0_qout;
 
+
+	assign lsu_rsp_data_reAlign8 =
+			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[7:0])
+			| ((lsu_op1_2_0 == 3'b001) & lsu_rdata_rsp[15:8])
+			| ((lsu_op1_2_0 == 3'b010) & lsu_rdata_rsp[23:16])
+			| ((lsu_op1_2_0 == 3'b011) & lsu_rdata_rsp[31:24])
+			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[39:32])
+			| ((lsu_op1_2_0 == 3'b101) & lsu_rdata_rsp[47:40])
+			| ((lsu_op1_2_0 == 3'b110) & lsu_rdata_rsp[55:48])
+			| ((lsu_op1_2_0 == 3'b111) & lsu_rdata_rsp[63:56]);
+
+	assign lsu_rsp_data_reAlign16 = 
+			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[15:0])
+			| ((lsu_op1_2_0 == 3'b010) & lsu_rdata_rsp[31:16])
+			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[47:32])
+			| ((lsu_op1_2_0 == 3'b110) & lsu_rdata_rsp[63:48]);
+
+
+	assign lsu_rsp_data_reAlign32 = 
+			  ((lsu_op1_2_0 == 3'b000) & lsu_rdata_rsp[31:0])
+			| ((lsu_op1_2_0 == 3'b100) & lsu_rdata_rsp[63:32]);
+
+	assign lsu_rsp_data_reAlign64 = lsu_rdata_rsp;
+
 	assign lsu_wb_res_dnxt =
 				lsu_rsp_valid ?
 				(
-					({64{lsu_lb}} & ( isUsi ? {56'b0, lsu_rdata_rsp[7:0]} : {{56{lsu_rdata_rsp[7]}}, lsu_rdata_rsp[7:0]} ))
+					({64{lsu_lb}} & ( { {56{isUsi ? 1'b0 : lsu_rsp_data_reAlign8[7]  }}, lsu_rsp_data_reAlign8} ))
 					|
-					({64{lsu_lh}} & ( isUsi ? {48'b0, lsu_rdata_rsp[15:0]} : {{48{lsu_rdata_rsp[15]}}, lsu_rdata_rsp[15:0]} ))
+					({64{lsu_lh}} & ( { {48{isUsi ? 1'b0 : lsu_rsp_data_reAlign16[15]}}, lsu_rsp_data_reAlign16} ))
 					|
-					({64{lsu_lw}} & ( isUsi ? {32'b0, lsu_rdata_rsp[31:0]} : {{32{lsu_rdata_rsp[31]}}, lsu_rdata_rsp[31:0]} ))
+					({64{lsu_lw}} & ( { {32{isUsi ? 1'b0 : lsu_rsp_data_reAlign32[31]}}, lsu_rsp_data_reAlign32} ))
 					|
-					({64{lsu_ld}} & lsu_rdata_rsp)			
+					({64{lsu_ld}} & lsu_rsp_data_reAlign64)			
 				)
 				: lsu_wb_res_qout;
 	assign lsu_wb_res = lsu_wb_res_qout;
@@ -482,7 +516,7 @@ module lsu #
 	assign DL1_BREADY = dl1_bready_qout;
 
 
-	assign DL1_ARADDR = lsu_op1_align64;
+	assign DL1_ARADDR = lsu_op1_alignCache;
 	assign DL1_ARLEN = 8'd3;
 	assign DL1_ARBURST = 2'b01;
 	assign DL1_ARVALID = dl1_arvalid_qout;
@@ -610,7 +644,7 @@ assign lsu_rdata_rsp =
 
 
 
-assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1_align64;
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1_alignCache;
 assign cache_en_w =
 		{CB{mem_access}} &
 		(
@@ -625,7 +659,7 @@ assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_op2;
 
 
 
-assign tag_addr = lsu_op1_align64;
+assign tag_addr = lsu_op1_alignCache;
 assign tag_en_w = blockReplace &
 			{CB{
 				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
@@ -637,12 +671,12 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign cache_addr_dnxt = 
-	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1_align64 )
-	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1_align64 )
-	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1_align64 )
-	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1_align64 )
+	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1_alignCache )
+	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1_alignCache )
+	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1_alignCache )
+	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1_alignCache )
 	| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1_align64 )
+	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1_alignCache )
 	;
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
