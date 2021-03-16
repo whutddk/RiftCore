@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 15:17:32
+* @Last Modified time: 2021-03-15 16:00:20
 */
 
 
@@ -498,7 +498,7 @@ assign l2c_state_dnxt =
 			| ( {3{~IL1_ARVALID & ~DL1_ARVALID & DL1_AWVALID }} & L2C_STATE_RSPDW)
 		)
 	  )
-	| ( {3{l2c_state_qout == L2C_STATE_FLASH}} & ( mem_end_r ? L2C_STATE_CFREE : L2C_STATE_FLASH ) )
+	| ( {3{l2c_state_qout == L2C_STATE_FLASH}} & ( mem_end_r ? L2C_STATE_CKTAG : L2C_STATE_FLASH ) )
 	| ( {3{l2c_state_qout == L2C_STATE_RSPIR}} & ( il1_end_r ? L2C_STATE_CFREE : L2C_STATE_RSPIR ) )	
 	| ( {3{l2c_state_qout == L2C_STATE_RSPDR}} & ( dl1_end_r ? L2C_STATE_CFREE : L2C_STATE_RSPDR ) )
 	| ( {3{l2c_state_qout == L2C_STATE_RSPDW}} & ( dl1_end_w ? L2C_STATE_CFREE : L2C_STATE_RSPDW ) )
