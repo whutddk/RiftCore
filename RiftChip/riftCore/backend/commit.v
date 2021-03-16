@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 19:25:18
+* @Last Modified time: 2021-03-16 10:18:08
 */
 
 /*
@@ -45,6 +45,7 @@ module commit (
 	input isMisPredict,
 	input isLSUAccessFault,
 	input isLSUMisAlign,
+	input [63:0] lsu_trap_addr,
 
 	output commit_abort,
 	output [63:0] commit_pc,
@@ -211,8 +212,8 @@ assign mepc_except_in = ({64{isException}} & commit_pc)
 						|
 						({64{isInterrupt}} & commit_pc);
 
-initial $warning("will not show what happen in this version");
-assign mtval_except_in = 64'b0;
+
+assign mtval_except_in = ( {64{isLoadAccessFault_ACK | isStoreAccessFault_ACK | isLoadMisAlign_ACK | isStoreMisAlign_ACK}} & lsu_trap_addr);
 
 
 assign mstatus_except_in[2:0] = 3'b0;

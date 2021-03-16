@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 19:23:50
+* @Last Modified time: 2021-03-16 10:10:19
 */
 
 /*
@@ -232,6 +232,7 @@ module backEnd (
 
 	wire isLSUAccessFault;
 	wire isLSUMisAlign;
+	wire [63:0] lsu_trap_addr;
 
 
 dispatch i_dispatch(
@@ -612,6 +613,7 @@ lsu i_lsu
 	.isSuCommited    (isSuCommited),
 	.isLSUAccessFault (isLSUAccessFault),
 	.isLSUMisAlign    (isLSUMisAlign),
+	.lsu_trap_addr   (lsu_trap_addr),
 
 
 	.flush           (flush),
@@ -696,6 +698,7 @@ commit i_commit(
 	.isMisPredict(isMisPredict),
 	.isLSUAccessFault (isLSUAccessFault),
 	.isLSUMisAlign    (isLSUMisAlign),
+	.lsu_trap_addr     (lsu_trap_addr),
 
 	.commit_abort(commit_abort),
 	.commit_pc(commit_pc),

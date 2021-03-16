@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 09:41:15
+* @Last Modified time: 2021-03-16 11:28:33
 */
 
 
@@ -114,6 +114,7 @@ module lsu #
 	input isSuCommited,
 	output isLSUAccessFault,
 	output isLSUMisAlign,
+	output [63:0] lsu_trap_addr, 
 
 	input flush,
 
@@ -232,6 +233,8 @@ module lsu #
 	wire io_access;
 	wire mem_access;
 
+	wire [31:0] lsu_op1_align64;
+	assign lsu_op1_align64 = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}}};
 
 	assign issue_lsu_ready = (dl1_state_qout != DL1_STATE_CFREE) & (dl1_state_dnxt == DL1_STATE_CFREE);
 
@@ -260,15 +263,16 @@ module lsu #
 
 
 
-	assign isLSUAccessFault = (~io_access & ~mem_access) & (lsu_ren | lsu_wen);
+	assign isLSUAccessFault = (~io_access & ~mem_access) & (lsu_ren | lsu_wen) & issue_lsu_valid;
 
-	assign isLSUMisAlign = 
+	assign isLSUMisAlign = issue_lsu_valid &
 				(
 					  ( (lsu_lh | lsu_lhu | lsu_sh ) & (lsu_op1[0] != 1'b0) )
 					| ( (lsu_lw | lsu_lwu | lsu_sw ) & (lsu_op1[1:0] != 2'b0 ) )
 					| ( (lsu_ld | lsu_sd)            & (lsu_op1[2:0] != 3'b0) )				
 				);
 
+	assign lsu_trap_addr = lsu_op1;
 
 	wire [(5+`RB)-1:0] lsu_wb_rd0_dnxt;
 	wire [(5+`RB)-1:0] lsu_wb_rd0_qout;
@@ -284,11 +288,11 @@ module lsu #
 	assign lsu_wb_valid_dnxt = lsu_rsp_valid & ~flush; 
 	assign lsu_wb_valid = lsu_wb_valid_qout;
 
-	assign lsu_wb_rd0_dnxt = issue_lsu_ready ? lsu_rd0 : lsu_wb_rd0_qout;
+	assign lsu_wb_rd0_dnxt = lsu_rsp_valid ? lsu_rd0 : lsu_wb_rd0_qout;
 	assign lsu_wb_rd0 = lsu_wb_rd0_qout;
 
 	assign lsu_wb_res_dnxt =
-				issue_lsu_ready ?
+				lsu_rsp_valid ?
 				(
 					({64{lsu_lb}} & ( isUsi ? {56'b0, lsu_rdata_rsp[7:0]} : {{56{lsu_rdata_rsp[7]}}, lsu_rdata_rsp[7:0]} ))
 					|
@@ -382,11 +386,9 @@ module lsu #
 	assign sys_end = sys_end_r | sys_end_w;
 
 
-	assign SYS_AWADDR	= lsu_op1[31:0];
-	assign SYS_WDATA	= lsu_op2;
+
 	assign SYS_AWVALID = sys_awvalid_qout;
 	assign SYS_WVALID  = sys_wvalid_qout;
-	assign SYS_WSTRB   = lsu_wstrb;
 	assign SYS_BREADY	= sys_bready_qout;
 
 	assign SYS_ARADDR	= lsu_op1[31:0];
@@ -480,7 +482,7 @@ module lsu #
 	assign DL1_BREADY = dl1_bready_qout;
 
 
-	assign DL1_ARADDR = lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} };
+	assign DL1_ARADDR = lsu_op1_align64;
 	assign DL1_ARLEN = 8'd3;
 	assign DL1_ARBURST = 2'b01;
 	assign DL1_ARVALID = dl1_arvalid_qout;
@@ -562,7 +564,7 @@ assign dl1_state_mode_dir =
 
 assign dl1_state_dnxt = 
 		( {3{dl1_state_qout == DL1_STATE_CFREE}} & 
-			( (issue_lsu_valid & (lsu_fence_i | lsu_fence) ) ? DL1_STATE_FENCE : dl1_state_mode_dir )
+			( (issue_lsu_valid & (lsu_fence_i | lsu_fence) & ~flush ) ? DL1_STATE_FENCE : dl1_state_mode_dir )
 		)
 		|
 		( {3{dl1_state_qout == DL1_STATE_CREAD}} &
@@ -588,9 +590,9 @@ assign sys_ar_req = (dl1_state_qout != DL1_STATE_PREAD) & (dl1_state_dnxt == DL1
 
 assign lsu_rsp_valid = 
 	  ( (dl1_state_qout == DL1_STATE_CREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) )
-	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1[31:0]) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
+	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1_align64 ) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_WRITE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
-	| ( (dl1_state_qout == DL1_STATE_FENCE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
+	| ( (dl1_state_qout == DL1_STATE_FENCE) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout );
 
 assign dl1_ar_req = 
@@ -608,7 +610,7 @@ assign lsu_rdata_rsp =
 
 
 
-assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1[31:0];
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1_align64;
 assign cache_en_w =
 		{CB{mem_access}} &
 		(
@@ -623,7 +625,7 @@ assign cache_info_w = (dl1_state_qout == DL1_STATE_CMISS) ? DL1_RDATA : lsu_op2;
 
 
 
-assign tag_addr = lsu_op1[31:0];
+assign tag_addr = lsu_op1_align64;
 assign tag_en_w = blockReplace &
 			{CB{
 				  (dl1_state_qout == DL1_STATE_CREAD & dl1_state_dnxt == DL1_STATE_CMISS)
@@ -635,12 +637,12 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 
 
 assign cache_addr_dnxt = 
-	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
-	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	  ( {32{dl1_state_qout == DL1_STATE_CFREE}} & lsu_op1_align64 )
+	| ( {32{dl1_state_qout == DL1_STATE_CREAD}} & lsu_op1_align64 )
+	| ( {32{dl1_state_qout == DL1_STATE_WRITE}} & lsu_op1_align64 )
+	| ( {32{dl1_state_qout == DL1_STATE_MWAIT}} & lsu_op1_align64 )
 	| ( {32{dl1_state_qout == DL1_STATE_CMISS}} & ( (DL1_RVALID & DL1_RREADY) ? cache_addr_qout + 32'b1000 : cache_addr_qout) )
-	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1[31:0] & { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } )
+	| ( {32{dl1_state_qout == DL1_STATE_FENCE}} & lsu_op1_align64 )
 	;
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
@@ -782,7 +784,7 @@ assign blockReplace = 1 << ( isCacheBlockRunout ? random[$clog2(CB):0] : cache_b
 
 
 
-assign chkAddr = lsu_op1[31:0];
+assign chkAddr = lsu_op1_align64;
 assign wtb_push = (dl1_state_qout == DL1_STATE_WRITE);
 assign wtb_pop = dl1_end_w | sys_end_w;
 		
@@ -798,7 +800,7 @@ localparam WTB_AW = 3;
 localparam WTB_DP = 2**WTB_AW;
 
 
-assign wtb_data_i = { lsu_op2, lsu_wstrb, lsu_op1[31:0] };
+assign wtb_data_i = { lsu_op2, lsu_wstrb, lsu_op1_align64 };
 
 wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 (
