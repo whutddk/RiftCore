@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 19:26:11
+* @Last Modified time: 2021-03-16 09:24:56
 */
 
 
@@ -868,9 +868,14 @@ assign l3c_fence_set = dl1_fence_end & lsu_fence;
 assign l2c_fence_rst = l2c_fence_end;
 assign l3c_fence_rst = l3c_fence_end;
 
+assign l2c_fence = l2c_fence_qout;
+assign l3c_fence = l3c_fence_qout;
+
 assign dl1_fence_end = wtb_empty;
 assign fence_end_set = (lsu_fence_i & dl1_fence_end) | (lsu_fence & l3c_fence_end);
 assign fence_end_rst = dl1_state_dnxt == DL1_STATE_CFREE;
+
+
 
 
 gen_rsffr # (.DW(1)) l2c_fence_rsffr (.set_in(l2c_fence_set), .rst_in(l2c_fence_rst), .qout(l2c_fence_qout), .CLK(CLK), .RSTn(RSTn));
