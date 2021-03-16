@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 16:00:20
+* @Last Modified time: 2021-03-16 15:30:28
 */
 
 
@@ -549,7 +549,7 @@ gen_dffren #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(
 
 assign tag_addr_lock_dnxt = tag_addr_sel;
 assign tag_addr_sel = IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
-assign tag_addr_lock_en = (l2c_state_qout == L2C_STATE_CFREE) & (l2c_state_dnxt == L2C_STATE_CKTAG);
+assign tag_addr_lock_en = (l2c_state_dnxt == L2C_STATE_CKTAG);
 
 assign cache_addr = cache_addr_qout;
 assign tag_addr = (l2c_state_qout == L2C_STATE_CFREE) ? tag_addr_sel : tag_addr_lock_qout;
