@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 15:27:08
+* @Last Modified time: 2021-03-16 15:56:08
 */
 
 /*
@@ -56,7 +56,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#80000
+	#160000
 			$display("Time Out !!!");
 	$stop;
 end
@@ -86,7 +86,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64ui-p-lbu.verilog", mem);
+			$readmemh("./ci/rv64ui-p-sb.verilog", mem);
 			// $readmemh("../sw/riftChip.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]

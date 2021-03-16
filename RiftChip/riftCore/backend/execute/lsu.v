@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 14:25:39
+* @Last Modified time: 2021-03-16 15:40:37
 */
 
 
@@ -223,7 +223,6 @@ module lsu #
 //  hhhhhhh     hhhhhhh  aaaaaaaaaa  aaaa nnnnnn    nnnnnn   ddddddddd   ddddd  sssssssssss    hhhhhhh     hhhhhhh  aaaaaaaaaa  aaaakkkkkkkk    kkkkkkk eeeeeeeeeeeeee  
 
 	wire lsu_lb, lsu_lh, lsu_lw, lsu_ld, lsu_lbu, lsu_lhu, lsu_lwu, lsu_sb, lsu_sh, lsu_sw, lsu_sd, lsu_fence_i, lsu_fence;
-	wire isUsi;
 	wire [(5+`RB)-1:0] lsu_rd0;
 	wire [63:0] lsu_op1;
 	wire [63:0] lsu_op2;
@@ -258,7 +257,6 @@ module lsu #
 			lsu_op1,
 			lsu_op2
 			} = issue_lsu_info;
-	assign isUsi = lsu_lbu | lsu_lhu | lsu_lwu;
 	assign lsu_ren = lsu_lb | lsu_lh | lsu_lw | lsu_ld | lsu_lbu | lsu_lhu | lsu_lwu;
 	assign lsu_wen = lsu_sb | lsu_sh | lsu_sw | lsu_sd;
 	assign lsu_wstrb =    ({8{lsu_sb}} & 8'b1  )
@@ -328,11 +326,17 @@ module lsu #
 	assign lsu_wb_res_dnxt =
 				lsu_rsp_valid ?
 				(
-					({64{lsu_lb}} & ( { {56{isUsi ? 1'b0 : lsu_rsp_data_reAlign8[7]  }}, lsu_rsp_data_reAlign8} ))
+					({64{lsu_lb}} & ( { {56{lsu_rsp_data_reAlign8[7]}}, lsu_rsp_data_reAlign8} ))
 					|
-					({64{lsu_lh}} & ( { {48{isUsi ? 1'b0 : lsu_rsp_data_reAlign16[15]}}, lsu_rsp_data_reAlign16} ))
+					({64{lsu_lbu}} & ( { 56'b0,                         lsu_rsp_data_reAlign8} ))
 					|
-					({64{lsu_lw}} & ( { {32{isUsi ? 1'b0 : lsu_rsp_data_reAlign32[31]}}, lsu_rsp_data_reAlign32} ))
+					({64{lsu_lh}} & ( { {48{lsu_rsp_data_reAlign16[15]}}, lsu_rsp_data_reAlign16} ))
+					|
+					({64{lsu_lhu}} & ( { 48'b0,                           lsu_rsp_data_reAlign16} ))
+					|
+					({64{lsu_lw}} & ( { {32{lsu_rsp_data_reAlign32[31]}}, lsu_rsp_data_reAlign32} ))
+					|
+					({64{lsu_lwu}} & ( { 32'b0,                           lsu_rsp_data_reAlign32} ))
 					|
 					({64{lsu_ld}} & lsu_rsp_data_reAlign64)			
 				)
