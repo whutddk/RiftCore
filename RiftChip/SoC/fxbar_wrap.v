@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-08 15:50:33
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-09 11:15:52
+* @Last Modified time: 2021-03-17 16:09:05
 */
 
 /*
@@ -485,6 +485,7 @@ assign m_axi_awready = {MEM_AWREADY, PERPH_AWREADY, PLIC_AWREADY, CLINT_AWREADY}
 assign {MEM_WDATA, PERPH_WDATA, PLIC_WDATA, CLINT_WDATA} = m_axi_wdata;
 assign {MEM_WSTRB, PERPH_WSTRB, PLIC_WSTRB, CLINT_WSTRB} = m_axi_wstrb;
 assign {MEM_WVALID, PERPH_WVALID, PLIC_WVALID, CLINT_WVALID} = m_axi_wvalid;
+assign {MEM_WLAST, PERPH_WLAST, PLIC_WLAST, CLINT_WLAST} = m_axi_wlast;
 assign m_axi_wready = {MEM_WREADY, PERPH_WREADY, PLIC_WREADY, CLINT_WREADY};
 assign m_axi_bresp = {MEM_BRESP, PERPH_BRESP, PLIC_BRESP, CLINT_BRESP};
 assign m_axi_bvalid = {MEM_BVALID, PERPH_BVALID, PLIC_BVALID, CLINT_BVALID};

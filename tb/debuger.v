@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-17 15:15:31
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 15:42:13
+* @Last Modified time: 2021-03-17 16:12:59
 */
 
 
@@ -100,7 +100,7 @@ module debuger (
 	assign debuger_bvalid_set = debuger_awready_qout && DEBUGER_AWVALID && ~debuger_bvalid_qout && debuger_wready_qout && DEBUGER_WVALID;
 	assign debuger_bvalid_rst = ~debuger_bvalid_set & (DEBUGER_BREADY && debuger_bvalid_qout);
 	assign debuger_arready_set = (~debuger_arready_qout && DEBUGER_ARVALID);
-	assign debuger_bvalid_rst = ~debuger_arready_set;
+	assign debuger_arready_rst = ~debuger_arready_set;
 	assign debuger_rvalid_set = (debuger_arready_qout & DEBUGER_ARVALID & ~debuger_rvalid_qout);
 	assign debuger_rvalid_rst = ~debuger_rvalid_set & (debuger_rvalid_qout & DEBUGER_RREADY);
 

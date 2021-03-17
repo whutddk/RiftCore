@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:44:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 15:41:35
+* @Last Modified time: 2021-03-17 16:12:53
 */
 
 
@@ -172,7 +172,7 @@ module axi4_lite_slave
 	assign axi_bvalid_set = axi_awready_qout && S_AXI_AWVALID && ~axi_bvalid_qout && axi_wready_qout && S_AXI_WVALID;
 	assign axi_bvalid_rst = ~axi_bvalid_set & (S_AXI_BREADY && axi_bvalid_qout);
 	assign axi_arready_set = (~axi_arready_qout && S_AXI_ARVALID);
-	assign axi_bvalid_rst = ~axi_arready_set;
+	assign axi_arready_rst = ~axi_arready_set;
 	assign axi_araddr_dnxt = S_AXI_ARADDR;
 	assign axi_araddr_en = (~axi_arready_qout & S_AXI_ARVALID);
 	assign axi_rvalid_set = (axi_arready_qout & S_AXI_ARVALID & ~axi_rvalid_qout);

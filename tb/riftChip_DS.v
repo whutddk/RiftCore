@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-15 19:28:30
+* @Last Modified time: 2021-03-17 15:59:26
 */
 
 /*
@@ -136,66 +136,15 @@ end
 
 
 
-`define UART_TX `SRAM_EVE.ram[1280][7:0]
-`define TIMER   `SRAM_EVE.ram[1536][7:0]
-`define COTRL   `SRAM_EVE.ram[1792][7:0]
-
-reg [63:0] cycle_cnt;
-always @(negedge CLK or negedge RSTn) begin
-	if (~RSTn) begin
-		cycle_cnt <= 0;
-	end
-	else begin
-		if (`TIMER == 8'h1 ) begin
-			cycle_cnt <= cycle_cnt + 1;
-		end
-		else begin
-			cycle_cnt <= cycle_cnt;
-		end
-	end
 
 
+
+
+initial
+begin
+	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
+	$dumpvars(0, riftChip_DS);//tb模块名称
 end
-
-
-
-
-
-
-
-always @(negedge CLK) begin
-	if (`UART_TX != 8'b0) begin
-		$write("%c",`UART_TX);
-		`UART_TX = 8'h0;
-	end
-end
-
-
-integer file;
-always @(negedge CLK ) begin
-	if (`COTRL == 8'd1) begin
-
-		$display("cycle_cnt = %d", cycle_cnt);
-		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
-
-
-		file = $fopen("./ci/dhrystone.json", "w");
-
-		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/5.0)/1757.0 );
-		$fclose(file);
-
-		$finish;
-
-	end
-end
-
-
-
-// initial
-// begin
-// 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-// 	$dumpvars(0, riftChip_DS);//tb模块名称
-// end
 
 endmodule
 
