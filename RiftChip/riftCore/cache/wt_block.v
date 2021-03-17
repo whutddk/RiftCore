@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-12 10:33:54
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 17:20:07
+* @Last Modified time: 2021-03-17 18:04:50
 */
 
 
@@ -108,7 +108,7 @@ wire [DP-1:0] valid_en;
 
 wire [DP-1:0] commit_dnxt;
 wire [DP-1:0] commit_qout;
-wire [DP-1:0] commit_en;
+// wire [DP-1:0] commit_en;
 
 
 
@@ -128,17 +128,25 @@ assign valid_en =
 
 
 
-assign commit_en = 
-		  ({DP{pop }} & (1 << rdp_qout[AW-1:0]))
-		| ({DP{commit}} & (1 << ccp_qout[AW-1:0]));		
+// assign commit_en = 
+// 		  ({DP{pop }} & (1 << rdp_qout[AW-1:0]))
+// 		| ({DP{commit}} & (1 << ccp_qout[AW-1:0]));		
+
+
+assign commit_dnxt =
+			(
+				commit_qout
+				& ~({DP{pop }} & (1 << rdp_qout[AW-1:0]))
+			)
+				| ({DP{commit}} & (1 << ccp_qout[AW-1:0]));
 
 generate
 	for ( genvar dp = 0; dp < DP; dp = dp + 1 ) begin
 
 
 		assign wtb_info_dnxt[DW*dp+:DW] = data_i;
-	assign valid_dnxt[dp] = flush ? commit_qout[dp] : (push & wrp_qout[AW-1:0] == dp );
-	assign commit_dnxt[dp] = commit & (ccp_qout[AW-1:0] == dp);
+	assign valid_dnxt[dp] = flush ? commit_dnxt[dp] : (push & wrp_qout[AW-1:0] == dp );
+	// assign commit_dnxt[dp] = commit & (ccp_qout[AW-1:0] == dp);
 
 
 
@@ -152,11 +160,11 @@ generate
 		);
 
 
-		gen_dffren # (.DW(1)) commit_dffren
+		gen_dffr # (.DW(1)) commit_dffr
 		(
 			.dnxt(commit_dnxt[dp]),
 			.qout(commit_qout[dp]),
-			.en(commit_en[dp]),
+			// .en(commit_en[dp]),
 			.CLK(CLK),
 			.RSTn(RSTn)
 		);
