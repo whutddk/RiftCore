@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 15:30:28
+* @Last Modified time: 2021-03-17 10:39:49
 */
 
 
@@ -205,7 +205,6 @@ module L2cache #
 
 	wire [31:0] tag_addr_lock_dnxt;
 	wire [31:0] tag_addr_sel;
-	wire tag_addr_lock_en;
 	wire [31:0] tag_addr_lock_qout;
 
 	wire [CB-1:0] cb_vhit;
@@ -481,10 +480,16 @@ module L2cache #
 // gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
 assign l2c_fence_end = l2c_state_qout == L2C_STATE_FENCE;
-
-
 gen_dffr # (.DW(3)) l2c_state_dffr (.dnxt(l2c_state_dnxt), .qout(l2c_state_qout), .CLK(CLK), .RSTn(RSTn));
 
+wire [1:0] req_no_dnxt;
+wire [1:0] req_no_qout;
+
+gen_dffr # (.DW(2)) req_no_dffr (.dnxt(req_no_dnxt), .qout(req_no_qout), .CLK(CLK), .RSTn(RSTn));
+
+assign req_no_dnxt =
+				(l2c_state_dnxt == L2C_STATE_CKTAG) ? 
+				(IL1_ARVALID ? 2'd1 : (DL1_ARVALID ? 2'd2 : (DL1_AWVALID ? 2'd3 : 2'd0))) : req_no_qout;
 
 
 assign l2c_state_dnxt = 
@@ -493,9 +498,9 @@ assign l2c_state_dnxt =
 	| (
 		{3{l2c_state_qout == L2C_STATE_CKTAG}} & 
 		(
-			  ({3{( IL1_ARVALID)}} 								& ( (| cb_vhit ) ? L2C_STATE_RSPIR : L2C_STATE_FLASH))
-			| ({3{(~IL1_ARVALID &  DL1_ARVALID)}} 				& ( (| cb_vhit ) ? L2C_STATE_RSPDR : L2C_STATE_FLASH))
-			| ( {3{~IL1_ARVALID & ~DL1_ARVALID & DL1_AWVALID }} & L2C_STATE_RSPDW)
+			  ( {3{req_no_qout == 2'd1}} & ( (| cb_vhit ) ? L2C_STATE_RSPIR : L2C_STATE_FLASH))
+			| ( {3{req_no_qout == 2'd2}} & ( (| cb_vhit ) ? L2C_STATE_RSPDR : L2C_STATE_FLASH))
+			| ( {3{req_no_qout == 2'd3}} & L2C_STATE_RSPDW)
 		)
 	  )
 	| ( {3{l2c_state_qout == L2C_STATE_FLASH}} & ( mem_end_r ? L2C_STATE_CKTAG : L2C_STATE_FLASH ) )
@@ -545,11 +550,11 @@ cache_mem # ( .DW(DW), .BK(BK), .CB(CB), .CL(CL), .TAG_W(TAG_W) ) i_cache_mem
 
 
 gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_qout), .CLK(CLK), .RSTn(RSTn));
-gen_dffren #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(tag_addr_lock_qout), .en(tag_addr_lock_en), .CLK(CLK), .RSTn(RSTn));
+gen_dffr #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(tag_addr_lock_qout), .CLK(CLK), .RSTn(RSTn));
 
-assign tag_addr_lock_dnxt = tag_addr_sel;
+assign tag_addr_lock_dnxt = (l2c_state_dnxt == L2C_STATE_CKTAG) ? tag_addr_sel : tag_addr_lock_qout;
 assign tag_addr_sel = IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
-assign tag_addr_lock_en = (l2c_state_dnxt == L2C_STATE_CKTAG);
+
 
 assign cache_addr = cache_addr_qout;
 assign tag_addr = (l2c_state_qout == L2C_STATE_CFREE) ? tag_addr_sel : tag_addr_lock_qout;
