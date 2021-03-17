@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 14:47:33
+* @Last Modified time: 2021-03-17 16:43:14
 */
 
 
@@ -603,7 +603,7 @@ assign dl1_state_mode_dir =
 		(issue_lsu_valid & ~isLSUAccessFault & ~isLSUMisAlign & ~flush) ? 
 			(
 				  ({3{lsu_ren & mem_access}} & DL1_STATE_CREAD)
-				| ({3{lsu_wen}} & DL1_STATE_WRITE)
+				| ({3{lsu_wen & ~wtb_full}} & DL1_STATE_WRITE)
 				| ({3{lsu_ren & io_access &  isHazard_r}} & DL1_STATE_PWAIT)
 				| ({3{lsu_ren & io_access & ~isHazard_r}} & DL1_STATE_PREAD)
 			)
