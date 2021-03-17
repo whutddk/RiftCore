@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 14:26:30
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 10:39:49
+* @Last Modified time: 2021-03-17 11:39:59
 */
 
 
@@ -488,7 +488,7 @@ wire [1:0] req_no_qout;
 gen_dffr # (.DW(2)) req_no_dffr (.dnxt(req_no_dnxt), .qout(req_no_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign req_no_dnxt =
-				(l2c_state_dnxt == L2C_STATE_CKTAG) ? 
+				(l2c_state_dnxt == L2C_STATE_CKTAG & l2c_state_qout == L2C_STATE_CFREE) ? 
 				(IL1_ARVALID ? 2'd1 : (DL1_ARVALID ? 2'd2 : (DL1_AWVALID ? 2'd3 : 2'd0))) : req_no_qout;
 
 
@@ -553,7 +553,7 @@ gen_dffr #(.DW(32)) cache_addr_dffr ( .dnxt(cache_addr_dnxt), .qout(cache_addr_q
 gen_dffr #(.DW(32)) tag_addr_lock_dffren   ( .dnxt(tag_addr_lock_dnxt), .qout(tag_addr_lock_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign tag_addr_lock_dnxt = (l2c_state_dnxt == L2C_STATE_CKTAG) ? tag_addr_sel : tag_addr_lock_qout;
-assign tag_addr_sel = IL1_ARVALID ? IL1_ARADDR : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR );
+assign tag_addr_sel = (req_no_dnxt == 2'd1) ? IL1_ARADDR : ((req_no_dnxt == 2'd2) ? DL1_ARADDR : DL1_AWADDR );
 
 
 assign cache_addr = cache_addr_qout;
@@ -564,7 +564,7 @@ assign cache_addr_dnxt =
 	  ( {32{l2c_state_qout == L2C_STATE_CFREE}} & cache_addr_qout )
 	| ( {32{l2c_state_qout == L2C_STATE_CKTAG}} &	 
 		(
-			(IL1_ARVALID ? (IL1_ARADDR) : (DL1_ARVALID ? DL1_ARADDR : DL1_AWADDR )) &
+			((req_no_qout == 2'd1) ? (IL1_ARADDR) : ((req_no_qout == 2'd2) ? DL1_ARADDR : DL1_AWADDR )) &
 				(
 					(l2c_state_dnxt == L2C_STATE_FLASH) ? { {(32-ADDR_LSB){1'b1}}, {ADDR_LSB{1'b0}} } : {32{1'b1}}
 				)
