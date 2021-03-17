@@ -78,7 +78,7 @@ jobs:
             ~/riscv-tests
             ~/lib
             ~/bin
-          key: 667
+          key: 666
 
 
 
