@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-19 10:11:07
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 17:00:50
+* @Last Modified time: 2021-03-16 19:51:12
 */
 
 
@@ -545,8 +545,8 @@ assign tag_info_w = tag_addr[31 -: TAG_W];
 
 assign L2C_RDATA = cache_info_r;
 assign MEM_WDATA = cache_info_r;
-assign MEM_AWADDR = { 32'b0, tag_addr} & ~64'h1ff;
-assign MEM_ARADDR = { 32'b0, tag_addr} & ~64'h1ff;
+assign MEM_AWADDR = { 32'b0, cache_addr} & ~64'h1ff;
+assign MEM_ARADDR = { 32'b0, cache_addr} & ~64'h1ff;
 
 assign cb_hit = (tag_info_r == tag_addr[31 -: TAG_W]);
 

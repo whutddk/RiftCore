@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 10:10:19
+* @Last Modified time: 2021-03-17 10:10:10
 */
 
 /*
@@ -183,6 +183,7 @@ module backEnd (
 
 	wire bruILP_ready;
 	wire isSuCommited;
+	wire isFenceCommited;
 //C3
 
 
@@ -611,6 +612,7 @@ lsu i_lsu
 	.lsu_wb_rd0      (lsu_wb_rd0),
 
 	.isSuCommited    (isSuCommited),
+	.isFenceCommited (isFenceCommited),
 	.isLSUAccessFault (isLSUAccessFault),
 	.isLSUMisAlign    (isLSUMisAlign),
 	.lsu_trap_addr   (lsu_trap_addr),
@@ -704,6 +706,7 @@ commit i_commit(
 	.commit_pc(commit_pc),
 	.bruILP_ready(bruILP_ready),
 	.isSuCommited      (isSuCommited),
+	.isFenceCommited   (isFenceCommited),
 
 	.privileged_pc(privileged_pc),
 	.isTrap(isTrap),

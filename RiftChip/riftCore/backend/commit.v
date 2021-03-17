@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 10:18:08
+* @Last Modified time: 2021-03-17 09:25:07
 */
 
 /*
@@ -51,6 +51,7 @@ module commit (
 	output [63:0] commit_pc,
 	// output suILP_ready,
 	output isSuCommited,
+	output isFenceCommited,
 	output bruILP_ready,
 
 	output [63:0] privileged_pc,
@@ -79,6 +80,7 @@ module commit (
 
 	wire isSu;
 	wire isLu;
+	wire isFence;
 	wire isCsr;
 
 	wire isEcall;
@@ -97,13 +99,15 @@ module commit (
 	wire commit_comfirm;
 
 	assign isSuCommited = isSu & commit_wb;
+	assign isFenceCommited = isFence & commit_wb;
+	
 	assign bruILP_ready = isBranch;
 	assign isLoadAccessFault_ACK = isLSUAccessFault & isLu & ~commit_wb;
 	assign isStoreAccessFault_ACK = isLSUAccessFault & isSu & ~commit_wb;
 	assign isLoadMisAlign_ACK = isLSUMisAlign & isLu & ~commit_wb;
 	assign isStoreMisAlign_ACK = isLSUMisAlign & isSu & ~commit_wb;
 
-	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
+	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isFence, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
 
 	assign commit_abort = (~reOrder_fifo_empty) & 
 							((isBranch & isMisPredict) 

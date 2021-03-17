@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-16 16:51:44
+* @Last Modified time: 2021-03-17 10:08:08
 */
 
 
@@ -111,6 +111,7 @@ module lsu #
 	output [(5+`RB-1):0] lsu_wb_rd0,
 
 	//from commit
+	input isFenceCommited,
 	input isSuCommited,
 	output isLSUAccessFault,
 	output isLSUMisAlign,
@@ -641,7 +642,7 @@ assign lsu_rsp_valid =
 	  ( (dl1_state_qout == DL1_STATE_CREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) )
 	| ( (dl1_state_qout == DL1_STATE_CMISS) & (cache_addr_qout == lsu_op1_align64 ) & DL1_RVALID & DL1_RREADY & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_WRITE) & (dl1_state_dnxt == DL1_STATE_CFREE) )
-	| ( (dl1_state_qout == DL1_STATE_FENCE) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout )
+	| ( (dl1_state_qout == DL1_STATE_FENCE) & wtb_empty & ~trans_kill_qout )
 	| ( (dl1_state_qout == DL1_STATE_PREAD) & (dl1_state_dnxt == DL1_STATE_CFREE) & ~trans_kill_qout );
 
 assign dl1_ar_req = 
@@ -898,32 +899,34 @@ wt_block # ( .DW(104), .DP(WTB_DP), .TAG_W(TAG_W) ) i_wt_block
 wire dl1_fence_end;
 
 
-wire fence_end_set;
-wire fence_end_rst;
-wire fence_end_qout;
+wire fence_end_set, fence_end_rst, fence_end_qout;
+wire l2c_fence_set, l2c_fence_rst, l2c_fence_qout;
+wire l3c_fence_set, l3c_fence_rst, l3c_fence_qout;
+wire l2c_fence_finish_set, l2c_fence_finish_rst, l2c_fence_finish_qout;
+wire l3c_fence_finish_set, l3c_fence_finish_rst, l3c_fence_finish_qout;
+wire isFence_set, isFence_rst, isFence_qout;
 
-wire l2c_fence_set;
-wire l2c_fence_rst;
-wire l2c_fence_qout;
-
-wire l3c_fence_set;
-wire l3c_fence_rst;
-wire l3c_fence_qout;
-
+assign isFence_set = ~isFence_qout & isFenceCommited;
+assign isFence_rst = dl1_state_dnxt == DL1_STATE_CFREE;
+gen_rsffr # (.DW(1)) isFence_rsffr (.set_in(isFence_set), .rst_in(isFence_rst), .qout(isFence_qout), .CLK(CLK), .RSTn(RSTn));
 
 
-
-assign l2c_fence_set = dl1_fence_end & lsu_fence;
-assign l3c_fence_set = dl1_fence_end & lsu_fence;
+assign l2c_fence_set = ~l2c_fence_rst & dl1_fence_end & isFence_qout & ~l2c_fence_finish_qout;
+assign l3c_fence_set = ~l3c_fence_rst & dl1_fence_end & isFence_qout & ~l3c_fence_finish_qout;
 
 assign l2c_fence_rst = l2c_fence_end;
 assign l3c_fence_rst = l3c_fence_end;
+
+assign l2c_fence_finish_set = l2c_fence_end;
+assign l3c_fence_finish_set = l3c_fence_end;
+assign l2c_fence_finish_rst = dl1_state_dnxt == DL1_STATE_CFREE;
+assign l3c_fence_finish_rst = dl1_state_dnxt == DL1_STATE_CFREE;
 
 assign l2c_fence = l2c_fence_qout;
 assign l3c_fence = l3c_fence_qout;
 
 assign dl1_fence_end = wtb_empty;
-assign fence_end_set = (lsu_fence_i & dl1_fence_end) | (lsu_fence & l3c_fence_end);
+assign fence_end_set = (lsu_fence_i & dl1_fence_end) | (l3c_fence_end) | (flush & ~isFence_qout);
 assign fence_end_rst = dl1_state_dnxt == DL1_STATE_CFREE;
 
 
@@ -931,6 +934,10 @@ assign fence_end_rst = dl1_state_dnxt == DL1_STATE_CFREE;
 
 gen_rsffr # (.DW(1)) l2c_fence_rsffr (.set_in(l2c_fence_set), .rst_in(l2c_fence_rst), .qout(l2c_fence_qout), .CLK(CLK), .RSTn(RSTn));
 gen_rsffr # (.DW(1)) l3c_fence_rsffr (.set_in(l3c_fence_set), .rst_in(l3c_fence_rst), .qout(l3c_fence_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) l2c_fence_finish_rsffr (.set_in(l2c_fence_finish_set), .rst_in(l2c_fence_finish_rst), .qout(l2c_fence_finish_qout), .CLK(CLK), .RSTn(RSTn));
+gen_rsffr # (.DW(1)) l3c_fence_finish_rsffr (.set_in(l3c_fence_finish_set), .rst_in(l3c_fence_finish_rst), .qout(l3c_fence_finish_qout), .CLK(CLK), .RSTn(RSTn));
+
+
 gen_rsffr # (.DW(1)) fence_end_rsffr (.set_in(fence_end_set), .rst_in(fence_end_rst), .qout(fence_end_qout), .CLK(CLK), .RSTn(RSTn));
 
 assign lsu_fencei_valid = lsu_fence_i & dl1_fence_end;

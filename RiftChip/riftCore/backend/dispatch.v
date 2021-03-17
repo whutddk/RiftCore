@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:39:15
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-07 09:30:36
+* @Last Modified time: 2021-03-17 09:22:17
 */
 
 /*
@@ -120,10 +120,11 @@ module dispatch (
 	wire isBranch = rv64i_beq | rv64i_bne | rv64i_blt | rv64i_bge | rv64i_bltu | rv64i_bgeu;
 	wire isSu = rv64i_sb | rv64i_sh | rv64i_sw | rv64i_sd;
 	wire isLu = rv64i_lb | rv64i_lh | rv64i_lw | rv64i_ld | rv64i_lbu | rv64i_lhu | rv64i_lwu;
+	wire isFence = rv64i_fence;
 	wire isCsr = rv64csr_rw | rv64csr_rs | rv64csr_rc | rv64csr_rwi | rv64csr_rsi | rv64csr_rci;
 
 
-	assign dispat_info = {pc, rd0_reName, isBranch, isLu, isSu, isCsr, privil_ecall, privil_ebreak, privil_mret, privil_accessFault, privil_illeage};
+	assign dispat_info = {pc, rd0_reName, isBranch, isLu, isSu, isFence, isCsr, privil_ecall, privil_ebreak, privil_mret, privil_accessFault, privil_illeage};
 
 
 
