@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 17:28:33
+* @Last Modified time: 2021-03-17 15:02:39
 */
 
 /*
@@ -76,6 +76,8 @@ module frontEnd (
 	wire iq_id_ready;
 	wire isMisPredict;
 
+	wire fencei_stall;
+
 
 	assign flush = isMisPredict | privileged_valid;
 
@@ -119,8 +121,7 @@ icache i_cache
 	.ic_iq_ready(ic_iq_ready),
 
 
-	.il1_fence(1'b0),
-	.il1_fence_end(),
+	.il1_fence(fencei_stall),
 
 	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
@@ -135,6 +136,7 @@ iqueue i_iqueue(
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
+	.fencei_stall    (fencei_stall),
 	.ic_iq_pc(ic_iq_pc),
 	.ic_iq_instr(ic_iq_instr),
 	.ic_iq_valid(ic_iq_valid),

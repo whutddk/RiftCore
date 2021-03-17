@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 14:20:28
+* @Last Modified time: 2021-03-17 14:47:33
 */
 
 
@@ -940,7 +940,7 @@ gen_rsffr # (.DW(1)) l3c_fence_finish_rsffr (.set_in(l3c_fence_finish_set), .rst
 
 gen_rsffr # (.DW(1)) fence_end_rsffr (.set_in(fence_end_set), .rst_in(fence_end_rst), .qout(fence_end_qout), .CLK(CLK), .RSTn(RSTn));
 
-assign lsu_fencei_valid = lsu_fence_i & dl1_fence_end;
+assign lsu_fencei_valid = lsu_fence_i & dl1_fence_end & issue_lsu_valid;
 
 
 //ASSERT

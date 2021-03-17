@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 16:14:46
+* @Last Modified time: 2021-03-17 15:02:15
 */
 
 /*
@@ -36,6 +36,7 @@ module iqueue (
 	input [63:0] ic_iq_instr,
 	input ic_iq_valid,
 	output ic_iq_ready,
+	output fencei_stall,
 
 	//to pcGen
 	output branch_pc_valid,
@@ -71,7 +72,7 @@ module iqueue (
 	wire instr_buf_empty;
 
 	wire iq_stall;
-	wire fencei_stall;
+	// wire fencei_stall;
 	wire jalr_stall;
 	wire bht_stall;
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:53:14
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 10:42:54
+* @Last Modified time: 2021-03-17 14:59:42
 */
 
 /*
@@ -63,7 +63,6 @@ module icache #
 
 
 	input il1_fence,
-	output il1_fence_end,
 
 	input flush,
 	input CLK,
@@ -211,11 +210,12 @@ gen_rsffr #(.DW(1)) trans_kill_rsffr (.set_in(trans_kill_set), .rst_in(trans_kil
 // assign cache_fence_rst = (il1_state_qout == IL1_STATE_FENCE);
 // gen_rsffr # (.DW(1)) cache_fence_rsffr ( .set_in(cache_fence_set), .rst_in(cache_fence_rst), .qout(cache_fence_qout), .CLK(CLK), .RSTn(RSTn) );
 
+wire il1_fence_set, il1_fence_rst, il1_fence_qout;
 
+assign il1_fence_set =  il1_fence & ~il1_fence_qout;
+assign il1_fence_rst = ~il1_fence &  il1_fence_qout;
 
-
-assign il1_fence_end = (il1_state_qout == IL1_STATE_FENCE) & (il1_state_dnxt == IL1_STATE_CFREE);
-
+gen_rsffr # (.DW(1)) il1_fence_rsffr (.set_in(il1_fence_set), .rst_in(il1_fence_rst), .qout(il1_fence_qout), .CLK(CLK), .RSTn(RSTn));
 
 gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout), .CLK(CLK), .RSTn(RSTn));
 
@@ -225,13 +225,13 @@ gen_dffr # (.DW(2)) il1_state_dffr (.dnxt(il1_state_dnxt), .qout(il1_state_qout)
 
 
 assign il1_state_dnxt = 
-	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence ? IL1_STATE_FENCE : (ic_iq_ready&(~flush) ? IL1_STATE_CKTAG : IL1_STATE_CFREE)) ) 
+	( {2{il1_state_qout == IL1_STATE_CFREE}} & (il1_fence_qout ? IL1_STATE_FENCE : (ic_iq_ready&(~flush) ? IL1_STATE_CKTAG : IL1_STATE_CFREE)) ) 
 	|
 	( {2{il1_state_qout == IL1_STATE_CKTAG}} & ((| cb_vhit ) ? IL1_STATE_CFREE : IL1_STATE_CMISS) )
 	|
 	( {2{il1_state_qout == IL1_STATE_CMISS}} & (il1_end_r ? IL1_STATE_CFREE : IL1_STATE_CMISS) )
 	|
-	( {2{il1_state_qout == IL1_STATE_FENCE}} & IL1_STATE_CFREE )
+	( {2{il1_state_qout == IL1_STATE_FENCE}} & (~il1_fence_qout ? IL1_STATE_CFREE : IL1_STATE_FENCE) )
 	;
 
 
