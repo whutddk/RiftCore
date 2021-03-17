@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-09 17:28:05
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 17:21:22
+* @Last Modified time: 2021-02-05 20:08:15
 */
 
 /*
@@ -65,7 +65,7 @@ module decoder
 	assign iq_id_ready = ~instrFifo_reject & bp_ready_i;
 
 	assign bp_valid_i = iq_id_valid;
-	assign bp_ready_o = instrFifo_push;
+	assign bp_ready_o = ~instrFifo_reject;
 	assign bp_data_i = iq_id_info;
 
 gen_bypassfifo #( .DW(32+64+1) ) bp_fifo
@@ -141,14 +141,7 @@ decoder32 i_decoder32
 	assign decode_microInstr = (~privil_accessFault) ? 
 								(isRVC ? decode_microInstr_16 : decode_microInstr_32)
 								: accessFault_info;
-
-
-	wire instrFifo_stall_dnxt, instrFifo_stall_qout;
-
-	assign instrFifo_push = bp_valid_o & ~instrFifo_stall_qout;
-	assign instrFifo_stall_dnxt = instrFifo_reject;
-
-	gen_dffr # (.DW(1)) instrFifo_stall_dffr (.dnxt(instrFifo_stall_dnxt), .qout(instrFifo_stall_qout), .CLK(CLK), .RSTn(RSTn));
+	assign instrFifo_push = bp_valid_o & ~instrFifo_reject;
 
 
 
