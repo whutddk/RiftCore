@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 14:47:59
+* @Last Modified time: 2021-03-17 17:26:17
 */
 
 /*
@@ -86,7 +86,7 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64ui-p-fence_i.verilog", mem);
+			$readmemh("./ci/rv64ui-p-blt.verilog", mem);
 			// $readmemh("../sw/riftChip.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
