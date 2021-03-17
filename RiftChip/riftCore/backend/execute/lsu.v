@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-02-18 19:03:39
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 10:08:08
+* @Last Modified time: 2021-03-17 14:20:28
 */
 
 
@@ -660,7 +660,7 @@ assign lsu_rdata_rsp =
 
 
 
-assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1_alignCache;
+assign cache_addr = (dl1_state_qout == DL1_STATE_CMISS) ? cache_addr_qout : lsu_op1_align64;
 assign cache_en_w =
 		{CB{mem_access}} &
 		(
