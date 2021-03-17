@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 11:28:46
+* @Last Modified time: 2021-03-17 17:26:17
 */
 
 /*
@@ -56,7 +56,7 @@ initial begin
 
 	RSTn <= 1;
 
-	#80000
+	#160000
 			$display("Time Out !!!");
 	$stop;
 end
@@ -70,10 +70,9 @@ initial begin
 end
 
 
-`define SRAM_ODD s_riftChip.i_axi_ccm.i_sram_odd
-`define SRAM_EVE s_riftChip.i_axi_ccm.i_sram_eve
 
-`define SRAM_ORI s_riftChip.i_axi_full_slv_sram.i_sram
+
+`define SRAM s_riftChip.i_axi_full_slv_sram.i_sram
 
 
 `define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
@@ -87,84 +86,50 @@ end
 
 		reg [7:0] mem [0:50000];
 		initial begin
-			$readmemh("./ci/rv64mi-p-access.verilog", mem);
+			$readmemh("./ci/rv64ui-p-blt.verilog", mem);
 			// $readmemh("../sw/riftChip.verilog", mem);
 			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
 				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
 						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
 						| mem[i*16+8] | mem[i*16+9] | mem[i*16+10] | mem[i*16+11]
 						| mem[i*16+12] | mem[i*16+13] | mem[i*16+14] | mem[i*16+15]) == 1'b1 ) begin
-					`SRAM_EVE.ram[i][7:0] = mem[i*16+0];
-					`SRAM_EVE.ram[i][15:8] = mem[i*16+1];
-					`SRAM_EVE.ram[i][23:16] = mem[i*16+2];
-					`SRAM_EVE.ram[i][31:24] = mem[i*16+3];	
-					`SRAM_EVE.ram[i][32 +: 8] = mem[i*16+4];
-					`SRAM_EVE.ram[i][40 +: 8] = mem[i*16+5];
-					`SRAM_EVE.ram[i][48 +: 8] = mem[i*16+6];
-					`SRAM_EVE.ram[i][56 +: 8] = mem[i*16+7];
 
-					`SRAM_ODD.ram[i][7:0] = mem[i*16+8];
-					`SRAM_ODD.ram[i][15:8] = mem[i*16+9];
-					`SRAM_ODD.ram[i][23:16] = mem[i*16+10];
-					`SRAM_ODD.ram[i][31:24] = mem[i*16+11];
-					`SRAM_ODD.ram[i][32 +: 8] = mem[i*16+12];
-					`SRAM_ODD.ram[i][40 +: 8] = mem[i*16+13];
-					`SRAM_ODD.ram[i][48 +: 8] = mem[i*16+14];
-					`SRAM_ODD.ram[i][56 +: 8] = mem[i*16+15];
 
-					`SRAM_ORI.ram[2*i][7:0] = mem[i*16+0];
-					`SRAM_ORI.ram[2*i][15:8] = mem[i*16+1];
-					`SRAM_ORI.ram[2*i][23:16] = mem[i*16+2];
-					`SRAM_ORI.ram[2*i][31:24] = mem[i*16+3];	
-					`SRAM_ORI.ram[2*i][32 +: 8] = mem[i*16+4];
-					`SRAM_ORI.ram[2*i][40 +: 8] = mem[i*16+5];
-					`SRAM_ORI.ram[2*i][48 +: 8] = mem[i*16+6];
-					`SRAM_ORI.ram[2*i][56 +: 8] = mem[i*16+7];
-					`SRAM_ORI.ram[2*i+1][7:0] = mem[i*16+8];
-					`SRAM_ORI.ram[2*i+1][15:8] = mem[i*16+9];
-					`SRAM_ORI.ram[2*i+1][23:16] = mem[i*16+10];
-					`SRAM_ORI.ram[2*i+1][31:24] = mem[i*16+11];
-					`SRAM_ORI.ram[2*i+1][32 +: 8] = mem[i*16+12];
-					`SRAM_ORI.ram[2*i+1][40 +: 8] = mem[i*16+13];
-					`SRAM_ORI.ram[2*i+1][48 +: 8] = mem[i*16+14];
-					`SRAM_ORI.ram[2*i+1][56 +: 8] = mem[i*16+15];
+					`SRAM.ram[2*i][7:0] = mem[i*16+0];
+					`SRAM.ram[2*i][15:8] = mem[i*16+1];
+					`SRAM.ram[2*i][23:16] = mem[i*16+2];
+					`SRAM.ram[2*i][31:24] = mem[i*16+3];	
+					`SRAM.ram[2*i][32 +: 8] = mem[i*16+4];
+					`SRAM.ram[2*i][40 +: 8] = mem[i*16+5];
+					`SRAM.ram[2*i][48 +: 8] = mem[i*16+6];
+					`SRAM.ram[2*i][56 +: 8] = mem[i*16+7];
+					`SRAM.ram[2*i+1][7:0] = mem[i*16+8];
+					`SRAM.ram[2*i+1][15:8] = mem[i*16+9];
+					`SRAM.ram[2*i+1][23:16] = mem[i*16+10];
+					`SRAM.ram[2*i+1][31:24] = mem[i*16+11];
+					`SRAM.ram[2*i+1][32 +: 8] = mem[i*16+12];
+					`SRAM.ram[2*i+1][40 +: 8] = mem[i*16+13];
+					`SRAM.ram[2*i+1][48 +: 8] = mem[i*16+14];
+					`SRAM.ram[2*i+1][56 +: 8] = mem[i*16+15];
 
 				end
 				else begin
-					`SRAM_EVE.ram[i][7:0] = 8'h0;
-					`SRAM_EVE.ram[i][15:8] = 8'h0;
-					`SRAM_EVE.ram[i][23:16] = 8'h0;
-					`SRAM_EVE.ram[i][31:24] = 8'h0;
-					`SRAM_EVE.ram[i][32 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][40 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][48 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][56 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][7:0] = 8'h0;
-					`SRAM_ODD.ram[i][15:8] = 8'h0;
-					`SRAM_ODD.ram[i][23:16] = 8'h0;
-					`SRAM_ODD.ram[i][31:24] = 8'h0;
-					`SRAM_ODD.ram[i][32 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][40 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][48 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][56 +: 8] = 8'h0;
-
-
-					`SRAM_ORI.ram[2*i][7:0] = 8'h0;
-					`SRAM_ORI.ram[2*i][15:8] = 8'h0;
-					`SRAM_ORI.ram[2*i][23:16] = 8'h0;
-					`SRAM_ORI.ram[2*i][31:24] = 8'h0;
-					`SRAM_ORI.ram[2*i][32 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i][40 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i][48 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i][56 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][7:0] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][15:8] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][23:16] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][31:24] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][32 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][40 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][48 +: 8] = 8'h0;
-					`SRAM_ORI.ram[2*i+1][56 +: 8] = 8'h0;
+					`SRAM.ram[2*i][7:0] = 8'h0;
+					`SRAM.ram[2*i][15:8] = 8'h0;
+					`SRAM.ram[2*i][23:16] = 8'h0;
+					`SRAM.ram[2*i][31:24] = 8'h0;
+					`SRAM.ram[2*i][32 +: 8] = 8'h0;
+					`SRAM.ram[2*i][40 +: 8] = 8'h0;
+					`SRAM.ram[2*i][48 +: 8] = 8'h0;
+					`SRAM.ram[2*i][56 +: 8] = 8'h0;
+					`SRAM.ram[2*i+1][7:0] = 8'h0;
+					`SRAM.ram[2*i+1][15:8] = 8'h0;
+					`SRAM.ram[2*i+1][23:16] = 8'h0;
+					`SRAM.ram[2*i+1][31:24] = 8'h0;
+					`SRAM.ram[2*i+1][32 +: 8] = 8'h0;
+					`SRAM.ram[2*i+1][40 +: 8] = 8'h0;
+					`SRAM.ram[2*i+1][48 +: 8] = 8'h0;
+					`SRAM.ram[2*i+1][56 +: 8] = 8'h0;
 
 				end
 

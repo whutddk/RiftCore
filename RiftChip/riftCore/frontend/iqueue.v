@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:40:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-11 16:14:46
+* @Last Modified time: 2021-03-17 17:41:02
 */
 
 /*
@@ -36,6 +36,7 @@ module iqueue (
 	input [63:0] ic_iq_instr,
 	input ic_iq_valid,
 	output ic_iq_ready,
+	output fencei_stall,
 
 	//to pcGen
 	output branch_pc_valid,
@@ -71,7 +72,7 @@ module iqueue (
 	wire instr_buf_empty;
 
 	wire iq_stall;
-	wire fencei_stall;
+	// wire fencei_stall;
 	wire jalr_stall;
 	wire bht_stall;
 
@@ -266,8 +267,8 @@ assign iq_instr_mask_dnxt = flush ? 16'b0 :
 initial begin $warning("This clumsy design can be resolved by implememnt branch predict in a single stage in the future"); end
 wire jalr_stall_iq;
 wire fencei_stall_iq;
-gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn));
-gen_dffr # (.DW(1)) fencei_stall_dffr ( .dnxt(fencei_stall), .qout(fencei_stall_iq), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) jalr_stall_dffr ( .dnxt(jalr_stall & iq_id_ready & ~flush), .qout(jalr_stall_iq), .CLK(CLK), .RSTn(RSTn));
+gen_dffr # (.DW(1)) fencei_stall_dffr ( .dnxt(fencei_stall & iq_id_ready & ~flush), .qout(fencei_stall_iq), .CLK(CLK), .RSTn(RSTn));
 
 
 

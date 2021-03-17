@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-19 14:09:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-10 16:46:03
+* @Last Modified time: 2021-03-15 18:14:43
 */
 
 
@@ -86,27 +86,23 @@ module riftCore (
 	input MEM_RVALID,
 	output MEM_RREADY,
 
-
-
-	output [63:0] LSU_AWADDR,
-	output [2:0] LSU_AWPROT,
-	output LSU_AWVALID,
-	input LSU_AWREADY,
-	output [63:0] LSU_WDATA,
-	output [7:0] LSU_WSTRB,
-	output LSU_WVALID,
-	input LSU_WREADY,
-	input [1:0] LSU_BRESP,
-	input LSU_BVALID,
-	output LSU_BREADY,
-	output [63:0] LSU_ARADDR,
-	output [2:0] LSU_ARPROT,
-	output LSU_ARVALID,
-	input LSU_ARREADY,
-	input [63:0] LSU_RDATA,
-	input [1:0] LSU_RRESP,
-	input LSU_RVALID,
-	output LSU_RREADY,
+	output [31:0] SYS_AWADDR,
+	output SYS_AWVALID,
+	input SYS_AWREADY,
+	output [63:0] SYS_WDATA,
+	output [7:0] SYS_WSTRB,
+	output SYS_WVALID,
+	input SYS_WREADY,
+	input [1:0] SYS_BRESP,
+	input SYS_BVALID,
+	output SYS_BREADY,
+	output [31:0] SYS_ARADDR,
+	output SYS_ARVALID,
+	input SYS_ARREADY,
+	input [63:0] SYS_RDATA,
+	input [1:0] SYS_RRESP,
+	input SYS_RVALID,
+	output SYS_RREADY,
 
 	input isExternInterrupt,
 	input isRTimerInterrupt,
@@ -166,7 +162,34 @@ wire IL1_RVALID;
 wire IL1_RREADY;
 
 
+wire [31:0] DL1_AWADDR;
+wire [7:0] DL1_AWLEN;
+wire [1:0] DL1_AWBURST;
+wire DL1_AWVALID;
+wire DL1_AWREADY;
+wire [63:0] DL1_WDATA;
+wire [7:0] DL1_WSTRB;
+wire DL1_WLAST;
+wire DL1_WVALID;
+wire DL1_WREADY;
+wire [1:0] DL1_BRESP;
+wire DL1_BVALID;
+wire DL1_BREADY;
+wire [31:0] DL1_ARADDR;
+wire [7:0] DL1_ARLEN;
+wire [1:0] DL1_ARBURST;
+wire DL1_ARVALID;
+wire DL1_ARREADY;
+wire [63:0] DL1_RDATA;
+wire [1:0] DL1_RRESP;
+wire DL1_RLAST;
+wire DL1_RVALID;
+wire DL1_RREADY;
 
+wire l2c_fence;
+wire l2c_fence_end;
+wire l3c_fence;
+wire l3c_fence_end;
 
 frontEnd i_frontEnd(
 	.lsu_fencei_valid(lsu_fencei_valid),
@@ -222,26 +245,53 @@ instr_fifo #(.DW(`DECODE_INFO_DW),.AW(3)) i_instr_fifo(
 
 backEnd i_backEnd(
 
+	.DL1_AWADDR            (DL1_AWADDR),
+	.DL1_AWLEN             (DL1_AWLEN),
+	.DL1_AWBURST           (DL1_AWBURST),
+	.DL1_AWVALID           (DL1_AWVALID),
+	.DL1_AWREADY           (DL1_AWREADY),
+	.DL1_WDATA             (DL1_WDATA),
+	.DL1_WSTRB             (DL1_WSTRB),
+	.DL1_WLAST             (DL1_WLAST),
+	.DL1_WVALID            (DL1_WVALID),
+	.DL1_WREADY            (DL1_WREADY),
+	.DL1_BRESP             (DL1_BRESP),
+	.DL1_BVALID            (DL1_BVALID),
+	.DL1_BREADY            (DL1_BREADY),
+	.DL1_ARADDR            (DL1_ARADDR),
+	.DL1_ARLEN             (DL1_ARLEN),
+	.DL1_ARBURST           (DL1_ARBURST),
+	.DL1_ARVALID           (DL1_ARVALID),
+	.DL1_ARREADY           (DL1_ARREADY),
+	.DL1_RDATA             (DL1_RDATA),
+	.DL1_RRESP             (DL1_RRESP),
+	.DL1_RLAST             (DL1_RLAST),
+	.DL1_RVALID            (DL1_RVALID),
+	.DL1_RREADY            (DL1_RREADY),
 
-	.LSU_AWADDR(LSU_AWADDR),
-	.LSU_AWPROT(LSU_AWPROT),
-	.LSU_AWVALID(LSU_AWVALID),
-	.LSU_AWREADY(LSU_AWREADY),
-	.LSU_WDATA(LSU_WDATA),
-	.LSU_WSTRB(LSU_WSTRB),
-	.LSU_WVALID(LSU_WVALID),
-	.LSU_WREADY(LSU_WREADY),
-	.LSU_BRESP(LSU_BRESP),
-	.LSU_BVALID(LSU_BVALID),
-	.LSU_BREADY(LSU_BREADY),
-	.LSU_ARADDR(LSU_ARADDR),
-	.LSU_ARPROT(LSU_ARPROT),
-	.LSU_ARVALID(LSU_ARVALID),
-	.LSU_ARREADY(LSU_ARREADY),
-	.LSU_RDATA(LSU_RDATA),
-	.LSU_RRESP(LSU_RRESP),
-	.LSU_RVALID(LSU_RVALID),
-	.LSU_RREADY(LSU_RREADY),
+	.SYS_AWADDR           (SYS_AWADDR),
+	.SYS_AWVALID          (SYS_AWVALID),
+	.SYS_AWREADY          (SYS_AWREADY),
+	.SYS_WDATA            (SYS_WDATA),
+	.SYS_WSTRB            (SYS_WSTRB),
+	.SYS_WVALID           (SYS_WVALID),
+	.SYS_WREADY           (SYS_WREADY),
+	.SYS_BRESP            (SYS_BRESP),
+	.SYS_BVALID           (SYS_BVALID),
+	.SYS_BREADY           (SYS_BREADY),
+	.SYS_ARADDR           (SYS_ARADDR),
+	.SYS_ARVALID          (SYS_ARVALID),
+	.SYS_ARREADY          (SYS_ARREADY),
+	.SYS_RDATA            (SYS_RDATA),
+	.SYS_RRESP            (SYS_RRESP),
+	.SYS_RVALID           (SYS_RVALID),
+	.SYS_RREADY           (SYS_RREADY),
+
+	.l2c_fence             (l2c_fence),
+	.l2c_fence_end         (l2c_fence_end),
+	.l3c_fence             (l3c_fence),
+	.l3c_fence_end         (l3c_fence_end),
+
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
@@ -282,24 +332,7 @@ gen_rsffr # (.DW(1)) isFlush_rsffr ( .set_in(isMisPredict_set), .rst_in(isMisPre
 
 
 
-	wire lsu_req_valid = 1'b0;
-	wire lsu_req_ready;
-	wire [31:0] lsu_addr_req = 32'h0;
-	wire [63:0] lsu_wdata_req = 64'h0;
-	wire [7:0] lsu_wstrb_req = 8'h0;
-	wire lsu_wen_req = 1'b0;
-	wire [31:0] lsu_rdata_rsp;
-	wire lsu_rsp_valid;
-	wire lsu_rsp_ready = 1'b1;
 
-	wire il1_fence = 1'b0;
-	wire il1_fence_end;
-	wire dl1_fence = 1'b0;
-	wire dl1_fence_end;
-	wire l2c_fence = 1'b0;
-	wire l2c_fence_end;
-	wire l3c_fence = 1'b0;
-	wire l3c_fence_end;
 
 
 
@@ -317,15 +350,29 @@ cache i_cache
 	.IL1_RVALID   (IL1_RVALID),
 	.IL1_RREADY   (IL1_RREADY),
 
-	.lsu_req_valid(lsu_req_valid),
-	.lsu_req_ready(lsu_req_ready),
-	.lsu_addr_req (lsu_addr_req),
-	.lsu_wdata_req(lsu_wdata_req),
-	.lsu_wstrb_req(lsu_wstrb_req),
-	.lsu_wen_req  (lsu_wen_req),
-	.lsu_rdata_rsp(lsu_rdata_rsp),
-	.lsu_rsp_valid(lsu_rsp_valid),
-	.lsu_rsp_ready(lsu_rsp_ready),
+	.DL1_AWADDR   (DL1_AWADDR),
+	.DL1_AWLEN    (DL1_AWLEN),
+	.DL1_AWBURST  (DL1_AWBURST),
+	.DL1_AWVALID  (DL1_AWVALID),
+	.DL1_AWREADY  (DL1_AWREADY),
+	.DL1_WDATA    (DL1_WDATA),
+	.DL1_WSTRB    (DL1_WSTRB),
+	.DL1_WLAST    (DL1_WLAST),
+	.DL1_WVALID   (DL1_WVALID),
+	.DL1_WREADY   (DL1_WREADY),
+	.DL1_BRESP    (DL1_BRESP),
+	.DL1_BVALID   (DL1_BVALID),
+	.DL1_BREADY   (DL1_BREADY),
+	.DL1_ARADDR   (DL1_ARADDR),
+	.DL1_ARLEN    (DL1_ARLEN),
+	.DL1_ARBURST  (DL1_ARBURST),
+	.DL1_ARVALID  (DL1_ARVALID),
+	.DL1_ARREADY  (DL1_ARREADY),
+	.DL1_RDATA    (DL1_RDATA),
+	.DL1_RRESP    (DL1_RRESP),
+	.DL1_RLAST    (DL1_RLAST),
+	.DL1_RVALID   (DL1_RVALID),
+	.DL1_RREADY   (DL1_RREADY),
 
 	.MEM_AWID     (MEM_AWID),
 	.MEM_AWADDR   (MEM_AWADDR),
@@ -370,10 +417,7 @@ cache i_cache
 	.MEM_RVALID   (MEM_RVALID),
 	.MEM_RREADY   (MEM_RREADY),
 
-	.il1_fence    (il1_fence),
-	.il1_fence_end(il1_fence_end),
-	.dl1_fence    (dl1_fence),
-	.dl1_fence_end(dl1_fence_end),
+
 	.l2c_fence    (l2c_fence),
 	.l2c_fence_end(l2c_fence_end),
 	.l3c_fence    (l3c_fence),
