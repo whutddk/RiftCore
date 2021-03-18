@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 11:27:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-02 14:46:18
+* @Last Modified time: 2021-03-18 16:04:12
 */
 // See LICENSE for license details.
 
@@ -72,7 +72,7 @@ int main (int argc, char** argv)
 	REG   int             Number_Of_Runs;
 
 	/* Arguments */
-	Number_Of_Runs = 5;
+	Number_Of_Runs = 500;
 
 	/* Initializations */
 

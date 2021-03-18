@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-18 11:22:08
+* @Last Modified time: 2021-03-18 14:33:37
 */
 
 /*
@@ -81,58 +81,21 @@ end
 
 
 
-	localparam  ITCM_DP = 2**11;
-	integer i;
+	localparam DP = 2**14;
+	integer i, by;
 
-		reg [7:0] mem [0:50000];
+		reg [7:0] mem [0:200000];
 		initial begin
 			$readmemh("./ci/rv64ui-p-simple.verilog", mem);
-			// $readmemh("../sw/riftChip.verilog", mem);
-			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
-				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
-						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
-						| mem[i*16+8] | mem[i*16+9] | mem[i*16+10] | mem[i*16+11]
-						| mem[i*16+12] | mem[i*16+13] | mem[i*16+14] | mem[i*16+15]) == 1'b1 ) begin
-
-
-					`SRAM.ram[2*i][7:0] = mem[i*16+0];
-					`SRAM.ram[2*i][15:8] = mem[i*16+1];
-					`SRAM.ram[2*i][23:16] = mem[i*16+2];
-					`SRAM.ram[2*i][31:24] = mem[i*16+3];	
-					`SRAM.ram[2*i][32 +: 8] = mem[i*16+4];
-					`SRAM.ram[2*i][40 +: 8] = mem[i*16+5];
-					`SRAM.ram[2*i][48 +: 8] = mem[i*16+6];
-					`SRAM.ram[2*i][56 +: 8] = mem[i*16+7];
-					`SRAM.ram[2*i+1][7:0] = mem[i*16+8];
-					`SRAM.ram[2*i+1][15:8] = mem[i*16+9];
-					`SRAM.ram[2*i+1][23:16] = mem[i*16+10];
-					`SRAM.ram[2*i+1][31:24] = mem[i*16+11];
-					`SRAM.ram[2*i+1][32 +: 8] = mem[i*16+12];
-					`SRAM.ram[2*i+1][40 +: 8] = mem[i*16+13];
-					`SRAM.ram[2*i+1][48 +: 8] = mem[i*16+14];
-					`SRAM.ram[2*i+1][56 +: 8] = mem[i*16+15];
-
+			for ( i = 0; i < DP; i = i + 1 ) begin
+				for ( by = 0; by < 8; by = by + 1 ) begin
+					if ( | mem[i*8+by] ) begin
+						`SRAM.ram[i][8*by +: 8] = mem[i*8+by];
+					end
+					else begin
+						`SRAM.ram[i][8*by +: 8] = 8'h0;
+					end
 				end
-				else begin
-					`SRAM.ram[2*i][7:0] = 8'h0;
-					`SRAM.ram[2*i][15:8] = 8'h0;
-					`SRAM.ram[2*i][23:16] = 8'h0;
-					`SRAM.ram[2*i][31:24] = 8'h0;
-					`SRAM.ram[2*i][32 +: 8] = 8'h0;
-					`SRAM.ram[2*i][40 +: 8] = 8'h0;
-					`SRAM.ram[2*i][48 +: 8] = 8'h0;
-					`SRAM.ram[2*i][56 +: 8] = 8'h0;
-					`SRAM.ram[2*i+1][7:0] = 8'h0;
-					`SRAM.ram[2*i+1][15:8] = 8'h0;
-					`SRAM.ram[2*i+1][23:16] = 8'h0;
-					`SRAM.ram[2*i+1][31:24] = 8'h0;
-					`SRAM.ram[2*i+1][32 +: 8] = 8'h0;
-					`SRAM.ram[2*i+1][40 +: 8] = 8'h0;
-					`SRAM.ram[2*i+1][48 +: 8] = 8'h0;
-					`SRAM.ram[2*i+1][56 +: 8] = 8'h0;
-
-				end
-
 
 				// $display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
 			end

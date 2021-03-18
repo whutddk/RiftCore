@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-17 15:15:31
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-17 16:12:59
+* @Last Modified time: 2021-03-18 16:03:24
 */
 
 
@@ -167,7 +167,7 @@ always @(posedge CLK ) begin
 	if ( (DEBUGER_AWADDR == `COTRL) & DEBUGER_AWVALID & DEBUGER_AWREADY & DEBUGER_WVALID & DEBUGER_WREADY & (DEBUGER_WDATA == 64'd1)) begin
 
 		$display("cycle_cnt = %d", cycle_cnt);
-		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/500.0)/1757.0 );
 
 
 		file = $fopen("./ci/dhrystone.json", "w");
