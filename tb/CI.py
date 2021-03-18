@@ -2,7 +2,7 @@
 # @Author: Ruige Lee
 # @Date:   2020-11-18 15:37:18
 # @Last Modified by:   Ruige Lee
-# @Last Modified time: 2021-03-10 17:34:34
+# @Last Modified time: 2021-03-18 11:09:55
 
 
 import sys
@@ -12,10 +12,9 @@ import os
 CIReturn = 0
 
 testList = [
-
+	"rv64ui-p-simple",
 	"rv64mi-p-ma_addr",
 	"rv64mi-p-ma_fetch",
-	"rv64ui-p-simple",
 	"rv64ui-p-jal",
 	"rv64ui-p-jalr",
 	"rv64ui-p-beq",
