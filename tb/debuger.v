@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-03-17 15:15:31
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-03-18 16:03:24
+* @Last Modified time: 2021-03-18 19:02:41
 */
 
 
@@ -172,7 +172,7 @@ always @(posedge CLK ) begin
 
 		file = $fopen("./ci/dhrystone.json", "w");
 
-		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/5.0)/1757.0 );
+		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/500.0)/1757.0 );
 		$fclose(file);
 
 		$finish;
