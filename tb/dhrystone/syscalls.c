@@ -129,7 +129,7 @@ int putchar(int ch)
   //   syscall(SYS_write, 1, (uintptr_t)buf, buflen);
 
 
-    volatile uint8_t* uart_tx = (uint8_t*)(0x80005000);
+    volatile uint8_t* uart_tx = (uint8_t*)(0x20000000);
 
 
    *(uart_tx) = ch;

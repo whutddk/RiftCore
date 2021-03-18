@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-10-31 15:42:48
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-19 16:35:39
+* @Last Modified time: 2021-03-17 15:02:39
 */
 
 /*
@@ -31,14 +31,18 @@ module frontEnd (
 
 	input lsu_fencei_valid,
 
-	output [63:0] IFU_ARADDR,
-	output [2:0] IFU_ARPROT,
-	output IFU_ARVALID,
-	input IFU_ARREADY,
-	input [63:0] IFU_RDATA,
-	input [1:0] IFU_RRESP,
-	input IFU_RVALID,
-	output IFU_RREADY,
+	//to MEM
+	output [31:0] IL1_ARADDR,
+	output [7:0] IL1_ARLEN,
+	output [1:0] IL1_ARBURST,
+	output IL1_ARVALID,
+	input IL1_ARREADY,
+
+	input [63:0] IL1_RDATA,
+	input [1:0] IL1_RRESP,
+	input IL1_RLAST,
+	input IL1_RVALID,
+	output IL1_RREADY,
 
 	input instrFifo_reject,
 	output instrFifo_push,
@@ -61,16 +65,18 @@ module frontEnd (
 
 	wire branch_pc_valid;
 	wire [63:0] branch_pc;
-	wire [63:0] fetch_addr_qout;
-	wire pcGen_fetch_ready;
-	wire [63:0] if_iq_pc;
-	wire [63:0] if_iq_instr;
-	wire if_iq_valid;
-	wire if_iq_ready;
+	wire [63:0] pc_ic_addr;
+	wire pc_ic_ready;
+	wire [63:0] ic_iq_pc;
+	wire [63:0] ic_iq_instr;
+	wire ic_iq_valid;
+	wire ic_iq_ready;
 	wire iq_id_valid;
 	wire [32+64+1-1:0] iq_id_info;
 	wire iq_id_ready;
 	wire isMisPredict;
+
+	wire fencei_stall;
 
 
 	assign flush = isMisPredict | privileged_valid;
@@ -83,8 +89,8 @@ pcGenerate i_pcGenerate(
 	.branch_pc_valid(branch_pc_valid),
 	.branch_pc(branch_pc),
 
-	.fetch_addr_qout(fetch_addr_qout),
-	.pcGen_fetch_ready(pcGen_fetch_ready),
+	.fetch_addr_qout(pc_ic_addr),
+	.pcGen_fetch_ready(pc_ic_ready),
 
 	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
@@ -92,29 +98,37 @@ pcGenerate i_pcGenerate(
 );
 
 
-ifetch i_ifetch(
-	.IFU_ARADDR(IFU_ARADDR),
-	.IFU_ARPROT(IFU_ARPROT),
-	.IFU_ARVALID(IFU_ARVALID),
-	.IFU_ARREADY(IFU_ARREADY),
-	.IFU_RDATA(IFU_RDATA),
-	.IFU_RRESP(IFU_RRESP),
-	.IFU_RVALID(IFU_RVALID),
-	.IFU_RREADY(IFU_RREADY),
 
-	.fetch_addr_qout(fetch_addr_qout),
-	.pcGen_fetch_ready(pcGen_fetch_ready),
+icache i_cache
+(
+	.IL1_ARADDR   (IL1_ARADDR),
+	.IL1_ARLEN    (IL1_ARLEN),
+	.IL1_ARBURST  (IL1_ARBURST),
+	.IL1_ARVALID  (IL1_ARVALID),
+	.IL1_ARREADY  (IL1_ARREADY),
+	.IL1_RDATA    (IL1_RDATA),
+	.IL1_RRESP    (IL1_RRESP),
+	.IL1_RLAST    (IL1_RLAST),
+	.IL1_RVALID   (IL1_RVALID),
+	.IL1_RREADY   (IL1_RREADY),
 
-	.if_iq_pc(if_iq_pc),
-	.if_iq_instr(if_iq_instr),
-	.if_iq_valid(if_iq_valid),
-	.if_iq_ready(if_iq_ready),
+	.pc_ic_addr(pc_ic_addr),
+	.pc_ic_ready(pc_ic_ready),
+
+	.ic_iq_pc(ic_iq_pc),
+	.ic_iq_instr(ic_iq_instr),
+	.ic_iq_valid(ic_iq_valid),
+	.ic_iq_ready(ic_iq_ready),
+
+
+	.il1_fence(fencei_stall),
 
 	.flush(flush|branch_pc_valid),
 	.CLK(CLK),
 	.RSTn(RSTn)
-);
 
+
+);
 
 
 
@@ -122,10 +136,11 @@ iqueue i_iqueue(
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
-	.if_iq_pc(if_iq_pc),
-	.if_iq_instr(if_iq_instr),
-	.if_iq_valid(if_iq_valid),
-	.if_iq_ready(if_iq_ready),
+	.fencei_stall    (fencei_stall),
+	.ic_iq_pc(ic_iq_pc),
+	.ic_iq_instr(ic_iq_instr),
+	.ic_iq_valid(ic_iq_valid),
+	.ic_iq_ready(ic_iq_ready),
 
 	.branch_pc_valid(branch_pc_valid),
 	.branch_pc(branch_pc),

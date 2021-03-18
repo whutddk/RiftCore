@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-05 17:03:49
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-03 15:34:15
+* @Last Modified time: 2021-03-18 16:03:54
 */
 
 /*
@@ -67,9 +67,8 @@ initial begin
 end
 
 
-`define SRAM_ODD s_riftChip.i_axi_ccm.i_sram_odd
-`define SRAM_EVE s_riftChip.i_axi_ccm.i_sram_eve
 
+`define SRAM s_riftChip.i_axi_full_slv_sram.i_sram
 
 `define RGF   s_riftChip.i_riftCore.i_backEnd.i_phyRegister.regFileX_qout
 `define INDEX s_riftChip.i_riftCore.i_backEnd.i_phyRegister.archi_X_qout[`RB*3 +: `RB]
@@ -77,57 +76,21 @@ end
 
 
 
-	localparam  ITCM_DP = 2**11;
-	integer i;
+	localparam DP = 2**14;
+	integer i, by;
 
-		reg [7:0] mem [0:50000];
+		reg [7:0] mem [0:200000];
 		initial begin
 			$readmemh("./ci/dhrystone.riscv.verilog", mem);
-			for ( i = 0; i < ITCM_DP; i = i + 1 ) begin
-				if ( | (mem[i*16+0] | mem[i*16+1] | mem[i*16+2] | mem[i*16+3]
-						| mem[i*16+4] | mem[i*16+5] | mem[i*16+6] | mem[i*16+7]
-						| mem[i*16+8] | mem[i*16+9] | mem[i*16+10] | mem[i*16+11]
-						| mem[i*16+12] | mem[i*16+13] | mem[i*16+14] | mem[i*16+15]) == 1'b1 ) begin
-					`SRAM_EVE.ram[i][7:0] = mem[i*16+0];
-					`SRAM_EVE.ram[i][15:8] = mem[i*16+1];
-					`SRAM_EVE.ram[i][23:16] = mem[i*16+2];
-					`SRAM_EVE.ram[i][31:24] = mem[i*16+3];	
-					`SRAM_EVE.ram[i][32 +: 8] = mem[i*16+4];
-					`SRAM_EVE.ram[i][40 +: 8] = mem[i*16+5];
-					`SRAM_EVE.ram[i][48 +: 8] = mem[i*16+6];
-					`SRAM_EVE.ram[i][56 +: 8] = mem[i*16+7];
-
-					`SRAM_ODD.ram[i][7:0] = mem[i*16+8];
-					`SRAM_ODD.ram[i][15:8] = mem[i*16+9];
-					`SRAM_ODD.ram[i][23:16] = mem[i*16+10];
-					`SRAM_ODD.ram[i][31:24] = mem[i*16+11];
-					`SRAM_ODD.ram[i][32 +: 8] = mem[i*16+12];
-					`SRAM_ODD.ram[i][40 +: 8] = mem[i*16+13];
-					`SRAM_ODD.ram[i][48 +: 8] = mem[i*16+14];
-					`SRAM_ODD.ram[i][56 +: 8] = mem[i*16+15];
-
+			for ( i = 0; i < DP; i = i + 1 ) begin
+				for ( by = 0; by < 8; by = by + 1 ) begin
+					if ( | mem[i*8+by] ) begin
+						`SRAM.ram[i][8*by +: 8] = mem[i*8+by];
+					end
+					else begin
+						`SRAM.ram[i][8*by +: 8] = 8'h0;
+					end
 				end
-				else begin
-					`SRAM_EVE.ram[i][7:0] = 8'h0;
-					`SRAM_EVE.ram[i][15:8] = 8'h0;
-					`SRAM_EVE.ram[i][23:16] = 8'h0;
-					`SRAM_EVE.ram[i][31:24] = 8'h0;
-					`SRAM_EVE.ram[i][32 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][40 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][48 +: 8] = 8'h0;
-					`SRAM_EVE.ram[i][56 +: 8] = 8'h0;
-
-					`SRAM_ODD.ram[i][7:0] = 8'h0;
-					`SRAM_ODD.ram[i][15:8] = 8'h0;
-					`SRAM_ODD.ram[i][23:16] = 8'h0;
-					`SRAM_ODD.ram[i][31:24] = 8'h0;
-					`SRAM_ODD.ram[i][32 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][40 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][48 +: 8] = 8'h0;
-					`SRAM_ODD.ram[i][56 +: 8] = 8'h0;
-
-				end
-
 
 				// $display("ITCM %h: %h,%h", i*4,`SRAM_ODD.ram[i],`SRAM_EVE.ram[i]);
 			end
@@ -136,65 +99,15 @@ end
 
 
 
-`define UART_TX `SRAM_EVE.ram[1280][7:0]
-`define TIMER   `SRAM_EVE.ram[1536][7:0]
-`define COTRL   `SRAM_EVE.ram[1792][7:0]
-
-reg [63:0] cycle_cnt;
-always @(negedge CLK or negedge RSTn) begin
-	if (~RSTn) begin
-		cycle_cnt <= 0;
-	end
-	else begin
-		if (`TIMER == 8'h1 ) begin
-			cycle_cnt <= cycle_cnt + 1;
-		end
-		else begin
-			cycle_cnt <= cycle_cnt;
-		end
-	end
-
-
-end
 
 
 
 
-
-
-
-always @(negedge CLK) begin
-	if (`UART_TX != 8'b0) begin
-		$write("%c",`UART_TX);
-		`UART_TX = 8'h0;
-	end
-end
-
-integer file;
-always @(negedge CLK ) begin
-	if (`COTRL == 8'd1) begin
-
-		$display("cycle_cnt = %d", cycle_cnt);
-		$display( "The DMIPS/MHz is %f", 1000000.0/(cycle_cnt/5.0)/1757.0 );
-
-
-		file = $fopen("./ci/dhrystone.json", "w");
-
-		$fwrite(file, "{\n  \"schemaVersion\": 1, \n  \"label\": \"dhrystone\", \n  \"message\": \"%f\", \n  \"color\": \"ff69b4\" \n}", 1000000.0/(cycle_cnt/5.0)/1757.0 );
-		$fclose(file);
-
-		$finish;
-
-	end
-end
-
-
-
-initial
-begin
-	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
-	$dumpvars(0, riftChip_DS);//tb模块名称
-end
+// initial
+// begin
+// 	$dumpfile("./build/wave.vcd"); //生成的vcd文件名称
+// 	$dumpvars(0, riftChip_DS);//tb模块名称
+// end
 
 endmodule
 

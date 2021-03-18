@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-12-22 10:50:16
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:29
+* @Last Modified time: 2021-03-11 19:19:01
 */
 
 
@@ -249,19 +249,25 @@ module mul #(
 	assign valid_dnxt = (~flush) & (mul_valid | div_valid);
 
 
-	wire ready_dnxt;
+	wire ready_set;
+	wire ready_rst;
 
-	assign ready_dnxt = (mul_exeparam_valid & 1'b0)
-						|
-						(valid_dnxt & 1'b1)
-						|
-						(~mul_exeparam_valid & ~valid_dnxt & mul_execute_ready);
+	assign ready_set = (mul_valid | div_valid) | flush;
+	assign ready_rst = ~ready_set & mul_exeparam_valid & ~flush;
+
+	// assign ready_dnxt = (mul_exeparam_valid & 1'b0)
+	// 					|
+	// 					(valid_dnxt & 1'b1)
+	// 					|
+	// 					(~mul_exeparam_valid & ~valid_dnxt & mul_execute_ready);
+	// 					|
+	// 					flush
 
 
 	gen_dffr # (.DW((5+`RB))) mul_rd0 ( .dnxt(mul_rd0_dnxt), .qout(mul_rd0_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(64)) mul_res ( .dnxt(mul_res_dnxt), .qout(mul_res_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_dffr # (.DW(1)) valid ( .dnxt(valid_dnxt), .qout(mul_writeback_valid), .CLK(CLK), .RSTn(RSTn));
-	gen_dffr # (.DW(1), .rstValue(1'b1)) ready ( .dnxt(ready_dnxt), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
+	gen_rsffr # (.DW(1), .rstValue(1'b1)) ready_rsffr ( .set_in(ready_set), .rst_in(ready_rst), .qout(mul_execute_ready), .CLK(CLK), .RSTn(RSTn));
 
 
 

@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2021-01-14 17:44:08
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-15 14:36:11
+* @Last Modified time: 2021-03-17 16:12:53
 */
 
 
@@ -169,14 +169,14 @@ module axi4_lite_slave
 	wire axi_araddr_en;
 	wire axi_rvalid_set, axi_rvalid_rst, axi_rvalid_qout;
 
-	assign axi_bvalid_set = axi_awready && S_AXI_AWVALID && ~axi_bvalid && axi_wready && S_AXI_WVALID;
-	assign axi_bvalid_rst = ~axi_bvalid_set & (S_AXI_BREADY && axi_bvalid);
-	assign axi_arready_set = (~axi_arready && S_AXI_ARVALID);
-	assign axi_bvalid_rst = ~axi_arready_set;
+	assign axi_bvalid_set = axi_awready_qout && S_AXI_AWVALID && ~axi_bvalid_qout && axi_wready_qout && S_AXI_WVALID;
+	assign axi_bvalid_rst = ~axi_bvalid_set & (S_AXI_BREADY && axi_bvalid_qout);
+	assign axi_arready_set = (~axi_arready_qout && S_AXI_ARVALID);
+	assign axi_arready_rst = ~axi_arready_set;
 	assign axi_araddr_dnxt = S_AXI_ARADDR;
-	assign axi_araddr_en = (~axi_arready & S_AXI_ARVALID);
-	assign axi_rvalid_set = (axi_arready & S_AXI_ARVALID & ~axi_rvalid);
-	assign axi_rvalid_rst = ~axi_rvalid_set & (axi_rvalid & S_AXI_RREADY);
+	assign axi_araddr_en = (~axi_arready_qout & S_AXI_ARVALID);
+	assign axi_rvalid_set = (axi_arready_qout & S_AXI_ARVALID & ~axi_rvalid_qout);
+	assign axi_rvalid_rst = ~axi_rvalid_set & (axi_rvalid_qout & S_AXI_RREADY);
 
 	gen_rsffr #(.DW(1)) axi_bvalid_rsffr (.set_in(axi_bvalid_set), .rst_in(axi_bvalid_rst), .qout(axi_bvalid_qout), .CLK(CLK), .RSTn(RSTn));
 	gen_rsffr #(.DW(1)) axi_arready_rsffr (.set_in(axi_arready_set), .rst_in(axi_arready_rst), .qout(axi_arready_qout), .CLK(CLK), .RSTn(RSTn));

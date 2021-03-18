@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-09-11 15:41:55
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-07 10:09:23
+* @Last Modified time: 2021-03-17 09:25:07
 */
 
 /*
@@ -43,10 +43,15 @@ module commit (
 	output reOrder_fifo_pop,
 
 	input isMisPredict,
-	input isLsuAccessFault,
+	input isLSUAccessFault,
+	input isLSUMisAlign,
+	input [63:0] lsu_trap_addr,
+
 	output commit_abort,
 	output [63:0] commit_pc,
-	output suILP_ready,
+	// output suILP_ready,
+	output isSuCommited,
+	output isFenceCommited,
 	output bruILP_ready,
 
 	output [63:0] privileged_pc,
@@ -75,6 +80,7 @@ module commit (
 
 	wire isSu;
 	wire isLu;
+	wire isFence;
 	wire isCsr;
 
 	wire isEcall;
@@ -82,20 +88,26 @@ module commit (
 	wire isMret;
 	wire isInstrAccessFault;
 	wire isIlleage;
-	wire isLoadAccessFault;
-	wire isStoreAccessFault;
+	wire isLoadAccessFault_ACK;
+	wire isStoreAccessFault_ACK;
+	wire isLoadMisAlign_ACK;
+	wire isStoreMisAlign_ACK;
 
 	wire csrILP_ready = isCsr;
 
 	wire commit_wb;
 	wire commit_comfirm;
 
-	assign suILP_ready = isSu;
+	assign isSuCommited = isSu & commit_wb;
+	assign isFenceCommited = isFence & commit_wb;
+	
 	assign bruILP_ready = isBranch;
-	assign isLoadAccessFault = isLsuAccessFault & isLu & commit_wb;
-	assign isStoreAccessFault =  isLsuAccessFault & isSu & commit_wb;
+	assign isLoadAccessFault_ACK = isLSUAccessFault & isLu & ~commit_wb;
+	assign isStoreAccessFault_ACK = isLSUAccessFault & isSu & ~commit_wb;
+	assign isLoadMisAlign_ACK = isLSUMisAlign & isLu & ~commit_wb;
+	assign isStoreMisAlign_ACK = isLSUMisAlign & isSu & ~commit_wb;
 
-	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
+	assign {commit_pc, commit_rd0, isBranch, isLu, isSu, isFence, isCsr, isEcall, isEbreak, isMret, isInstrAccessFault, isIlleage} = commit_fifo;
 
 	assign commit_abort = (~reOrder_fifo_empty) & 
 							((isBranch & isMisPredict) 
@@ -176,7 +188,15 @@ wire isSoftInterrupt = mip_csr_out[3] & mie_csr_out[3] & mstatus_csr_out[3];
 
 wire isInterrupt = isExInterrupt | isTimeInterrupt | isSoftInterrupt;
 
-assign isException = isEcall | isEbreak | isInstrAccessFault | isIlleage | isLoadAccessFault | isStoreAccessFault;
+assign isException =
+				  isEcall
+				| isEbreak
+				| isInstrAccessFault
+				| isIlleage
+				| isLoadAccessFault_ACK
+				| isStoreAccessFault_ACK
+				| isLoadMisAlign_ACK
+				| isStoreMisAlign_ACK;
 
 assign mcause_except_in[63] = isInterrupt;
 assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd11)
@@ -186,16 +206,18 @@ assign mcause_except_in[62:0] = ({63{isEcall}} & 63'd11)
 								| ( {63{isSoftInterrupt}} & 63'd3 )
 								| ( {63{isIlleage}} & 63'd2 )
 								| ( {63{isInstrAccessFault}} & 63'd1 )
-								| ( {63{isLoadAccessFault}} & 63'd5 )
-								| ( {63{isStoreAccessFault}} & 63'd7 );
+								| ( {63{isLoadAccessFault_ACK}} & 63'd5 )
+								| ( {63{isStoreAccessFault_ACK}} & 63'd7 )
+								| ( {63{isLoadMisAlign_ACK}} & 63'd4 )
+								| ( {63{isStoreMisAlign_ACK}} & 63'd6 );
 
 //Exception nedd undo, interrupt comes from outside and will no pop commit_pc
 assign mepc_except_in = ({64{isException}} & commit_pc)
 						|
 						({64{isInterrupt}} & commit_pc);
 
-initial $warning("will not show what happen in this version");
-assign mtval_except_in = 64'b0;
+
+assign mtval_except_in = ( {64{isLoadAccessFault_ACK | isStoreAccessFault_ACK | isLoadMisAlign_ACK | isStoreMisAlign_ACK}} & lsu_trap_addr);
 
 
 assign mstatus_except_in[2:0] = 3'b0;

@@ -2,7 +2,7 @@
 * @Author: Ruige Lee
 * @Date:   2021-02-01 11:27:23
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-02 14:46:18
+* @Last Modified time: 2021-03-18 16:04:12
 */
 // See LICENSE for license details.
 
@@ -72,7 +72,7 @@ int main (int argc, char** argv)
 	REG   int             Number_Of_Runs;
 
 	/* Arguments */
-	Number_Of_Runs = 5;
+	Number_Of_Runs = 500;
 
 	/* Initializations */
 
@@ -107,7 +107,7 @@ int main (int argc, char** argv)
 	printf("\n");
 
 
-	volatile uint8_t* timer = (uint8_t*)(0x80006000);
+	volatile uint8_t* timer = (uint8_t*)(0x20000008);
 	printf("Trying %d runs through Dhrystone:\n", Number_Of_Runs);
 	
 	*timer = 1;
@@ -260,7 +260,7 @@ int main (int argc, char** argv)
 	// tb_printf("Microseconds for one run through Dhrystone: %ld\n", Microseconds);
 	// tb_printf("Dhrystones per Second:                      %ld\n", Dhrystones_Per_Second);
 
-	volatile uint8_t* COTRL = (uint8_t*)(0x80007000);
+	volatile uint8_t* COTRL = (uint8_t*)(0x20000010);
 	*COTRL = 1;
 
 	return 0;

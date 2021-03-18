@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-02 17:24:26
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-02-07 10:16:28
+* @Last Modified time: 2021-03-17 10:10:10
 */
 
 /*
@@ -28,25 +28,47 @@
 `include "define.vh"
 
 module backEnd (
-	output [63:0] LSU_AWADDR,
-	output [2:0] LSU_AWPROT,
-	output LSU_AWVALID,
-	input LSU_AWREADY,
-	output [63:0] LSU_WDATA,
-	output [7:0] LSU_WSTRB,
-	output LSU_WVALID,
-	input LSU_WREADY,
-	input [1:0] LSU_BRESP,
-	input LSU_BVALID,
-	output LSU_BREADY,
-	output [63:0] LSU_ARADDR,
-	output [2:0] LSU_ARPROT,
-	output LSU_ARVALID,
-	input LSU_ARREADY,
-	input [63:0] LSU_RDATA,
-	input [1:0] LSU_RRESP,
-	input LSU_RVALID,
-	output LSU_RREADY,
+	output [31:0] DL1_AWADDR,
+	output [7:0] DL1_AWLEN,
+	output [1:0] DL1_AWBURST,
+	output DL1_AWVALID,
+	input DL1_AWREADY,
+	output [63:0] DL1_WDATA,
+	output [7:0] DL1_WSTRB,
+	output DL1_WLAST,
+	output DL1_WVALID,
+	input DL1_WREADY,
+	input [1:0] DL1_BRESP,
+	input DL1_BVALID,
+	output DL1_BREADY,
+	output [31:0] DL1_ARADDR,
+	output [7:0] DL1_ARLEN,
+	output [1:0] DL1_ARBURST,
+	output DL1_ARVALID,
+	input DL1_ARREADY,
+	input [63:0] DL1_RDATA,
+	input [1:0] DL1_RRESP,
+	input DL1_RLAST,
+	input DL1_RVALID,
+	output DL1_RREADY,
+
+	output [31:0] SYS_AWADDR,
+	output SYS_AWVALID,
+	input SYS_AWREADY,
+	output [63:0] SYS_WDATA,
+	output [7:0] SYS_WSTRB,
+	output SYS_WVALID,
+	input SYS_WREADY,
+	input [1:0] SYS_BRESP,
+	input SYS_BVALID,
+	output SYS_BREADY,
+	output [31:0] SYS_ARADDR,
+	output SYS_ARVALID,
+	input SYS_ARREADY,
+	input [63:0] SYS_RDATA,
+	input [1:0] SYS_RRESP,
+	input SYS_RVALID,
+	output SYS_RREADY,
 
 	output lsu_fencei_valid,
 
@@ -71,6 +93,11 @@ module backEnd (
 	output [63:0] privileged_pc,
 	output privileged_valid,
 
+
+	output l2c_fence,
+	input l2c_fence_end,
+	output l3c_fence,
+	input l3c_fence_end,
 
 	input CLK,
 	input RSTn
@@ -118,6 +145,8 @@ module backEnd (
 	wire [`MUL_ISSUE_INFO_DW-1:0] mul_issue_info;
 
 
+
+
 	//issue to execute
 	wire alu_exeparam_valid;
 	wire [`ALU_EXEPARAM_DW-1:0] alu_exeparam;
@@ -126,12 +155,13 @@ module backEnd (
 	wire [`BRU_EXEPARAM_DW-1:0] bru_exeparam;
 	wire csr_exeparam_valid;
 	wire [`CSR_EXEPARAM_DW-1 :0] csr_exeparam;
-	wire lsu_exeparam_ready;
-	wire lsu_exeparam_valid;
-	wire [`LSU_EXEPARAM_DW-1:0] lsu_exeparam;
+	wire issue_lsu_ready;
+	wire issue_lsu_valid;
+	wire [`LSU_EXEPARAM_DW-1:0] issue_lsu_info;
 	wire mul_exeparam_valid;
 	wire mul_execute_ready;
 	wire [`MUL_EXEPARAM_DW-1 :0] mul_exeparam;
+
 
 
 	//execute to writeback
@@ -141,9 +171,9 @@ module backEnd (
 	wire bru_writeback_valid;
 	wire [(5+`RB-1):0] bru_rd0;
 	wire [63:0] bru_res;
-	wire lsu_writeback_valid;
-	wire [(5+`RB-1):0] lsu_rd0;
-	wire [63:0] lsu_res;
+	wire lsu_wb_valid;
+	wire [(5+`RB-1):0] lsu_wb_rd0;
+	wire [63:0] lsu_wb_res;
 	wire csr_writeback_valid;
 	wire [(5+`RB-1):0] csr_rd0;
 	wire [63:0] csr_res;
@@ -151,8 +181,9 @@ module backEnd (
 	wire [(5+`RB-1):0] mul_rd0;
 	wire [63:0] mul_res;
 
-	wire suILP_ready;
 	wire bruILP_ready;
+	wire isSuCommited;
+	wire isFenceCommited;
 //C3
 
 
@@ -200,7 +231,9 @@ module backEnd (
 	wire isTrap;
 	wire isXRet;
 
-	wire isLsuAccessFault;
+	wire isLSUAccessFault;
+	wire isLSUMisAlign;
+	wire [63:0] lsu_trap_addr;
 
 
 dispatch i_dispatch(
@@ -395,14 +428,12 @@ lsu_issue i_lsuIssue(
 	.lsu_fifo_empty(lsu_fifo_empty),
 	.lsu_issue_info(lsu_issue_info),
 
-	.lsu_exeparam_ready(lsu_exeparam_ready),
-	.lsu_exeparam_valid_qout(lsu_exeparam_valid),
-	.lsu_exeparam_qout(lsu_exeparam),
+	.issue_lsu_ready (issue_lsu_ready),
+	.issue_lsu_valid (issue_lsu_valid),
+	.issue_lsu_info  (issue_lsu_info),
 
 	.regFileX_read(regFileX_qout),
 	.wbLog_qout(wbLog_qout),
-
-	.suILP_ready(suILP_ready),
 
 	.flush(flush),
 	.CLK(CLK),
@@ -488,43 +519,119 @@ csr i_csr(
 	.flush(flush)
 );
 
-lsu i_lsu(
-	.LSU_AWADDR(LSU_AWADDR),
-	.LSU_AWPROT(LSU_AWPROT),
-	.LSU_AWVALID(LSU_AWVALID),
-	.LSU_AWREADY(LSU_AWREADY),
-	.LSU_WDATA(LSU_WDATA),
-	.LSU_WSTRB(LSU_WSTRB),
-	.LSU_WVALID(LSU_WVALID),
-	.LSU_WREADY(LSU_WREADY),
-	.LSU_BRESP(LSU_BRESP),
-	.LSU_BVALID(LSU_BVALID),
-	.LSU_BREADY(LSU_BREADY),
-	.LSU_ARADDR(LSU_ARADDR),
-	.LSU_ARPROT(LSU_ARPROT),
-	.LSU_ARVALID(LSU_ARVALID),
-	.LSU_ARREADY(LSU_ARREADY),
-	.LSU_RDATA(LSU_RDATA),
-	.LSU_RRESP(LSU_RRESP),
-	.LSU_RVALID(LSU_RVALID),
-	.LSU_RREADY(LSU_RREADY),
+// lsu i_lsu(
+// 	.LSU_AWADDR(LSU_AWADDR),
+// 	.LSU_AWPROT(LSU_AWPROT),
+// 	.LSU_AWVALID(LSU_AWVALID),
+// 	.LSU_AWREADY(LSU_AWREADY),
+// 	.LSU_WDATA(LSU_WDATA),
+// 	.LSU_WSTRB(LSU_WSTRB),
+// 	.LSU_WVALID(LSU_WVALID),
+// 	.LSU_WREADY(LSU_WREADY),
+// 	.LSU_BRESP(LSU_BRESP),
+// 	.LSU_BVALID(LSU_BVALID),
+// 	.LSU_BREADY(LSU_BREADY),
+// 	.LSU_ARADDR(LSU_ARADDR),
+// 	.LSU_ARPROT(LSU_ARPROT),
+// 	.LSU_ARVALID(LSU_ARVALID),
+// 	.LSU_ARREADY(LSU_ARREADY),
+// 	.LSU_RDATA(LSU_RDATA),
+// 	.LSU_RRESP(LSU_RRESP),
+// 	.LSU_RVALID(LSU_RVALID),
+// 	.LSU_RREADY(LSU_RREADY),
+
+// 	.lsu_fencei_valid(lsu_fencei_valid),
+
+// 	.lsu_exeparam_ready(lsu_exeparam_ready),
+// 	.lsu_exeparam_valid(lsu_exeparam_valid),
+// 	.lsu_exeparam(lsu_exeparam),
+	
+// 	.lsu_writeback_valid(lsu_writeback_valid),
+// 	.lsu_res_qout(lsu_res),
+// 	.lsu_rd0_qout(lsu_rd0),
+
+// 	.isLsuAccessFault(isLsuAccessFault),
+
+// 	.flush(flush),
+// 	.CLK(CLK),
+// 	.RSTn(RSTn)
+// );
+
+
+lsu i_lsu 
+(
+	.DL1_AWADDR      (DL1_AWADDR),
+	.DL1_AWLEN       (DL1_AWLEN),
+	.DL1_AWBURST     (DL1_AWBURST),
+	.DL1_AWVALID     (DL1_AWVALID),
+	.DL1_AWREADY     (DL1_AWREADY),
+	.DL1_WDATA       (DL1_WDATA),
+	.DL1_WSTRB       (DL1_WSTRB),
+	.DL1_WLAST       (DL1_WLAST),
+	.DL1_WVALID      (DL1_WVALID),
+	.DL1_WREADY      (DL1_WREADY),
+	.DL1_BRESP       (DL1_BRESP),
+	.DL1_BVALID      (DL1_BVALID),
+	.DL1_BREADY      (DL1_BREADY),
+	.DL1_ARADDR      (DL1_ARADDR),
+	.DL1_ARLEN       (DL1_ARLEN),
+	.DL1_ARBURST     (DL1_ARBURST),
+	.DL1_ARVALID     (DL1_ARVALID),
+	.DL1_ARREADY     (DL1_ARREADY),
+	.DL1_RDATA       (DL1_RDATA),
+	.DL1_RRESP       (DL1_RRESP),
+	.DL1_RLAST       (DL1_RLAST),
+	.DL1_RVALID      (DL1_RVALID),
+	.DL1_RREADY      (DL1_RREADY),
+
+	.SYS_AWADDR     (SYS_AWADDR),
+	.SYS_AWVALID    (SYS_AWVALID),
+	.SYS_AWREADY    (SYS_AWREADY),
+	.SYS_WDATA      (SYS_WDATA),
+	.SYS_WSTRB      (SYS_WSTRB),
+	.SYS_WVALID     (SYS_WVALID),
+	.SYS_WREADY     (SYS_WREADY),
+	.SYS_BRESP      (SYS_BRESP),
+	.SYS_BVALID     (SYS_BVALID),
+	.SYS_BREADY     (SYS_BREADY),
+	.SYS_ARADDR     (SYS_ARADDR),
+	.SYS_ARVALID    (SYS_ARVALID),
+	.SYS_ARREADY    (SYS_ARREADY),
+	.SYS_RDATA      (SYS_RDATA),
+	.SYS_RRESP      (SYS_RRESP),
+	.SYS_RVALID     (SYS_RVALID),
+	.SYS_RREADY     (SYS_RREADY),
 
 	.lsu_fencei_valid(lsu_fencei_valid),
 
-	.lsu_exeparam_ready(lsu_exeparam_ready),
-	.lsu_exeparam_valid(lsu_exeparam_valid),
-	.lsu_exeparam(lsu_exeparam),
-	
-	.lsu_writeback_valid(lsu_writeback_valid),
-	.lsu_res_qout(lsu_res),
-	.lsu_rd0_qout(lsu_rd0),
+	.issue_lsu_ready (issue_lsu_ready),
+	.issue_lsu_valid (issue_lsu_valid),
+	.issue_lsu_info  (issue_lsu_info),
+	.lsu_wb_valid    (lsu_wb_valid),
+	.lsu_wb_res      (lsu_wb_res),
+	.lsu_wb_rd0      (lsu_wb_rd0),
 
-	.isLsuAccessFault(isLsuAccessFault),
+	.isSuCommited    (isSuCommited),
+	.isFenceCommited (isFenceCommited),
+	.isLSUAccessFault (isLSUAccessFault),
+	.isLSUMisAlign    (isLSUMisAlign),
+	.lsu_trap_addr   (lsu_trap_addr),
 
-	.flush(flush),
-	.CLK(CLK),
-	.RSTn(RSTn)
+
+	.flush           (flush),
+	.l2c_fence       (l2c_fence),
+	.l2c_fence_end   (l2c_fence_end),
+	.l3c_fence       (l3c_fence),
+	.l3c_fence_end   (l3c_fence_end),
+
+	.CLK             (CLK),
+	.RSTn            (RSTn)
 );
+
+
+
+
+
 
 mul i_mul(
 	.mul_exeparam_valid(mul_exeparam_valid),
@@ -561,9 +668,9 @@ writeBack i_writeBack(
 	.bru_res(bru_res),
 	.bru_rd0(bru_rd0),
 
-	.lsu_writeback_valid(lsu_writeback_valid),
-	.lsu_rd0(lsu_rd0),
-	.lsu_res(lsu_res),
+	.lsu_writeback_valid(lsu_wb_valid),
+	.lsu_rd0(lsu_wb_rd0),
+	.lsu_res(lsu_wb_res),
 
 	.csr_writeback_valid(csr_writeback_valid),
 	.csr_rd0(csr_rd0),
@@ -591,12 +698,15 @@ commit i_commit(
 	.commit_fifo(commit_info),
 
 	.isMisPredict(isMisPredict),
-	.isLsuAccessFault(isLsuAccessFault),
+	.isLSUAccessFault (isLSUAccessFault),
+	.isLSUMisAlign    (isLSUMisAlign),
+	.lsu_trap_addr     (lsu_trap_addr),
 
 	.commit_abort(commit_abort),
 	.commit_pc(commit_pc),
 	.bruILP_ready(bruILP_ready),
-	.suILP_ready(suILP_ready),
+	.isSuCommited      (isSuCommited),
+	.isFenceCommited   (isFenceCommited),
 
 	.privileged_pc(privileged_pc),
 	.isTrap(isTrap),
