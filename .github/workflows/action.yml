@@ -155,8 +155,7 @@ jobs:
           cd ~/riscv-tests/benchmarks
           make all
 
-
-      - name: Test ISA
+      - name: Test simple
         run: |
           export PATH=$PATH:~/bin
           export RISCV=~/RISCV
@@ -164,47 +163,78 @@ jobs:
           cd ~/riscv-tests/isa
           cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
           cd /home/runner/work/RiftCore/RiftCore/tb
-          export PATH=$PATH:~/bin
-          python CI.py
-  
-      - name: Restore Data
-        run: |
-          cd /home/runner/work/RiftCore/RiftCore/
-          git fetch --all
-          git checkout origin/gh-pages data/performance.js
-          cp data/performance.js tb/ci/
-          cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
+          export PATH=$PATH:~/bin          
+          iverilog -Wall -o ./build/wave.iverilog  -y ../RiftChip/ -y ../RiftChip/riftCore/ -y ../RiftChip/riftCore/backend  -y ../RiftChip/riftCore/cache  -y ../RiftChip/riftCore/backend/issue  -y ../RiftChip/riftCore/backend/execute  -y ../RiftChip/riftCore/frontend  -y ../RiftChip/element -y ../RiftChip/Soc -y ../RiftChip/SoC/xilinx_IP/axi_full_Xbar -y ../RiftChip/debug -y ../tb  -I ../tb  -I ../RiftChip/  -I ../RiftChip/SoC/xilinx_IP/axi_full_Xbar ../tb/riftChip_TB.v
+          vvp.exe  -N ./build/wave.iverilog -lxt2
 
-      - name: Run Dhrystone
-        run: |
-          export PATH=$PATH:~/bin
-          cd /home/runner/work/RiftCore/RiftCore/tb  
-          python DS.py    
 
       - name: Commit
         run: |
           cd ~
           mkdir ./data
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
-          mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.js ~/data/
+          mv /home/runner/work/RiftCore/RiftCore/tb/build/* ~/data/
           cd /home/runner/work/RiftCore/RiftCore
           git checkout -- .
           git fetch --all
           git checkout gh-pages
-          rm /home/runner/work/RiftCore/RiftCore/data/*.json
-          rm /home/runner/work/RiftCore/RiftCore/data/performance.js
           cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add ./data
           git commit -m "update ci result"
+
+
+
+
+      # - name: Test ISA
+      #   run: |
+      #     export PATH=$PATH:~/bin
+      #     export RISCV=~/RISCV
+      #     export PATH=$PATH:$RISCV/bin
+      #     cd ~/riscv-tests/isa
+      #     cp *.verilog /home/runner/work/RiftCore/RiftCore/tb/ci/
+      #     cd /home/runner/work/RiftCore/RiftCore/tb
+      #     export PATH=$PATH:~/bin
+      #     python CI.py
+  
+      # - name: Restore Data
+      #   run: |
+      #     cd /home/runner/work/RiftCore/RiftCore/
+      #     git fetch --all
+      #     git checkout origin/gh-pages data/performance.js
+      #     cp data/performance.js tb/ci/
+      #     cp ~/riscv-tests/benchmarks/*.verilog tb/ci/
+
+      # - name: Run Dhrystone
+      #   run: |
+      #     export PATH=$PATH:~/bin
+      #     cd /home/runner/work/RiftCore/RiftCore/tb  
+      #     python DS.py    
+
+      # - name: Commit
+      #   run: |
+      #     cd ~
+      #     mkdir ./data
+      #     mv /home/runner/work/RiftCore/RiftCore/tb/ci/*.json ~/data/
+      #     mv /home/runner/work/RiftCore/RiftCore/tb/ci/performance.js ~/data/
+      #     cd /home/runner/work/RiftCore/RiftCore
+      #     git checkout -- .
+      #     git fetch --all
+      #     git checkout gh-pages
+      #     rm /home/runner/work/RiftCore/RiftCore/data/*.json
+      #     rm /home/runner/work/RiftCore/RiftCore/data/performance.js
+      #     cp ~/data/* /home/runner/work/RiftCore/RiftCore/data/
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add ./data
+      #     git commit -m "update ci result"
  
-      - name: push
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          force: true
+      # - name: push
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: gh-pages
+      #     force: true
 
 
 
