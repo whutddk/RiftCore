@@ -6,7 +6,9 @@
 
 --------------------------------------------
 
-RiftCore is a 9-stage, multi-issue, out of order 64-bits RISC-V Core, which supports RV64IMC.
+RiftCore is a 9-stage, single-issue, out of order 64-bits RISC-V Core, which supports RV64IMC and 3-level Cache system.
+
+The further versions will be moved to [Rift2Core](https://github.com/whutddk/Rift2Core). [Chisel3](https://github.com/chipsalliance/chisel3) will be used to develop.
 
 ![architecture](./doc/riftCore%20micro-architecture.png)
 
