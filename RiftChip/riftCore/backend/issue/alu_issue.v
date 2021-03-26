@@ -4,7 +4,7 @@
 * @Email: wut.ruigeli@gmail.com
 * @Date:   2020-11-16 10:00:58
 * @Last Modified by:   Ruige Lee
-* @Last Modified time: 2021-01-03 12:08:28
+* @Last Modified time: 2021-03-26 10:31:15
 */
 
 /*
@@ -166,7 +166,7 @@ generate
 										| ( rv64i_sltiu[i] & rs1_ready[i] )
 										| ( rv64i_slt[i] & rs1_ready[i] & rs2_ready[i] )
 										| ( rv64i_sltu[i] & rs1_ready[i] & rs2_ready[i] )
-										| ( rv64i_xori[i] & rs1_ready[i] & rs2_ready[i] )
+										| ( rv64i_xori[i] & rs1_ready[i] )
 										| ( rv64i_xor[i] & rs1_ready[i] & rs2_ready[i] )
 										| ( rv64i_ori[i] & rs1_ready[i]  )
 										| ( rv64i_or[i] & rs1_ready[i] & rs2_ready[i] )
